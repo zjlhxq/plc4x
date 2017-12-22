@@ -129,7 +129,7 @@
 		<div class="row" id="banner">
 			<div class="span12">
 				<div class="pull-left">
-					<a href="https://iot.gitlab.codecentric.de/plc4x/" id="bannerLeft"><img src="https://iot.gitlab.codecentric.de/plc4x/img/apache_plc4x_logo.png" alt='"'Apache PLC4X (incubating)'"' /></a>
+					<a href="https://plc4x.apache.org/" id="bannerLeft"><img src="https://plc4x.apache.org/img/apache_plc4x_logo.png" alt='"'Apache PLC4X (incubating)'"' /></a>
 					<p class="lead">The industrial IoT adapter</p>
 				</div>
 				<div class="pull-right">
@@ -157,6 +157,7 @@
 					<div class="nav-collapse collapse" id="toc-nav-collapse">
 						<ul id="toc" class="nav">
 						<li class="toplevel"><a href="#generating_the_website" title="Generating the Website">Generating the Website</a></li>
+						<li class="toplevel"><a href="#deploying_the_website" title="Deploying the Website">Deploying the Website</a></li>
 						</ul>
 					</div>
 				</div>
@@ -174,28 +175,31 @@
  </div> 
  <div class="sectionbody"> 
   <div class="paragraph"> 
-   <p>The PLC4X project uses Apache <code>gitpubsub</code> system for maintaining the website.</p> 
+   <p>We are currently using the normal <code>Maven</code> build to not only generate the project artifacts, but also the projects website.</p> 
   </div> 
-  <div class="paragraph"> 
-   <p>In general all content in the repos <code>asf-site</code> branch is copied to the Webservers.</p> 
-  </div> 
-  <div class="paragraph"> 
-   <p>This content is generated during the <code>Maven</code> build as part of the <code>site</code> generation.</p> 
-  </div> 
-  <div class="paragraph"> 
-   <p>As the build system needs to check-in content to our GIT repo to the <code>asf-site</code> branch. Jenkins doesn’t have the credentials to push to repositories on all nodes. Only a small subset of the nodes are configured to do this.</p> 
-  </div> 
-  <div class="paragraph"> 
-   <p>In oder to be able to push the site changes, nodes with the label <code>git-websites</code> have to be used.</p> 
-  </div> 
-  <div class="paragraph"> 
-   <p>In order to have the <code>gitbox</code> system automatically deploy the content, we finally need to add an entry to this config file: <a href="https://svn.apache.org/repos/infra/infrastructure/buildbot/aegis/buildmaster/master1/projects/cms.conf" class="bare">https://svn.apache.org/repos/infra/infrastructure/buildbot/aegis/buildmaster/master1/projects/cms.conf</a></p> 
-  </div> 
-  <div class="paragraph"> 
-   <p>As our build now requires to run on <code>buildbot</code>, we need to ensure all required software is installed on the build machine.</p> 
-  </div> 
-  <div class="paragraph"> 
-   <p>If something is missing, this has to be added to the following resource: <a href="https://github.com/apache/infrastructure-puppet/blob/deployment/data/nodes/bb-slave1.apache.org.yaml" class="bare">https://github.com/apache/infrastructure-puppet/blob/deployment/data/nodes/bb-slave1.apache.org.yaml</a></p> 
+  <div class="sect2"> 
+   <h3 id="deploying_the_website">Deploying the Website</h3> 
+   <div class="paragraph"> 
+    <p>The PLC4X project uses Apache <code>gitpubsub</code> system for maintaining the website.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>In general all content in a repos <code>asf-site</code> branch is copied to the Webservers, if that repo is registered for it.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>This content in this branch is generated and maintained during the <code>Maven</code> build as part of the <code>site</code> generation.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>The build system needs to check-in content to the <code>asf-site</code> branch and usually Jenkins machines don’t have the permissions to push to git.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>In order to be able to push to the <code>asf-site</code> git branch, a dedicated build job is configured to build on nodes with the Jenkins label <code>git-websites</code>. Only on these machines are jobs allowed to push changes to a Git repo and here only to a branch named <code>asf-site</code>.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>See <a href="https://builds.apache.org/view/M-R/job/PLC4X/job/PLC4X%20Site/" class="bare">https://builds.apache.org/view/M-R/job/PLC4X/job/PLC4X%20Site/</a> for details on the PLC4X Jenkins build job.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>As soon as content is updated in the <code>asf-site</code> the <code>gitpubsub</code> mechanism will make those changes available at <a href="https://plc4x.apache.org" class="bare">https://plc4x.apache.org</a></p> 
+   </div> 
   </div> 
  </div> 
 </div>
