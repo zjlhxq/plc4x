@@ -260,82 +260,16 @@
   </div> 
   <div class="sect2"> 
    <h3 id="interaction_with_an_s7_plc">Interaction with an S7 PLC</h3> 
-   <div class="listingblock"> 
+   <div class="imageblock"> 
     <div class="content"> 
-     <pre>Failed to generate image: Could not find the 'seqdiag', 'seqdiag3' executable in PATH; add it to the PATH or specify its location using the 'seqdiag' document attribute
-{
-    group Client {
-        Client;
-    }
-
-    group PLC {
-        &quot;ISO TP&quot;;
-        S7;
-    }
-
-    === Connect ===
-
-    Client -&gt; &quot;ISO TP&quot; [label = &quot;Connection Request&quot;]
-    Client &lt;- &quot;ISO TP&quot; [label = &quot;Connection Response&quot;]
-    Client -&gt; &quot;ISO TP&quot; [label = &quot;Setup Communication Request&quot;]
-              &quot;ISO TP&quot; -&gt;  S7 [label = &quot;Setup Communication&quot;]
-              &quot;ISO TP&quot; &lt;-- S7
-    Client &lt;- &quot;ISO TP&quot; [label = &quot;Setup Communication Response&quot;]
-
-    === Read ===
-
-    Client -&gt; &quot;ISO TP&quot; [label = &quot;Read Request&quot;]
-              &quot;ISO TP&quot; -&gt;  S7 [label = &quot;Read&quot;]
-              &quot;ISO TP&quot; &lt;-- S7
-    Client &lt;- &quot;ISO TP&quot; [label = &quot;Read Response&quot;]
-
-    === Write ===
-
-    Client -&gt; &quot;ISO TP&quot; [label = &quot;Write Request&quot;]
-              &quot;ISO TP&quot; -&gt;  S7 [label = &quot;Write&quot;]
-              &quot;ISO TP&quot; &lt;-- S7
-    Client &lt;- &quot;ISO TP&quot; [label = &quot;Write Response&quot;]
-}</pre> 
+     <img src="../../img/s7-interaction.png" alt="s7 interaction" width="640" height="1275" /> 
     </div> 
    </div> 
    <div class="sect3"> 
     <h4 id="structure_of_a_connection_request">Structure of a Connection Request</h4> 
-    <div class="listingblock"> 
+    <div class="imageblock"> 
      <div class="content"> 
-      <pre>Failed to generate image: Could not find the 'packetdiag', 'packetdiag3' executable in PATH; add it to the PATH or specify its location using the 'packetdiag' document attribute
-{
-    colwidth = 32
-
-    // ISO on TCP
-    * ISO on TCP Magic Number (0x03) [len = 8, color = &quot;#068D9D&quot;]
-    * Reserved (0x00) [len = 8, color = &quot;#068D9D&quot;]
-    * Packet Length (including ISO on TCP header) [len = 16, color = &quot;#068D9D&quot;]
-
-    // ISO Transport Protocol
-    * ISO TP Header Length\n(excluding length byte) [len = 8, color = &quot;#53599A&quot;]
-    * TPDU-Code\n(CR = 0xE0) [len = 4, color = &quot;#AEECEF&quot;]
-    * Signal CDT\n(0x00) [len = 4, color = &quot;#53599A&quot;]
-    // ISO TP Header (Fixed Part)
-    * Destination Reference [len = 16, color = &quot;#53599A&quot;]
-    * Source Reference [len = 16, color = &quot;#53599A&quot;]
-    * Protocol Class\n(Class 0 = 0x00) [len = 8, color = &quot;#53599A&quot;]
-
-    // ISO TP Header (Variable Part / Parameters)
-    * Parameter Code\n(TPDU Size = 0xC0) [len = 8, color = &quot;#53599A&quot;]
-    * Parameter Length\n(1 = 0x01) [len = 8, color = &quot;#53599A&quot;]
-    * Parameter Value\n(TPDU Size 1024 = 0x0A) [len = 8, color = &quot;#53599A&quot;]
-
-    * Parameter Code\n(Calling TSAP = 0xC1) [len = 8, color = &quot;#53599A&quot;]
-    * Parameter Length (2 = 0x02) [len = 8, color = &quot;#53599A&quot;]
-    * Device Group\n(PG/PC = 0x01) [len = 8, color = &quot;#53599A&quot;]
-    * TSAP Id (0x00) [len = 8, color = &quot;#53599A&quot;]
-
-    * Parameter Code\n(Called TSAP = 0xC2) [len = 8, color = &quot;#53599A&quot;]
-    * Parameter Length (2 = 0x02) [len = 8, color = &quot;#53599A&quot;]
-    * Device Group\n(Others = 0x03) [len = 8, color = &quot;#53599A&quot;]
-    * Rack Number[len = 4, color = &quot;#80DED9&quot;]
-    * Slot Number[len = 4, color = &quot;#80DED9&quot;]
-}</pre> 
+      <img src="../../img/s7-connection-request.svg" alt="s7 connection request" width="896" height="360" /> 
      </div> 
     </div> 
     <div class="paragraph"> 
@@ -358,43 +292,9 @@
    </div> 
    <div class="sect3"> 
     <h4 id="structure_of_a_setup_communication_request">Structure of a Setup Communication Request</h4> 
-    <div class="listingblock"> 
+    <div class="imageblock"> 
      <div class="content"> 
-      <pre>Failed to generate image: no implicit conversion of nil into String
-{
-    colwidth = 32
-
-    // ISO on TCP
-    * ISO on TCP Magic Number (0x03) [len = 8, color = &quot;#068D9D&quot;]
-    * Reserved (0x00) [len = 8, color = &quot;#068D9D&quot;]
-    * Packet Length (including ISO on TCP header) [len = 16, color = &quot;#068D9D&quot;]
-
-    // ISO Transport Protocol
-    * ISO TP Header Length\n(excluding length byte) [len = 8, color = &quot;#53599A&quot;]
-    * TPDU-Code\n(Data = 0xF0) [len = 4, color = &quot;#AEECEF&quot;]
-    * Signal CDT\n(0x00) [len = 4, color = &quot;#53599A&quot;]
-    // ISO TP Header (Fixed Part)
-    * Destination Reference (0x??)[len = 16, color = &quot;#53599A&quot;]
-    * Source Reference (0x??)[len = 16, color = &quot;#53599A&quot;]
-    * Protocol Class\n(Class 0 = 0x00) [len = 8, color = &quot;#53599A&quot;]
-
-    // S7
-    96-103: S7 Protocol Magic Byte (0x32) [color = &quot;#6D9DC5&quot;]
-    * Message Type (JOB = 0x01) [len = 8, color = &quot;#AEECEF&quot;]
-    * Reserved (0x0000) [len = 16, color = &quot;#6D9DC5&quot;]
-    * PDU Reference (0x??)[len = 16, color = &quot;#6D9DC5&quot;]
-    * S7 Parameters Length  (8 = 0x08) [len = 16, color = &quot;#6D9DC5&quot;]
-    * S7 Data Length (0 = 0x00) [len = 16, color = &quot;#6D9DC5&quot;]
-
-    // S7 Parameters
-    * Function\n(Setup Communication = 0xF0) [len = 8, color = &quot;#AEECEF&quot;]
-    * Reserved (0x00) [len = 8, color = &quot;#6D9DC5&quot;]
-    * Max AMQ Caller [len = 16, color = &quot;#80DED9&quot;]
-    * Max AMQ Callee [len = 16, color = &quot;#80DED9&quot;]
-    * PDU Size [len = 16, color = &quot;#80DED9&quot;]
-
-    // S7 Data
-}</pre> 
+      <img src="../../img/s7-setup-communication-request.svg" alt="s7 setup communication request" width="896" height="440" /> 
      </div> 
     </div> 
     <div class="paragraph"> 
