@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PlcFunctions.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Integrations: Apache Edgent</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.edgent</a> &gt; <span class="el_source">PlcFunctions.java</span></div><h1>PlcFunctions.java</h1><pre class="source lang-java linenums">/*
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+&quot;License&quot;); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+&quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+*/
+package org.apache.plc4x.edgent;
+
+import java.util.Calendar;
+
+import org.apache.edgent.function.Consumer;
+import org.apache.edgent.function.Function;
+import org.apache.edgent.function.Supplier;
+
+import com.google.gson.JsonObject;
+
+/**
+ * WIP - A plc4x Apache Edgent {@link Supplier} and {@link Consumer} connector factory.
+ * &lt;p&gt;
+ * TODO:
+ * Are there cases where a single logical poll would want to read from 
+ * multiple addrs/data (of different types) from a device and bundle the values
+ * into a single TStream tuple (e.g., a JsonObject)?  How would we support that?
+ * Is there a similar need for writing to multiple addrs/values on a device?
+ * Ah... NOTE: plc4c &quot;batch&quot; requests are coming and will help to address this.
+ * 
+ * &lt;p&gt;
+ * Sample use to read plc device data into an Edgent TStream:
+ * &lt;pre&gt;{@code
+ * PlcConnection plcConnection = new PlcDriverManager().getConnection(&quot;s7://192.168.0.1/0/0&quot;);
+ * plcConnection.connect();
+ * PlcConnectionAdapter adapter = new PlcConnectionAdapter(plcConnection));
+ * 
+ * DirectProvider dp = new DirectProvider();
+ * Topology top = dp.newTopology();
+ * TStream&lt;Byte&gt; stream = top.poll(PlcFunctions.byteSupplier(adapter, &quot;INPUTS/0&quot;, 1, TimeUnit.SECONDS);
+ * stream.print();
+ * dp.submit(top);
+ * }&lt;/pre&gt;
+ * 
+ * Sample use to write Edgent TStream data to a plc device:
+ * &lt;pre&gt;{@code
+ * PlcConnection plcConnection = new PlcDriverManager().getConnection(&quot;s7://192.168.0.1/0/0&quot;);
+ * plcConnection.connect();
+ * PlcConnectionAdapter adapter = new PlcConnectionAdapter(plcConnection);
+ * 
+ * DirectProvider dp = new DirectProvider();
+ * Topology top = dp.newTopology();
+ * 
+ * TStream&lt;Byte&gt; stream = ...
+ * stream.print();
+ * TSink&lt;Byte&gt; sink = stream.sink(PlcFunctions.byteConsumer(adapter, &quot;OUTPUTS/0&quot;));
+ * 
+ * dp.submit(top);
+ * }&lt;/pre&gt;
+ * 
+ */
+<span class="nc" id="L70">public class PlcFunctions {</span>
+
+  /**
+   * Create a new Edgent {@link Supplier} to read data from the 
+   * plc device.
+   * &lt;p&gt;
+   * Every call to the returned {@link Supplier#get()} reads a
+   * new data value from the plc device address and connection
+   * associated with the {@code PlcConnectionAdapter}.
+   * &lt;p&gt;
+   * 
+   * @param adapter the @{link PlcConnectionAdapter}
+   * @param addressStr the plc device address string
+   * @return the {@code Supplier&lt;T&gt;}
+   * 
+   * @see org.apache.edgent.topology.Topology#poll(Supplier, long, java.util.concurrent.TimeUnit)
+   */
+  public static Supplier&lt;Boolean&gt; booleanSupplier(PlcConnectionAdapter adapter, String addressStr) {
+<span class="fc" id="L88">    return adapter.newSupplier(Boolean.class, addressStr);</span>
+  }
+  public static Supplier&lt;Byte&gt; byteSupplier(PlcConnectionAdapter adapter, String addressStr) {
+<span class="fc" id="L91">    return adapter.newSupplier(Byte.class, addressStr);</span>
+  }
+  public static Supplier&lt;Short&gt; shortSupplier(PlcConnectionAdapter adapter, String addressStr) {
+<span class="fc" id="L94">    return adapter.newSupplier(Short.class, addressStr);</span>
+  }
+  public static Supplier&lt;Integer&gt; integerSupplier(PlcConnectionAdapter adapter, String addressStr) {
+<span class="fc" id="L97">    return adapter.newSupplier(Integer.class, addressStr);</span>
+  }
+  public static Supplier&lt;Float&gt; floatSupplier(PlcConnectionAdapter adapter, String addressStr) {
+<span class="fc" id="L100">    return adapter.newSupplier(Float.class, addressStr);</span>
+  }
+  public static Supplier&lt;String&gt; stringSupplier(PlcConnectionAdapter adapter, String addressStr) {
+<span class="fc" id="L103">    return adapter.newSupplier(String.class, addressStr);</span>
+  }
+  public static Supplier&lt;Calendar&gt; calendarSupplier(PlcConnectionAdapter adapter, String addressStr) {
+<span class="nc" id="L106">    return adapter.newSupplier(Calendar.class, addressStr);</span>
+  }
+
+  /**
+   * Create a new Edgent {@link Consumer} to write data to the 
+   * plc device.
+   * &lt;p&gt;
+   * Every call to the returned {@link Consumer#accept(Object)}
+   * writes the value to the the device address and connection
+   * associated with the {@code PlcConnectionAdapter}.
+   * 
+   * @param adapter the @{link PlcConnectionAdapter}
+   * @param addressStr the plc device address string
+   * @return the {@code Consumer&lt;T&gt;}
+   * 
+   * @see org.apache.edgent.topology.TStream#sink(Consumer)
+   */
+  public static Consumer&lt;Boolean&gt; booleanConsumer(PlcConnectionAdapter adapter, String addressStr) {
+<span class="fc" id="L124">    return adapter.newConsumer(Boolean.class, addressStr);</span>
+  }
+  public static Consumer&lt;Byte&gt; byteConsumer(PlcConnectionAdapter adapter, String addressStr) {
+<span class="fc" id="L127">    return adapter.newConsumer(Byte.class, addressStr);</span>
+  }
+  public static Consumer&lt;Short&gt; shortConsumer(PlcConnectionAdapter adapter, String addressStr) {
+<span class="fc" id="L130">    return adapter.newConsumer(Short.class, addressStr);</span>
+  }
+  public static Consumer&lt;Integer&gt; integerConsumer(PlcConnectionAdapter adapter, String addressStr) {
+<span class="fc" id="L133">    return adapter.newConsumer(Integer.class, addressStr);</span>
+  }
+  public static Consumer&lt;Float&gt; floatConsumer(PlcConnectionAdapter adapter, String addressStr) {
+<span class="fc" id="L136">    return adapter.newConsumer(Float.class, addressStr);</span>
+  }
+  public static Consumer&lt;String&gt; stringConsumer(PlcConnectionAdapter adapter, String addressStr) {
+<span class="fc" id="L139">    return adapter.newConsumer(String.class, addressStr);</span>
+  }
+  public static Consumer&lt;Calendar&gt; calendarConsumer(PlcConnectionAdapter adapter, String addressStr) {
+<span class="nc" id="L142">    return adapter.newConsumer(Calendar.class, addressStr);</span>
+  }
+
+  /**
+   * Create a new Edgent {@link Consumer} to write data to the 
+   * plc device.
+   * &lt;p&gt;
+   * TODO: Is it premature to supply this?
+   * &lt;p&gt;
+   * Every call to the returned {@link Consumer#accept(Object)}
+   * &lt;ul&gt;
+   * &lt;li&gt;calls {@code addressFn} to get the device address string&lt;/li&gt;
+   * &lt;li&gt;calls {@code valueFn} to get the {@code T} to write&lt;/li&gt;
+   * &lt;li&gt;writes the value to the device address using the connection
+   * associated with the {@code PlcConnectionAdapter}.&lt;/li&gt;
+   * &lt;/ul&gt;
+   * 
+   * @param adapter the @{link PlcConnectionAdapter}
+   * @param addressFn {@code Function} the returns a device {@code Address} from a {@code JsonObject}
+   * @param valueFn {@code Function} the returns a {@code Value} from a {@code JsonObject}
+   * @return the {@code Consumer&lt;JsonObject&gt;}
+   * 
+   * @see org.apache.edgent.topology.TStream#sink(Consumer)
+   */
+  public static Consumer&lt;JsonObject&gt; booleanConsumer(PlcConnectionAdapter adapter, Function&lt;JsonObject,String&gt; addressFn, Function&lt;JsonObject,Boolean&gt; valueFn) {
+<span class="fc" id="L167">    return adapter.newConsumer(Boolean.class, addressFn, valueFn);</span>
+  }
+  public static Consumer&lt;JsonObject&gt; byteConsumer(PlcConnectionAdapter adapter, Function&lt;JsonObject,String&gt; addressFn, Function&lt;JsonObject,Byte&gt; valueFn) {
+<span class="fc" id="L170">    return adapter.newConsumer(Byte.class, addressFn, valueFn);</span>
+  }
+  public static Consumer&lt;JsonObject&gt; shortConsumer(PlcConnectionAdapter adapter, Function&lt;JsonObject,String&gt; addressFn, Function&lt;JsonObject,Short&gt; valueFn) {
+<span class="fc" id="L173">    return adapter.newConsumer(Short.class, addressFn, valueFn);</span>
+  }
+  public static Consumer&lt;JsonObject&gt; integerConsumer(PlcConnectionAdapter adapter, Function&lt;JsonObject,String&gt; addressFn, Function&lt;JsonObject,Integer&gt; valueFn) {
+<span class="fc" id="L176">    return adapter.newConsumer(Integer.class, addressFn, valueFn);</span>
+  }
+  public static Consumer&lt;JsonObject&gt; floatConsumer(PlcConnectionAdapter adapter, Function&lt;JsonObject,String&gt; addressFn, Function&lt;JsonObject,Float&gt; valueFn) {
+<span class="fc" id="L179">    return adapter.newConsumer(Float.class, addressFn, valueFn);</span>
+  }
+  public static Consumer&lt;JsonObject&gt; stringConsumer(PlcConnectionAdapter adapter, Function&lt;JsonObject,String&gt; addressFn, Function&lt;JsonObject,String&gt; valueFn) {
+<span class="fc" id="L182">    return adapter.newConsumer(String.class, addressFn, valueFn);</span>
+  }
+  public static Consumer&lt;JsonObject&gt; calendarConsumer(PlcConnectionAdapter adapter, Function&lt;JsonObject,String&gt; addressFn, Function&lt;JsonObject,Calendar&gt; valueFn) {
+<span class="nc" id="L185">    return adapter.newConsumer(Calendar.class, addressFn, valueFn);</span>
+  }
+  
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span></div></body></html>
