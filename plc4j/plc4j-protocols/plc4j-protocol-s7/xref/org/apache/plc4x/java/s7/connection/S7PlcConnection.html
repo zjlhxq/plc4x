@@ -77,151 +77,150 @@
 <a name="67" href="#67">67</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> String hostName;
 <a name="68" href="#68">68</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> rack;
 <a name="69" href="#69">69</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> slot;
-<a name="70" href="#70">70</a>  
-<a name="71" href="#71">71</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">int</strong> pduSize;
-<a name="72" href="#72">72</a>  
-<a name="73" href="#73">73</a>      <strong class="jxr_keyword">private</strong> EventLoopGroup workerGroup;
-<a name="74" href="#74">74</a>      <strong class="jxr_keyword">private</strong> Channel channel;
-<a name="75" href="#75">75</a>  
-<a name="76" href="#76">76</a>      <strong class="jxr_keyword">public</strong> S7PlcConnection(String hostName, <strong class="jxr_keyword">int</strong> rack, <strong class="jxr_keyword">int</strong> slot) {
-<a name="77" href="#77">77</a>          <strong class="jxr_keyword">this</strong>.hostName = hostName;
-<a name="78" href="#78">78</a>          <strong class="jxr_keyword">this</strong>.rack = rack;
-<a name="79" href="#79">79</a>          <strong class="jxr_keyword">this</strong>.slot = slot;
-<a name="80" href="#80">80</a>          <strong class="jxr_keyword">this</strong>.pduSize = 1024;
-<a name="81" href="#81">81</a>      }
-<a name="82" href="#82">82</a>  
-<a name="83" href="#83">83</a>      <strong class="jxr_keyword">public</strong> String getHostName() {
-<a name="84" href="#84">84</a>          <strong class="jxr_keyword">return</strong> hostName;
-<a name="85" href="#85">85</a>      }
-<a name="86" href="#86">86</a>  
-<a name="87" href="#87">87</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> getRack() {
-<a name="88" href="#88">88</a>          <strong class="jxr_keyword">return</strong> rack;
-<a name="89" href="#89">89</a>      }
-<a name="90" href="#90">90</a>  
-<a name="91" href="#91">91</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> getSlot() {
-<a name="92" href="#92">92</a>          <strong class="jxr_keyword">return</strong> slot;
-<a name="93" href="#93">93</a>      }
-<a name="94" href="#94">94</a>  
-<a name="95" href="#95">95</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> getPduSize() {
-<a name="96" href="#96">96</a>          <strong class="jxr_keyword">return</strong> pduSize;
-<a name="97" href="#97">97</a>      }
-<a name="98" href="#98">98</a>  
-<a name="99" href="#99">99</a>      @Override
-<a name="100" href="#100">100</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> connect() <strong class="jxr_keyword">throws</strong> PlcConnectionException {
-<a name="101" href="#101">101</a>         workerGroup = <strong class="jxr_keyword">new</strong> NioEventLoopGroup();
-<a name="102" href="#102">102</a> 
-<a name="103" href="#103">103</a>         <strong class="jxr_keyword">try</strong> {
-<a name="104" href="#104">104</a>             <em class="jxr_comment">// As we don't just want to wait till the connection is established,</em>
-<a name="105" href="#105">105</a>             <em class="jxr_comment">// define a future we can use to signal back that the s7 session is</em>
-<a name="106" href="#106">106</a>             <em class="jxr_comment">// finished initializing.</em>
-<a name="107" href="#107">107</a>             CompletableFuture&lt;Void&gt; sessionSetupCompleteFuture = <strong class="jxr_keyword">new</strong> CompletableFuture&lt;&gt;();
-<a name="108" href="#108">108</a> 
-<a name="109" href="#109">109</a>             InetAddress serverInetAddress = InetAddress.getByName(hostName);
-<a name="110" href="#110">110</a> 
-<a name="111" href="#111">111</a>             Bootstrap bootstrap = <strong class="jxr_keyword">new</strong> Bootstrap();
-<a name="112" href="#112">112</a>             bootstrap.group(workerGroup);
-<a name="113" href="#113">113</a>             bootstrap.channel(NioSocketChannel.<strong class="jxr_keyword">class</strong>);
-<a name="114" href="#114">114</a>             bootstrap.option(ChannelOption.SO_KEEPALIVE, <strong class="jxr_keyword">true</strong>);
-<a name="115" href="#115">115</a>             bootstrap.option(ChannelOption.TCP_NODELAY, <strong class="jxr_keyword">true</strong>);
-<a name="116" href="#116">116</a>             bootstrap.handler(<strong class="jxr_keyword">new</strong> ChannelInitializer() {
-<a name="117" href="#117">117</a>                 @Override
-<a name="118" href="#118">118</a>                 <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> initChannel(Channel channel) <strong class="jxr_keyword">throws</strong> Exception {
-<a name="119" href="#119">119</a>                     <em class="jxr_comment">// Build the protocol stack for communicating with the s7 protocol.</em>
-<a name="120" href="#120">120</a>                     ChannelPipeline pipeline = channel.pipeline();
-<a name="121" href="#121">121</a>                     pipeline.addLast(<strong class="jxr_keyword">new</strong> ChannelInboundHandlerAdapter() {
-<a name="122" href="#122">122</a>                         @Override
-<a name="123" href="#123">123</a>                         <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> userEventTriggered(ChannelHandlerContext ctx, Object evt) <strong class="jxr_keyword">throws</strong> Exception {
-<a name="124" href="#124">124</a>                             <strong class="jxr_keyword">if</strong>(evt instanceof S7ConnectionEvent &amp;&amp;
-<a name="125" href="#125">125</a>                                 ((S7ConnectionEvent) evt).getState() == S7ConnectionState.SETUP_COMPLETE) {
-<a name="126" href="#126">126</a>                                 sessionSetupCompleteFuture.complete(<strong class="jxr_keyword">null</strong>);
-<a name="127" href="#127">127</a>                             } <strong class="jxr_keyword">else</strong> {
-<a name="128" href="#128">128</a>                                 <strong class="jxr_keyword">super</strong>.userEventTriggered(ctx, evt);
-<a name="129" href="#129">129</a>                             }
-<a name="130" href="#130">130</a>                         }
-<a name="131" href="#131">131</a>                     });
-<a name="132" href="#132">132</a>                     pipeline.addLast(<strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/isoontcp/netty/IsoOnTcpProtocol.html">IsoOnTcpProtocol</a>());
-<a name="133" href="#133">133</a>                     pipeline.addLast(<strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/isotp/netty/IsoTPProtocol.html">IsoTPProtocol</a>((byte) rack, (byte) slot, TpduSize.SIZE_1024));
-<a name="134" href="#134">134</a>                     pipeline.addLast(<strong class="jxr_keyword">new</strong> S7Protocol((<strong class="jxr_keyword">short</strong>) 8, (<strong class="jxr_keyword">short</strong>) 8, (<strong class="jxr_keyword">short</strong>) 1024));
-<a name="135" href="#135">135</a>                     pipeline.addLast(<strong class="jxr_keyword">new</strong> Plc4XS7Protocol());
-<a name="136" href="#136">136</a>                 }
-<a name="137" href="#137">137</a>             });
-<a name="138" href="#138">138</a>             <em class="jxr_comment">// Start the client.</em>
-<a name="139" href="#139">139</a>             ChannelFuture f = bootstrap.connect(serverInetAddress, ISO_ON_TCP_PORT).sync();
-<a name="140" href="#140">140</a>             f.awaitUninterruptibly();
-<a name="141" href="#141">141</a>             <em class="jxr_comment">// Wait till the session is finished initializing.</em>
-<a name="142" href="#142">142</a>             channel = f.channel();
-<a name="143" href="#143">143</a> 
-<a name="144" href="#144">144</a>             <em class="jxr_comment">// Send an event to the pipeline telling the Protocol filters what's going on.</em>
-<a name="145" href="#145">145</a>             channel.pipeline().fireUserEventTriggered(<strong class="jxr_keyword">new</strong> S7ConnectionEvent());
-<a name="146" href="#146">146</a> 
-<a name="147" href="#147">147</a>             sessionSetupCompleteFuture.get();
-<a name="148" href="#148">148</a>         } <strong class="jxr_keyword">catch</strong> (UnknownHostException e) {
-<a name="149" href="#149">149</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> PlcConnectionException(<span class="jxr_string">"Unknown Host "</span> + hostName, e);
-<a name="150" href="#150">150</a>         } <strong class="jxr_keyword">catch</strong> (InterruptedException | ExecutionException e) {
-<a name="151" href="#151">151</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> PlcConnectionException(e);
-<a name="152" href="#152">152</a>         }
-<a name="153" href="#153">153</a>     }
-<a name="154" href="#154">154</a> 
-<a name="155" href="#155">155</a>     @Override
-<a name="156" href="#156">156</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> close() <strong class="jxr_keyword">throws</strong> Exception {
-<a name="157" href="#157">157</a>         <strong class="jxr_keyword">if</strong>((channel != <strong class="jxr_keyword">null</strong>) &amp;&amp; channel.isOpen()) {
-<a name="158" href="#158">158</a>             <em class="jxr_comment">// Send the PLC a message that the connection is being closed.</em>
-<a name="159" href="#159">159</a>             <a href="../../../../../../org/apache/plc4x/java/isotp/netty/model/tpdus/DisconnectRequestTpdu.html">DisconnectRequestTpdu</a> disconnectRequest = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/isotp/netty/model/tpdus/DisconnectRequestTpdu.html">DisconnectRequestTpdu</a>(
-<a name="160" href="#160">160</a>                 (<strong class="jxr_keyword">short</strong>) 0x0000, (<strong class="jxr_keyword">short</strong>) 0x000F, DisconnectReason.NORMAL, Collections.emptyList(),
-<a name="161" href="#161">161</a>                 <strong class="jxr_keyword">null</strong>);
-<a name="162" href="#162">162</a>             ChannelFuture sendDisconnectRequestFuture = channel.writeAndFlush(disconnectRequest);
-<a name="163" href="#163">163</a>             sendDisconnectRequestFuture.addListener((ChannelFutureListener) future -&gt; {
-<a name="164" href="#164">164</a>                 <em class="jxr_comment">// Close the session itself.</em>
-<a name="165" href="#165">165</a>                 channel.closeFuture().await();
-<a name="166" href="#166">166</a>                 workerGroup.shutdownGracefully();
-<a name="167" href="#167">167</a>             });
-<a name="168" href="#168">168</a>             sendDisconnectRequestFuture.awaitUninterruptibly();
-<a name="169" href="#169">169</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (workerGroup != <strong class="jxr_keyword">null</strong>) {
-<a name="170" href="#170">170</a>             workerGroup.shutdownGracefully();
-<a name="171" href="#171">171</a>         }
-<a name="172" href="#172">172</a>     }
-<a name="173" href="#173">173</a> 
-<a name="174" href="#174">174</a>     @Override
-<a name="175" href="#175">175</a>     <strong class="jxr_keyword">public</strong> Address parseAddress(String addressString) <strong class="jxr_keyword">throws</strong> PlcException {
-<a name="176" href="#176">176</a>         Matcher datablockAddressMatcher = S7_DATABLOCK_ADDRESS_PATTERN.matcher(addressString);
-<a name="177" href="#177">177</a>         <strong class="jxr_keyword">if</strong> (datablockAddressMatcher.matches()) {
-<a name="178" href="#178">178</a>             <strong class="jxr_keyword">int</strong> datablockNumber = Integer.valueOf(datablockAddressMatcher.group(<span class="jxr_string">"blockNumber"</span>));
-<a name="179" href="#179">179</a>             <strong class="jxr_keyword">int</strong> datablockByteOffset = Integer.valueOf(datablockAddressMatcher.group(<span class="jxr_string">"byteOffset"</span>));
-<a name="180" href="#180">180</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> S7DataBlockAddress((<strong class="jxr_keyword">short</strong>) datablockNumber, (<strong class="jxr_keyword">short</strong>) datablockByteOffset);
-<a name="181" href="#181">181</a>         }
-<a name="182" href="#182">182</a>         Matcher addressMatcher = S7_ADDRESS_PATTERN.matcher(addressString);
-<a name="183" href="#183">183</a>         <strong class="jxr_keyword">if</strong> (!addressMatcher.matches()) {
-<a name="184" href="#184">184</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> PlcConnectionException(
-<a name="185" href="#185">185</a>                 <span class="jxr_string">"Address string doesn't match the format '{area}/{offset}[/{bit-offset}]'"</span>);
-<a name="186" href="#186">186</a>         }
-<a name="187" href="#187">187</a>         <a href="../../../../../../org/apache/plc4x/java/s7/netty/model/types/MemoryArea.html">MemoryArea</a> memoryArea = MemoryArea.valueOf(addressMatcher.group(<span class="jxr_string">"memoryArea"</span>));
-<a name="188" href="#188">188</a>         <strong class="jxr_keyword">int</strong> byteOffset = Integer.valueOf(addressMatcher.group(<span class="jxr_string">"byteOffset"</span>));
-<a name="189" href="#189">189</a>         String bitOffset =  addressMatcher.group(<span class="jxr_string">"bitOffset"</span>);
-<a name="190" href="#190">190</a>         <strong class="jxr_keyword">if</strong> (bitOffset != <strong class="jxr_keyword">null</strong>) {
-<a name="191" href="#191">191</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> S7BitAddress(memoryArea, (<strong class="jxr_keyword">short</strong>) byteOffset, Byte.valueOf(bitOffset));
-<a name="192" href="#192">192</a>         }
-<a name="193" href="#193">193</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> S7Address(memoryArea, (<strong class="jxr_keyword">short</strong>) byteOffset);
-<a name="194" href="#194">194</a>     }
-<a name="195" href="#195">195</a> 
-<a name="196" href="#196">196</a>     @Override
-<a name="197" href="#197">197</a>     <strong class="jxr_keyword">public</strong> CompletableFuture&lt;PlcReadResponse&gt; read(PlcReadRequest readRequest) {
-<a name="198" href="#198">198</a>         CompletableFuture&lt;PlcReadResponse&gt; readFuture = <strong class="jxr_keyword">new</strong> CompletableFuture&lt;&gt;();
-<a name="199" href="#199">199</a>         PlcRequestContainer&lt;PlcReadRequest, PlcReadResponse&gt; container =
-<a name="200" href="#200">200</a>             <strong class="jxr_keyword">new</strong> PlcRequestContainer&lt;&gt;(readRequest, readFuture);
-<a name="201" href="#201">201</a>         channel.writeAndFlush(container);
-<a name="202" href="#202">202</a>         <strong class="jxr_keyword">return</strong> readFuture;
-<a name="203" href="#203">203</a>     }
-<a name="204" href="#204">204</a> 
-<a name="205" href="#205">205</a>     @Override
-<a name="206" href="#206">206</a>     <strong class="jxr_keyword">public</strong> CompletableFuture&lt;PlcWriteResponse&gt; write(PlcWriteRequest writeRequest) {
-<a name="207" href="#207">207</a>         CompletableFuture&lt;PlcWriteResponse&gt; writeFuture = <strong class="jxr_keyword">new</strong> CompletableFuture&lt;&gt;();
-<a name="208" href="#208">208</a>         PlcRequestContainer&lt;PlcWriteRequest, PlcWriteResponse&gt; container =
-<a name="209" href="#209">209</a>             <strong class="jxr_keyword">new</strong> PlcRequestContainer&lt;&gt;(writeRequest, writeFuture);
-<a name="210" href="#210">210</a>         channel.writeAndFlush(container);
-<a name="211" href="#211">211</a>         <strong class="jxr_keyword">return</strong> writeFuture;
-<a name="212" href="#212">212</a>     }
-<a name="213" href="#213">213</a> 
-<a name="214" href="#214">214</a> }
+<a name="70" href="#70">70</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> pduSize;
+<a name="71" href="#71">71</a>  
+<a name="72" href="#72">72</a>      <strong class="jxr_keyword">private</strong> EventLoopGroup workerGroup;
+<a name="73" href="#73">73</a>      <strong class="jxr_keyword">private</strong> Channel channel;
+<a name="74" href="#74">74</a>  
+<a name="75" href="#75">75</a>      <strong class="jxr_keyword">public</strong> S7PlcConnection(String hostName, <strong class="jxr_keyword">int</strong> rack, <strong class="jxr_keyword">int</strong> slot) {
+<a name="76" href="#76">76</a>          <strong class="jxr_keyword">this</strong>.hostName = hostName;
+<a name="77" href="#77">77</a>          <strong class="jxr_keyword">this</strong>.rack = rack;
+<a name="78" href="#78">78</a>          <strong class="jxr_keyword">this</strong>.slot = slot;
+<a name="79" href="#79">79</a>          <strong class="jxr_keyword">this</strong>.pduSize = 1024;
+<a name="80" href="#80">80</a>      }
+<a name="81" href="#81">81</a>  
+<a name="82" href="#82">82</a>      <strong class="jxr_keyword">public</strong> String getHostName() {
+<a name="83" href="#83">83</a>          <strong class="jxr_keyword">return</strong> hostName;
+<a name="84" href="#84">84</a>      }
+<a name="85" href="#85">85</a>  
+<a name="86" href="#86">86</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> getRack() {
+<a name="87" href="#87">87</a>          <strong class="jxr_keyword">return</strong> rack;
+<a name="88" href="#88">88</a>      }
+<a name="89" href="#89">89</a>  
+<a name="90" href="#90">90</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> getSlot() {
+<a name="91" href="#91">91</a>          <strong class="jxr_keyword">return</strong> slot;
+<a name="92" href="#92">92</a>      }
+<a name="93" href="#93">93</a>  
+<a name="94" href="#94">94</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> getPduSize() {
+<a name="95" href="#95">95</a>          <strong class="jxr_keyword">return</strong> pduSize;
+<a name="96" href="#96">96</a>      }
+<a name="97" href="#97">97</a>  
+<a name="98" href="#98">98</a>      @Override
+<a name="99" href="#99">99</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> connect() <strong class="jxr_keyword">throws</strong> PlcConnectionException {
+<a name="100" href="#100">100</a>         workerGroup = <strong class="jxr_keyword">new</strong> NioEventLoopGroup();
+<a name="101" href="#101">101</a> 
+<a name="102" href="#102">102</a>         <strong class="jxr_keyword">try</strong> {
+<a name="103" href="#103">103</a>             <em class="jxr_comment">// As we don't just want to wait till the connection is established,</em>
+<a name="104" href="#104">104</a>             <em class="jxr_comment">// define a future we can use to signal back that the s7 session is</em>
+<a name="105" href="#105">105</a>             <em class="jxr_comment">// finished initializing.</em>
+<a name="106" href="#106">106</a>             CompletableFuture&lt;Void&gt; sessionSetupCompleteFuture = <strong class="jxr_keyword">new</strong> CompletableFuture&lt;&gt;();
+<a name="107" href="#107">107</a> 
+<a name="108" href="#108">108</a>             InetAddress serverInetAddress = InetAddress.getByName(hostName);
+<a name="109" href="#109">109</a> 
+<a name="110" href="#110">110</a>             Bootstrap bootstrap = <strong class="jxr_keyword">new</strong> Bootstrap();
+<a name="111" href="#111">111</a>             bootstrap.group(workerGroup);
+<a name="112" href="#112">112</a>             bootstrap.channel(NioSocketChannel.<strong class="jxr_keyword">class</strong>);
+<a name="113" href="#113">113</a>             bootstrap.option(ChannelOption.SO_KEEPALIVE, <strong class="jxr_keyword">true</strong>);
+<a name="114" href="#114">114</a>             bootstrap.option(ChannelOption.TCP_NODELAY, <strong class="jxr_keyword">true</strong>);
+<a name="115" href="#115">115</a>             bootstrap.handler(<strong class="jxr_keyword">new</strong> ChannelInitializer() {
+<a name="116" href="#116">116</a>                 @Override
+<a name="117" href="#117">117</a>                 <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> initChannel(Channel channel) <strong class="jxr_keyword">throws</strong> Exception {
+<a name="118" href="#118">118</a>                     <em class="jxr_comment">// Build the protocol stack for communicating with the s7 protocol.</em>
+<a name="119" href="#119">119</a>                     ChannelPipeline pipeline = channel.pipeline();
+<a name="120" href="#120">120</a>                     pipeline.addLast(<strong class="jxr_keyword">new</strong> ChannelInboundHandlerAdapter() {
+<a name="121" href="#121">121</a>                         @Override
+<a name="122" href="#122">122</a>                         <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> userEventTriggered(ChannelHandlerContext ctx, Object evt) <strong class="jxr_keyword">throws</strong> Exception {
+<a name="123" href="#123">123</a>                             <strong class="jxr_keyword">if</strong>(evt instanceof S7ConnectionEvent &amp;&amp;
+<a name="124" href="#124">124</a>                                 ((S7ConnectionEvent) evt).getState() == S7ConnectionState.SETUP_COMPLETE) {
+<a name="125" href="#125">125</a>                                 sessionSetupCompleteFuture.complete(<strong class="jxr_keyword">null</strong>);
+<a name="126" href="#126">126</a>                             } <strong class="jxr_keyword">else</strong> {
+<a name="127" href="#127">127</a>                                 <strong class="jxr_keyword">super</strong>.userEventTriggered(ctx, evt);
+<a name="128" href="#128">128</a>                             }
+<a name="129" href="#129">129</a>                         }
+<a name="130" href="#130">130</a>                     });
+<a name="131" href="#131">131</a>                     pipeline.addLast(<strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/isoontcp/netty/IsoOnTcpProtocol.html">IsoOnTcpProtocol</a>());
+<a name="132" href="#132">132</a>                     pipeline.addLast(<strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/isotp/netty/IsoTPProtocol.html">IsoTPProtocol</a>((byte) rack, (byte) slot, TpduSize.SIZE_1024));
+<a name="133" href="#133">133</a>                     pipeline.addLast(<strong class="jxr_keyword">new</strong> S7Protocol((<strong class="jxr_keyword">short</strong>) 8, (<strong class="jxr_keyword">short</strong>) 8, (<strong class="jxr_keyword">short</strong>) 1024));
+<a name="134" href="#134">134</a>                     pipeline.addLast(<strong class="jxr_keyword">new</strong> Plc4XS7Protocol());
+<a name="135" href="#135">135</a>                 }
+<a name="136" href="#136">136</a>             });
+<a name="137" href="#137">137</a>             <em class="jxr_comment">// Start the client.</em>
+<a name="138" href="#138">138</a>             ChannelFuture f = bootstrap.connect(serverInetAddress, ISO_ON_TCP_PORT).sync();
+<a name="139" href="#139">139</a>             f.awaitUninterruptibly();
+<a name="140" href="#140">140</a>             <em class="jxr_comment">// Wait till the session is finished initializing.</em>
+<a name="141" href="#141">141</a>             channel = f.channel();
+<a name="142" href="#142">142</a> 
+<a name="143" href="#143">143</a>             <em class="jxr_comment">// Send an event to the pipeline telling the Protocol filters what's going on.</em>
+<a name="144" href="#144">144</a>             channel.pipeline().fireUserEventTriggered(<strong class="jxr_keyword">new</strong> S7ConnectionEvent());
+<a name="145" href="#145">145</a> 
+<a name="146" href="#146">146</a>             sessionSetupCompleteFuture.get();
+<a name="147" href="#147">147</a>         } <strong class="jxr_keyword">catch</strong> (UnknownHostException e) {
+<a name="148" href="#148">148</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> PlcConnectionException(<span class="jxr_string">"Unknown Host "</span> + hostName, e);
+<a name="149" href="#149">149</a>         } <strong class="jxr_keyword">catch</strong> (InterruptedException | ExecutionException e) {
+<a name="150" href="#150">150</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> PlcConnectionException(e);
+<a name="151" href="#151">151</a>         }
+<a name="152" href="#152">152</a>     }
+<a name="153" href="#153">153</a> 
+<a name="154" href="#154">154</a>     @Override
+<a name="155" href="#155">155</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> close() <strong class="jxr_keyword">throws</strong> Exception {
+<a name="156" href="#156">156</a>         <strong class="jxr_keyword">if</strong>((channel != <strong class="jxr_keyword">null</strong>) &amp;&amp; channel.isOpen()) {
+<a name="157" href="#157">157</a>             <em class="jxr_comment">// Send the PLC a message that the connection is being closed.</em>
+<a name="158" href="#158">158</a>             <a href="../../../../../../org/apache/plc4x/java/isotp/netty/model/tpdus/DisconnectRequestTpdu.html">DisconnectRequestTpdu</a> disconnectRequest = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/isotp/netty/model/tpdus/DisconnectRequestTpdu.html">DisconnectRequestTpdu</a>(
+<a name="159" href="#159">159</a>                 (<strong class="jxr_keyword">short</strong>) 0x0000, (<strong class="jxr_keyword">short</strong>) 0x000F, DisconnectReason.NORMAL, Collections.emptyList(),
+<a name="160" href="#160">160</a>                 <strong class="jxr_keyword">null</strong>);
+<a name="161" href="#161">161</a>             ChannelFuture sendDisconnectRequestFuture = channel.writeAndFlush(disconnectRequest);
+<a name="162" href="#162">162</a>             sendDisconnectRequestFuture.addListener((ChannelFutureListener) future -&gt; {
+<a name="163" href="#163">163</a>                 <em class="jxr_comment">// Close the session itself.</em>
+<a name="164" href="#164">164</a>                 channel.closeFuture().await();
+<a name="165" href="#165">165</a>                 workerGroup.shutdownGracefully();
+<a name="166" href="#166">166</a>             });
+<a name="167" href="#167">167</a>             sendDisconnectRequestFuture.awaitUninterruptibly();
+<a name="168" href="#168">168</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (workerGroup != <strong class="jxr_keyword">null</strong>) {
+<a name="169" href="#169">169</a>             workerGroup.shutdownGracefully();
+<a name="170" href="#170">170</a>         }
+<a name="171" href="#171">171</a>     }
+<a name="172" href="#172">172</a> 
+<a name="173" href="#173">173</a>     @Override
+<a name="174" href="#174">174</a>     <strong class="jxr_keyword">public</strong> Address parseAddress(String addressString) <strong class="jxr_keyword">throws</strong> PlcException {
+<a name="175" href="#175">175</a>         Matcher datablockAddressMatcher = S7_DATABLOCK_ADDRESS_PATTERN.matcher(addressString);
+<a name="176" href="#176">176</a>         <strong class="jxr_keyword">if</strong> (datablockAddressMatcher.matches()) {
+<a name="177" href="#177">177</a>             <strong class="jxr_keyword">int</strong> datablockNumber = Integer.valueOf(datablockAddressMatcher.group(<span class="jxr_string">"blockNumber"</span>));
+<a name="178" href="#178">178</a>             <strong class="jxr_keyword">int</strong> datablockByteOffset = Integer.valueOf(datablockAddressMatcher.group(<span class="jxr_string">"byteOffset"</span>));
+<a name="179" href="#179">179</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> S7DataBlockAddress((<strong class="jxr_keyword">short</strong>) datablockNumber, (<strong class="jxr_keyword">short</strong>) datablockByteOffset);
+<a name="180" href="#180">180</a>         }
+<a name="181" href="#181">181</a>         Matcher addressMatcher = S7_ADDRESS_PATTERN.matcher(addressString);
+<a name="182" href="#182">182</a>         <strong class="jxr_keyword">if</strong> (!addressMatcher.matches()) {
+<a name="183" href="#183">183</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> PlcConnectionException(
+<a name="184" href="#184">184</a>                 <span class="jxr_string">"Address string doesn't match the format '{area}/{offset}[/{bit-offset}]'"</span>);
+<a name="185" href="#185">185</a>         }
+<a name="186" href="#186">186</a>         <a href="../../../../../../org/apache/plc4x/java/s7/netty/model/types/MemoryArea.html">MemoryArea</a> memoryArea = MemoryArea.valueOf(addressMatcher.group(<span class="jxr_string">"memoryArea"</span>));
+<a name="187" href="#187">187</a>         <strong class="jxr_keyword">int</strong> byteOffset = Integer.valueOf(addressMatcher.group(<span class="jxr_string">"byteOffset"</span>));
+<a name="188" href="#188">188</a>         String bitOffset =  addressMatcher.group(<span class="jxr_string">"bitOffset"</span>);
+<a name="189" href="#189">189</a>         <strong class="jxr_keyword">if</strong> (bitOffset != <strong class="jxr_keyword">null</strong>) {
+<a name="190" href="#190">190</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> S7BitAddress(memoryArea, (<strong class="jxr_keyword">short</strong>) byteOffset, Byte.valueOf(bitOffset));
+<a name="191" href="#191">191</a>         }
+<a name="192" href="#192">192</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> S7Address(memoryArea, (<strong class="jxr_keyword">short</strong>) byteOffset);
+<a name="193" href="#193">193</a>     }
+<a name="194" href="#194">194</a> 
+<a name="195" href="#195">195</a>     @Override
+<a name="196" href="#196">196</a>     <strong class="jxr_keyword">public</strong> CompletableFuture&lt;PlcReadResponse&gt; read(PlcReadRequest readRequest) {
+<a name="197" href="#197">197</a>         CompletableFuture&lt;PlcReadResponse&gt; readFuture = <strong class="jxr_keyword">new</strong> CompletableFuture&lt;&gt;();
+<a name="198" href="#198">198</a>         PlcRequestContainer&lt;PlcReadRequest, PlcReadResponse&gt; container =
+<a name="199" href="#199">199</a>             <strong class="jxr_keyword">new</strong> PlcRequestContainer&lt;&gt;(readRequest, readFuture);
+<a name="200" href="#200">200</a>         channel.writeAndFlush(container);
+<a name="201" href="#201">201</a>         <strong class="jxr_keyword">return</strong> readFuture;
+<a name="202" href="#202">202</a>     }
+<a name="203" href="#203">203</a> 
+<a name="204" href="#204">204</a>     @Override
+<a name="205" href="#205">205</a>     <strong class="jxr_keyword">public</strong> CompletableFuture&lt;PlcWriteResponse&gt; write(PlcWriteRequest writeRequest) {
+<a name="206" href="#206">206</a>         CompletableFuture&lt;PlcWriteResponse&gt; writeFuture = <strong class="jxr_keyword">new</strong> CompletableFuture&lt;&gt;();
+<a name="207" href="#207">207</a>         PlcRequestContainer&lt;PlcWriteRequest, PlcWriteResponse&gt; container =
+<a name="208" href="#208">208</a>             <strong class="jxr_keyword">new</strong> PlcRequestContainer&lt;&gt;(writeRequest, writeFuture);
+<a name="209" href="#209">209</a>         channel.writeAndFlush(container);
+<a name="210" href="#210">210</a>         <strong class="jxr_keyword">return</strong> writeFuture;
+<a name="211" href="#211">211</a>     }
+<a name="212" href="#212">212</a> 
+<a name="213" href="#213">213</a> }
 </pre>
 <hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
 </html>
