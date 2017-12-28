@@ -52,40 +52,44 @@ public class PlcDriverManager {
 
     /**
      * Connects to a PLC using the given plc connection string.
+     *
      * @param url plc connection string.
      * @return PlcConnection object.
      * @throws PlcConnectionException an exception if the connection attempt failed.
      */
     public PlcConnection getConnection(String url) throws PlcConnectionException {
-<span class="fc" id="L60">        PlcDriver driver = getDriver(url);</span>
-<span class="fc" id="L61">        PlcConnection connection = driver.connect(url);</span>
-<span class="fc" id="L62">        connection.connect();</span>
-<span class="fc" id="L63">        return connection;</span>
+<span class="fc" id="L61">        PlcDriver driver = getDriver(url);</span>
+<span class="fc" id="L62">        PlcConnection connection = driver.connect(url);</span>
+<span class="fc" id="L63">        connection.connect();</span>
+<span class="fc" id="L64">        return connection;</span>
     }
 
     /**
      * Connects to a PLC using the given plc connection string using given authentication credentials.
-     * @param url plc connection string.
+     *
+     * @param url            plc connection string.
      * @param authentication authentication credentials.
      * @return PlcConnection object.
      * @throws PlcConnectionException an exception if the connection attempt failed.
      */
     public PlcConnection getConnection(String url, PlcAuthentication authentication) throws PlcConnectionException {
-<span class="fc" id="L74">        PlcDriver driver = getDriver(url);</span>
-<span class="fc" id="L75">        return driver.connect(url, authentication);</span>
+<span class="fc" id="L76">        PlcDriver driver = getDriver(url);</span>
+<span class="fc" id="L77">        PlcConnection connection = driver.connect(url, authentication);</span>
+<span class="fc" id="L78">        connection.connect();</span>
+<span class="fc" id="L79">        return connection;</span>
     }
 
     private PlcDriver getDriver(String url) throws PlcConnectionException {
         try {
-<span class="fc" id="L80">            URI connectionUri = new URI(url);</span>
-<span class="fc" id="L81">            String protocol = connectionUri.getScheme();</span>
-<span class="fc" id="L82">            PlcDriver driver = driverMap.get(protocol);</span>
-<span class="fc bfc" id="L83" title="All 2 branches covered.">            if(driver ==  null) {</span>
-<span class="fc" id="L84">                throw new PlcConnectionException(&quot;Unable to find driver for protocol '&quot; + protocol + &quot;'&quot;);</span>
+<span class="fc" id="L84">            URI connectionUri = new URI(url);</span>
+<span class="fc" id="L85">            String protocol = connectionUri.getScheme();</span>
+<span class="fc" id="L86">            PlcDriver driver = driverMap.get(protocol);</span>
+<span class="fc bfc" id="L87" title="All 2 branches covered.">            if (driver == null) {</span>
+<span class="fc" id="L88">                throw new PlcConnectionException(&quot;Unable to find driver for protocol '&quot; + protocol + &quot;'&quot;);</span>
             }
-<span class="fc" id="L86">            return driver;</span>
-<span class="fc" id="L87">        } catch (URISyntaxException e) {</span>
-<span class="fc" id="L88">            throw new PlcConnectionException(&quot;Invalid plc4j connection string '&quot; + url + &quot;'&quot;);</span>
+<span class="fc" id="L90">            return driver;</span>
+<span class="fc" id="L91">        } catch (URISyntaxException e) {</span>
+<span class="fc" id="L92">            throw new PlcConnectionException(&quot;Invalid plc4j connection string '&quot; + url + &quot;'&quot;);</span>
         }
     }
 
