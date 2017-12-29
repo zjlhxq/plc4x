@@ -293,12 +293,12 @@ public class Plc4XS7Protocol extends MessageToMessageCodec&lt;S7Message, PlcRequ
 <span class="nc" id="L293">        Class valueType = values[0].getClass();</span>
 <span class="nc bnc" id="L294" title="All 2 branches missed.">        if (valueType == Boolean.class) {</span>
             // TODO: Check if this is true and the result is not Math.ceil(values.lenght / 8)
-<span class="nc" id="L296">            result = new byte[values.length * 1];</span>
+<span class="nc" id="L296">            result = new byte[values.length];</span>
 <span class="nc bnc" id="L297" title="All 2 branches missed.">            for(int i = 0; i &lt; values.length; i++) {</span>
 <span class="nc bnc" id="L298" title="All 2 branches missed.">                result[i] = (byte) (((Boolean) values[i]) ? 0x01 : 0x00);</span>
             }
 <span class="nc bnc" id="L300" title="All 2 branches missed.">        } else if (valueType == Byte[].class) {</span>
-<span class="nc" id="L301">            result = new byte[values.length * 1];</span>
+<span class="nc" id="L301">            result = new byte[values.length];</span>
 <span class="nc bnc" id="L302" title="All 2 branches missed.">            for(int i = 0; i &lt; values.length; i++) {</span>
 <span class="nc" id="L303">                result[i] = (byte) values[i];</span>
             }
@@ -354,12 +354,12 @@ public class Plc4XS7Protocol extends MessageToMessageCodec&lt;S7Message, PlcRequ
 <span class="nc" id="L354">        return ResponseCode.INTERNAL_ERROR;</span>
     }
 
-    private List&lt;Object&gt; decodeData(Class&lt;?&gt; datatype, byte[] s7Data) {
+    private List&lt;Object&gt; decodeData(Class&lt;?&gt; datatype, byte[] s7Data) throws PlcProtocolException {
 <span class="nc bnc" id="L358" title="All 2 branches missed.">        if(s7Data.length == 0) {</span>
 <span class="nc" id="L359">            return null;</span>
         }
 <span class="nc" id="L361">        List&lt;Object&gt; result = new LinkedList&lt;&gt;();</span>
-<span class="nc bnc" id="L362" title="All 2 branches missed.">        for(int i = 0; i &lt; s7Data.length; i++) {</span>
+<span class="nc bnc" id="L362" title="All 2 branches missed.">        for(int i = 0; i &lt; s7Data.length;) {</span>
 <span class="nc bnc" id="L363" title="All 2 branches missed.">            if (datatype == Boolean.class) {</span>
 <span class="nc bnc" id="L364" title="All 2 branches missed.">                result.add((s7Data[i] &amp; 0x01) == 0x01);</span>
 <span class="nc" id="L365">                i+=1;</span>
@@ -381,9 +381,11 @@ public class Plc4XS7Protocol extends MessageToMessageCodec&lt;S7Message, PlcRequ
                     ((s7Data[i + 2] &amp; 0xff) &lt;&lt; 8) | (s7Data[i + 3] &amp; 0xff));
 <span class="nc" id="L382">                result.add(Float.intBitsToFloat(intValue));</span>
 <span class="nc" id="L383">                i+=4;</span>
+<span class="nc" id="L384">            } else {</span>
+<span class="nc" id="L385">                throw new PlcProtocolException(&quot;Unsupported datatype &quot; + datatype.getSimpleName());</span>
             }
         }
-<span class="nc" id="L386">        return result;</span>
+<span class="nc" id="L388">        return result;</span>
     }
 
 }
