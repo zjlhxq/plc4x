@@ -157,7 +157,22 @@
                     </a>
                     <div class="nav-collapse collapse" id="toc-nav-collapse">
                         <ul id="toc" class="nav">
-                            <li class="toplevel"><a href="#building_plc4x" title="Building PLC4X">Building PLC4X</a></li>
+                                                    <li class="toplevel"><a href="#building_plc4x" title="Building PLC4X">Building PLC4X</a></li>
+<li class="toplevel"><a href="#requirements" title="Requirements">Requirements</a></li>
+<li class="toplevel"><a href="#using_the_maven_wrapper" title="Using the Maven-Wrapper">Using the Maven-Wrapper</a></li>
+<li class="toplevel"><a href="#using_maven" title="Using Maven">Using Maven</a></li>
+<li class="toplevel"><a href="#building_plc4x_with_maven" title="Building PLC4X with Maven">Building PLC4X with Maven</a></li>
+<li class="toplevel"><a href="#building_the_plc4x_website_with_maven" title="Building the PLC4X Website with Maven">Building the PLC4X Website with Maven</a></li>
+<li class="dropdown">
+    <a href="#some_special_maven_profiles" title="Some special Maven profiles" class="dropdown-toggle" role="button" data-toggle="dropdown" data-target="#">Some special Maven profiles <b class="caret"></b></a>
+    <ul class="dropdown-menu" role="menu">
+        <!-- Repeat the item, otherwise it is not clickable as the dropdown root -->
+        <li><a href="#some_special_maven_profiles" title="Some special Maven profiles">Some special Maven profiles</a></li>
+        <li class="divider"></li>
+    <li><a href="#debug_pom_profile" title="debug-pom profile">debug-pom profile</a></li>
+
+    </ul>
+</li>
                         </ul>
                     </div>
                 </div>
@@ -174,6 +189,130 @@
   <h2 id="building_plc4x">Building PLC4X</h2>
  </div> 
  <div class="sectionbody"> 
+  <div class="paragraph"> 
+   <p>PLC4X is built with <code>Apache Maven</code> and we have tried to make the build as simple as possible.</p> 
+  </div> 
+  <div class="paragraph"> 
+   <p>For your convenience we also have provided a <code>Maven-Wrapper</code>, that should allow building of PLC4X with only <code>Java 8</code> or greater as requirement.</p> 
+  </div> 
+  <div class="sect2"> 
+   <h3 id="requirements">Requirements</h3> 
+   <div class="paragraph"> 
+    <p>The only requirements to building PLC4X should be:</p> 
+   </div> 
+   <div class="ulist"> 
+    <ul> 
+     <li> <p>Java 8 JDK (or newer)</p> </li> 
+     <li> <p>Apache Maven (3.1.0 or newer) <strong>(Optional)</strong></p> </li> 
+    </ul> 
+   </div> 
+  </div> 
+  <div class="sect2"> 
+   <h3 id="using_the_maven_wrapper">Using the Maven-Wrapper</h3> 
+   <div class="paragraph"> 
+    <p>The so-called <code>Maven-Wrapper</code> is used by calling the Maven-Wrapper scripts <code>mvnw</code> (Mac &amp; Linux) or <code>mvnw.cmd</code> (Windows) instead of the default Maven commads <code>mvn</code> and <code>mvn.cmd</code>.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>These helpers ensure Maven is available in at least the version defined in <code>.mvn/maven-wrapper.properties</code>. If no suitable version can be found, it is automatically downloaded and installed alongside the project (So it doesn’t have to be downloaded every time and every project can have it’s own Maven version)</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>After the script has ensured a suitable Maven version is available, this is used and all arguments and parameters are transparently forwarded to this. So simply adding the additional <code>w</code> to each of the Maven commands, there should be no difference to using a pre-installed Maven version.</p> 
+   </div> 
+  </div> 
+  <div class="sect2"> 
+   <h3 id="using_maven">Using Maven</h3> 
+   <div class="paragraph"> 
+    <p>This document can’t provide you with all the details needed to get started with <code>Maven</code> itself. But there is a lot of good documentation out there.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>Justin McLean and Christofer Dutz even recorded a not quite 2 hour Maven training Video some time ago for another Apache project.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>It should handle all the details needed to get a general understanding of Maven and how it works.</p> 
+   </div> 
+   <div class="videoblock"> 
+    <div class="content"> 
+     <iframe src="https://player.vimeo.com/video/167857327" frameborder="0" allowfullscreen="allowfullscreen"></iframe> 
+    </div> 
+   </div> 
+  </div> 
+  <div class="sect2"> 
+   <h3 id="building_plc4x_with_maven">Building PLC4X with Maven</h3> 
+   <div class="paragraph"> 
+    <p>PLC4X is built by executing the following command:</p> 
+   </div> 
+   <div class="literalblock"> 
+    <div class="content"> 
+     <pre>mvn package</pre> 
+    </div> 
+   </div> 
+   <div class="paragraph"> 
+    <p>This not only builds the artifacts and creates the jar files, but also runs all unit- and integration-tests.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>If you want to skip the running of tests (even if this is not encouraged) you can skip them all together.</p> 
+   </div> 
+   <div class="literalblock"> 
+    <div class="content"> 
+     <pre>mvn package -DskipTests</pre> 
+    </div> 
+   </div> 
+   <div class="paragraph"> 
+    <p>This will not skip the compilation of tests however.</p> 
+   </div> 
+  </div> 
+  <div class="sect2"> 
+   <h3 id="building_the_plc4x_website_with_maven">Building the PLC4X Website with Maven</h3> 
+   <div class="paragraph"> 
+    <p>The PLC4X Website is also part of the same GIT repository that contains the code and it is built by Maven as well.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>In order to build the website the following command should be sufficient:</p> 
+   </div> 
+   <div class="literalblock"> 
+    <div class="content"> 
+     <pre>mvn site</pre> 
+    </div> 
+   </div> 
+   <div class="paragraph"> 
+    <p>However this will generate the website for each module inside it’s <code>target/site</code> directory. Opening this in a browser and navigating from pages of one module to another will not work as these links expect a different directory structure. In order to create a fully navigatable version of the Website, the following command should be sufficient:</p> 
+   </div> 
+   <div class="literalblock"> 
+    <div class="content"> 
+     <pre>mvn site site:stage</pre> 
+    </div> 
+   </div> 
+   <div class="paragraph"> 
+    <p>This will generate an additional <code>target/staging</code> directory which contains the fully functional version.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>A lot of documentation on Maven suggests to use the <code>site:site</code> goal directly instead of calling the <code>site</code> phase, but in case of PLC4X there is more than just the site generation that has to be executed.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>This is just a quick-start version of the site generation, for a fully detailed documentation please read the <a href="http://plc4x.apache.org/development/website.html">Website</a> documentation page.</p> 
+   </div> 
+  </div> 
+  <div class="sect2"> 
+   <h3 id="some_special_maven_profiles">Some special Maven profiles</h3> 
+   <div class="paragraph"> 
+    <p>Maven supports so-called <code>profiles</code> for customizing the build in special cases. We have tried to keep the number of profiles as low as possible. So far there is only one profile.</p> 
+   </div> 
+   <div class="sect3"> 
+    <h4 id="debug_pom_profile">debug-pom profile</h4> 
+    <div class="paragraph"> 
+     <p>Especially for Maven beginners, it might be difficult to understand why a module builds the way it does. Maven contains a lot of concepts to inherit and override settings.</p> 
+    </div> 
+    <div class="paragraph"> 
+     <p>The <code>debug-pom</code> profile will generate the so-called <code>effective pom</code> in the modules <code>target</code> directory.</p> 
+    </div> 
+    <div class="paragraph"> 
+     <p>This file contains 100% of the settings Maven uses to execute. All settings are inherited and overridden. All Properties are expanded to the value Maven uses.</p> 
+    </div> 
+    <div class="paragraph"> 
+     <p>So whenever Maven doesn’t behave the way you expect it to, just enable this profile and it should help you find out, what’s going on.</p> 
+    </div> 
+   </div> 
+  </div> 
  </div> 
 </div>
         </div>
