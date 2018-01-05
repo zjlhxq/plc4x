@@ -174,8 +174,8 @@ public class S7PlcConnection extends AbstractPlcConnection implements PlcReader,
     public Address parseAddress(String addressString) throws PlcException {
 <span class="fc" id="L175">        Matcher datablockAddressMatcher = S7_DATABLOCK_ADDRESS_PATTERN.matcher(addressString);</span>
 <span class="fc bfc" id="L176" title="All 2 branches covered.">        if (datablockAddressMatcher.matches()) {</span>
-<span class="fc" id="L177">            int datablockNumber = Integer.valueOf(datablockAddressMatcher.group(&quot;blockNumber&quot;));</span>
-<span class="fc" id="L178">            int datablockByteOffset = Integer.valueOf(datablockAddressMatcher.group(&quot;byteOffset&quot;));</span>
+<span class="fc" id="L177">            int datablockNumber = Integer.parseInt(datablockAddressMatcher.group(&quot;blockNumber&quot;));</span>
+<span class="fc" id="L178">            int datablockByteOffset = Integer.parseInt(datablockAddressMatcher.group(&quot;byteOffset&quot;));</span>
 <span class="fc" id="L179">            return new S7DataBlockAddress((short) datablockNumber, (short) datablockByteOffset);</span>
         }
 <span class="fc" id="L181">        Matcher addressMatcher = S7_ADDRESS_PATTERN.matcher(addressString);</span>
@@ -184,7 +184,7 @@ public class S7PlcConnection extends AbstractPlcConnection implements PlcReader,
                 &quot;Address string doesn't match the format '{area}/{offset}[/{bit-offset}]'&quot;);
         }
 <span class="fc" id="L186">        MemoryArea memoryArea = MemoryArea.valueOf(addressMatcher.group(&quot;memoryArea&quot;));</span>
-<span class="fc" id="L187">        int byteOffset = Integer.valueOf(addressMatcher.group(&quot;byteOffset&quot;));</span>
+<span class="fc" id="L187">        int byteOffset = Integer.parseInt(addressMatcher.group(&quot;byteOffset&quot;));</span>
 <span class="fc" id="L188">        String bitOffset =  addressMatcher.group(&quot;bitOffset&quot;);</span>
 <span class="fc bfc" id="L189" title="All 2 branches covered.">        if (bitOffset != null) {</span>
 <span class="fc" id="L190">            return new S7BitAddress(memoryArea, (short) byteOffset, Byte.valueOf(bitOffset));</span>
