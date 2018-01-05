@@ -282,8 +282,8 @@ public class IsoTPProtocol extends MessageToMessageCodec&lt;IsoOnTcpMessage, Tpd
 <span class="nc" id="L282">                        out.writeBytes(disconnectAdditionalInformation.getData());</span>
 <span class="nc" id="L283">                        break;</span>
                     case TPDU_SIZE:
-<span class="nc" id="L285">                        TpduSizeParameter tpduSize = (TpduSizeParameter) parameter;</span>
-<span class="nc" id="L286">                        out.writeByte(tpduSize.getTpduSize().getCode());</span>
+<span class="nc" id="L285">                        TpduSizeParameter sizeParameter = (TpduSizeParameter) parameter;</span>
+<span class="nc" id="L286">                        out.writeByte(sizeParameter.getTpduSize().getCode());</span>
 <span class="nc" id="L287">                        break;</span>
                     default:
 <span class="nc" id="L289">                        logger.error(&quot;TDPU tarameter type {} not implemented yet&quot;,</span>
@@ -382,8 +382,8 @@ public class IsoTPProtocol extends MessageToMessageCodec&lt;IsoOnTcpMessage, Tpd
 <span class="nc" id="L382">                out.readBytes(data);</span>
 <span class="nc" id="L383">                return new DisconnectAdditionalInformationParameter(data);</span>
             case TPDU_SIZE:
-<span class="nc" id="L385">                TpduSize tpduSize = TpduSize.valueOf(out.readByte());</span>
-<span class="nc" id="L386">                return new TpduSizeParameter(tpduSize);</span>
+<span class="nc" id="L385">                TpduSize size = TpduSize.valueOf(out.readByte());</span>
+<span class="nc" id="L386">                return new TpduSizeParameter(size);</span>
             default:
 <span class="nc" id="L388">                logger.error(&quot;Parameter not implemented yet &quot; + parameterCode.name());</span>
 <span class="nc" id="L389">                return null;</span>

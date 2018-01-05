@@ -297,7 +297,7 @@
 <a name="287" href="#287">287</a> 
 <a name="288" href="#288">288</a>     <strong class="jxr_keyword">private</strong> byte[] encodeData(Object[] values) {
 <a name="289" href="#289">289</a>         <strong class="jxr_keyword">if</strong>(values.length == 0) {
-<a name="290" href="#290">290</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a name="290" href="#290">290</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> byte[]{};
 <a name="291" href="#291">291</a>         }
 <a name="292" href="#292">292</a>         byte[] result = <strong class="jxr_keyword">null</strong>;
 <a name="293" href="#293">293</a>         Class valueType = values[0].getClass();
@@ -341,7 +341,7 @@
 <a name="331" href="#331">331</a>                 result[(i * 4) + 3] = (byte) (intValue &amp; 0xff);
 <a name="332" href="#332">332</a>             }
 <a name="333" href="#333">333</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (valueType == String.<strong class="jxr_keyword">class</strong>) {
-<a name="334" href="#334">334</a>             result = <strong class="jxr_keyword">null</strong>;
+<a name="334" href="#334">334</a>             result = <strong class="jxr_keyword">new</strong> byte[]{};
 <a name="335" href="#335">335</a>         }
 <a name="336" href="#336">336</a>         <strong class="jxr_keyword">return</strong> result;
 <a name="337" href="#337">337</a>     }
@@ -365,40 +365,37 @@
 <a name="355" href="#355">355</a>     }
 <a name="356" href="#356">356</a> 
 <a name="357" href="#357">357</a>     <strong class="jxr_keyword">private</strong> List&lt;Object&gt; decodeData(Class&lt;?&gt; datatype, byte[] s7Data) <strong class="jxr_keyword">throws</strong> PlcProtocolException {
-<a name="358" href="#358">358</a>         <strong class="jxr_keyword">if</strong>(s7Data.length == 0) {
-<a name="359" href="#359">359</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
-<a name="360" href="#360">360</a>         }
-<a name="361" href="#361">361</a>         List&lt;Object&gt; result = <strong class="jxr_keyword">new</strong> LinkedList&lt;&gt;();
-<a name="362" href="#362">362</a>         <strong class="jxr_keyword">for</strong>(<strong class="jxr_keyword">int</strong> i = 0; i &lt; s7Data.length;) {
-<a name="363" href="#363">363</a>             <strong class="jxr_keyword">if</strong> (datatype == Boolean.<strong class="jxr_keyword">class</strong>) {
-<a name="364" href="#364">364</a>                 result.add((s7Data[i] &amp; 0x01) == 0x01);
+<a name="358" href="#358">358</a>         List&lt;Object&gt; result = <strong class="jxr_keyword">new</strong> LinkedList&lt;&gt;();
+<a name="359" href="#359">359</a>         <strong class="jxr_keyword">for</strong>(<strong class="jxr_keyword">int</strong> i = 0; i &lt; s7Data.length;) {
+<a name="360" href="#360">360</a>             <strong class="jxr_keyword">if</strong> (datatype == Boolean.<strong class="jxr_keyword">class</strong>) {
+<a name="361" href="#361">361</a>                 result.add((s7Data[i] &amp; 0x01) == 0x01);
+<a name="362" href="#362">362</a>                 i+=1;
+<a name="363" href="#363">363</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (datatype == Byte.<strong class="jxr_keyword">class</strong>) {
+<a name="364" href="#364">364</a>                 result.add(s7Data[i]);
 <a name="365" href="#365">365</a>                 i+=1;
-<a name="366" href="#366">366</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (datatype == Byte.<strong class="jxr_keyword">class</strong>) {
-<a name="367" href="#367">367</a>                 result.add(s7Data[i]);
-<a name="368" href="#368">368</a>                 i+=1;
-<a name="369" href="#369">369</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (datatype == Short.<strong class="jxr_keyword">class</strong>) {
-<a name="370" href="#370">370</a>                 result.add((<strong class="jxr_keyword">short</strong>) (((s7Data[i] &amp; 0xff) &lt;&lt; 8) | (s7Data[i+1] &amp; 0xff)));
-<a name="371" href="#371">371</a>                 i+=2;
-<a name="372" href="#372">372</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (datatype == Integer.<strong class="jxr_keyword">class</strong>) {
-<a name="373" href="#373">373</a>                 result.add((((s7Data[i] &amp; 0xff) &lt;&lt; 24) | ((s7Data[i + 1] &amp; 0xff) &lt;&lt; 16) |
-<a name="374" href="#374">374</a>                     ((s7Data[i + 2] &amp; 0xff) &lt;&lt; 8) | (s7Data[i + 3] &amp; 0xff)));
-<a name="375" href="#375">375</a>                 i+=4;
-<a name="376" href="#376">376</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (datatype == Float.<strong class="jxr_keyword">class</strong>) {
-<a name="377" href="#377">377</a>                 <em class="jxr_comment">// Description of the Real number format:</em>
-<a name="378" href="#378">378</a>                 <em class="jxr_comment">// https://www.sps-lehrgang.de/zahlenformate-step7/#c144</em>
-<a name="379" href="#379">379</a>                 <em class="jxr_comment">// https://de.wikipedia.org/wiki/IEEE_754</em>
-<a name="380" href="#380">380</a>                 <strong class="jxr_keyword">int</strong> intValue = (((s7Data[i] &amp; 0xff) &lt;&lt; 24) | ((s7Data[i + 1] &amp; 0xff) &lt;&lt; 16) |
-<a name="381" href="#381">381</a>                     ((s7Data[i + 2] &amp; 0xff) &lt;&lt; 8) | (s7Data[i + 3] &amp; 0xff));
-<a name="382" href="#382">382</a>                 result.add(Float.intBitsToFloat(intValue));
-<a name="383" href="#383">383</a>                 i+=4;
-<a name="384" href="#384">384</a>             } <strong class="jxr_keyword">else</strong> {
-<a name="385" href="#385">385</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> PlcProtocolException(<span class="jxr_string">"Unsupported datatype "</span> + datatype.getSimpleName());
-<a name="386" href="#386">386</a>             }
-<a name="387" href="#387">387</a>         }
-<a name="388" href="#388">388</a>         <strong class="jxr_keyword">return</strong> result;
-<a name="389" href="#389">389</a>     }
-<a name="390" href="#390">390</a> 
-<a name="391" href="#391">391</a> }
+<a name="366" href="#366">366</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (datatype == Short.<strong class="jxr_keyword">class</strong>) {
+<a name="367" href="#367">367</a>                 result.add((<strong class="jxr_keyword">short</strong>) (((s7Data[i] &amp; 0xff) &lt;&lt; 8) | (s7Data[i+1] &amp; 0xff)));
+<a name="368" href="#368">368</a>                 i+=2;
+<a name="369" href="#369">369</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (datatype == Integer.<strong class="jxr_keyword">class</strong>) {
+<a name="370" href="#370">370</a>                 result.add((((s7Data[i] &amp; 0xff) &lt;&lt; 24) | ((s7Data[i + 1] &amp; 0xff) &lt;&lt; 16) |
+<a name="371" href="#371">371</a>                     ((s7Data[i + 2] &amp; 0xff) &lt;&lt; 8) | (s7Data[i + 3] &amp; 0xff)));
+<a name="372" href="#372">372</a>                 i+=4;
+<a name="373" href="#373">373</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (datatype == Float.<strong class="jxr_keyword">class</strong>) {
+<a name="374" href="#374">374</a>                 <em class="jxr_comment">// Description of the Real number format:</em>
+<a name="375" href="#375">375</a>                 <em class="jxr_comment">// https://www.sps-lehrgang.de/zahlenformate-step7/#c144</em>
+<a name="376" href="#376">376</a>                 <em class="jxr_comment">// https://de.wikipedia.org/wiki/IEEE_754</em>
+<a name="377" href="#377">377</a>                 <strong class="jxr_keyword">int</strong> intValue = (((s7Data[i] &amp; 0xff) &lt;&lt; 24) | ((s7Data[i + 1] &amp; 0xff) &lt;&lt; 16) |
+<a name="378" href="#378">378</a>                     ((s7Data[i + 2] &amp; 0xff) &lt;&lt; 8) | (s7Data[i + 3] &amp; 0xff));
+<a name="379" href="#379">379</a>                 result.add(Float.intBitsToFloat(intValue));
+<a name="380" href="#380">380</a>                 i+=4;
+<a name="381" href="#381">381</a>             } <strong class="jxr_keyword">else</strong> {
+<a name="382" href="#382">382</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> PlcProtocolException(<span class="jxr_string">"Unsupported datatype "</span> + datatype.getSimpleName());
+<a name="383" href="#383">383</a>             }
+<a name="384" href="#384">384</a>         }
+<a name="385" href="#385">385</a>         <strong class="jxr_keyword">return</strong> result;
+<a name="386" href="#386">386</a>     }
+<a name="387" href="#387">387</a> 
+<a name="388" href="#388">388</a> }
 </pre>
 <hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
 </html>

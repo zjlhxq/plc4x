@@ -287,7 +287,7 @@ public class Plc4XS7Protocol extends MessageToMessageCodec&lt;S7Message, PlcRequ
 
     private byte[] encodeData(Object[] values) {
 <span class="pc bpc" id="L289" title="1 of 2 branches missed.">        if(values.length == 0) {</span>
-<span class="nc" id="L290">            return null;</span>
+<span class="nc" id="L290">            return new byte[]{};</span>
         }
 <span class="fc" id="L292">        byte[] result = null;</span>
 <span class="fc" id="L293">        Class valueType = values[0].getClass();</span>
@@ -331,7 +331,7 @@ public class Plc4XS7Protocol extends MessageToMessageCodec&lt;S7Message, PlcRequ
 <span class="fc" id="L331">                result[(i * 4) + 3] = (byte) (intValue &amp; 0xff);</span>
             }
 <span class="fc bfc" id="L333" title="All 2 branches covered.">        } else if (valueType == String.class) {</span>
-<span class="fc" id="L334">            result = null;</span>
+<span class="fc" id="L334">            result = new byte[]{};</span>
         }
 <span class="fc" id="L336">        return result;</span>
     }
@@ -355,37 +355,34 @@ public class Plc4XS7Protocol extends MessageToMessageCodec&lt;S7Message, PlcRequ
     }
 
     private List&lt;Object&gt; decodeData(Class&lt;?&gt; datatype, byte[] s7Data) throws PlcProtocolException {
-<span class="pc bpc" id="L358" title="1 of 2 branches missed.">        if(s7Data.length == 0) {</span>
-<span class="nc" id="L359">            return null;</span>
-        }
-<span class="fc" id="L361">        List&lt;Object&gt; result = new LinkedList&lt;&gt;();</span>
-<span class="fc bfc" id="L362" title="All 2 branches covered.">        for(int i = 0; i &lt; s7Data.length;) {</span>
-<span class="fc bfc" id="L363" title="All 2 branches covered.">            if (datatype == Boolean.class) {</span>
-<span class="pc bpc" id="L364" title="1 of 2 branches missed.">                result.add((s7Data[i] &amp; 0x01) == 0x01);</span>
+<span class="fc" id="L358">        List&lt;Object&gt; result = new LinkedList&lt;&gt;();</span>
+<span class="fc bfc" id="L359" title="All 2 branches covered.">        for(int i = 0; i &lt; s7Data.length;) {</span>
+<span class="fc bfc" id="L360" title="All 2 branches covered.">            if (datatype == Boolean.class) {</span>
+<span class="pc bpc" id="L361" title="1 of 2 branches missed.">                result.add((s7Data[i] &amp; 0x01) == 0x01);</span>
+<span class="fc" id="L362">                i+=1;</span>
+<span class="fc bfc" id="L363" title="All 2 branches covered.">            } else if (datatype == Byte.class) {</span>
+<span class="fc" id="L364">                result.add(s7Data[i]);</span>
 <span class="fc" id="L365">                i+=1;</span>
-<span class="fc bfc" id="L366" title="All 2 branches covered.">            } else if (datatype == Byte.class) {</span>
-<span class="fc" id="L367">                result.add(s7Data[i]);</span>
-<span class="fc" id="L368">                i+=1;</span>
-<span class="fc bfc" id="L369" title="All 2 branches covered.">            } else if (datatype == Short.class) {</span>
-<span class="fc" id="L370">                result.add((short) (((s7Data[i] &amp; 0xff) &lt;&lt; 8) | (s7Data[i+1] &amp; 0xff)));</span>
-<span class="fc" id="L371">                i+=2;</span>
-<span class="fc bfc" id="L372" title="All 2 branches covered.">            } else if (datatype == Integer.class) {</span>
-<span class="fc" id="L373">                result.add((((s7Data[i] &amp; 0xff) &lt;&lt; 24) | ((s7Data[i + 1] &amp; 0xff) &lt;&lt; 16) |</span>
+<span class="fc bfc" id="L366" title="All 2 branches covered.">            } else if (datatype == Short.class) {</span>
+<span class="fc" id="L367">                result.add((short) (((s7Data[i] &amp; 0xff) &lt;&lt; 8) | (s7Data[i+1] &amp; 0xff)));</span>
+<span class="fc" id="L368">                i+=2;</span>
+<span class="fc bfc" id="L369" title="All 2 branches covered.">            } else if (datatype == Integer.class) {</span>
+<span class="fc" id="L370">                result.add((((s7Data[i] &amp; 0xff) &lt;&lt; 24) | ((s7Data[i + 1] &amp; 0xff) &lt;&lt; 16) |</span>
                     ((s7Data[i + 2] &amp; 0xff) &lt;&lt; 8) | (s7Data[i + 3] &amp; 0xff)));
-<span class="fc" id="L375">                i+=4;</span>
-<span class="pc bpc" id="L376" title="1 of 2 branches missed.">            } else if (datatype == Float.class) {</span>
+<span class="fc" id="L372">                i+=4;</span>
+<span class="pc bpc" id="L373" title="1 of 2 branches missed.">            } else if (datatype == Float.class) {</span>
                 // Description of the Real number format:
                 // https://www.sps-lehrgang.de/zahlenformate-step7/#c144
                 // https://de.wikipedia.org/wiki/IEEE_754
-<span class="fc" id="L380">                int intValue = (((s7Data[i] &amp; 0xff) &lt;&lt; 24) | ((s7Data[i + 1] &amp; 0xff) &lt;&lt; 16) |</span>
+<span class="fc" id="L377">                int intValue = (((s7Data[i] &amp; 0xff) &lt;&lt; 24) | ((s7Data[i + 1] &amp; 0xff) &lt;&lt; 16) |</span>
                     ((s7Data[i + 2] &amp; 0xff) &lt;&lt; 8) | (s7Data[i + 3] &amp; 0xff));
-<span class="fc" id="L382">                result.add(Float.intBitsToFloat(intValue));</span>
-<span class="fc" id="L383">                i+=4;</span>
-<span class="fc" id="L384">            } else {</span>
-<span class="nc" id="L385">                throw new PlcProtocolException(&quot;Unsupported datatype &quot; + datatype.getSimpleName());</span>
+<span class="fc" id="L379">                result.add(Float.intBitsToFloat(intValue));</span>
+<span class="fc" id="L380">                i+=4;</span>
+<span class="fc" id="L381">            } else {</span>
+<span class="nc" id="L382">                throw new PlcProtocolException(&quot;Unsupported datatype &quot; + datatype.getSimpleName());</span>
             }
         }
-<span class="fc" id="L388">        return result;</span>
+<span class="fc" id="L385">        return result;</span>
     }
 
 }
