@@ -94,152 +94,146 @@
 <a name="84" href="#84">84</a>      @MethodSource(<span class="jxr_string">"typeAndAddressProvider"</span>)
 <a name="85" href="#85">85</a>      @Tag(<span class="jxr_string">"fast"</span>)
 <a name="86" href="#86">86</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> decode(Class&lt;?&gt; type, S7Address address) <strong class="jxr_keyword">throws</strong> Exception {
-<a name="87" href="#87">87</a>          <em class="jxr_comment">// TODO: finish me</em>
-<a name="88" href="#88">88</a>          <strong class="jxr_keyword">if</strong> (type == String.<strong class="jxr_keyword">class</strong>) {
-<a name="89" href="#89">89</a>              <em class="jxr_comment">// String seems not yet decodable</em>
-<a name="90" href="#90">90</a>              <strong class="jxr_keyword">return</strong>;
-<a name="91" href="#91">91</a>          }
-<a name="92" href="#92">92</a>          <em class="jxr_comment">// Read Test</em>
-<a name="93" href="#93">93</a>          {
-<a name="94" href="#94">94</a>              <strong class="jxr_keyword">short</strong> fakeTpduReference = (<strong class="jxr_keyword">short</strong>) 1;
-<a name="95" href="#95">95</a>              {
-<a name="96" href="#96">96</a>                  <em class="jxr_comment">// We need to put in a fake tpdu reference</em>
-<a name="97" href="#97">97</a>                  Field requests = Plc4XS7Protocol.<strong class="jxr_keyword">class</strong>.getDeclaredField(<span class="jxr_string">"requests"</span>);
-<a name="98" href="#98">98</a>                  requests.setAccessible(<strong class="jxr_keyword">true</strong>);
-<a name="99" href="#99">99</a>                  Map&lt;Short, PlcRequestContainer&gt; requestContainerMap = (Map&lt;Short, PlcRequestContainer&gt;) requests.get(SUT);
-<a name="100" href="#100">100</a>                 requestContainerMap.put(fakeTpduReference, createMockedContainer(<strong class="jxr_keyword">new</strong> PlcReadRequest(type, address)));
-<a name="101" href="#101">101</a>             }
-<a name="102" href="#102">102</a>             S7ResponseMessage msg = <strong class="jxr_keyword">new</strong> S7ResponseMessage(
-<a name="103" href="#103">103</a>                 MessageType.ACK,
-<a name="104" href="#104">104</a>                 fakeTpduReference,
-<a name="105" href="#105">105</a>                 singletonList(mock(VarParameter.<strong class="jxr_keyword">class</strong>)),
-<a name="106" href="#106">106</a>                 singletonList(<strong class="jxr_keyword">new</strong> VarPayload(ParameterType.READ_VAR, singletonList(varPayloadItemFor(type)))),
-<a name="107" href="#107">107</a>                 (byte) 0x00,
-<a name="108" href="#108">108</a>                 (byte) 0x00);
-<a name="109" href="#109">109</a>             LinkedList&lt;Object&gt; out = <strong class="jxr_keyword">new</strong> LinkedList&lt;&gt;();
-<a name="110" href="#110">110</a>             SUT.decode(<strong class="jxr_keyword">null</strong>, msg, out);
-<a name="111" href="#111">111</a>             <em class="jxr_comment">// TODO: finish the asserts</em>
-<a name="112" href="#112">112</a>             assertThat(out).hasSize(0);
-<a name="113" href="#113">113</a>         }
-<a name="114" href="#114">114</a>         <em class="jxr_comment">// Write Test</em>
-<a name="115" href="#115">115</a>         {
-<a name="116" href="#116">116</a>             <strong class="jxr_keyword">short</strong> fakeTpduReference = (<strong class="jxr_keyword">short</strong>) 2;
-<a name="117" href="#117">117</a>             {
-<a name="118" href="#118">118</a>                 <em class="jxr_comment">// We need to put in a fake tpdu reference</em>
-<a name="119" href="#119">119</a>                 Field requests = Plc4XS7Protocol.<strong class="jxr_keyword">class</strong>.getDeclaredField(<span class="jxr_string">"requests"</span>);
-<a name="120" href="#120">120</a>                 requests.setAccessible(<strong class="jxr_keyword">true</strong>);
-<a name="121" href="#121">121</a>                 Map&lt;Short, PlcRequestContainer&gt; requestContainerMap = (Map&lt;Short, PlcRequestContainer&gt;) requests.get(SUT);
-<a name="122" href="#122">122</a>                 requestContainerMap.put(fakeTpduReference, createMockedContainer(<strong class="jxr_keyword">new</strong> PlcWriteRequest(type, address, fakeValueFor(type))));
-<a name="123" href="#123">123</a>             }
-<a name="124" href="#124">124</a>             S7ResponseMessage msg = <strong class="jxr_keyword">new</strong> S7ResponseMessage(
-<a name="125" href="#125">125</a>                 MessageType.ACK,
-<a name="126" href="#126">126</a>                 fakeTpduReference,
-<a name="127" href="#127">127</a>                 singletonList(mock(VarParameter.<strong class="jxr_keyword">class</strong>)),
-<a name="128" href="#128">128</a>                 singletonList(<strong class="jxr_keyword">new</strong> VarPayload(ParameterType.WRITE_VAR, singletonList(varPayloadItemFor(type)))),
-<a name="129" href="#129">129</a>                 (byte) 0x00,
-<a name="130" href="#130">130</a>                 (byte) 0x00);
-<a name="131" href="#131">131</a>             LinkedList&lt;Object&gt; out = <strong class="jxr_keyword">new</strong> LinkedList&lt;&gt;();
-<a name="132" href="#132">132</a>             SUT.decode(<strong class="jxr_keyword">null</strong>, msg, out);
-<a name="133" href="#133">133</a>             <em class="jxr_comment">// TODO: finish the asserts</em>
-<a name="134" href="#134">134</a>             assertThat(out).hasSize(0);
-<a name="135" href="#135">135</a>         }
-<a name="136" href="#136">136</a>     }
-<a name="137" href="#137">137</a> 
-<a name="138" href="#138">138</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> Stream&lt;Arguments&gt; typeAndAddressProvider() {
-<a name="139" href="#139">139</a>         List&lt;Arguments&gt; arguments = <strong class="jxr_keyword">new</strong> LinkedList&lt;&gt;();
-<a name="140" href="#140">140</a>         Arrays.asList(
-<a name="141" href="#141">141</a>             Boolean.<strong class="jxr_keyword">class</strong>,
-<a name="142" href="#142">142</a>             Byte.<strong class="jxr_keyword">class</strong>,
-<a name="143" href="#143">143</a>             Short.<strong class="jxr_keyword">class</strong>,
-<a name="144" href="#144">144</a>             <em class="jxr_comment">// TODO: enable once Calender in implemented</em>
-<a name="145" href="#145">145</a>             <em class="jxr_comment">//Calendar.class,</em>
-<a name="146" href="#146">146</a>             Float.<strong class="jxr_keyword">class</strong>,
-<a name="147" href="#147">147</a>             Integer.<strong class="jxr_keyword">class</strong>,
-<a name="148" href="#148">148</a>             String.<strong class="jxr_keyword">class</strong>)
-<a name="149" href="#149">149</a>             .forEach(
-<a name="150" href="#150">150</a>                 aClass -&gt; Arrays.asList(
-<a name="151" href="#151">151</a>                     mock(S7Address.<strong class="jxr_keyword">class</strong>),
-<a name="152" href="#152">152</a>                     mock(S7BitAddress.<strong class="jxr_keyword">class</strong>),
-<a name="153" href="#153">153</a>                     mock(S7DataBlockAddress.<strong class="jxr_keyword">class</strong>))
-<a name="154" href="#154">154</a>                     .forEach(s7Address -&gt; arguments.add(Arguments.of(aClass, s7Address)))
-<a name="155" href="#155">155</a>             );
-<a name="156" href="#156">156</a>         <strong class="jxr_keyword">return</strong> arguments.stream();
-<a name="157" href="#157">157</a>     }
-<a name="158" href="#158">158</a> 
-<a name="159" href="#159">159</a>     <strong class="jxr_keyword">private</strong> &lt;T&gt; T fakeValueFor(Class&lt;T&gt; type) {
-<a name="160" href="#160">160</a>         <strong class="jxr_keyword">if</strong> (type == Boolean.<strong class="jxr_keyword">class</strong>) {
-<a name="161" href="#161">161</a>             <strong class="jxr_keyword">return</strong> (T) Boolean.TRUE;
-<a name="162" href="#162">162</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (type == Byte.<strong class="jxr_keyword">class</strong>) {
-<a name="163" href="#163">163</a>             <strong class="jxr_keyword">return</strong> (T) Byte.valueOf((byte) 0x0000_0000);
-<a name="164" href="#164">164</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (type == Short.<strong class="jxr_keyword">class</strong>) {
-<a name="165" href="#165">165</a>             <strong class="jxr_keyword">return</strong> (T) Short.valueOf((<strong class="jxr_keyword">short</strong>) 123);
-<a name="166" href="#166">166</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (type == Calendar.<strong class="jxr_keyword">class</strong>) {
-<a name="167" href="#167">167</a>             <strong class="jxr_keyword">return</strong> (T) Calendar.getInstance();
-<a name="168" href="#168">168</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (type == Float.<strong class="jxr_keyword">class</strong>) {
-<a name="169" href="#169">169</a>             <strong class="jxr_keyword">return</strong> (T) Float.valueOf(123f);
-<a name="170" href="#170">170</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (type == Integer.<strong class="jxr_keyword">class</strong>) {
-<a name="171" href="#171">171</a>             <strong class="jxr_keyword">return</strong> (T) Integer.valueOf(123);
-<a name="172" href="#172">172</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (type == String.<strong class="jxr_keyword">class</strong>) {
-<a name="173" href="#173">173</a>             <strong class="jxr_keyword">return</strong> (T) <span class="jxr_string">"string"</span>;
-<a name="174" href="#174">174</a>         } <strong class="jxr_keyword">else</strong> {
-<a name="175" href="#175">175</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"Type t not supported "</span> + type);
-<a name="176" href="#176">176</a>         }
-<a name="177" href="#177">177</a>     }
-<a name="178" href="#178">178</a> 
-<a name="179" href="#179">179</a>     <strong class="jxr_keyword">private</strong> VarPayloadItem varPayloadItemFor(Class type) {
-<a name="180" href="#180">180</a>         <em class="jxr_comment">// TODO: fix example</em>
-<a name="181" href="#181">181</a>         <strong class="jxr_keyword">final</strong> DataTransportSize size;
-<a name="182" href="#182">182</a>         <strong class="jxr_keyword">final</strong> byte[] data;
-<a name="183" href="#183">183</a>         <strong class="jxr_keyword">if</strong> (type == Boolean.<strong class="jxr_keyword">class</strong>) {
-<a name="184" href="#184">184</a>             size = DataTransportSize.BIT;
-<a name="185" href="#185">185</a>             data = <strong class="jxr_keyword">new</strong> byte[]{(byte) 0b0};
-<a name="186" href="#186">186</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (type == Byte.<strong class="jxr_keyword">class</strong>) {
-<a name="187" href="#187">187</a>             size = DataTransportSize.BYTE_WORD_DWORD;
-<a name="188" href="#188">188</a>             data = <strong class="jxr_keyword">new</strong> byte[]{(byte) 0b0000_0000};
-<a name="189" href="#189">189</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (type == Short.<strong class="jxr_keyword">class</strong>) {
-<a name="190" href="#190">190</a>             size = DataTransportSize.BYTE_WORD_DWORD;
-<a name="191" href="#191">191</a>             data = <strong class="jxr_keyword">new</strong> byte[]{(byte) 0b0000_0000, (byte) 0b0000_0000};
-<a name="192" href="#192">192</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (type == Calendar.<strong class="jxr_keyword">class</strong>) {
-<a name="193" href="#193">193</a>             size = DataTransportSize.BYTE_WORD_DWORD;
-<a name="194" href="#194">194</a>             <em class="jxr_comment">// TODO: what size is calender?</em>
-<a name="195" href="#195">195</a>             data = <strong class="jxr_keyword">new</strong> byte[]{(byte) 0b0000_0000};
-<a name="196" href="#196">196</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (type == Float.<strong class="jxr_keyword">class</strong>) {
-<a name="197" href="#197">197</a>             size = DataTransportSize.BYTE_WORD_DWORD;
-<a name="198" href="#198">198</a>             data = <strong class="jxr_keyword">new</strong> byte[]{(byte) 0b0000_0000, (byte) 0b0000_0000, (byte) 0b0000_0000, (byte) 0b0000_0000};
-<a name="199" href="#199">199</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (type == Integer.<strong class="jxr_keyword">class</strong>) {
-<a name="200" href="#200">200</a>             size = DataTransportSize.INTEGER;
-<a name="201" href="#201">201</a>             data = <strong class="jxr_keyword">new</strong> byte[]{(byte) 0b0000_0000, (byte) 0b0000_0000, (byte) 0b0000_0000, (byte) 0b0000_0000};
-<a name="202" href="#202">202</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (type == String.<strong class="jxr_keyword">class</strong>) {
-<a name="203" href="#203">203</a>             size = DataTransportSize.BYTE_WORD_DWORD;
-<a name="204" href="#204">204</a>             <em class="jxr_comment">// TODO: what size is string?</em>
-<a name="205" href="#205">205</a>             data = <strong class="jxr_keyword">new</strong> byte[]{(byte) 0b0000_0000};
-<a name="206" href="#206">206</a>         } <strong class="jxr_keyword">else</strong> {
-<a name="207" href="#207">207</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"Type t not supported "</span> + type);
-<a name="208" href="#208">208</a>         }
-<a name="209" href="#209">209</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> VarPayloadItem(DataTransportErrorCode.OK, size, data);
-<a name="210" href="#210">210</a>     }
-<a name="211" href="#211">211</a> 
-<a name="212" href="#212">212</a>     <strong class="jxr_keyword">private</strong> &lt;T <strong class="jxr_keyword">extends</strong> PlcRequest&gt; PlcRequestContainer createMockedContainer(T initialRequest) {
-<a name="213" href="#213">213</a>         <strong class="jxr_keyword">return</strong> createMockedContainer(initialRequest, <strong class="jxr_keyword">null</strong>);
-<a name="214" href="#214">214</a>     }
-<a name="215" href="#215">215</a> 
-<a name="216" href="#216">216</a>     <strong class="jxr_keyword">private</strong> &lt;T <strong class="jxr_keyword">extends</strong> PlcRequest&gt; PlcRequestContainer createMockedContainer(T initialRequest, Consumer&lt;T&gt; requestEnricher) {
-<a name="217" href="#217">217</a>         Objects.requireNonNull(initialRequest);
-<a name="218" href="#218">218</a>         PlcRequestContainer mock = mock(PlcRequestContainer.<strong class="jxr_keyword">class</strong>, RETURNS_DEEP_STUBS);
-<a name="219" href="#219">219</a>         <strong class="jxr_keyword">if</strong> (requestEnricher != <strong class="jxr_keyword">null</strong>) {
-<a name="220" href="#220">220</a>             requestEnricher.accept(initialRequest);
-<a name="221" href="#221">221</a>         }
-<a name="222" href="#222">222</a>         when(mock.getRequest()).thenReturn(initialRequest);
-<a name="223" href="#223">223</a>         <strong class="jxr_keyword">if</strong> (initialRequest.getClass() == PlcReadRequest.<strong class="jxr_keyword">class</strong>) {
-<a name="224" href="#224">224</a>             <strong class="jxr_keyword">return</strong> mock;
-<a name="225" href="#225">225</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (initialRequest.getClass() == PlcWriteRequest.<strong class="jxr_keyword">class</strong>) {
-<a name="226" href="#226">226</a>             <strong class="jxr_keyword">return</strong> mock;
-<a name="227" href="#227">227</a>         } <strong class="jxr_keyword">else</strong> {
-<a name="228" href="#228">228</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"Unsupported Type: "</span> + initialRequest.getClass());
-<a name="229" href="#229">229</a>         }
-<a name="230" href="#230">230</a>     }
-<a name="231" href="#231">231</a> 
-<a name="232" href="#232">232</a> }
+<a name="87" href="#87">87</a>          <em class="jxr_comment">// Read Test</em>
+<a name="88" href="#88">88</a>          {
+<a name="89" href="#89">89</a>              <strong class="jxr_keyword">short</strong> fakeTpduReference = (<strong class="jxr_keyword">short</strong>) 1;
+<a name="90" href="#90">90</a>              {
+<a name="91" href="#91">91</a>                  <em class="jxr_comment">// We need to put in a fake tpdu reference</em>
+<a name="92" href="#92">92</a>                  Field requests = Plc4XS7Protocol.<strong class="jxr_keyword">class</strong>.getDeclaredField(<span class="jxr_string">"requests"</span>);
+<a name="93" href="#93">93</a>                  requests.setAccessible(<strong class="jxr_keyword">true</strong>);
+<a name="94" href="#94">94</a>                  Map&lt;Short, PlcRequestContainer&gt; requestContainerMap = (Map&lt;Short, PlcRequestContainer&gt;) requests.get(SUT);
+<a name="95" href="#95">95</a>                  requestContainerMap.put(fakeTpduReference, createMockedContainer(<strong class="jxr_keyword">new</strong> PlcReadRequest(type, address)));
+<a name="96" href="#96">96</a>              }
+<a name="97" href="#97">97</a>              S7ResponseMessage msg = <strong class="jxr_keyword">new</strong> S7ResponseMessage(
+<a name="98" href="#98">98</a>                  MessageType.ACK,
+<a name="99" href="#99">99</a>                  fakeTpduReference,
+<a name="100" href="#100">100</a>                 singletonList(mock(VarParameter.<strong class="jxr_keyword">class</strong>)),
+<a name="101" href="#101">101</a>                 singletonList(<strong class="jxr_keyword">new</strong> VarPayload(ParameterType.READ_VAR, singletonList(varPayloadItemFor(type)))),
+<a name="102" href="#102">102</a>                 (byte) 0x00,
+<a name="103" href="#103">103</a>                 (byte) 0x00);
+<a name="104" href="#104">104</a>             LinkedList&lt;Object&gt; out = <strong class="jxr_keyword">new</strong> LinkedList&lt;&gt;();
+<a name="105" href="#105">105</a>             SUT.decode(<strong class="jxr_keyword">null</strong>, msg, out);
+<a name="106" href="#106">106</a>             <em class="jxr_comment">// TODO: finish the asserts</em>
+<a name="107" href="#107">107</a>             assertThat(out).hasSize(0);
+<a name="108" href="#108">108</a>         }
+<a name="109" href="#109">109</a>         <em class="jxr_comment">// Write Test</em>
+<a name="110" href="#110">110</a>         {
+<a name="111" href="#111">111</a>             <strong class="jxr_keyword">short</strong> fakeTpduReference = (<strong class="jxr_keyword">short</strong>) 2;
+<a name="112" href="#112">112</a>             {
+<a name="113" href="#113">113</a>                 <em class="jxr_comment">// We need to put in a fake tpdu reference</em>
+<a name="114" href="#114">114</a>                 Field requests = Plc4XS7Protocol.<strong class="jxr_keyword">class</strong>.getDeclaredField(<span class="jxr_string">"requests"</span>);
+<a name="115" href="#115">115</a>                 requests.setAccessible(<strong class="jxr_keyword">true</strong>);
+<a name="116" href="#116">116</a>                 Map&lt;Short, PlcRequestContainer&gt; requestContainerMap = (Map&lt;Short, PlcRequestContainer&gt;) requests.get(SUT);
+<a name="117" href="#117">117</a>                 requestContainerMap.put(fakeTpduReference, createMockedContainer(<strong class="jxr_keyword">new</strong> PlcWriteRequest(type, address, fakeValueFor(type))));
+<a name="118" href="#118">118</a>             }
+<a name="119" href="#119">119</a>             S7ResponseMessage msg = <strong class="jxr_keyword">new</strong> S7ResponseMessage(
+<a name="120" href="#120">120</a>                 MessageType.ACK,
+<a name="121" href="#121">121</a>                 fakeTpduReference,
+<a name="122" href="#122">122</a>                 singletonList(mock(VarParameter.<strong class="jxr_keyword">class</strong>)),
+<a name="123" href="#123">123</a>                 singletonList(<strong class="jxr_keyword">new</strong> VarPayload(ParameterType.WRITE_VAR, singletonList(varPayloadItemFor(type)))),
+<a name="124" href="#124">124</a>                 (byte) 0x00,
+<a name="125" href="#125">125</a>                 (byte) 0x00);
+<a name="126" href="#126">126</a>             LinkedList&lt;Object&gt; out = <strong class="jxr_keyword">new</strong> LinkedList&lt;&gt;();
+<a name="127" href="#127">127</a>             SUT.decode(<strong class="jxr_keyword">null</strong>, msg, out);
+<a name="128" href="#128">128</a>             <em class="jxr_comment">// TODO: finish the asserts</em>
+<a name="129" href="#129">129</a>             assertThat(out).hasSize(0);
+<a name="130" href="#130">130</a>         }
+<a name="131" href="#131">131</a>     }
+<a name="132" href="#132">132</a> 
+<a name="133" href="#133">133</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> Stream&lt;Arguments&gt; typeAndAddressProvider() {
+<a name="134" href="#134">134</a>         List&lt;Arguments&gt; arguments = <strong class="jxr_keyword">new</strong> LinkedList&lt;&gt;();
+<a name="135" href="#135">135</a>         Arrays.asList(
+<a name="136" href="#136">136</a>             Boolean.<strong class="jxr_keyword">class</strong>,
+<a name="137" href="#137">137</a>             Byte.<strong class="jxr_keyword">class</strong>,
+<a name="138" href="#138">138</a>             Short.<strong class="jxr_keyword">class</strong>,
+<a name="139" href="#139">139</a>             <em class="jxr_comment">// TODO: enable once Calender in implemented</em>
+<a name="140" href="#140">140</a>             <em class="jxr_comment">//Calendar.class,</em>
+<a name="141" href="#141">141</a>             Float.<strong class="jxr_keyword">class</strong>,
+<a name="142" href="#142">142</a>             Integer.<strong class="jxr_keyword">class</strong>,
+<a name="143" href="#143">143</a>             String.<strong class="jxr_keyword">class</strong>)
+<a name="144" href="#144">144</a>             .forEach(
+<a name="145" href="#145">145</a>                 aClass -&gt; Arrays.asList(
+<a name="146" href="#146">146</a>                     mock(S7Address.<strong class="jxr_keyword">class</strong>),
+<a name="147" href="#147">147</a>                     mock(S7BitAddress.<strong class="jxr_keyword">class</strong>),
+<a name="148" href="#148">148</a>                     mock(S7DataBlockAddress.<strong class="jxr_keyword">class</strong>))
+<a name="149" href="#149">149</a>                     .forEach(s7Address -&gt; arguments.add(Arguments.of(aClass, s7Address)))
+<a name="150" href="#150">150</a>             );
+<a name="151" href="#151">151</a>         <strong class="jxr_keyword">return</strong> arguments.stream();
+<a name="152" href="#152">152</a>     }
+<a name="153" href="#153">153</a> 
+<a name="154" href="#154">154</a>     <strong class="jxr_keyword">private</strong> &lt;T&gt; T fakeValueFor(Class&lt;T&gt; type) {
+<a name="155" href="#155">155</a>         <strong class="jxr_keyword">if</strong> (type == Boolean.<strong class="jxr_keyword">class</strong>) {
+<a name="156" href="#156">156</a>             <strong class="jxr_keyword">return</strong> (T) Boolean.TRUE;
+<a name="157" href="#157">157</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (type == Byte.<strong class="jxr_keyword">class</strong>) {
+<a name="158" href="#158">158</a>             <strong class="jxr_keyword">return</strong> (T) Byte.valueOf((byte) 0x0000_0000);
+<a name="159" href="#159">159</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (type == Short.<strong class="jxr_keyword">class</strong>) {
+<a name="160" href="#160">160</a>             <strong class="jxr_keyword">return</strong> (T) Short.valueOf((<strong class="jxr_keyword">short</strong>) 123);
+<a name="161" href="#161">161</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (type == Calendar.<strong class="jxr_keyword">class</strong>) {
+<a name="162" href="#162">162</a>             <strong class="jxr_keyword">return</strong> (T) Calendar.getInstance();
+<a name="163" href="#163">163</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (type == Float.<strong class="jxr_keyword">class</strong>) {
+<a name="164" href="#164">164</a>             <strong class="jxr_keyword">return</strong> (T) Float.valueOf(123f);
+<a name="165" href="#165">165</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (type == Integer.<strong class="jxr_keyword">class</strong>) {
+<a name="166" href="#166">166</a>             <strong class="jxr_keyword">return</strong> (T) Integer.valueOf(123);
+<a name="167" href="#167">167</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (type == String.<strong class="jxr_keyword">class</strong>) {
+<a name="168" href="#168">168</a>             <strong class="jxr_keyword">return</strong> (T) <span class="jxr_string">"string"</span>;
+<a name="169" href="#169">169</a>         } <strong class="jxr_keyword">else</strong> {
+<a name="170" href="#170">170</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"Type t not supported "</span> + type);
+<a name="171" href="#171">171</a>         }
+<a name="172" href="#172">172</a>     }
+<a name="173" href="#173">173</a> 
+<a name="174" href="#174">174</a>     <strong class="jxr_keyword">private</strong> VarPayloadItem varPayloadItemFor(Class type) {
+<a name="175" href="#175">175</a>         <em class="jxr_comment">// TODO: fix example</em>
+<a name="176" href="#176">176</a>         <strong class="jxr_keyword">final</strong> DataTransportSize size;
+<a name="177" href="#177">177</a>         <strong class="jxr_keyword">final</strong> byte[] data;
+<a name="178" href="#178">178</a>         <strong class="jxr_keyword">if</strong> (type == Boolean.<strong class="jxr_keyword">class</strong>) {
+<a name="179" href="#179">179</a>             size = DataTransportSize.BIT;
+<a name="180" href="#180">180</a>             data = <strong class="jxr_keyword">new</strong> byte[]{(byte) 0b0};
+<a name="181" href="#181">181</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (type == Byte.<strong class="jxr_keyword">class</strong>) {
+<a name="182" href="#182">182</a>             size = DataTransportSize.BYTE_WORD_DWORD;
+<a name="183" href="#183">183</a>             data = <strong class="jxr_keyword">new</strong> byte[]{(byte) 0b0000_0000};
+<a name="184" href="#184">184</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (type == Short.<strong class="jxr_keyword">class</strong>) {
+<a name="185" href="#185">185</a>             size = DataTransportSize.BYTE_WORD_DWORD;
+<a name="186" href="#186">186</a>             data = <strong class="jxr_keyword">new</strong> byte[]{(byte) 0b0000_0000, (byte) 0b0000_0000};
+<a name="187" href="#187">187</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (type == Calendar.<strong class="jxr_keyword">class</strong>) {
+<a name="188" href="#188">188</a>             size = DataTransportSize.BYTE_WORD_DWORD;
+<a name="189" href="#189">189</a>             <em class="jxr_comment">// TODO: what size is calender?</em>
+<a name="190" href="#190">190</a>             data = <strong class="jxr_keyword">new</strong> byte[]{(byte) 0b0000_0000};
+<a name="191" href="#191">191</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (type == Float.<strong class="jxr_keyword">class</strong>) {
+<a name="192" href="#192">192</a>             size = DataTransportSize.BYTE_WORD_DWORD;
+<a name="193" href="#193">193</a>             data = <strong class="jxr_keyword">new</strong> byte[]{(byte) 0b0000_0000, (byte) 0b0000_0000, (byte) 0b0000_0000, (byte) 0b0000_0000};
+<a name="194" href="#194">194</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (type == Integer.<strong class="jxr_keyword">class</strong>) {
+<a name="195" href="#195">195</a>             size = DataTransportSize.INTEGER;
+<a name="196" href="#196">196</a>             data = <strong class="jxr_keyword">new</strong> byte[]{(byte) 0b0000_0000, (byte) 0b0000_0000, (byte) 0b0000_0000, (byte) 0b0000_0000};
+<a name="197" href="#197">197</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (type == String.<strong class="jxr_keyword">class</strong>) {
+<a name="198" href="#198">198</a>             size = DataTransportSize.BYTE_WORD_DWORD;
+<a name="199" href="#199">199</a>             data = <strong class="jxr_keyword">new</strong> byte[]{(byte) 'S', (byte) 't', (byte) 'r', (byte) 'i' ,(byte) 'n', (byte) 'g'};
+<a name="200" href="#200">200</a>         } <strong class="jxr_keyword">else</strong> {
+<a name="201" href="#201">201</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"Type t not supported "</span> + type);
+<a name="202" href="#202">202</a>         }
+<a name="203" href="#203">203</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> VarPayloadItem(DataTransportErrorCode.OK, size, data);
+<a name="204" href="#204">204</a>     }
+<a name="205" href="#205">205</a> 
+<a name="206" href="#206">206</a>     <strong class="jxr_keyword">private</strong> &lt;T <strong class="jxr_keyword">extends</strong> PlcRequest&gt; PlcRequestContainer createMockedContainer(T initialRequest) {
+<a name="207" href="#207">207</a>         <strong class="jxr_keyword">return</strong> createMockedContainer(initialRequest, <strong class="jxr_keyword">null</strong>);
+<a name="208" href="#208">208</a>     }
+<a name="209" href="#209">209</a> 
+<a name="210" href="#210">210</a>     <strong class="jxr_keyword">private</strong> &lt;T <strong class="jxr_keyword">extends</strong> PlcRequest&gt; PlcRequestContainer createMockedContainer(T initialRequest, Consumer&lt;T&gt; requestEnricher) {
+<a name="211" href="#211">211</a>         Objects.requireNonNull(initialRequest);
+<a name="212" href="#212">212</a>         PlcRequestContainer mock = mock(PlcRequestContainer.<strong class="jxr_keyword">class</strong>, RETURNS_DEEP_STUBS);
+<a name="213" href="#213">213</a>         <strong class="jxr_keyword">if</strong> (requestEnricher != <strong class="jxr_keyword">null</strong>) {
+<a name="214" href="#214">214</a>             requestEnricher.accept(initialRequest);
+<a name="215" href="#215">215</a>         }
+<a name="216" href="#216">216</a>         when(mock.getRequest()).thenReturn(initialRequest);
+<a name="217" href="#217">217</a>         <strong class="jxr_keyword">if</strong> (initialRequest.getClass() == PlcReadRequest.<strong class="jxr_keyword">class</strong>) {
+<a name="218" href="#218">218</a>             <strong class="jxr_keyword">return</strong> mock;
+<a name="219" href="#219">219</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (initialRequest.getClass() == PlcWriteRequest.<strong class="jxr_keyword">class</strong>) {
+<a name="220" href="#220">220</a>             <strong class="jxr_keyword">return</strong> mock;
+<a name="221" href="#221">221</a>         } <strong class="jxr_keyword">else</strong> {
+<a name="222" href="#222">222</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"Unsupported Type: "</span> + initialRequest.getClass());
+<a name="223" href="#223">223</a>         }
+<a name="224" href="#224">224</a>     }
+<a name="225" href="#225">225</a> 
+<a name="226" href="#226">226</a> }
 </pre>
 <hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
 </html>
