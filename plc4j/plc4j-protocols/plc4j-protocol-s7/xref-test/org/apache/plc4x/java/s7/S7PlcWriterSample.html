@@ -31,52 +31,53 @@
 <a name="21" href="#21">21</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.PlcDriverManager;
 <a name="22" href="#22">22</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.connection.PlcConnection;
 <a name="23" href="#23">23</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.connection.PlcWriter;
-<a name="24" href="#24">24</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.messages.*;
-<a name="25" href="#25">25</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.model.Address;
-<a name="26" href="#26">26</a>  <strong class="jxr_keyword">import</strong> org.slf4j.Logger;
-<a name="27" href="#27">27</a>  <strong class="jxr_keyword">import</strong> org.slf4j.LoggerFactory;
-<a name="28" href="#28">28</a>  
-<a name="29" href="#29">29</a>  <strong class="jxr_keyword">import</strong> java.util.Optional;
-<a name="30" href="#30">30</a>  
-<a name="31" href="#31">31</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> S7PlcWriterSample {
-<a name="32" href="#32">32</a>  
-<a name="33" href="#33">33</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Logger logger = LoggerFactory.getLogger(S7PlcWriterSample.<strong class="jxr_keyword">class</strong>);
-<a name="34" href="#34">34</a>  
-<a name="35" href="#35">35</a>      <em class="jxr_javadoccomment">/**</em>
-<a name="36" href="#36">36</a>  <em class="jxr_javadoccomment">     * Example code do demonstrate using the S7 Plc Driver.</em>
-<a name="37" href="#37">37</a>  <em class="jxr_javadoccomment">     *</em>
-<a name="38" href="#38">38</a>  <em class="jxr_javadoccomment">     * @param args ignored.</em>
-<a name="39" href="#39">39</a>  <em class="jxr_javadoccomment">     * @throws Exception something went wrong.</em>
-<a name="40" href="#40">40</a>  <em class="jxr_javadoccomment">     */</em>
-<a name="41" href="#41">41</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> main(String[] args) <strong class="jxr_keyword">throws</strong> Exception {
-<a name="42" href="#42">42</a>          <em class="jxr_comment">// Create a connection to the S7 PLC (s7://{hostname/ip}/{racknumber}/{slotnumber})</em>
-<a name="43" href="#43">43</a>          logger.info(<span class="jxr_string">"Connecting"</span>);
-<a name="44" href="#44">44</a>          <strong class="jxr_keyword">try</strong> (PlcConnection plcConnection = <strong class="jxr_keyword">new</strong> PlcDriverManager().getConnection(<span class="jxr_string">"s7://192.168.0.1/0/0"</span>)){
-<a name="45" href="#45">45</a>              logger.info(<span class="jxr_string">"Connected"</span>);
-<a name="46" href="#46">46</a>  
-<a name="47" href="#47">47</a>              Optional&lt;PlcWriter&gt; writer = plcConnection.getWriter();
-<a name="48" href="#48">48</a>              <em class="jxr_comment">// Check if this connection support reading of data.</em>
-<a name="49" href="#49">49</a>              <strong class="jxr_keyword">if</strong> (writer.isPresent()) {
-<a name="50" href="#50">50</a>                  PlcWriter plcWriter = writer.get();
-<a name="51" href="#51">51</a>                  Address inputs = plcConnection.parseAddress(<span class="jxr_string">"DATA_BLOCKS/1/2"</span>);
-<a name="52" href="#52">52</a>                  <em class="jxr_comment">//////////////////////////////////////////////////////////</em>
-<a name="53" href="#53">53</a>                  <em class="jxr_comment">// Write synchronously ...</em>
-<a name="54" href="#54">54</a>                  <em class="jxr_comment">// NOTICE: the ".get()" immediately lets this thread pause till</em>
-<a name="55" href="#55">55</a>                  <em class="jxr_comment">// the response is processed and available.</em>
-<a name="56" href="#56">56</a>                  PlcWriteResponse plcWriteResponse = plcWriter.write(
-<a name="57" href="#57">57</a>                      <strong class="jxr_keyword">new</strong> PlcWriteRequest(Float.<strong class="jxr_keyword">class</strong>, inputs, 2.0f)).get();
-<a name="58" href="#58">58</a>                  System.out.println(<span class="jxr_string">"Written: "</span> + plcWriteResponse.getResponseItems().get(0).getResponseCode().name());
-<a name="59" href="#59">59</a>              }
-<a name="60" href="#60">60</a>          }
-<a name="61" href="#61">61</a>          <em class="jxr_comment">// Catch any exception or the application won't be able to finish if something goes wrong.</em>
-<a name="62" href="#62">62</a>          <strong class="jxr_keyword">catch</strong> (Exception e) {
-<a name="63" href="#63">63</a>              e.printStackTrace();
-<a name="64" href="#64">64</a>          }
-<a name="65" href="#65">65</a>          <em class="jxr_comment">// The application would cleanly terminate after several seconds ... this just speeds things up.</em>
-<a name="66" href="#66">66</a>          System.exit(0);
-<a name="67" href="#67">67</a>      }
-<a name="68" href="#68">68</a>  
-<a name="69" href="#69">69</a>  }
+<a name="24" href="#24">24</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.messages.specific.TypeSafePlcWriteRequest;
+<a name="25" href="#25">25</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.messages.specific.TypeSafePlcWriteResponse;
+<a name="26" href="#26">26</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.model.Address;
+<a name="27" href="#27">27</a>  <strong class="jxr_keyword">import</strong> org.slf4j.Logger;
+<a name="28" href="#28">28</a>  <strong class="jxr_keyword">import</strong> org.slf4j.LoggerFactory;
+<a name="29" href="#29">29</a>  
+<a name="30" href="#30">30</a>  <strong class="jxr_keyword">import</strong> java.util.Optional;
+<a name="31" href="#31">31</a>  
+<a name="32" href="#32">32</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> S7PlcWriterSample {
+<a name="33" href="#33">33</a>  
+<a name="34" href="#34">34</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Logger logger = LoggerFactory.getLogger(S7PlcWriterSample.<strong class="jxr_keyword">class</strong>);
+<a name="35" href="#35">35</a>  
+<a name="36" href="#36">36</a>      <em class="jxr_javadoccomment">/**</em>
+<a name="37" href="#37">37</a>  <em class="jxr_javadoccomment">     * Example code do demonstrate using the S7 Plc Driver.</em>
+<a name="38" href="#38">38</a>  <em class="jxr_javadoccomment">     *</em>
+<a name="39" href="#39">39</a>  <em class="jxr_javadoccomment">     * @param args ignored.</em>
+<a name="40" href="#40">40</a>  <em class="jxr_javadoccomment">     * @throws Exception something went wrong.</em>
+<a name="41" href="#41">41</a>  <em class="jxr_javadoccomment">     */</em>
+<a name="42" href="#42">42</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> main(String[] args) <strong class="jxr_keyword">throws</strong> Exception {
+<a name="43" href="#43">43</a>          <em class="jxr_comment">// Create a connection to the S7 PLC (s7://{hostname/ip}/{racknumber}/{slotnumber})</em>
+<a name="44" href="#44">44</a>          logger.info(<span class="jxr_string">"Connecting"</span>);
+<a name="45" href="#45">45</a>          <strong class="jxr_keyword">try</strong> (PlcConnection plcConnection = <strong class="jxr_keyword">new</strong> PlcDriverManager().getConnection(<span class="jxr_string">"s7://192.168.0.1/0/0"</span>)) {
+<a name="46" href="#46">46</a>              logger.info(<span class="jxr_string">"Connected"</span>);
+<a name="47" href="#47">47</a>  
+<a name="48" href="#48">48</a>              Optional&lt;PlcWriter&gt; writer = plcConnection.getWriter();
+<a name="49" href="#49">49</a>              <em class="jxr_comment">// Check if this connection support reading of data.</em>
+<a name="50" href="#50">50</a>              <strong class="jxr_keyword">if</strong> (writer.isPresent()) {
+<a name="51" href="#51">51</a>                  PlcWriter plcWriter = writer.get();
+<a name="52" href="#52">52</a>                  Address inputs = plcConnection.parseAddress(<span class="jxr_string">"DATA_BLOCKS/1/2"</span>);
+<a name="53" href="#53">53</a>                  <em class="jxr_comment">//////////////////////////////////////////////////////////</em>
+<a name="54" href="#54">54</a>                  <em class="jxr_comment">// Write synchronously ...</em>
+<a name="55" href="#55">55</a>                  <em class="jxr_comment">// NOTICE: the ".get()" immediately lets this thread pause till</em>
+<a name="56" href="#56">56</a>                  <em class="jxr_comment">// the response is processed and available.</em>
+<a name="57" href="#57">57</a>                  TypeSafePlcWriteResponse&lt;Float&gt; plcWriteResponse = plcWriter.write(
+<a name="58" href="#58">58</a>                      <strong class="jxr_keyword">new</strong> TypeSafePlcWriteRequest&lt;&gt;(Float.<strong class="jxr_keyword">class</strong>, inputs, 2.0f)).get();
+<a name="59" href="#59">59</a>                  System.out.println(<span class="jxr_string">"Written: "</span> + plcWriteResponse.getResponseItem().get().getResponseCode().name());
+<a name="60" href="#60">60</a>              }
+<a name="61" href="#61">61</a>          }
+<a name="62" href="#62">62</a>          <em class="jxr_comment">// Catch any exception or the application won't be able to finish if something goes wrong.</em>
+<a name="63" href="#63">63</a>          <strong class="jxr_keyword">catch</strong> (Exception e) {
+<a name="64" href="#64">64</a>              e.printStackTrace();
+<a name="65" href="#65">65</a>          }
+<a name="66" href="#66">66</a>          <em class="jxr_comment">// The application would cleanly terminate after several seconds ... this just speeds things up.</em>
+<a name="67" href="#67">67</a>          System.exit(0);
+<a name="68" href="#68">68</a>      }
+<a name="69" href="#69">69</a>  
+<a name="70" href="#70">70</a>  }
 </pre>
 <hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
 </html>

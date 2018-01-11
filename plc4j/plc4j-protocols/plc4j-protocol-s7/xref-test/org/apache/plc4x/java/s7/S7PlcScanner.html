@@ -31,8 +31,8 @@
 <a name="21" href="#21">21</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.PlcDriverManager;
 <a name="22" href="#22">22</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.connection.PlcConnection;
 <a name="23" href="#23">23</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.connection.PlcReader;
-<a name="24" href="#24">24</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.messages.PlcReadRequest;
-<a name="25" href="#25">25</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.messages.PlcReadResponse;
+<a name="24" href="#24">24</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.messages.specific.TypeSafePlcReadRequest;
+<a name="25" href="#25">25</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.messages.specific.TypeSafePlcReadResponse;
 <a name="26" href="#26">26</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.model.Address;
 <a name="27" href="#27">27</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.s7.netty.model.types.MemoryArea;
 <a name="28" href="#28">28</a>  <strong class="jxr_keyword">import</strong> org.slf4j.Logger;
@@ -53,7 +53,7 @@
 <a name="43" href="#43">43</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> main(String[] args) <strong class="jxr_keyword">throws</strong> Exception {
 <a name="44" href="#44">44</a>          <em class="jxr_comment">// Create a connection to the S7 PLC (s7://{hostname/ip}/{racknumber}/{slotnumber})</em>
 <a name="45" href="#45">45</a>          logger.info(<span class="jxr_string">"Connecting"</span>);
-<a name="46" href="#46">46</a>          <strong class="jxr_keyword">try</strong> (PlcConnection plcConnection = <strong class="jxr_keyword">new</strong> PlcDriverManager().getConnection(<span class="jxr_string">"s7://192.168.0.1/0/0"</span>)){
+<a name="46" href="#46">46</a>          <strong class="jxr_keyword">try</strong> (PlcConnection plcConnection = <strong class="jxr_keyword">new</strong> PlcDriverManager().getConnection(<span class="jxr_string">"s7://192.168.0.1/0/0"</span>)) {
 <a name="47" href="#47">47</a>              logger.info(<span class="jxr_string">"Connected"</span>);
 <a name="48" href="#48">48</a>  
 <a name="49" href="#49">49</a>              Optional&lt;PlcReader&gt; reader = plcConnection.getReader();
@@ -64,18 +64,18 @@
 <a name="54" href="#54">54</a>                  <strong class="jxr_keyword">for</strong> (MemoryArea memoryArea : MemoryArea.values()) {
 <a name="55" href="#55">55</a>                      System.out.println(memoryArea);
 <a name="56" href="#56">56</a>                      System.out.println(<span class="jxr_string">"------------------------------------------"</span>);
-<a name="57" href="#57">57</a>                      <strong class="jxr_keyword">for</strong>(<strong class="jxr_keyword">int</strong> i = 0; i &lt; 8959; i++) {
+<a name="57" href="#57">57</a>                      <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; 8959; i++) {
 <a name="58" href="#58">58</a>                          <strong class="jxr_keyword">try</strong> {
 <a name="59" href="#59">59</a>                              Address address;
-<a name="60" href="#60">60</a>                              <strong class="jxr_keyword">if</strong>(memoryArea == MemoryArea.DATA_BLOCKS) {
+<a name="60" href="#60">60</a>                              <strong class="jxr_keyword">if</strong> (memoryArea == MemoryArea.DATA_BLOCKS) {
 <a name="61" href="#61">61</a>                                  address = plcConnection.parseAddress(<span class="jxr_string">"DATA_BLOCKS/1/"</span> + i);
 <a name="62" href="#62">62</a>                              } <strong class="jxr_keyword">else</strong> {
 <a name="63" href="#63">63</a>                                  address = plcConnection.parseAddress(memoryArea.name() + <span class="jxr_string">"/"</span> + i);
 <a name="64" href="#64">64</a>                              }
-<a name="65" href="#65">65</a>                              PlcReadResponse plcReadResponse = plcReader.read(
-<a name="66" href="#66">66</a>                                  <strong class="jxr_keyword">new</strong> PlcReadRequest(Byte.<strong class="jxr_keyword">class</strong>, address)).get();
-<a name="67" href="#67">67</a>                              Byte data = (Byte) plcReadResponse.getResponseItems().get(0).getValues().get(0);
-<a name="68" href="#68">68</a>                              <strong class="jxr_keyword">if</strong>(data != <strong class="jxr_keyword">null</strong> &amp;&amp; data != 0) {
+<a name="65" href="#65">65</a>                              TypeSafePlcReadResponse&lt;Byte&gt; plcReadResponse = plcReader.read(
+<a name="66" href="#66">66</a>                                  <strong class="jxr_keyword">new</strong> TypeSafePlcReadRequest&lt;&gt;(Byte.<strong class="jxr_keyword">class</strong>, address)).get();
+<a name="67" href="#67">67</a>                              Byte data = plcReadResponse.getResponseItem().get().getValues().get(0);
+<a name="68" href="#68">68</a>                              <strong class="jxr_keyword">if</strong> (data != <strong class="jxr_keyword">null</strong> &amp;&amp; data != 0) {
 <a name="69" href="#69">69</a>                                  System.out.println(String.format(
 <a name="70" href="#70">70</a>                                      <span class="jxr_string">"Response: Memory Area: %s Index: %d Value: %02X"</span>, memoryArea.name(), i, data));
 <a name="71" href="#71">71</a>                              }

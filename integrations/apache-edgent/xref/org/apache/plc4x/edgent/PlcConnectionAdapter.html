@@ -38,174 +38,171 @@
 <a name="28" href="#28">28</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.connection.PlcReader;
 <a name="29" href="#29">29</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.connection.PlcWriter;
 <a name="30" href="#30">30</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.exceptions.PlcException;
-<a name="31" href="#31">31</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.messages.*;
-<a name="32" href="#32">32</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.model.Address;
-<a name="33" href="#33">33</a>  <strong class="jxr_keyword">import</strong> org.slf4j.Logger;
-<a name="34" href="#34">34</a>  <strong class="jxr_keyword">import</strong> org.slf4j.LoggerFactory;
-<a name="35" href="#35">35</a>  
-<a name="36" href="#36">36</a>  <strong class="jxr_keyword">import</strong> com.google.gson.JsonObject;
+<a name="31" href="#31">31</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.messages.PlcWriteRequest;
+<a name="32" href="#32">32</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.messages.specific.TypeSafePlcReadRequest;
+<a name="33" href="#33">33</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.messages.specific.TypeSafePlcWriteRequest;
+<a name="34" href="#34">34</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.model.Address;
+<a name="35" href="#35">35</a>  <strong class="jxr_keyword">import</strong> org.slf4j.Logger;
+<a name="36" href="#36">36</a>  <strong class="jxr_keyword">import</strong> org.slf4j.LoggerFactory;
 <a name="37" href="#37">37</a>  
-<a name="38" href="#38">38</a>  <em class="jxr_javadoccomment">/**</em>
-<a name="39" href="#39">39</a>  <em class="jxr_javadoccomment"> * PlcConnectionAdapter encapsulates a plc4x {@link PlcConnection}.</em>
-<a name="40" href="#40">40</a>  <em class="jxr_javadoccomment"> * &lt;p&gt;</em>
-<a name="41" href="#41">41</a>  <em class="jxr_javadoccomment"> * The idea here is to use PlcConnectionAdapter to enable our Edgent Supplier/Consumer</em>
-<a name="42" href="#42">42</a>  <em class="jxr_javadoccomment"> * instances to be isolated from the details of / variability of </em>
-<a name="43" href="#43">43</a>  <em class="jxr_javadoccomment"> * PlcConnection mgmt and such.</em>
-<a name="44" href="#44">44</a>  <em class="jxr_javadoccomment"> * &lt;p&gt;</em>
-<a name="45" href="#45">45</a>  <em class="jxr_javadoccomment"> * A PlcConnectionAdapter is subject to the constraints of the underlying</em>
-<a name="46" href="#46">46</a>  <em class="jxr_javadoccomment"> * PlcConnection for the device.</em>
-<a name="47" href="#47">47</a>  <em class="jxr_javadoccomment"> * &lt;p&gt;</em>
-<a name="48" href="#48">48</a>  <em class="jxr_javadoccomment"> * A single PlcConnectionAdaptor represents a single underlying PlcConnection/connection</em>
-<a name="49" href="#49">49</a>  <em class="jxr_javadoccomment"> * to a plc device.</em>
-<a name="50" href="#50">50</a>  <em class="jxr_javadoccomment"> * &lt;p&gt;</em>
-<a name="51" href="#51">51</a>  <em class="jxr_javadoccomment"> * Multiple PlcConnectionAdaptor instances, hence multiple PlcConnection instances,</em>
-<a name="52" href="#52">52</a>  <em class="jxr_javadoccomment"> * can be created for a single plc device subject to the underlying device's protocol's</em>
-<a name="53" href="#53">53</a>  <em class="jxr_javadoccomment"> * support for multiple connections from a single client.</em>
-<a name="54" href="#54">54</a>  <em class="jxr_javadoccomment"> * &lt;p&gt;</em>
-<a name="55" href="#55">55</a>  <em class="jxr_javadoccomment"> * A single PlcConnectionAdapter can be used by multiple threads concurrently</em>
-<a name="56" href="#56">56</a>  <em class="jxr_javadoccomment"> * (e.g., used by multiple PlcFunctions Consumers for {@code Topology.poll()} and/or </em>
-<a name="57" href="#57">57</a>  <em class="jxr_javadoccomment"> * multiple Suppliers for {@code TStream.sink()}). </em>
-<a name="58" href="#58">58</a>  <em class="jxr_javadoccomment"> * </em>
-<a name="59" href="#59">59</a>  <em class="jxr_javadoccomment"> * @see PlcFunctions</em>
-<a name="60" href="#60">60</a>  <em class="jxr_javadoccomment"> */</em>
-<a name="61" href="#61">61</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html">PlcConnectionAdapter</a> implements AutoCloseable{
-<a name="62" href="#62">62</a>  
-<a name="63" href="#63">63</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Logger logger = LoggerFactory.getLogger(PlcConnectionAdapter.<strong class="jxr_keyword">class</strong>);
-<a name="64" href="#64">64</a>    
-<a name="65" href="#65">65</a>    <strong class="jxr_keyword">private</strong> String plcConnectionUrl;
-<a name="66" href="#66">66</a>    <strong class="jxr_keyword">private</strong> PlcConnection plcConnection;
-<a name="67" href="#67">67</a>    
-<a name="68" href="#68">68</a>    <em class="jxr_comment">/*</em>
-<a name="69" href="#69">69</a>  <em class="jxr_comment">   * NOTES:</em>
-<a name="70" href="#70">70</a>  <em class="jxr_comment">   * - if we get to the point of the application needing some feedback (possibly control)</em>
-<a name="71" href="#71">71</a>  <em class="jxr_comment">   *   of read or write errors, my thinking is to enhance the PlcConnectionAdapter</em>
-<a name="72" href="#72">72</a>  <em class="jxr_comment">   *   to enable the app to register an error callback handler or such.</em>
-<a name="73" href="#73">73</a>  <em class="jxr_comment">   */</em>
-<a name="74" href="#74">74</a>    
-<a name="75" href="#75">75</a>    <strong class="jxr_keyword">public</strong> <a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html">PlcConnectionAdapter</a>(PlcConnection plcConnection) {
-<a name="76" href="#76">76</a>      <strong class="jxr_keyword">this</strong>.plcConnection = plcConnection;
-<a name="77" href="#77">77</a>    }
-<a name="78" href="#78">78</a>    
-<a name="79" href="#79">79</a>    <strong class="jxr_keyword">public</strong> <a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html">PlcConnectionAdapter</a>(String plcConnectionUrl) {
-<a name="80" href="#80">80</a>      <strong class="jxr_keyword">this</strong>.plcConnectionUrl = plcConnectionUrl;
-<a name="81" href="#81">81</a>    }
-<a name="82" href="#82">82</a>    
-<a name="83" href="#83">83</a>    PlcConnection getConnection() <strong class="jxr_keyword">throws</strong> PlcException {
-<a name="84" href="#84">84</a>      <strong class="jxr_keyword">synchronized</strong>(<strong class="jxr_keyword">this</strong>) {
-<a name="85" href="#85">85</a>        <strong class="jxr_keyword">if</strong> (plcConnection == <strong class="jxr_keyword">null</strong>) {
-<a name="86" href="#86">86</a>          plcConnection = <strong class="jxr_keyword">new</strong> PlcDriverManager().getConnection(plcConnectionUrl);
-<a name="87" href="#87">87</a>        }
-<a name="88" href="#88">88</a>        <strong class="jxr_keyword">return</strong> plcConnection;
-<a name="89" href="#89">89</a>      }
-<a name="90" href="#90">90</a>    }
-<a name="91" href="#91">91</a>  
-<a name="92" href="#92">92</a>    @Override
-<a name="93" href="#93">93</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> close() <strong class="jxr_keyword">throws</strong> Exception {
-<a name="94" href="#94">94</a>      <em class="jxr_comment">// only close a connection this instance created/connected</em>
-<a name="95" href="#95">95</a>      <strong class="jxr_keyword">if</strong> (plcConnectionUrl != <strong class="jxr_keyword">null</strong> &amp;&amp; plcConnection != <strong class="jxr_keyword">null</strong>) {
-<a name="96" href="#96">96</a>        plcConnection.close();
-<a name="97" href="#97">97</a>      }
-<a name="98" href="#98">98</a>    }
-<a name="99" href="#99">99</a>  
-<a name="100" href="#100">100</a>   &lt;T&gt; Supplier&lt;T&gt; newSupplier(Class&lt;T&gt; datatype, String addressStr) {
-<a name="101" href="#101">101</a>     PlcConnectionAdapter.checkDatatype(datatype);
-<a name="102" href="#102">102</a>     <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> Supplier&lt;T&gt;() {
-<a name="103" href="#103">103</a>       <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> serialVersionUID = 1L;
-<a name="104" href="#104">104</a> 
-<a name="105" href="#105">105</a>       @Override
-<a name="106" href="#106">106</a>       <strong class="jxr_keyword">public</strong> T get() {
-<a name="107" href="#107">107</a>         PlcConnection connection = <strong class="jxr_keyword">null</strong>;
-<a name="108" href="#108">108</a>         Address address = <strong class="jxr_keyword">null</strong>;
-<a name="109" href="#109">109</a>         <strong class="jxr_keyword">try</strong> {
-<a name="110" href="#110">110</a>           connection = getConnection();
-<a name="111" href="#111">111</a>           address = connection.parseAddress(addressStr);
-<a name="112" href="#112">112</a>           PlcReader reader = connection.getReader().get();
-<a name="113" href="#113">113</a>           PlcReadRequest readRequest = PlcConnectionAdapter.newPlcReadRequest(datatype, address);
-<a name="114" href="#114">114</a>           <strong class="jxr_keyword">return</strong> (T) reader.read(readRequest).get().getResponseItems().get(0).getValues().get(0);
-<a name="115" href="#115">115</a>         }
-<a name="116" href="#116">116</a>         <strong class="jxr_keyword">catch</strong> (Exception e) {
-<a name="117" href="#117">117</a>           logger.error(<span class="jxr_string">"reading from plc device {} {} failed"</span>, connection, address, e);
-<a name="118" href="#118">118</a>           <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
-<a name="119" href="#119">119</a>         }
-<a name="120" href="#120">120</a>       }
-<a name="121" href="#121">121</a>       
-<a name="122" href="#122">122</a>     };
-<a name="123" href="#123">123</a>   }
+<a name="38" href="#38">38</a>  <strong class="jxr_keyword">import</strong> com.google.gson.JsonObject;
+<a name="39" href="#39">39</a>  
+<a name="40" href="#40">40</a>  <em class="jxr_javadoccomment">/**</em>
+<a name="41" href="#41">41</a>  <em class="jxr_javadoccomment"> * PlcConnectionAdapter encapsulates a plc4x {@link PlcConnection}.</em>
+<a name="42" href="#42">42</a>  <em class="jxr_javadoccomment"> * &lt;p&gt;</em>
+<a name="43" href="#43">43</a>  <em class="jxr_javadoccomment"> * The idea here is to use PlcConnectionAdapter to enable our Edgent Supplier/Consumer</em>
+<a name="44" href="#44">44</a>  <em class="jxr_javadoccomment"> * instances to be isolated from the details of / variability of</em>
+<a name="45" href="#45">45</a>  <em class="jxr_javadoccomment"> * PlcConnection mgmt and such.</em>
+<a name="46" href="#46">46</a>  <em class="jxr_javadoccomment"> * &lt;p&gt;</em>
+<a name="47" href="#47">47</a>  <em class="jxr_javadoccomment"> * A PlcConnectionAdapter is subject to the constraints of the underlying</em>
+<a name="48" href="#48">48</a>  <em class="jxr_javadoccomment"> * PlcConnection for the device.</em>
+<a name="49" href="#49">49</a>  <em class="jxr_javadoccomment"> * &lt;p&gt;</em>
+<a name="50" href="#50">50</a>  <em class="jxr_javadoccomment"> * A single PlcConnectionAdaptor represents a single underlying PlcConnection/connection</em>
+<a name="51" href="#51">51</a>  <em class="jxr_javadoccomment"> * to a plc device.</em>
+<a name="52" href="#52">52</a>  <em class="jxr_javadoccomment"> * &lt;p&gt;</em>
+<a name="53" href="#53">53</a>  <em class="jxr_javadoccomment"> * Multiple PlcConnectionAdaptor instances, hence multiple PlcConnection instances,</em>
+<a name="54" href="#54">54</a>  <em class="jxr_javadoccomment"> * can be created for a single plc device subject to the underlying device's protocol's</em>
+<a name="55" href="#55">55</a>  <em class="jxr_javadoccomment"> * support for multiple connections from a single client.</em>
+<a name="56" href="#56">56</a>  <em class="jxr_javadoccomment"> * &lt;p&gt;</em>
+<a name="57" href="#57">57</a>  <em class="jxr_javadoccomment"> * A single PlcConnectionAdapter can be used by multiple threads concurrently</em>
+<a name="58" href="#58">58</a>  <em class="jxr_javadoccomment"> * (e.g., used by multiple PlcFunctions Consumers for {@code Topology.poll()} and/or</em>
+<a name="59" href="#59">59</a>  <em class="jxr_javadoccomment"> * multiple Suppliers for {@code TStream.sink()}).</em>
+<a name="60" href="#60">60</a>  <em class="jxr_javadoccomment"> *</em>
+<a name="61" href="#61">61</a>  <em class="jxr_javadoccomment"> * @see PlcFunctions</em>
+<a name="62" href="#62">62</a>  <em class="jxr_javadoccomment"> */</em>
+<a name="63" href="#63">63</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html">PlcConnectionAdapter</a> implements AutoCloseable {
+<a name="64" href="#64">64</a>  
+<a name="65" href="#65">65</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Logger logger = LoggerFactory.getLogger(PlcConnectionAdapter.<strong class="jxr_keyword">class</strong>);
+<a name="66" href="#66">66</a>  
+<a name="67" href="#67">67</a>      <strong class="jxr_keyword">private</strong> String plcConnectionUrl;
+<a name="68" href="#68">68</a>      <strong class="jxr_keyword">private</strong> PlcConnection plcConnection;
+<a name="69" href="#69">69</a>    
+<a name="70" href="#70">70</a>    <em class="jxr_comment">/*</em>
+<a name="71" href="#71">71</a>  <em class="jxr_comment">   * NOTES:</em>
+<a name="72" href="#72">72</a>  <em class="jxr_comment">   * - if we get to the point of the application needing some feedback (possibly control)</em>
+<a name="73" href="#73">73</a>  <em class="jxr_comment">   *   of read or write errors, my thinking is to enhance the PlcConnectionAdapter</em>
+<a name="74" href="#74">74</a>  <em class="jxr_comment">   *   to enable the app to register an error callback handler or such.</em>
+<a name="75" href="#75">75</a>  <em class="jxr_comment">   */</em>
+<a name="76" href="#76">76</a>  
+<a name="77" href="#77">77</a>      <strong class="jxr_keyword">public</strong> <a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html">PlcConnectionAdapter</a>(PlcConnection plcConnection) {
+<a name="78" href="#78">78</a>          <strong class="jxr_keyword">this</strong>.plcConnection = plcConnection;
+<a name="79" href="#79">79</a>      }
+<a name="80" href="#80">80</a>  
+<a name="81" href="#81">81</a>      <strong class="jxr_keyword">public</strong> <a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html">PlcConnectionAdapter</a>(String plcConnectionUrl) {
+<a name="82" href="#82">82</a>          <strong class="jxr_keyword">this</strong>.plcConnectionUrl = plcConnectionUrl;
+<a name="83" href="#83">83</a>      }
+<a name="84" href="#84">84</a>  
+<a name="85" href="#85">85</a>      PlcConnection getConnection() <strong class="jxr_keyword">throws</strong> PlcException {
+<a name="86" href="#86">86</a>          <strong class="jxr_keyword">synchronized</strong> (<strong class="jxr_keyword">this</strong>) {
+<a name="87" href="#87">87</a>              <strong class="jxr_keyword">if</strong> (plcConnection == <strong class="jxr_keyword">null</strong>) {
+<a name="88" href="#88">88</a>                  plcConnection = <strong class="jxr_keyword">new</strong> PlcDriverManager().getConnection(plcConnectionUrl);
+<a name="89" href="#89">89</a>              }
+<a name="90" href="#90">90</a>              <strong class="jxr_keyword">return</strong> plcConnection;
+<a name="91" href="#91">91</a>          }
+<a name="92" href="#92">92</a>      }
+<a name="93" href="#93">93</a>  
+<a name="94" href="#94">94</a>      @Override
+<a name="95" href="#95">95</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> close() <strong class="jxr_keyword">throws</strong> Exception {
+<a name="96" href="#96">96</a>          <em class="jxr_comment">// only close a connection this instance created/connected</em>
+<a name="97" href="#97">97</a>          <strong class="jxr_keyword">if</strong> (plcConnectionUrl != <strong class="jxr_keyword">null</strong> &amp;&amp; plcConnection != <strong class="jxr_keyword">null</strong>) {
+<a name="98" href="#98">98</a>              plcConnection.close();
+<a name="99" href="#99">99</a>          }
+<a name="100" href="#100">100</a>     }
+<a name="101" href="#101">101</a> 
+<a name="102" href="#102">102</a>     &lt;T&gt; Supplier&lt;T&gt; newSupplier(Class&lt;T&gt; datatype, String addressStr) {
+<a name="103" href="#103">103</a>         PlcConnectionAdapter.checkDatatype(datatype);
+<a name="104" href="#104">104</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> Supplier&lt;T&gt;() {
+<a name="105" href="#105">105</a>             <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> serialVersionUID = 1L;
+<a name="106" href="#106">106</a> 
+<a name="107" href="#107">107</a>             @Override
+<a name="108" href="#108">108</a>             <strong class="jxr_keyword">public</strong> T get() {
+<a name="109" href="#109">109</a>                 PlcConnection connection = <strong class="jxr_keyword">null</strong>;
+<a name="110" href="#110">110</a>                 Address address = <strong class="jxr_keyword">null</strong>;
+<a name="111" href="#111">111</a>                 <strong class="jxr_keyword">try</strong> {
+<a name="112" href="#112">112</a>                     connection = getConnection();
+<a name="113" href="#113">113</a>                     address = connection.parseAddress(addressStr);
+<a name="114" href="#114">114</a>                     PlcReader reader = connection.getReader().get();
+<a name="115" href="#115">115</a>                     TypeSafePlcReadRequest&lt;T&gt; readRequest = PlcConnectionAdapter.newPlcReadRequest(datatype, address);
+<a name="116" href="#116">116</a>                     <strong class="jxr_keyword">return</strong> reader.read(readRequest).get().getResponseItem().get().getValues().get(0);
+<a name="117" href="#117">117</a>                 } <strong class="jxr_keyword">catch</strong> (Exception e) {
+<a name="118" href="#118">118</a>                     logger.error(<span class="jxr_string">"reading from plc device {} {} failed"</span>, connection, address, e);
+<a name="119" href="#119">119</a>                     <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a name="120" href="#120">120</a>                 }
+<a name="121" href="#121">121</a>             }
+<a name="122" href="#122">122</a>         };
+<a name="123" href="#123">123</a>     }
 <a name="124" href="#124">124</a> 
-<a name="125" href="#125">125</a>   &lt;T&gt; Consumer&lt;T&gt; newConsumer(Class&lt;T&gt; datatype, String addressStr) {
-<a name="126" href="#126">126</a>     PlcConnectionAdapter.checkDatatype(datatype);
-<a name="127" href="#127">127</a>     <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> Consumer&lt;T&gt;() {
-<a name="128" href="#128">128</a>       <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> serialVersionUID = 1L;
+<a name="125" href="#125">125</a>     &lt;T&gt; Consumer&lt;T&gt; newConsumer(Class&lt;T&gt; datatype, String addressStr) {
+<a name="126" href="#126">126</a>         PlcConnectionAdapter.checkDatatype(datatype);
+<a name="127" href="#127">127</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> Consumer&lt;T&gt;() {
+<a name="128" href="#128">128</a>             <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> serialVersionUID = 1L;
 <a name="129" href="#129">129</a> 
-<a name="130" href="#130">130</a>       @Override
-<a name="131" href="#131">131</a>       <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> accept(T arg0) {
-<a name="132" href="#132">132</a>         PlcConnection connection = <strong class="jxr_keyword">null</strong>;
-<a name="133" href="#133">133</a>         Address address = <strong class="jxr_keyword">null</strong>;
-<a name="134" href="#134">134</a>         <strong class="jxr_keyword">try</strong> {
-<a name="135" href="#135">135</a>           connection = getConnection();
-<a name="136" href="#136">136</a>           address = connection.parseAddress(addressStr);
-<a name="137" href="#137">137</a>           PlcWriter writer = connection.getWriter().get();
-<a name="138" href="#138">138</a>           PlcWriteRequest writeReq = PlcConnectionAdapter.newPlcWriteRequest(address, arg0);
-<a name="139" href="#139">139</a>           writer.write(writeReq).get();
-<a name="140" href="#140">140</a>         }
-<a name="141" href="#141">141</a>         <strong class="jxr_keyword">catch</strong> (Exception e) {
-<a name="142" href="#142">142</a>           logger.error(<span class="jxr_string">"writing to plc device {} {} failed"</span>, connection, address, e);
-<a name="143" href="#143">143</a>         }
-<a name="144" href="#144">144</a>       }
-<a name="145" href="#145">145</a>       
-<a name="146" href="#146">146</a>     };
-<a name="147" href="#147">147</a>   }
-<a name="148" href="#148">148</a>   
-<a name="149" href="#149">149</a>   &lt;T&gt; Consumer&lt;JsonObject&gt; newConsumer(Class&lt;T&gt; datatype, Function&lt;JsonObject,String&gt; addressFn, Function&lt;JsonObject,T&gt; valueFn) {
-<a name="150" href="#150">150</a>     PlcConnectionAdapter.checkDatatype(datatype);
-<a name="151" href="#151">151</a>     <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> Consumer&lt;JsonObject&gt;() {
-<a name="152" href="#152">152</a>       <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> serialVersionUID = 1L;
-<a name="153" href="#153">153</a> 
-<a name="154" href="#154">154</a>       @Override
-<a name="155" href="#155">155</a>       <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> accept(JsonObject jo) {
-<a name="156" href="#156">156</a>         PlcConnection connection = <strong class="jxr_keyword">null</strong>;
-<a name="157" href="#157">157</a>         Address address = <strong class="jxr_keyword">null</strong>;
-<a name="158" href="#158">158</a>         <strong class="jxr_keyword">try</strong> {
-<a name="159" href="#159">159</a>           connection = getConnection();
-<a name="160" href="#160">160</a>           String addressStr = addressFn.apply(jo);
-<a name="161" href="#161">161</a>           address = connection.parseAddress(addressStr);
-<a name="162" href="#162">162</a>           T value = valueFn.apply(jo);
-<a name="163" href="#163">163</a>           PlcWriter writer = connection.getWriter().get();
-<a name="164" href="#164">164</a>           PlcWriteRequest writeReq = newPlcWriteRequest(address, value);
-<a name="165" href="#165">165</a>           writer.write(writeReq).get();
-<a name="166" href="#166">166</a>         }
-<a name="167" href="#167">167</a>         <strong class="jxr_keyword">catch</strong> (Exception e) {
-<a name="168" href="#168">168</a>           logger.error(<span class="jxr_string">"writing to plc device {} {} failed"</span>, connection, address, e);
-<a name="169" href="#169">169</a>         }
-<a name="170" href="#170">170</a>       }
-<a name="171" href="#171">171</a>       
-<a name="172" href="#172">172</a>     };
-<a name="173" href="#173">173</a>   }
-<a name="174" href="#174">174</a> 
-<a name="175" href="#175">175</a>   <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> checkDatatype(Class&lt;?&gt; cls) {
-<a name="176" href="#176">176</a>     <strong class="jxr_keyword">if</strong> (cls == Boolean.<strong class="jxr_keyword">class</strong>
-<a name="177" href="#177">177</a>         || cls == Byte.<strong class="jxr_keyword">class</strong>
-<a name="178" href="#178">178</a>         || cls == Short.<strong class="jxr_keyword">class</strong>
-<a name="179" href="#179">179</a>         || cls == Integer.<strong class="jxr_keyword">class</strong>
-<a name="180" href="#180">180</a>         || cls == Float.<strong class="jxr_keyword">class</strong>
-<a name="181" href="#181">181</a>         || cls == String.<strong class="jxr_keyword">class</strong>
-<a name="182" href="#182">182</a>         || cls == Calendar.<strong class="jxr_keyword">class</strong>)
-<a name="183" href="#183">183</a>       <strong class="jxr_keyword">return</strong>;
-<a name="184" href="#184">184</a>     <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"Not a legal plc data type: "</span>+cls.getSimpleName());
-<a name="185" href="#185">185</a>   }
-<a name="186" href="#186">186</a> 
-<a name="187" href="#187">187</a>   @SuppressWarnings(<span class="jxr_string">"unchecked"</span>)
-<a name="188" href="#188">188</a>   <strong class="jxr_keyword">static</strong> &lt;T&gt; PlcWriteRequest newPlcWriteRequest(Address address, T value) {
-<a name="189" href="#189">189</a>     Class&lt;?&gt; cls = value.getClass();
-<a name="190" href="#190">190</a>     <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> PlcWriteRequest(cls, address, value);
-<a name="191" href="#191">191</a>   }
-<a name="192" href="#192">192</a> 
-<a name="193" href="#193">193</a>   @SuppressWarnings(<span class="jxr_string">"unchecked"</span>)
-<a name="194" href="#194">194</a>   <strong class="jxr_keyword">static</strong> &lt;T&gt; PlcReadRequest newPlcReadRequest(Class&lt;T&gt; datatype, Address address) {
-<a name="195" href="#195">195</a>       <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> PlcReadRequest(datatype, address);
-<a name="196" href="#196">196</a>   }
-<a name="197" href="#197">197</a> 
-<a name="198" href="#198">198</a> }
+<a name="130" href="#130">130</a>             @Override
+<a name="131" href="#131">131</a>             <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> accept(T arg0) {
+<a name="132" href="#132">132</a>                 PlcConnection connection = <strong class="jxr_keyword">null</strong>;
+<a name="133" href="#133">133</a>                 Address address = <strong class="jxr_keyword">null</strong>;
+<a name="134" href="#134">134</a>                 <strong class="jxr_keyword">try</strong> {
+<a name="135" href="#135">135</a>                     connection = getConnection();
+<a name="136" href="#136">136</a>                     address = connection.parseAddress(addressStr);
+<a name="137" href="#137">137</a>                     PlcWriter writer = connection.getWriter().get();
+<a name="138" href="#138">138</a>                     PlcWriteRequest writeReq = PlcConnectionAdapter.newPlcWriteRequest(address, arg0);
+<a name="139" href="#139">139</a>                     writer.write(writeReq).get();
+<a name="140" href="#140">140</a>                 } <strong class="jxr_keyword">catch</strong> (Exception e) {
+<a name="141" href="#141">141</a>                     logger.error(<span class="jxr_string">"writing to plc device {} {} failed"</span>, connection, address, e);
+<a name="142" href="#142">142</a>                 }
+<a name="143" href="#143">143</a>             }
+<a name="144" href="#144">144</a> 
+<a name="145" href="#145">145</a>         };
+<a name="146" href="#146">146</a>     }
+<a name="147" href="#147">147</a> 
+<a name="148" href="#148">148</a>     &lt;T&gt; Consumer&lt;JsonObject&gt; newConsumer(Class&lt;T&gt; datatype, Function&lt;JsonObject, String&gt; addressFn, Function&lt;JsonObject, T&gt; valueFn) {
+<a name="149" href="#149">149</a>         PlcConnectionAdapter.checkDatatype(datatype);
+<a name="150" href="#150">150</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> Consumer&lt;JsonObject&gt;() {
+<a name="151" href="#151">151</a>             <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> serialVersionUID = 1L;
+<a name="152" href="#152">152</a> 
+<a name="153" href="#153">153</a>             @Override
+<a name="154" href="#154">154</a>             <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> accept(JsonObject jo) {
+<a name="155" href="#155">155</a>                 PlcConnection connection = <strong class="jxr_keyword">null</strong>;
+<a name="156" href="#156">156</a>                 Address address = <strong class="jxr_keyword">null</strong>;
+<a name="157" href="#157">157</a>                 <strong class="jxr_keyword">try</strong> {
+<a name="158" href="#158">158</a>                     connection = getConnection();
+<a name="159" href="#159">159</a>                     String addressStr = addressFn.apply(jo);
+<a name="160" href="#160">160</a>                     address = connection.parseAddress(addressStr);
+<a name="161" href="#161">161</a>                     T value = valueFn.apply(jo);
+<a name="162" href="#162">162</a>                     PlcWriter writer = connection.getWriter().get();
+<a name="163" href="#163">163</a>                     PlcWriteRequest writeReq = newPlcWriteRequest(address, value);
+<a name="164" href="#164">164</a>                     writer.write(writeReq).get();
+<a name="165" href="#165">165</a>                 } <strong class="jxr_keyword">catch</strong> (Exception e) {
+<a name="166" href="#166">166</a>                     logger.error(<span class="jxr_string">"writing to plc device {} {} failed"</span>, connection, address, e);
+<a name="167" href="#167">167</a>                 }
+<a name="168" href="#168">168</a>             }
+<a name="169" href="#169">169</a> 
+<a name="170" href="#170">170</a>         };
+<a name="171" href="#171">171</a>     }
+<a name="172" href="#172">172</a> 
+<a name="173" href="#173">173</a>     <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> checkDatatype(Class&lt;?&gt; cls) {
+<a name="174" href="#174">174</a>         <strong class="jxr_keyword">if</strong> (cls == Boolean.<strong class="jxr_keyword">class</strong>
+<a name="175" href="#175">175</a>             || cls == Byte.<strong class="jxr_keyword">class</strong>
+<a name="176" href="#176">176</a>             || cls == Short.<strong class="jxr_keyword">class</strong>
+<a name="177" href="#177">177</a>             || cls == Integer.<strong class="jxr_keyword">class</strong>
+<a name="178" href="#178">178</a>             || cls == Float.<strong class="jxr_keyword">class</strong>
+<a name="179" href="#179">179</a>             || cls == String.<strong class="jxr_keyword">class</strong>
+<a name="180" href="#180">180</a>             || cls == Calendar.<strong class="jxr_keyword">class</strong>)
+<a name="181" href="#181">181</a>             <strong class="jxr_keyword">return</strong>;
+<a name="182" href="#182">182</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"Not a legal plc data type: "</span> + cls.getSimpleName());
+<a name="183" href="#183">183</a>     }
+<a name="184" href="#184">184</a> 
+<a name="185" href="#185">185</a>     @SuppressWarnings(<span class="jxr_string">"unchecked"</span>)
+<a name="186" href="#186">186</a>     <strong class="jxr_keyword">static</strong> &lt;T&gt; TypeSafePlcWriteRequest&lt;T&gt; newPlcWriteRequest(Address address, T value) {
+<a name="187" href="#187">187</a>         Class&lt;T&gt; cls = (Class&lt;T&gt;) value.getClass();
+<a name="188" href="#188">188</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> TypeSafePlcWriteRequest&lt;&gt;(cls, address, value);
+<a name="189" href="#189">189</a>     }
+<a name="190" href="#190">190</a> 
+<a name="191" href="#191">191</a>     <strong class="jxr_keyword">static</strong> &lt;T&gt; TypeSafePlcReadRequest&lt;T&gt; newPlcReadRequest(Class&lt;T&gt; datatype, Address address) {
+<a name="192" href="#192">192</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> TypeSafePlcReadRequest&lt;&gt;(datatype, address);
+<a name="193" href="#193">193</a>     }
+<a name="194" href="#194">194</a> 
+<a name="195" href="#195">195</a> }
 </pre>
 <hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
 </html>
