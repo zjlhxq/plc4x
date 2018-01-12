@@ -34,38 +34,39 @@
 <a name="24" href="#24">24</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.netty.Message;
 <a name="25" href="#25">25</a>  
 <a name="26" href="#26">26</a>  <strong class="jxr_keyword">import</strong> java.util.List;
-<a name="27" href="#27">27</a>  
-<a name="28" href="#28">28</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">abstract</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../../../../org/apache/plc4x/java/isotp/netty/model/tpdus/Tpdu.html">Tpdu</a> <strong class="jxr_keyword">extends</strong> <a href="../../../../../../../../org/apache/plc4x/java/netty/Message.html">Message</a> {
-<a name="29" href="#29">29</a>  
-<a name="30" href="#30">30</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a href="../../../../../../../../org/apache/plc4x/java/isotp/netty/model/types/TpduCode.html">TpduCode</a> tpduCode;
-<a name="31" href="#31">31</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> List&lt;Parameter&gt; parameters;
-<a name="32" href="#32">32</a>  
-<a name="33" href="#33">33</a>      <strong class="jxr_keyword">public</strong> <a href="../../../../../../../../org/apache/plc4x/java/isotp/netty/model/tpdus/Tpdu.html">Tpdu</a>(<a href="../../../../../../../../org/apache/plc4x/java/isotp/netty/model/types/TpduCode.html">TpduCode</a> tpduCode, List&lt;Parameter&gt; parameters, ByteBuf userData) {
-<a name="34" href="#34">34</a>          <strong class="jxr_keyword">super</strong>(userData);
-<a name="35" href="#35">35</a>          <strong class="jxr_keyword">this</strong>.tpduCode = tpduCode;
-<a name="36" href="#36">36</a>          <strong class="jxr_keyword">this</strong>.parameters = parameters;
-<a name="37" href="#37">37</a>      }
-<a name="38" href="#38">38</a>  
-<a name="39" href="#39">39</a>      <strong class="jxr_keyword">public</strong> <a href="../../../../../../../../org/apache/plc4x/java/isotp/netty/model/types/TpduCode.html">TpduCode</a> getTpduCode() {
-<a name="40" href="#40">40</a>          <strong class="jxr_keyword">return</strong> tpduCode;
-<a name="41" href="#41">41</a>      }
-<a name="42" href="#42">42</a>  
-<a name="43" href="#43">43</a>      <strong class="jxr_keyword">public</strong> List&lt;Parameter&gt; getParameters() {
-<a name="44" href="#44">44</a>          <strong class="jxr_keyword">return</strong> parameters;
-<a name="45" href="#45">45</a>      }
-<a name="46" href="#46">46</a>  
-<a name="47" href="#47">47</a>      <strong class="jxr_keyword">public</strong> &lt;T <strong class="jxr_keyword">extends</strong> Parameter&gt; T getParameter(Class&lt;? <strong class="jxr_keyword">extends</strong> T&gt; parameterClass) {
-<a name="48" href="#48">48</a>          <strong class="jxr_keyword">if</strong> (parameters != <strong class="jxr_keyword">null</strong>) {
-<a name="49" href="#49">49</a>              <strong class="jxr_keyword">for</strong> (Parameter parameter : parameters) {
-<a name="50" href="#50">50</a>                  <strong class="jxr_keyword">if</strong> (parameter.getClass() == parameterClass) {
-<a name="51" href="#51">51</a>                      <strong class="jxr_keyword">return</strong> (T) parameter;
-<a name="52" href="#52">52</a>                  }
-<a name="53" href="#53">53</a>              }
-<a name="54" href="#54">54</a>          }
-<a name="55" href="#55">55</a>          <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
-<a name="56" href="#56">56</a>      }
-<a name="57" href="#57">57</a>  
-<a name="58" href="#58">58</a>  }
+<a name="27" href="#27">27</a>  <strong class="jxr_keyword">import</strong> java.util.Optional;
+<a name="28" href="#28">28</a>  
+<a name="29" href="#29">29</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">abstract</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../../../../org/apache/plc4x/java/isotp/netty/model/tpdus/Tpdu.html">Tpdu</a> <strong class="jxr_keyword">extends</strong> <a href="../../../../../../../../org/apache/plc4x/java/netty/Message.html">Message</a> {
+<a name="30" href="#30">30</a>  
+<a name="31" href="#31">31</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a href="../../../../../../../../org/apache/plc4x/java/isotp/netty/model/types/TpduCode.html">TpduCode</a> tpduCode;
+<a name="32" href="#32">32</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> List&lt;Parameter&gt; parameters;
+<a name="33" href="#33">33</a>  
+<a name="34" href="#34">34</a>      <strong class="jxr_keyword">public</strong> <a href="../../../../../../../../org/apache/plc4x/java/isotp/netty/model/tpdus/Tpdu.html">Tpdu</a>(<a href="../../../../../../../../org/apache/plc4x/java/isotp/netty/model/types/TpduCode.html">TpduCode</a> tpduCode, List&lt;Parameter&gt; parameters, ByteBuf userData) {
+<a name="35" href="#35">35</a>          <strong class="jxr_keyword">super</strong>(userData);
+<a name="36" href="#36">36</a>          <strong class="jxr_keyword">this</strong>.tpduCode = tpduCode;
+<a name="37" href="#37">37</a>          <strong class="jxr_keyword">this</strong>.parameters = parameters;
+<a name="38" href="#38">38</a>      }
+<a name="39" href="#39">39</a>  
+<a name="40" href="#40">40</a>      <strong class="jxr_keyword">public</strong> <a href="../../../../../../../../org/apache/plc4x/java/isotp/netty/model/types/TpduCode.html">TpduCode</a> getTpduCode() {
+<a name="41" href="#41">41</a>          <strong class="jxr_keyword">return</strong> tpduCode;
+<a name="42" href="#42">42</a>      }
+<a name="43" href="#43">43</a>  
+<a name="44" href="#44">44</a>      <strong class="jxr_keyword">public</strong> List&lt;Parameter&gt; getParameters() {
+<a name="45" href="#45">45</a>          <strong class="jxr_keyword">return</strong> parameters;
+<a name="46" href="#46">46</a>      }
+<a name="47" href="#47">47</a>  
+<a name="48" href="#48">48</a>      <strong class="jxr_keyword">public</strong> &lt;T <strong class="jxr_keyword">extends</strong> Parameter&gt; Optional&lt;T&gt; getParameter(Class&lt;T&gt; parameterClass) {
+<a name="49" href="#49">49</a>          <strong class="jxr_keyword">if</strong> (parameters != <strong class="jxr_keyword">null</strong>) {
+<a name="50" href="#50">50</a>              <strong class="jxr_keyword">for</strong> (Parameter parameter : parameters) {
+<a name="51" href="#51">51</a>                  <strong class="jxr_keyword">if</strong> (parameter.getClass() == parameterClass) {
+<a name="52" href="#52">52</a>                      <strong class="jxr_keyword">return</strong> Optional.of(parameterClass.<strong class="jxr_keyword">cast</strong>(parameter));
+<a name="53" href="#53">53</a>                  }
+<a name="54" href="#54">54</a>              }
+<a name="55" href="#55">55</a>          }
+<a name="56" href="#56">56</a>          <strong class="jxr_keyword">return</strong> Optional.empty();
+<a name="57" href="#57">57</a>      }
+<a name="58" href="#58">58</a>  
+<a name="59" href="#59">59</a>  }
 </pre>
 <hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
 </html>
