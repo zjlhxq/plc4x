@@ -50,83 +50,80 @@
 <a name="40" href="#40">40</a>      <strong class="jxr_keyword">private</strong> PlcConnection plcConnection;
 <a name="41" href="#41">41</a>      <strong class="jxr_keyword">private</strong> AtomicInteger openRequests;
 <a name="42" href="#42">42</a>  
-<a name="43" href="#43">43</a>      <strong class="jxr_keyword">public</strong> PLC4XProducer(PLC4XEndpoint endpoint) {
+<a name="43" href="#43">43</a>      <strong class="jxr_keyword">public</strong> PLC4XProducer(PLC4XEndpoint endpoint) <strong class="jxr_keyword">throws</strong> PlcException {
 <a name="44" href="#44">44</a>          <strong class="jxr_keyword">super</strong>(endpoint);
 <a name="45" href="#45">45</a>          <strong class="jxr_keyword">this</strong>.endpoint = endpoint;
-<a name="46" href="#46">46</a>          <strong class="jxr_keyword">try</strong> {
-<a name="47" href="#47">47</a>              String plc4xURI = endpoint.getEndpointUri().replaceFirst(<span class="jxr_string">"plc4x:/?/?"</span>, <span class="jxr_string">""</span>);
-<a name="48" href="#48">48</a>              plcConnection = endpoint.plcDriverManager.getConnection(plc4xURI);
-<a name="49" href="#49">49</a>          } <strong class="jxr_keyword">catch</strong> (PlcException e) {
-<a name="50" href="#50">50</a>              <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(e);
-<a name="51" href="#51">51</a>          }
-<a name="52" href="#52">52</a>          openRequests = <strong class="jxr_keyword">new</strong> AtomicInteger();
-<a name="53" href="#53">53</a>      }
-<a name="54" href="#54">54</a>  
-<a name="55" href="#55">55</a>      @SuppressWarnings(<span class="jxr_string">"unchecked"</span>)
-<a name="56" href="#56">56</a>      @Override
-<a name="57" href="#57">57</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> process(Exchange exchange) <strong class="jxr_keyword">throws</strong> Exception {
-<a name="58" href="#58">58</a>          Message in = exchange.getIn();
-<a name="59" href="#59">59</a>          Address address = in.getHeader(Constants.ADDRESS_HEADER, Address.<strong class="jxr_keyword">class</strong>);
-<a name="60" href="#60">60</a>          Object body = in.getBody();
-<a name="61" href="#61">61</a>          PlcWriteRequest.Builder builder = PlcWriteRequest.builder();
-<a name="62" href="#62">62</a>          <strong class="jxr_keyword">if</strong> (body instanceof List) {
-<a name="63" href="#63">63</a>              List&lt;?&gt; bodyList = in.getBody(List.<strong class="jxr_keyword">class</strong>);
-<a name="64" href="#64">64</a>              bodyList
-<a name="65" href="#65">65</a>                  .stream()
-<a name="66" href="#66">66</a>                  .map(o -&gt; (WriteRequestItem&lt;?&gt;) <strong class="jxr_keyword">new</strong> WriteRequestItem(o.getClass(), address, o))
-<a name="67" href="#67">67</a>                  .forEach(builder::addItem);
-<a name="68" href="#68">68</a>          } <strong class="jxr_keyword">else</strong> {
-<a name="69" href="#69">69</a>              Object value = in.getBody(Object.<strong class="jxr_keyword">class</strong>);
-<a name="70" href="#70">70</a>              builder.addItem(address, value);
-<a name="71" href="#71">71</a>          }
-<a name="72" href="#72">72</a>          PlcWriter plcWriter = plcConnection.getWriter().orElseThrow(() -&gt; <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"Writer for driver not found"</span>));
-<a name="73" href="#73">73</a>          CompletableFuture&lt;? <strong class="jxr_keyword">extends</strong> PlcWriteResponse&gt; completableFuture = plcWriter.write(builder.build());
-<a name="74" href="#74">74</a>          <strong class="jxr_keyword">int</strong> currentlyOpenRequests = openRequests.incrementAndGet();
-<a name="75" href="#75">75</a>          <strong class="jxr_keyword">try</strong> {
-<a name="76" href="#76">76</a>              log.debug(<span class="jxr_string">"Currently open requests including {}:{}"</span>, exchange, currentlyOpenRequests);
-<a name="77" href="#77">77</a>              Object plcWriteResponse = completableFuture.get();
-<a name="78" href="#78">78</a>              <strong class="jxr_keyword">if</strong> (exchange.getPattern().isOutCapable()) {
-<a name="79" href="#79">79</a>                  Message out = exchange.getOut();
-<a name="80" href="#80">80</a>                  out.copyFrom(exchange.getIn());
-<a name="81" href="#81">81</a>                  out.setBody(plcWriteResponse);
-<a name="82" href="#82">82</a>              } <strong class="jxr_keyword">else</strong> {
-<a name="83" href="#83">83</a>                  in.setBody(plcWriteResponse);
-<a name="84" href="#84">84</a>              }
-<a name="85" href="#85">85</a>          } <strong class="jxr_keyword">finally</strong> {
-<a name="86" href="#86">86</a>              <strong class="jxr_keyword">int</strong> openRequestsAfterFinish = openRequests.decrementAndGet();
-<a name="87" href="#87">87</a>              log.trace(<span class="jxr_string">"Open Requests after {}:{}"</span>, exchange, openRequestsAfterFinish);
-<a name="88" href="#88">88</a>          }
-<a name="89" href="#89">89</a>      }
-<a name="90" href="#90">90</a>  
-<a name="91" href="#91">91</a>      @Override
-<a name="92" href="#92">92</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> process(Exchange exchange, AsyncCallback callback) {
-<a name="93" href="#93">93</a>          <strong class="jxr_keyword">try</strong> {
-<a name="94" href="#94">94</a>              process(exchange);
-<a name="95" href="#95">95</a>              Message out = exchange.getOut();
-<a name="96" href="#96">96</a>              out.copyFrom(exchange.getIn());
-<a name="97" href="#97">97</a>          } <strong class="jxr_keyword">catch</strong> (Exception e) {
-<a name="98" href="#98">98</a>              exchange.setOut(<strong class="jxr_keyword">null</strong>);
-<a name="99" href="#99">99</a>              exchange.setException(e);
-<a name="100" href="#100">100</a>         }
-<a name="101" href="#101">101</a>         callback.done(<strong class="jxr_keyword">true</strong>);
-<a name="102" href="#102">102</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
-<a name="103" href="#103">103</a>     }
-<a name="104" href="#104">104</a> 
-<a name="105" href="#105">105</a>     @Override
-<a name="106" href="#106">106</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> doStop() <strong class="jxr_keyword">throws</strong> Exception {
-<a name="107" href="#107">107</a>         <strong class="jxr_keyword">int</strong> openRequestsAtStop = openRequests.get();
-<a name="108" href="#108">108</a>         log.debug(<span class="jxr_string">"Stopping with {} open requests"</span>, openRequestsAtStop);
-<a name="109" href="#109">109</a>         <strong class="jxr_keyword">if</strong> (openRequestsAtStop &gt; 0) {
-<a name="110" href="#110">110</a>             log.warn(<span class="jxr_string">"There are still {} open requests"</span>, openRequestsAtStop);
-<a name="111" href="#111">111</a>         }
-<a name="112" href="#112">112</a>         <strong class="jxr_keyword">try</strong> {
-<a name="113" href="#113">113</a>             plcConnection.close();
-<a name="114" href="#114">114</a>         } <strong class="jxr_keyword">catch</strong> (Exception ignore) {
-<a name="115" href="#115">115</a>         }
-<a name="116" href="#116">116</a>         <strong class="jxr_keyword">super</strong>.doStop();
-<a name="117" href="#117">117</a>     }
-<a name="118" href="#118">118</a> 
-<a name="119" href="#119">119</a> }
+<a name="46" href="#46">46</a>          String plc4xURI = endpoint.getEndpointUri().replaceFirst(<span class="jxr_string">"plc4x:/?/?"</span>, <span class="jxr_string">""</span>);
+<a name="47" href="#47">47</a>          plcConnection = endpoint.plcDriverManager.getConnection(plc4xURI);
+<a name="48" href="#48">48</a>          openRequests = <strong class="jxr_keyword">new</strong> AtomicInteger();
+<a name="49" href="#49">49</a>      }
+<a name="50" href="#50">50</a>  
+<a name="51" href="#51">51</a>      @SuppressWarnings(<span class="jxr_string">"unchecked"</span>)
+<a name="52" href="#52">52</a>      @Override
+<a name="53" href="#53">53</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> process(Exchange exchange) <strong class="jxr_keyword">throws</strong> Exception {
+<a name="54" href="#54">54</a>          Message in = exchange.getIn();
+<a name="55" href="#55">55</a>          Address address = in.getHeader(Constants.ADDRESS_HEADER, Address.<strong class="jxr_keyword">class</strong>);
+<a name="56" href="#56">56</a>          Object body = in.getBody();
+<a name="57" href="#57">57</a>          PlcWriteRequest.Builder builder = PlcWriteRequest.builder();
+<a name="58" href="#58">58</a>          <strong class="jxr_keyword">if</strong> (body instanceof List) {
+<a name="59" href="#59">59</a>              List&lt;?&gt; bodyList = in.getBody(List.<strong class="jxr_keyword">class</strong>);
+<a name="60" href="#60">60</a>              bodyList
+<a name="61" href="#61">61</a>                  .stream()
+<a name="62" href="#62">62</a>                  .map(o -&gt; (WriteRequestItem&lt;?&gt;) <strong class="jxr_keyword">new</strong> WriteRequestItem(o.getClass(), address, o))
+<a name="63" href="#63">63</a>                  .forEach(builder::addItem);
+<a name="64" href="#64">64</a>          } <strong class="jxr_keyword">else</strong> {
+<a name="65" href="#65">65</a>              Object value = in.getBody(Object.<strong class="jxr_keyword">class</strong>);
+<a name="66" href="#66">66</a>              builder.addItem(address, value);
+<a name="67" href="#67">67</a>          }
+<a name="68" href="#68">68</a>          PlcWriter plcWriter = plcConnection.getWriter().orElseThrow(() -&gt; <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"Writer for driver not found"</span>));
+<a name="69" href="#69">69</a>          CompletableFuture&lt;? <strong class="jxr_keyword">extends</strong> PlcWriteResponse&gt; completableFuture = plcWriter.write(builder.build());
+<a name="70" href="#70">70</a>          <strong class="jxr_keyword">int</strong> currentlyOpenRequests = openRequests.incrementAndGet();
+<a name="71" href="#71">71</a>          <strong class="jxr_keyword">try</strong> {
+<a name="72" href="#72">72</a>              log.debug(<span class="jxr_string">"Currently open requests including {}:{}"</span>, exchange, currentlyOpenRequests);
+<a name="73" href="#73">73</a>              Object plcWriteResponse = completableFuture.get();
+<a name="74" href="#74">74</a>              <strong class="jxr_keyword">if</strong> (exchange.getPattern().isOutCapable()) {
+<a name="75" href="#75">75</a>                  Message out = exchange.getOut();
+<a name="76" href="#76">76</a>                  out.copyFrom(exchange.getIn());
+<a name="77" href="#77">77</a>                  out.setBody(plcWriteResponse);
+<a name="78" href="#78">78</a>              } <strong class="jxr_keyword">else</strong> {
+<a name="79" href="#79">79</a>                  in.setBody(plcWriteResponse);
+<a name="80" href="#80">80</a>              }
+<a name="81" href="#81">81</a>          } <strong class="jxr_keyword">finally</strong> {
+<a name="82" href="#82">82</a>              <strong class="jxr_keyword">int</strong> openRequestsAfterFinish = openRequests.decrementAndGet();
+<a name="83" href="#83">83</a>              log.trace(<span class="jxr_string">"Open Requests after {}:{}"</span>, exchange, openRequestsAfterFinish);
+<a name="84" href="#84">84</a>          }
+<a name="85" href="#85">85</a>      }
+<a name="86" href="#86">86</a>  
+<a name="87" href="#87">87</a>      @Override
+<a name="88" href="#88">88</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> process(Exchange exchange, AsyncCallback callback) {
+<a name="89" href="#89">89</a>          <strong class="jxr_keyword">try</strong> {
+<a name="90" href="#90">90</a>              process(exchange);
+<a name="91" href="#91">91</a>              Message out = exchange.getOut();
+<a name="92" href="#92">92</a>              out.copyFrom(exchange.getIn());
+<a name="93" href="#93">93</a>          } <strong class="jxr_keyword">catch</strong> (Exception e) {
+<a name="94" href="#94">94</a>              exchange.setOut(<strong class="jxr_keyword">null</strong>);
+<a name="95" href="#95">95</a>              exchange.setException(e);
+<a name="96" href="#96">96</a>          }
+<a name="97" href="#97">97</a>          callback.done(<strong class="jxr_keyword">true</strong>);
+<a name="98" href="#98">98</a>          <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
+<a name="99" href="#99">99</a>      }
+<a name="100" href="#100">100</a> 
+<a name="101" href="#101">101</a>     @Override
+<a name="102" href="#102">102</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> doStop() <strong class="jxr_keyword">throws</strong> Exception {
+<a name="103" href="#103">103</a>         <strong class="jxr_keyword">int</strong> openRequestsAtStop = openRequests.get();
+<a name="104" href="#104">104</a>         log.debug(<span class="jxr_string">"Stopping with {} open requests"</span>, openRequestsAtStop);
+<a name="105" href="#105">105</a>         <strong class="jxr_keyword">if</strong> (openRequestsAtStop &gt; 0) {
+<a name="106" href="#106">106</a>             log.warn(<span class="jxr_string">"There are still {} open requests"</span>, openRequestsAtStop);
+<a name="107" href="#107">107</a>         }
+<a name="108" href="#108">108</a>         <strong class="jxr_keyword">try</strong> {
+<a name="109" href="#109">109</a>             plcConnection.close();
+<a name="110" href="#110">110</a>         } <strong class="jxr_keyword">catch</strong> (Exception e) {
+<a name="111" href="#111">111</a>             log.warn(<span class="jxr_string">"Could not close {}"</span>, plcConnection, e);
+<a name="112" href="#112">112</a>         }
+<a name="113" href="#113">113</a>         <strong class="jxr_keyword">super</strong>.doStop();
+<a name="114" href="#114">114</a>     }
+<a name="115" href="#115">115</a> 
+<a name="116" href="#116">116</a> }
 </pre>
 <hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
 </html>
