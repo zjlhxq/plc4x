@@ -156,71 +156,75 @@
 <a name="146" href="#146">146</a>             sessionSetupCompleteFuture.get();
 <a name="147" href="#147">147</a>         } <strong class="jxr_keyword">catch</strong> (UnknownHostException e) {
 <a name="148" href="#148">148</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> PlcConnectionException(<span class="jxr_string">"Unknown Host "</span> + hostName, e);
-<a name="149" href="#149">149</a>         } <strong class="jxr_keyword">catch</strong> (InterruptedException | ExecutionException e) {
-<a name="150" href="#150">150</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> PlcConnectionException(e);
-<a name="151" href="#151">151</a>         }
-<a name="152" href="#152">152</a>     }
-<a name="153" href="#153">153</a> 
-<a name="154" href="#154">154</a>     @Override
-<a name="155" href="#155">155</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> close() <strong class="jxr_keyword">throws</strong> Exception {
-<a name="156" href="#156">156</a>         <strong class="jxr_keyword">if</strong>((channel != <strong class="jxr_keyword">null</strong>) &amp;&amp; channel.isOpen()) {
-<a name="157" href="#157">157</a>             <em class="jxr_comment">// Send the PLC a message that the connection is being closed.</em>
-<a name="158" href="#158">158</a>             <a href="../../../../../../org/apache/plc4x/java/isotp/netty/model/tpdus/DisconnectRequestTpdu.html">DisconnectRequestTpdu</a> disconnectRequest = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/isotp/netty/model/tpdus/DisconnectRequestTpdu.html">DisconnectRequestTpdu</a>(
-<a name="159" href="#159">159</a>                 (<strong class="jxr_keyword">short</strong>) 0x0000, (<strong class="jxr_keyword">short</strong>) 0x000F, DisconnectReason.NORMAL, Collections.emptyList(),
-<a name="160" href="#160">160</a>                 <strong class="jxr_keyword">null</strong>);
-<a name="161" href="#161">161</a>             ChannelFuture sendDisconnectRequestFuture = channel.writeAndFlush(disconnectRequest);
-<a name="162" href="#162">162</a>             sendDisconnectRequestFuture.addListener((ChannelFutureListener) future -&gt; {
-<a name="163" href="#163">163</a>                 <em class="jxr_comment">// Close the session itself.</em>
-<a name="164" href="#164">164</a>                 channel.closeFuture().await();
-<a name="165" href="#165">165</a>                 workerGroup.shutdownGracefully();
-<a name="166" href="#166">166</a>             });
-<a name="167" href="#167">167</a>             sendDisconnectRequestFuture.awaitUninterruptibly();
-<a name="168" href="#168">168</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (workerGroup != <strong class="jxr_keyword">null</strong>) {
-<a name="169" href="#169">169</a>             workerGroup.shutdownGracefully();
-<a name="170" href="#170">170</a>         }
-<a name="171" href="#171">171</a>     }
-<a name="172" href="#172">172</a> 
-<a name="173" href="#173">173</a>     @Override
-<a name="174" href="#174">174</a>     <strong class="jxr_keyword">public</strong> Address parseAddress(String addressString) <strong class="jxr_keyword">throws</strong> PlcException {
-<a name="175" href="#175">175</a>         Matcher datablockAddressMatcher = S7_DATABLOCK_ADDRESS_PATTERN.matcher(addressString);
-<a name="176" href="#176">176</a>         <strong class="jxr_keyword">if</strong> (datablockAddressMatcher.matches()) {
-<a name="177" href="#177">177</a>             <strong class="jxr_keyword">int</strong> datablockNumber = Integer.parseInt(datablockAddressMatcher.group(<span class="jxr_string">"blockNumber"</span>));
-<a name="178" href="#178">178</a>             <strong class="jxr_keyword">int</strong> datablockByteOffset = Integer.parseInt(datablockAddressMatcher.group(<span class="jxr_string">"byteOffset"</span>));
-<a name="179" href="#179">179</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> S7DataBlockAddress((<strong class="jxr_keyword">short</strong>) datablockNumber, (<strong class="jxr_keyword">short</strong>) datablockByteOffset);
-<a name="180" href="#180">180</a>         }
-<a name="181" href="#181">181</a>         Matcher addressMatcher = S7_ADDRESS_PATTERN.matcher(addressString);
-<a name="182" href="#182">182</a>         <strong class="jxr_keyword">if</strong> (!addressMatcher.matches()) {
-<a name="183" href="#183">183</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> PlcConnectionException(
-<a name="184" href="#184">184</a>                 <span class="jxr_string">"Address string doesn't match the format '{area}/{offset}[/{bit-offset}]'"</span>);
-<a name="185" href="#185">185</a>         }
-<a name="186" href="#186">186</a>         <a href="../../../../../../org/apache/plc4x/java/s7/netty/model/types/MemoryArea.html">MemoryArea</a> memoryArea = MemoryArea.valueOf(addressMatcher.group(<span class="jxr_string">"memoryArea"</span>));
-<a name="187" href="#187">187</a>         <strong class="jxr_keyword">int</strong> byteOffset = Integer.parseInt(addressMatcher.group(<span class="jxr_string">"byteOffset"</span>));
-<a name="188" href="#188">188</a>         String bitOffset =  addressMatcher.group(<span class="jxr_string">"bitOffset"</span>);
-<a name="189" href="#189">189</a>         <strong class="jxr_keyword">if</strong> (bitOffset != <strong class="jxr_keyword">null</strong>) {
-<a name="190" href="#190">190</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> S7BitAddress(memoryArea, (<strong class="jxr_keyword">short</strong>) byteOffset, Byte.valueOf(bitOffset));
-<a name="191" href="#191">191</a>         }
-<a name="192" href="#192">192</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> S7Address(memoryArea, (<strong class="jxr_keyword">short</strong>) byteOffset);
-<a name="193" href="#193">193</a>     }
-<a name="194" href="#194">194</a> 
-<a name="195" href="#195">195</a>     @Override
-<a name="196" href="#196">196</a>     <strong class="jxr_keyword">public</strong> CompletableFuture&lt;PlcReadResponse&gt; read(PlcReadRequest readRequest) {
-<a name="197" href="#197">197</a>         CompletableFuture&lt;PlcReadResponse&gt; readFuture = <strong class="jxr_keyword">new</strong> CompletableFuture&lt;&gt;();
-<a name="198" href="#198">198</a>         PlcRequestContainer&lt;PlcReadRequest, PlcReadResponse&gt; container =
-<a name="199" href="#199">199</a>             <strong class="jxr_keyword">new</strong> PlcRequestContainer&lt;&gt;(readRequest, readFuture);
-<a name="200" href="#200">200</a>         channel.writeAndFlush(container);
-<a name="201" href="#201">201</a>         <strong class="jxr_keyword">return</strong> readFuture;
-<a name="202" href="#202">202</a>     }
-<a name="203" href="#203">203</a> 
-<a name="204" href="#204">204</a>     @Override
-<a name="205" href="#205">205</a>     <strong class="jxr_keyword">public</strong> CompletableFuture&lt;PlcWriteResponse&gt; write(PlcWriteRequest writeRequest) {
-<a name="206" href="#206">206</a>         CompletableFuture&lt;PlcWriteResponse&gt; writeFuture = <strong class="jxr_keyword">new</strong> CompletableFuture&lt;&gt;();
-<a name="207" href="#207">207</a>         PlcRequestContainer&lt;PlcWriteRequest, PlcWriteResponse&gt; container =
-<a name="208" href="#208">208</a>             <strong class="jxr_keyword">new</strong> PlcRequestContainer&lt;&gt;(writeRequest, writeFuture);
-<a name="209" href="#209">209</a>         channel.writeAndFlush(container);
-<a name="210" href="#210">210</a>         <strong class="jxr_keyword">return</strong> writeFuture;
-<a name="211" href="#211">211</a>     }
-<a name="212" href="#212">212</a> 
-<a name="213" href="#213">213</a> }
+<a name="149" href="#149">149</a>         } <strong class="jxr_keyword">catch</strong> (InterruptedException e) {
+<a name="150" href="#150">150</a>             Thread.currentThread().interrupt();
+<a name="151" href="#151">151</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> PlcConnectionException(e);
+<a name="152" href="#152">152</a>         }
+<a name="153" href="#153">153</a>         <strong class="jxr_keyword">catch</strong> (ExecutionException e) {
+<a name="154" href="#154">154</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> PlcConnectionException(e);
+<a name="155" href="#155">155</a>         }
+<a name="156" href="#156">156</a>     }
+<a name="157" href="#157">157</a> 
+<a name="158" href="#158">158</a>     @Override
+<a name="159" href="#159">159</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> close() <strong class="jxr_keyword">throws</strong> Exception {
+<a name="160" href="#160">160</a>         <strong class="jxr_keyword">if</strong>((channel != <strong class="jxr_keyword">null</strong>) &amp;&amp; channel.isOpen()) {
+<a name="161" href="#161">161</a>             <em class="jxr_comment">// Send the PLC a message that the connection is being closed.</em>
+<a name="162" href="#162">162</a>             <a href="../../../../../../org/apache/plc4x/java/isotp/netty/model/tpdus/DisconnectRequestTpdu.html">DisconnectRequestTpdu</a> disconnectRequest = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/isotp/netty/model/tpdus/DisconnectRequestTpdu.html">DisconnectRequestTpdu</a>(
+<a name="163" href="#163">163</a>                 (<strong class="jxr_keyword">short</strong>) 0x0000, (<strong class="jxr_keyword">short</strong>) 0x000F, DisconnectReason.NORMAL, Collections.emptyList(),
+<a name="164" href="#164">164</a>                 <strong class="jxr_keyword">null</strong>);
+<a name="165" href="#165">165</a>             ChannelFuture sendDisconnectRequestFuture = channel.writeAndFlush(disconnectRequest);
+<a name="166" href="#166">166</a>             sendDisconnectRequestFuture.addListener((ChannelFutureListener) future -&gt; {
+<a name="167" href="#167">167</a>                 <em class="jxr_comment">// Close the session itself.</em>
+<a name="168" href="#168">168</a>                 channel.closeFuture().await();
+<a name="169" href="#169">169</a>                 workerGroup.shutdownGracefully();
+<a name="170" href="#170">170</a>             });
+<a name="171" href="#171">171</a>             sendDisconnectRequestFuture.awaitUninterruptibly();
+<a name="172" href="#172">172</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (workerGroup != <strong class="jxr_keyword">null</strong>) {
+<a name="173" href="#173">173</a>             workerGroup.shutdownGracefully();
+<a name="174" href="#174">174</a>         }
+<a name="175" href="#175">175</a>     }
+<a name="176" href="#176">176</a> 
+<a name="177" href="#177">177</a>     @Override
+<a name="178" href="#178">178</a>     <strong class="jxr_keyword">public</strong> Address parseAddress(String addressString) <strong class="jxr_keyword">throws</strong> PlcException {
+<a name="179" href="#179">179</a>         Matcher datablockAddressMatcher = S7_DATABLOCK_ADDRESS_PATTERN.matcher(addressString);
+<a name="180" href="#180">180</a>         <strong class="jxr_keyword">if</strong> (datablockAddressMatcher.matches()) {
+<a name="181" href="#181">181</a>             <strong class="jxr_keyword">int</strong> datablockNumber = Integer.parseInt(datablockAddressMatcher.group(<span class="jxr_string">"blockNumber"</span>));
+<a name="182" href="#182">182</a>             <strong class="jxr_keyword">int</strong> datablockByteOffset = Integer.parseInt(datablockAddressMatcher.group(<span class="jxr_string">"byteOffset"</span>));
+<a name="183" href="#183">183</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> S7DataBlockAddress((<strong class="jxr_keyword">short</strong>) datablockNumber, (<strong class="jxr_keyword">short</strong>) datablockByteOffset);
+<a name="184" href="#184">184</a>         }
+<a name="185" href="#185">185</a>         Matcher addressMatcher = S7_ADDRESS_PATTERN.matcher(addressString);
+<a name="186" href="#186">186</a>         <strong class="jxr_keyword">if</strong> (!addressMatcher.matches()) {
+<a name="187" href="#187">187</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> PlcConnectionException(
+<a name="188" href="#188">188</a>                 <span class="jxr_string">"Address string doesn't match the format '{area}/{offset}[/{bit-offset}]'"</span>);
+<a name="189" href="#189">189</a>         }
+<a name="190" href="#190">190</a>         <a href="../../../../../../org/apache/plc4x/java/s7/netty/model/types/MemoryArea.html">MemoryArea</a> memoryArea = MemoryArea.valueOf(addressMatcher.group(<span class="jxr_string">"memoryArea"</span>));
+<a name="191" href="#191">191</a>         <strong class="jxr_keyword">int</strong> byteOffset = Integer.parseInt(addressMatcher.group(<span class="jxr_string">"byteOffset"</span>));
+<a name="192" href="#192">192</a>         String bitOffset =  addressMatcher.group(<span class="jxr_string">"bitOffset"</span>);
+<a name="193" href="#193">193</a>         <strong class="jxr_keyword">if</strong> (bitOffset != <strong class="jxr_keyword">null</strong>) {
+<a name="194" href="#194">194</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> S7BitAddress(memoryArea, (<strong class="jxr_keyword">short</strong>) byteOffset, Byte.valueOf(bitOffset));
+<a name="195" href="#195">195</a>         }
+<a name="196" href="#196">196</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> S7Address(memoryArea, (<strong class="jxr_keyword">short</strong>) byteOffset);
+<a name="197" href="#197">197</a>     }
+<a name="198" href="#198">198</a> 
+<a name="199" href="#199">199</a>     @Override
+<a name="200" href="#200">200</a>     <strong class="jxr_keyword">public</strong> CompletableFuture&lt;PlcReadResponse&gt; read(PlcReadRequest readRequest) {
+<a name="201" href="#201">201</a>         CompletableFuture&lt;PlcReadResponse&gt; readFuture = <strong class="jxr_keyword">new</strong> CompletableFuture&lt;&gt;();
+<a name="202" href="#202">202</a>         PlcRequestContainer&lt;PlcReadRequest, PlcReadResponse&gt; container =
+<a name="203" href="#203">203</a>             <strong class="jxr_keyword">new</strong> PlcRequestContainer&lt;&gt;(readRequest, readFuture);
+<a name="204" href="#204">204</a>         channel.writeAndFlush(container);
+<a name="205" href="#205">205</a>         <strong class="jxr_keyword">return</strong> readFuture;
+<a name="206" href="#206">206</a>     }
+<a name="207" href="#207">207</a> 
+<a name="208" href="#208">208</a>     @Override
+<a name="209" href="#209">209</a>     <strong class="jxr_keyword">public</strong> CompletableFuture&lt;PlcWriteResponse&gt; write(PlcWriteRequest writeRequest) {
+<a name="210" href="#210">210</a>         CompletableFuture&lt;PlcWriteResponse&gt; writeFuture = <strong class="jxr_keyword">new</strong> CompletableFuture&lt;&gt;();
+<a name="211" href="#211">211</a>         PlcRequestContainer&lt;PlcWriteRequest, PlcWriteResponse&gt; container =
+<a name="212" href="#212">212</a>             <strong class="jxr_keyword">new</strong> PlcRequestContainer&lt;&gt;(writeRequest, writeFuture);
+<a name="213" href="#213">213</a>         channel.writeAndFlush(container);
+<a name="214" href="#214">214</a>         <strong class="jxr_keyword">return</strong> writeFuture;
+<a name="215" href="#215">215</a>     }
+<a name="216" href="#216">216</a> 
+<a name="217" href="#217">217</a> }
 </pre>
 <hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
 </html>
