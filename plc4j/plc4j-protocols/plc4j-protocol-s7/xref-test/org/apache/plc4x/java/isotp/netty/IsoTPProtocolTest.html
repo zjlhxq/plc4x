@@ -463,154 +463,176 @@
 <a name="453" href="#453">453</a> 
 <a name="454" href="#454">454</a>     @Test
 <a name="455" href="#455">455</a>     @Tag(<span class="jxr_string">"fast"</span>)
-<a name="456" href="#456">456</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> decodeCallingParameter() <strong class="jxr_keyword">throws</strong> Exception {
-<a name="457" href="#457">457</a>         buf.writeByte(0x8) <em class="jxr_comment">// header length</em>
-<a name="458" href="#458">458</a>             .writeByte(TpduCode.TPDU_ERROR.getCode())
-<a name="459" href="#459">459</a>             .writeShort(0x01) <em class="jxr_comment">// destination reference</em>
-<a name="460" href="#460">460</a>             .writeByte(RejectCause.REASON_NOT_SPECIFIED.getCode()) <em class="jxr_comment">// reject clause</em>
-<a name="461" href="#461">461</a>             .writeByte(ParameterCode.CALLING_TSAP.getCode())
-<a name="462" href="#462">462</a>             .writeByte(0x2) <em class="jxr_comment">// parameter length</em>
-<a name="463" href="#463">463</a>             .writeByte(DeviceGroup.PG_OR_PC.getCode())
-<a name="464" href="#464">464</a>             .writeByte((byte) ((0x1 &lt;&lt; 4) | 0x7));
-<a name="465" href="#465">465</a>         IsoOnTcpMessage in = <strong class="jxr_keyword">new</strong> IsoOnTcpMessage(buf);
-<a name="466" href="#466">466</a> 
-<a name="467" href="#467">467</a>         isoTPProtocol.decode(ctx, in, out);
-<a name="468" href="#468">468</a> 
-<a name="469" href="#469">469</a>         assertTrue(out.size() == 1, <span class="jxr_string">"Message not decoded"</span>);
-<a name="470" href="#470">470</a> 
-<a name="471" href="#471">471</a>         ErrorTpdu errorTpdu = (ErrorTpdu) ((IsoTPMessage) out.get(0)).getTpdu();
-<a name="472" href="#472">472</a> 
-<a name="473" href="#473">473</a>         assertTrue(errorTpdu.getTpduCode() == TpduCode.TPDU_ERROR, <span class="jxr_string">"Message code not correct"</span>);
-<a name="474" href="#474">474</a>         assertTrue(errorTpdu.getDestinationReference() == (<strong class="jxr_keyword">short</strong>) 0x1, <span class="jxr_string">"Message destination reference not correct"</span>);
-<a name="475" href="#475">475</a>         assertTrue(errorTpdu.getRejectCause() == RejectCause.REASON_NOT_SPECIFIED, <span class="jxr_string">"Message reject cause not correct"</span>);
-<a name="476" href="#476">476</a>         assertTrue(errorTpdu.getParameters().size() == 1, <span class="jxr_string">"Incorrect number of parameters"</span>);
-<a name="477" href="#477">477</a>         CallingTsapParameter parameter = (CallingTsapParameter) errorTpdu.getParameters().get(0);
-<a name="478" href="#478">478</a>         assertTrue(parameter.getType() == ParameterCode.CALLING_TSAP, <span class="jxr_string">"Parameter type incorrect"</span>);
-<a name="479" href="#479">479</a>         assertTrue(parameter.getDeviceGroup() == DeviceGroup.PG_OR_PC, <span class="jxr_string">"Device group incorrect"</span>);
-<a name="480" href="#480">480</a>         assertTrue(parameter.getRackNumber() == 0x1, <span class="jxr_string">"Rack number incorrect"</span>);
-<a name="481" href="#481">481</a>         assertTrue(parameter.getSlotNumber() == 0x7, <span class="jxr_string">"Slot number incorrect"</span>);
-<a name="482" href="#482">482</a>     }
-<a name="483" href="#483">483</a> 
-<a name="484" href="#484">484</a>     @Test
-<a name="485" href="#485">485</a>     @Tag(<span class="jxr_string">"fast"</span>)
-<a name="486" href="#486">486</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> decodeCalledParameter() <strong class="jxr_keyword">throws</strong> Exception {
-<a name="487" href="#487">487</a>         buf.writeByte(0x8) <em class="jxr_comment">// header length</em>
-<a name="488" href="#488">488</a>             .writeByte(TpduCode.TPDU_ERROR.getCode())
-<a name="489" href="#489">489</a>             .writeShort(0x01) <em class="jxr_comment">// destination reference</em>
-<a name="490" href="#490">490</a>             .writeByte(RejectCause.REASON_NOT_SPECIFIED.getCode()) <em class="jxr_comment">// reject clause</em>
-<a name="491" href="#491">491</a>             .writeByte(ParameterCode.CALLED_TSAP.getCode())
-<a name="492" href="#492">492</a>             .writeByte(0x2) <em class="jxr_comment">// parameter length</em>
-<a name="493" href="#493">493</a>             .writeByte(DeviceGroup.PG_OR_PC.getCode())
-<a name="494" href="#494">494</a>             .writeByte((byte) ((0x2 &lt;&lt; 4) | 0x3));
-<a name="495" href="#495">495</a>         IsoOnTcpMessage in = <strong class="jxr_keyword">new</strong> IsoOnTcpMessage(buf);
-<a name="496" href="#496">496</a> 
-<a name="497" href="#497">497</a>         isoTPProtocol.decode(ctx, in, out);
-<a name="498" href="#498">498</a> 
-<a name="499" href="#499">499</a>         assertTrue(out.size() == 1, <span class="jxr_string">"Message not decoded"</span>);
-<a name="500" href="#500">500</a> 
-<a name="501" href="#501">501</a>         ErrorTpdu errorTpdu = (ErrorTpdu) ((IsoTPMessage) out.get(0)).getTpdu();
-<a name="502" href="#502">502</a> 
-<a name="503" href="#503">503</a>         assertTrue(errorTpdu.getTpduCode() == TpduCode.TPDU_ERROR, <span class="jxr_string">"Message code not correct"</span>);
-<a name="504" href="#504">504</a>         assertTrue(errorTpdu.getDestinationReference() == (<strong class="jxr_keyword">short</strong>) 0x1, <span class="jxr_string">"Message destination reference not correct"</span>);
-<a name="505" href="#505">505</a>         assertTrue(errorTpdu.getRejectCause() == RejectCause.REASON_NOT_SPECIFIED, <span class="jxr_string">"Message reject cause not correct"</span>);
-<a name="506" href="#506">506</a>         assertTrue(errorTpdu.getParameters().size() == 1, <span class="jxr_string">"Incorrect number of parameters"</span>);
-<a name="507" href="#507">507</a>         CalledTsapParameter parameter = (CalledTsapParameter) errorTpdu.getParameters().get(0);
-<a name="508" href="#508">508</a>         assertTrue(parameter.getType() == ParameterCode.CALLED_TSAP, <span class="jxr_string">"Parameter type incorrect"</span>);
-<a name="509" href="#509">509</a>         assertTrue(parameter.getDeviceGroup() == DeviceGroup.PG_OR_PC, <span class="jxr_string">"Device group incorrect"</span>);
-<a name="510" href="#510">510</a>         assertTrue(parameter.getRackNumber() == 0x2, <span class="jxr_string">"Rack number incorrect"</span>);
-<a name="511" href="#511">511</a>         assertTrue(parameter.getSlotNumber() == 0x3, <span class="jxr_string">"Slot number incorrect"</span>);
-<a name="512" href="#512">512</a>     }
-<a name="513" href="#513">513</a> 
-<a name="514" href="#514">514</a>     @Test
-<a name="515" href="#515">515</a>     @Tag(<span class="jxr_string">"fast"</span>)
-<a name="516" href="#516">516</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> decodeChecksumParameter() <strong class="jxr_keyword">throws</strong> Exception {
-<a name="517" href="#517">517</a>         buf.writeByte(0x8) <em class="jxr_comment">// header length</em>
-<a name="518" href="#518">518</a>             .writeByte(TpduCode.TPDU_ERROR.getCode())
-<a name="519" href="#519">519</a>             .writeShort(0x01) <em class="jxr_comment">// destination reference</em>
-<a name="520" href="#520">520</a>             .writeByte(RejectCause.REASON_NOT_SPECIFIED.getCode()) <em class="jxr_comment">// reject clause</em>
-<a name="521" href="#521">521</a>             .writeByte(ParameterCode.CHECKSUM.getCode())
-<a name="522" href="#522">522</a>             .writeByte(0x1) <em class="jxr_comment">// parameter length</em>
-<a name="523" href="#523">523</a>             .writeByte(0x33); <em class="jxr_comment">// checksum</em>
-<a name="524" href="#524">524</a>         IsoOnTcpMessage in = <strong class="jxr_keyword">new</strong> IsoOnTcpMessage(buf);
-<a name="525" href="#525">525</a> 
-<a name="526" href="#526">526</a>         isoTPProtocol.decode(ctx, in, out);
-<a name="527" href="#527">527</a> 
-<a name="528" href="#528">528</a>         assertTrue(out.size() == 1, <span class="jxr_string">"Message not decoded"</span>);
-<a name="529" href="#529">529</a> 
-<a name="530" href="#530">530</a>         ErrorTpdu errorTpdu = (ErrorTpdu) ((IsoTPMessage) out.get(0)).getTpdu();
-<a name="531" href="#531">531</a> 
-<a name="532" href="#532">532</a>         assertTrue(errorTpdu.getTpduCode() == TpduCode.TPDU_ERROR, <span class="jxr_string">"Message code not correct"</span>);
-<a name="533" href="#533">533</a>         assertTrue(errorTpdu.getDestinationReference() == (<strong class="jxr_keyword">short</strong>) 0x1, <span class="jxr_string">"Message destination reference not correct"</span>);
-<a name="534" href="#534">534</a>         assertTrue(errorTpdu.getRejectCause() == RejectCause.REASON_NOT_SPECIFIED, <span class="jxr_string">"Message reject cause not correct"</span>);
-<a name="535" href="#535">535</a>         assertTrue(errorTpdu.getParameters().size() == 1, <span class="jxr_string">"Incorrect number of parameters"</span>);
-<a name="536" href="#536">536</a>         ChecksumParameter parameter = (ChecksumParameter) errorTpdu.getParameters().get(0);
-<a name="537" href="#537">537</a>         assertTrue(parameter.getType() == ParameterCode.CHECKSUM, <span class="jxr_string">"Parameter type incorrect"</span>);
-<a name="538" href="#538">538</a>         assertTrue(parameter.getChecksum() == 0x33, <span class="jxr_string">"Checksum incorrect"</span>);
-<a name="539" href="#539">539</a>     }
-<a name="540" href="#540">540</a> 
-<a name="541" href="#541">541</a>     @Test
-<a name="542" href="#542">542</a>     @Tag(<span class="jxr_string">"fast"</span>)
-<a name="543" href="#543">543</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> decodeSizeParameter() <strong class="jxr_keyword">throws</strong> Exception {
-<a name="544" href="#544">544</a>         buf.writeByte(0x8) <em class="jxr_comment">// header length</em>
-<a name="545" href="#545">545</a>             .writeByte(TpduCode.TPDU_ERROR.getCode())
-<a name="546" href="#546">546</a>             .writeShort(0x01) <em class="jxr_comment">// destination reference</em>
-<a name="547" href="#547">547</a>             .writeByte(RejectCause.REASON_NOT_SPECIFIED.getCode()) <em class="jxr_comment">// reject clause</em>
-<a name="548" href="#548">548</a>             .writeByte(ParameterCode.TPDU_SIZE.getCode())
-<a name="549" href="#549">549</a>             .writeByte(0x1) <em class="jxr_comment">// parameter length</em>
-<a name="550" href="#550">550</a>             .writeByte(TpduSize.SIZE_256.getCode());
-<a name="551" href="#551">551</a>         IsoOnTcpMessage in = <strong class="jxr_keyword">new</strong> IsoOnTcpMessage(buf);
-<a name="552" href="#552">552</a> 
-<a name="553" href="#553">553</a>         isoTPProtocol.decode(ctx, in, out);
-<a name="554" href="#554">554</a> 
-<a name="555" href="#555">555</a>         assertTrue(out.size() == 1, <span class="jxr_string">"Message not decoded"</span>);
-<a name="556" href="#556">556</a> 
-<a name="557" href="#557">557</a>         ErrorTpdu errorTpdu = (ErrorTpdu) ((IsoTPMessage) out.get(0)).getTpdu();
-<a name="558" href="#558">558</a> 
-<a name="559" href="#559">559</a>         assertTrue(errorTpdu.getTpduCode() == TpduCode.TPDU_ERROR, <span class="jxr_string">"Message code not correct"</span>);
-<a name="560" href="#560">560</a>         assertTrue(errorTpdu.getDestinationReference() == (<strong class="jxr_keyword">short</strong>) 0x1, <span class="jxr_string">"Message destination reference not correct"</span>);
-<a name="561" href="#561">561</a>         assertTrue(errorTpdu.getRejectCause() == RejectCause.REASON_NOT_SPECIFIED, <span class="jxr_string">"Message reject cause not correct"</span>);
-<a name="562" href="#562">562</a>         assertTrue(errorTpdu.getParameters().size() == 1, <span class="jxr_string">"Incorrect number of parameters"</span>);
-<a name="563" href="#563">563</a>         TpduSizeParameter parameter = (TpduSizeParameter) errorTpdu.getParameters().get(0);
-<a name="564" href="#564">564</a>         assertTrue(parameter.getType() == ParameterCode.TPDU_SIZE, <span class="jxr_string">"Parameter type incorrect"</span>);
-<a name="565" href="#565">565</a>         assertTrue(parameter.getTpduSize() == TpduSize.SIZE_256, <span class="jxr_string">"Size incorrect"</span>);
-<a name="566" href="#566">566</a>     }
-<a name="567" href="#567">567</a> 
-<a name="568" href="#568">568</a>     @Test
-<a name="569" href="#569">569</a>     @Tag(<span class="jxr_string">"fast"</span>)
-<a name="570" href="#570">570</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> decodeAdditionalInformationParameter() <strong class="jxr_keyword">throws</strong> Exception {
-<a name="571" href="#571">571</a>         buf.writeByte(0x8) <em class="jxr_comment">// header length</em>
-<a name="572" href="#572">572</a>             .writeByte(TpduCode.TPDU_ERROR.getCode())
-<a name="573" href="#573">573</a>             .writeShort(0x01) <em class="jxr_comment">// destination reference</em>
-<a name="574" href="#574">574</a>             .writeByte(RejectCause.REASON_NOT_SPECIFIED.getCode()) <em class="jxr_comment">// reject clause</em>
-<a name="575" href="#575">575</a>             .writeByte(ParameterCode.DISCONNECT_ADDITIONAL_INFORMATION.getCode())
-<a name="576" href="#576">576</a>             .writeByte(0x5) <em class="jxr_comment">// parameter length</em>
-<a name="577" href="#577">577</a>             .writeByte('E')
-<a name="578" href="#578">578</a>             .writeByte('r')
-<a name="579" href="#579">579</a>             .writeByte('r')
-<a name="580" href="#580">580</a>             .writeByte('o')
-<a name="581" href="#581">581</a>             .writeByte('r');
-<a name="582" href="#582">582</a>         IsoOnTcpMessage in = <strong class="jxr_keyword">new</strong> IsoOnTcpMessage(buf);
-<a name="583" href="#583">583</a> 
-<a name="584" href="#584">584</a>         isoTPProtocol.decode(ctx, in, out);
-<a name="585" href="#585">585</a> 
-<a name="586" href="#586">586</a>         assertTrue(out.size() == 1, <span class="jxr_string">"Message not decoded"</span>);
-<a name="587" href="#587">587</a> 
-<a name="588" href="#588">588</a>         ErrorTpdu errorTpdu = (ErrorTpdu) ((IsoTPMessage) out.get(0)).getTpdu();
+<a name="456" href="#456">456</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> encodeUnsupported() <strong class="jxr_keyword">throws</strong> Exception {
+<a name="457" href="#457">457</a>         ArrayList&lt;Parameter&gt; parmameters = <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;();
+<a name="458" href="#458">458</a>         CustomTpdu tpdu = <strong class="jxr_keyword">new</strong> CustomTpdu((byte)0x7F, parmameters, buf);
+<a name="459" href="#459">459</a> 
+<a name="460" href="#460">460</a>         isoTPProtocol.encode(ctx, tpdu, out);
+<a name="461" href="#461">461</a>         assertTrue(out.size() == 0, <span class="jxr_string">"Message encoded when unsupported Tpdu code passed"</span>);
+<a name="462" href="#462">462</a>    }
+<a name="463" href="#463">463</a> 
+<a name="464" href="#464">464</a> 
+<a name="465" href="#465">465</a>     @Test
+<a name="466" href="#466">466</a>     @Tag(<span class="jxr_string">"fast"</span>)
+<a name="467" href="#467">467</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> decodeUnsupported() <strong class="jxr_keyword">throws</strong> Exception {
+<a name="468" href="#468">468</a>         IsoOnTcpMessage in = <strong class="jxr_keyword">new</strong> IsoOnTcpMessage(buf);
+<a name="469" href="#469">469</a>         buf.writeByte(0x3) <em class="jxr_comment">// header length</em>
+<a name="470" href="#470">470</a>             .writeByte(0x7F)
+<a name="471" href="#471">471</a>             .writeShort(0x01); <em class="jxr_comment">// destination reference</em>
+<a name="472" href="#472">472</a>         isoTPProtocol.decode(ctx, in, out);
+<a name="473" href="#473">473</a>         assertTrue(out.size() == 0, <span class="jxr_string">"Message decoded when unsupported Tpdu code passed"</span>);
+<a name="474" href="#474">474</a>     }
+<a name="475" href="#475">475</a> 
+<a name="476" href="#476">476</a>     @Test
+<a name="477" href="#477">477</a>     @Tag(<span class="jxr_string">"fast"</span>)
+<a name="478" href="#478">478</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> decodeCallingParameter() <strong class="jxr_keyword">throws</strong> Exception {
+<a name="479" href="#479">479</a>         buf.writeByte(0x8) <em class="jxr_comment">// header length</em>
+<a name="480" href="#480">480</a>             .writeByte(TpduCode.TPDU_ERROR.getCode())
+<a name="481" href="#481">481</a>             .writeShort(0x01) <em class="jxr_comment">// destination reference</em>
+<a name="482" href="#482">482</a>             .writeByte(RejectCause.REASON_NOT_SPECIFIED.getCode()) <em class="jxr_comment">// reject clause</em>
+<a name="483" href="#483">483</a>             .writeByte(ParameterCode.CALLING_TSAP.getCode())
+<a name="484" href="#484">484</a>             .writeByte(0x2) <em class="jxr_comment">// parameter length</em>
+<a name="485" href="#485">485</a>             .writeByte(DeviceGroup.PG_OR_PC.getCode())
+<a name="486" href="#486">486</a>             .writeByte((byte) ((0x1 &lt;&lt; 4) | 0x7));
+<a name="487" href="#487">487</a>         IsoOnTcpMessage in = <strong class="jxr_keyword">new</strong> IsoOnTcpMessage(buf);
+<a name="488" href="#488">488</a> 
+<a name="489" href="#489">489</a>         isoTPProtocol.decode(ctx, in, out);
+<a name="490" href="#490">490</a> 
+<a name="491" href="#491">491</a>         assertTrue(out.size() == 1, <span class="jxr_string">"Message not decoded"</span>);
+<a name="492" href="#492">492</a> 
+<a name="493" href="#493">493</a>         ErrorTpdu errorTpdu = (ErrorTpdu) ((IsoTPMessage) out.get(0)).getTpdu();
+<a name="494" href="#494">494</a> 
+<a name="495" href="#495">495</a>         assertTrue(errorTpdu.getTpduCode() == TpduCode.TPDU_ERROR, <span class="jxr_string">"Message code not correct"</span>);
+<a name="496" href="#496">496</a>         assertTrue(errorTpdu.getDestinationReference() == (<strong class="jxr_keyword">short</strong>) 0x1, <span class="jxr_string">"Message destination reference not correct"</span>);
+<a name="497" href="#497">497</a>         assertTrue(errorTpdu.getRejectCause() == RejectCause.REASON_NOT_SPECIFIED, <span class="jxr_string">"Message reject cause not correct"</span>);
+<a name="498" href="#498">498</a>         assertTrue(errorTpdu.getParameters().size() == 1, <span class="jxr_string">"Incorrect number of parameters"</span>);
+<a name="499" href="#499">499</a>         CallingTsapParameter parameter = (CallingTsapParameter) errorTpdu.getParameters().get(0);
+<a name="500" href="#500">500</a>         assertTrue(parameter.getType() == ParameterCode.CALLING_TSAP, <span class="jxr_string">"Parameter type incorrect"</span>);
+<a name="501" href="#501">501</a>         assertTrue(parameter.getDeviceGroup() == DeviceGroup.PG_OR_PC, <span class="jxr_string">"Device group incorrect"</span>);
+<a name="502" href="#502">502</a>         assertTrue(parameter.getRackNumber() == 0x1, <span class="jxr_string">"Rack number incorrect"</span>);
+<a name="503" href="#503">503</a>         assertTrue(parameter.getSlotNumber() == 0x7, <span class="jxr_string">"Slot number incorrect"</span>);
+<a name="504" href="#504">504</a>     }
+<a name="505" href="#505">505</a> 
+<a name="506" href="#506">506</a>     @Test
+<a name="507" href="#507">507</a>     @Tag(<span class="jxr_string">"fast"</span>)
+<a name="508" href="#508">508</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> decodeCalledParameter() <strong class="jxr_keyword">throws</strong> Exception {
+<a name="509" href="#509">509</a>         buf.writeByte(0x8) <em class="jxr_comment">// header length</em>
+<a name="510" href="#510">510</a>             .writeByte(TpduCode.TPDU_ERROR.getCode())
+<a name="511" href="#511">511</a>             .writeShort(0x01) <em class="jxr_comment">// destination reference</em>
+<a name="512" href="#512">512</a>             .writeByte(RejectCause.REASON_NOT_SPECIFIED.getCode()) <em class="jxr_comment">// reject clause</em>
+<a name="513" href="#513">513</a>             .writeByte(ParameterCode.CALLED_TSAP.getCode())
+<a name="514" href="#514">514</a>             .writeByte(0x2) <em class="jxr_comment">// parameter length</em>
+<a name="515" href="#515">515</a>             .writeByte(DeviceGroup.PG_OR_PC.getCode())
+<a name="516" href="#516">516</a>             .writeByte((byte) ((0x2 &lt;&lt; 4) | 0x3));
+<a name="517" href="#517">517</a>         IsoOnTcpMessage in = <strong class="jxr_keyword">new</strong> IsoOnTcpMessage(buf);
+<a name="518" href="#518">518</a> 
+<a name="519" href="#519">519</a>         isoTPProtocol.decode(ctx, in, out);
+<a name="520" href="#520">520</a> 
+<a name="521" href="#521">521</a>         assertTrue(out.size() == 1, <span class="jxr_string">"Message not decoded"</span>);
+<a name="522" href="#522">522</a> 
+<a name="523" href="#523">523</a>         ErrorTpdu errorTpdu = (ErrorTpdu) ((IsoTPMessage) out.get(0)).getTpdu();
+<a name="524" href="#524">524</a> 
+<a name="525" href="#525">525</a>         assertTrue(errorTpdu.getTpduCode() == TpduCode.TPDU_ERROR, <span class="jxr_string">"Message code not correct"</span>);
+<a name="526" href="#526">526</a>         assertTrue(errorTpdu.getDestinationReference() == (<strong class="jxr_keyword">short</strong>) 0x1, <span class="jxr_string">"Message destination reference not correct"</span>);
+<a name="527" href="#527">527</a>         assertTrue(errorTpdu.getRejectCause() == RejectCause.REASON_NOT_SPECIFIED, <span class="jxr_string">"Message reject cause not correct"</span>);
+<a name="528" href="#528">528</a>         assertTrue(errorTpdu.getParameters().size() == 1, <span class="jxr_string">"Incorrect number of parameters"</span>);
+<a name="529" href="#529">529</a>         CalledTsapParameter parameter = (CalledTsapParameter) errorTpdu.getParameters().get(0);
+<a name="530" href="#530">530</a>         assertTrue(parameter.getType() == ParameterCode.CALLED_TSAP, <span class="jxr_string">"Parameter type incorrect"</span>);
+<a name="531" href="#531">531</a>         assertTrue(parameter.getDeviceGroup() == DeviceGroup.PG_OR_PC, <span class="jxr_string">"Device group incorrect"</span>);
+<a name="532" href="#532">532</a>         assertTrue(parameter.getRackNumber() == 0x2, <span class="jxr_string">"Rack number incorrect"</span>);
+<a name="533" href="#533">533</a>         assertTrue(parameter.getSlotNumber() == 0x3, <span class="jxr_string">"Slot number incorrect"</span>);
+<a name="534" href="#534">534</a>     }
+<a name="535" href="#535">535</a> 
+<a name="536" href="#536">536</a>     @Test
+<a name="537" href="#537">537</a>     @Tag(<span class="jxr_string">"fast"</span>)
+<a name="538" href="#538">538</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> decodeChecksumParameter() <strong class="jxr_keyword">throws</strong> Exception {
+<a name="539" href="#539">539</a>         buf.writeByte(0x8) <em class="jxr_comment">// header length</em>
+<a name="540" href="#540">540</a>             .writeByte(TpduCode.TPDU_ERROR.getCode())
+<a name="541" href="#541">541</a>             .writeShort(0x01) <em class="jxr_comment">// destination reference</em>
+<a name="542" href="#542">542</a>             .writeByte(RejectCause.REASON_NOT_SPECIFIED.getCode()) <em class="jxr_comment">// reject clause</em>
+<a name="543" href="#543">543</a>             .writeByte(ParameterCode.CHECKSUM.getCode())
+<a name="544" href="#544">544</a>             .writeByte(0x1) <em class="jxr_comment">// parameter length</em>
+<a name="545" href="#545">545</a>             .writeByte(0x33); <em class="jxr_comment">// checksum</em>
+<a name="546" href="#546">546</a>         IsoOnTcpMessage in = <strong class="jxr_keyword">new</strong> IsoOnTcpMessage(buf);
+<a name="547" href="#547">547</a> 
+<a name="548" href="#548">548</a>         isoTPProtocol.decode(ctx, in, out);
+<a name="549" href="#549">549</a> 
+<a name="550" href="#550">550</a>         assertTrue(out.size() == 1, <span class="jxr_string">"Message not decoded"</span>);
+<a name="551" href="#551">551</a> 
+<a name="552" href="#552">552</a>         ErrorTpdu errorTpdu = (ErrorTpdu) ((IsoTPMessage) out.get(0)).getTpdu();
+<a name="553" href="#553">553</a> 
+<a name="554" href="#554">554</a>         assertTrue(errorTpdu.getTpduCode() == TpduCode.TPDU_ERROR, <span class="jxr_string">"Message code not correct"</span>);
+<a name="555" href="#555">555</a>         assertTrue(errorTpdu.getDestinationReference() == (<strong class="jxr_keyword">short</strong>) 0x1, <span class="jxr_string">"Message destination reference not correct"</span>);
+<a name="556" href="#556">556</a>         assertTrue(errorTpdu.getRejectCause() == RejectCause.REASON_NOT_SPECIFIED, <span class="jxr_string">"Message reject cause not correct"</span>);
+<a name="557" href="#557">557</a>         assertTrue(errorTpdu.getParameters().size() == 1, <span class="jxr_string">"Incorrect number of parameters"</span>);
+<a name="558" href="#558">558</a>         ChecksumParameter parameter = (ChecksumParameter) errorTpdu.getParameters().get(0);
+<a name="559" href="#559">559</a>         assertTrue(parameter.getType() == ParameterCode.CHECKSUM, <span class="jxr_string">"Parameter type incorrect"</span>);
+<a name="560" href="#560">560</a>         assertTrue(parameter.getChecksum() == 0x33, <span class="jxr_string">"Checksum incorrect"</span>);
+<a name="561" href="#561">561</a>     }
+<a name="562" href="#562">562</a> 
+<a name="563" href="#563">563</a>     @Test
+<a name="564" href="#564">564</a>     @Tag(<span class="jxr_string">"fast"</span>)
+<a name="565" href="#565">565</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> decodeSizeParameter() <strong class="jxr_keyword">throws</strong> Exception {
+<a name="566" href="#566">566</a>         buf.writeByte(0x8) <em class="jxr_comment">// header length</em>
+<a name="567" href="#567">567</a>             .writeByte(TpduCode.TPDU_ERROR.getCode())
+<a name="568" href="#568">568</a>             .writeShort(0x01) <em class="jxr_comment">// destination reference</em>
+<a name="569" href="#569">569</a>             .writeByte(RejectCause.REASON_NOT_SPECIFIED.getCode()) <em class="jxr_comment">// reject clause</em>
+<a name="570" href="#570">570</a>             .writeByte(ParameterCode.TPDU_SIZE.getCode())
+<a name="571" href="#571">571</a>             .writeByte(0x1) <em class="jxr_comment">// parameter length</em>
+<a name="572" href="#572">572</a>             .writeByte(TpduSize.SIZE_256.getCode());
+<a name="573" href="#573">573</a>         IsoOnTcpMessage in = <strong class="jxr_keyword">new</strong> IsoOnTcpMessage(buf);
+<a name="574" href="#574">574</a> 
+<a name="575" href="#575">575</a>         isoTPProtocol.decode(ctx, in, out);
+<a name="576" href="#576">576</a> 
+<a name="577" href="#577">577</a>         assertTrue(out.size() == 1, <span class="jxr_string">"Message not decoded"</span>);
+<a name="578" href="#578">578</a> 
+<a name="579" href="#579">579</a>         ErrorTpdu errorTpdu = (ErrorTpdu) ((IsoTPMessage) out.get(0)).getTpdu();
+<a name="580" href="#580">580</a> 
+<a name="581" href="#581">581</a>         assertTrue(errorTpdu.getTpduCode() == TpduCode.TPDU_ERROR, <span class="jxr_string">"Message code not correct"</span>);
+<a name="582" href="#582">582</a>         assertTrue(errorTpdu.getDestinationReference() == (<strong class="jxr_keyword">short</strong>) 0x1, <span class="jxr_string">"Message destination reference not correct"</span>);
+<a name="583" href="#583">583</a>         assertTrue(errorTpdu.getRejectCause() == RejectCause.REASON_NOT_SPECIFIED, <span class="jxr_string">"Message reject cause not correct"</span>);
+<a name="584" href="#584">584</a>         assertTrue(errorTpdu.getParameters().size() == 1, <span class="jxr_string">"Incorrect number of parameters"</span>);
+<a name="585" href="#585">585</a>         TpduSizeParameter parameter = (TpduSizeParameter) errorTpdu.getParameters().get(0);
+<a name="586" href="#586">586</a>         assertTrue(parameter.getType() == ParameterCode.TPDU_SIZE, <span class="jxr_string">"Parameter type incorrect"</span>);
+<a name="587" href="#587">587</a>         assertTrue(parameter.getTpduSize() == TpduSize.SIZE_256, <span class="jxr_string">"Size incorrect"</span>);
+<a name="588" href="#588">588</a>     }
 <a name="589" href="#589">589</a> 
-<a name="590" href="#590">590</a>         assertTrue(errorTpdu.getTpduCode() == TpduCode.TPDU_ERROR, <span class="jxr_string">"Message code not correct"</span>);
-<a name="591" href="#591">591</a>         assertTrue(errorTpdu.getDestinationReference() == (<strong class="jxr_keyword">short</strong>) 0x1, <span class="jxr_string">"Message destination reference not correct"</span>);
-<a name="592" href="#592">592</a>         assertTrue(errorTpdu.getRejectCause() == RejectCause.REASON_NOT_SPECIFIED, <span class="jxr_string">"Message reject cause not correct"</span>);
-<a name="593" href="#593">593</a>         assertTrue(errorTpdu.getParameters().size() == 1, <span class="jxr_string">"Incorrect number of parameters"</span>);
-<a name="594" href="#594">594</a>         DisconnectAdditionalInformationParameter parameter = (DisconnectAdditionalInformationParameter) errorTpdu.getParameters().get(0);
-<a name="595" href="#595">595</a>         assertTrue(parameter.getType() == ParameterCode.DISCONNECT_ADDITIONAL_INFORMATION, <span class="jxr_string">"Parameter type incorrect"</span>);
-<a name="596" href="#596">596</a>         byte[] data = parameter.getData();
-<a name="597" href="#597">597</a>         assertTrue(data[0] == 'E', <span class="jxr_string">"Data incorrect"</span>);
-<a name="598" href="#598">598</a>         assertTrue(data[1] == 'r', <span class="jxr_string">"Data incorrect"</span>);
-<a name="599" href="#599">599</a>         assertTrue(data[2] == 'r', <span class="jxr_string">"Data incorrect"</span>);
-<a name="600" href="#600">600</a>         assertTrue(data[3] == 'o', <span class="jxr_string">"Data incorrect"</span>);
-<a name="601" href="#601">601</a>         assertTrue(data[4] == 'r', <span class="jxr_string">"Data incorrect"</span>);
-<a name="602" href="#602">602</a>     }
-<a name="603" href="#603">603</a> }
+<a name="590" href="#590">590</a>     @Test
+<a name="591" href="#591">591</a>     @Tag(<span class="jxr_string">"fast"</span>)
+<a name="592" href="#592">592</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> decodeAdditionalInformationParameter() <strong class="jxr_keyword">throws</strong> Exception {
+<a name="593" href="#593">593</a>         buf.writeByte(0x8) <em class="jxr_comment">// header length</em>
+<a name="594" href="#594">594</a>             .writeByte(TpduCode.TPDU_ERROR.getCode())
+<a name="595" href="#595">595</a>             .writeShort(0x01) <em class="jxr_comment">// destination reference</em>
+<a name="596" href="#596">596</a>             .writeByte(RejectCause.REASON_NOT_SPECIFIED.getCode()) <em class="jxr_comment">// reject clause</em>
+<a name="597" href="#597">597</a>             .writeByte(ParameterCode.DISCONNECT_ADDITIONAL_INFORMATION.getCode())
+<a name="598" href="#598">598</a>             .writeByte(0x5) <em class="jxr_comment">// parameter length</em>
+<a name="599" href="#599">599</a>             .writeByte('E')
+<a name="600" href="#600">600</a>             .writeByte('r')
+<a name="601" href="#601">601</a>             .writeByte('r')
+<a name="602" href="#602">602</a>             .writeByte('o')
+<a name="603" href="#603">603</a>             .writeByte('r');
+<a name="604" href="#604">604</a>         IsoOnTcpMessage in = <strong class="jxr_keyword">new</strong> IsoOnTcpMessage(buf);
+<a name="605" href="#605">605</a> 
+<a name="606" href="#606">606</a>         isoTPProtocol.decode(ctx, in, out);
+<a name="607" href="#607">607</a> 
+<a name="608" href="#608">608</a>         assertTrue(out.size() == 1, <span class="jxr_string">"Message not decoded"</span>);
+<a name="609" href="#609">609</a> 
+<a name="610" href="#610">610</a>         ErrorTpdu errorTpdu = (ErrorTpdu) ((IsoTPMessage) out.get(0)).getTpdu();
+<a name="611" href="#611">611</a> 
+<a name="612" href="#612">612</a>         assertTrue(errorTpdu.getTpduCode() == TpduCode.TPDU_ERROR, <span class="jxr_string">"Message code not correct"</span>);
+<a name="613" href="#613">613</a>         assertTrue(errorTpdu.getDestinationReference() == (<strong class="jxr_keyword">short</strong>) 0x1, <span class="jxr_string">"Message destination reference not correct"</span>);
+<a name="614" href="#614">614</a>         assertTrue(errorTpdu.getRejectCause() == RejectCause.REASON_NOT_SPECIFIED, <span class="jxr_string">"Message reject cause not correct"</span>);
+<a name="615" href="#615">615</a>         assertTrue(errorTpdu.getParameters().size() == 1, <span class="jxr_string">"Incorrect number of parameters"</span>);
+<a name="616" href="#616">616</a>         DisconnectAdditionalInformationParameter parameter = (DisconnectAdditionalInformationParameter) errorTpdu.getParameters().get(0);
+<a name="617" href="#617">617</a>         assertTrue(parameter.getType() == ParameterCode.DISCONNECT_ADDITIONAL_INFORMATION, <span class="jxr_string">"Parameter type incorrect"</span>);
+<a name="618" href="#618">618</a>         byte[] data = parameter.getData();
+<a name="619" href="#619">619</a>         assertTrue(data[0] == 'E', <span class="jxr_string">"Data incorrect"</span>);
+<a name="620" href="#620">620</a>         assertTrue(data[1] == 'r', <span class="jxr_string">"Data incorrect"</span>);
+<a name="621" href="#621">621</a>         assertTrue(data[2] == 'r', <span class="jxr_string">"Data incorrect"</span>);
+<a name="622" href="#622">622</a>         assertTrue(data[3] == 'o', <span class="jxr_string">"Data incorrect"</span>);
+<a name="623" href="#623">623</a>         assertTrue(data[4] == 'r', <span class="jxr_string">"Data incorrect"</span>);
+<a name="624" href="#624">624</a>     }
+<a name="625" href="#625">625</a> }
 </pre>
 <hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
 </html>
