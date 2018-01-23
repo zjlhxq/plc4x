@@ -97,85 +97,84 @@
 <a name="87" href="#87">87</a>          <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/apache/plc4x/edgent/mock/MockAddress.html">MockAddress</a>(addressString);
 <a name="88" href="#88">88</a>      }
 <a name="89" href="#89">89</a>  
-<a name="90" href="#90">90</a>      @SuppressWarnings(<span class="jxr_string">"unchecked"</span>)
-<a name="91" href="#91">91</a>      @Override
-<a name="92" href="#92">92</a>      <strong class="jxr_keyword">public</strong> CompletableFuture&lt;PlcReadResponse&gt; read(PlcReadRequest readRequest) {
-<a name="93" href="#93">93</a>          curReadCnt++;
-<a name="94" href="#94">94</a>          <strong class="jxr_keyword">if</strong> (readExceptionTriggerCount &gt; 0 &amp;&amp; curReadCnt == readExceptionTriggerCount) {
-<a name="95" href="#95">95</a>              curReadCnt = 0;
-<a name="96" href="#96">96</a>              CompletableFuture&lt;PlcReadResponse&gt; cf = <strong class="jxr_keyword">new</strong> CompletableFuture&lt;&gt;();
-<a name="97" href="#97">97</a>              cf.completeExceptionally(<strong class="jxr_keyword">new</strong> PlcIoException(readExceptionMsg));
-<a name="98" href="#98">98</a>              <strong class="jxr_keyword">return</strong> cf;
-<a name="99" href="#99">99</a>          }
-<a name="100" href="#100">100</a>         List&lt;ReadResponseItem&lt;?&gt;&gt; responseItems = <strong class="jxr_keyword">new</strong> LinkedList&lt;&gt;();
-<a name="101" href="#101">101</a>         <strong class="jxr_keyword">for</strong> (ReadRequestItem requestItem : readRequest.getRequestItems()) {
-<a name="102" href="#102">102</a>             ReadResponseItem responseItem = <strong class="jxr_keyword">new</strong> ReadResponseItem(requestItem, ResponseCode.OK,
-<a name="103" href="#103">103</a>                 Collections.singletonList(getDataValue(requestItem.getAddress())));
-<a name="104" href="#104">104</a>             responseItems.add(responseItem);
-<a name="105" href="#105">105</a>         }
-<a name="106" href="#106">106</a>         PlcReadResponse response;
-<a name="107" href="#107">107</a>         <strong class="jxr_keyword">if</strong> (readRequest instanceof TypeSafePlcReadRequest) {
-<a name="108" href="#108">108</a>             response = <strong class="jxr_keyword">new</strong> TypeSafePlcReadResponse((TypeSafePlcReadRequest) readRequest, responseItems.isEmpty() ? <strong class="jxr_keyword">null</strong> : responseItems.get(0));
-<a name="109" href="#109">109</a>         } <strong class="jxr_keyword">else</strong> {
-<a name="110" href="#110">110</a>             response = <strong class="jxr_keyword">new</strong> PlcReadResponse(readRequest, responseItems);
-<a name="111" href="#111">111</a>         }
-<a name="112" href="#112">112</a>         <strong class="jxr_keyword">return</strong> CompletableFuture.completedFuture(response);
-<a name="113" href="#113">113</a>     }
-<a name="114" href="#114">114</a> 
-<a name="115" href="#115">115</a>     @SuppressWarnings(<span class="jxr_string">"unchecked"</span>)
-<a name="116" href="#116">116</a>     @Override
-<a name="117" href="#117">117</a>     <strong class="jxr_keyword">public</strong> CompletableFuture&lt;PlcWriteResponse&gt; write(PlcWriteRequest writeRequest) {
-<a name="118" href="#118">118</a>         curWriteCnt++;
-<a name="119" href="#119">119</a>         <strong class="jxr_keyword">if</strong> (writeExceptionTriggerCount &gt; 0 &amp;&amp; curWriteCnt == writeExceptionTriggerCount) {
-<a name="120" href="#120">120</a>             curWriteCnt = 0;
-<a name="121" href="#121">121</a>             CompletableFuture&lt;PlcWriteResponse&gt; cf = <strong class="jxr_keyword">new</strong> CompletableFuture&lt;&gt;();
-<a name="122" href="#122">122</a>             cf.completeExceptionally(<strong class="jxr_keyword">new</strong> PlcIoException(writeExceptionMsg));
-<a name="123" href="#123">123</a>             <strong class="jxr_keyword">return</strong> cf;
-<a name="124" href="#124">124</a>         }
-<a name="125" href="#125">125</a>         List&lt;WriteResponseItem&lt;?&gt;&gt; responseItems = <strong class="jxr_keyword">new</strong> LinkedList&lt;&gt;();
-<a name="126" href="#126">126</a>         <strong class="jxr_keyword">for</strong> (WriteRequestItem requestItem : writeRequest.getRequestItems()) {
-<a name="127" href="#127">127</a>             setDataValue(requestItem.getAddress(), requestItem.getValues());
-<a name="128" href="#128">128</a>             WriteResponseItem&lt;?&gt; responseItem = <strong class="jxr_keyword">new</strong> WriteResponseItem&lt;&gt;(requestItem, ResponseCode.OK);
-<a name="129" href="#129">129</a>             responseItems.add(responseItem);
-<a name="130" href="#130">130</a>         }
-<a name="131" href="#131">131</a>         PlcWriteResponse response;
-<a name="132" href="#132">132</a>         <strong class="jxr_keyword">if</strong> (writeRequest instanceof TypeSafePlcWriteRequest) {
-<a name="133" href="#133">133</a>             response = <strong class="jxr_keyword">new</strong> TypeSafePlcWriteResponse((TypeSafePlcWriteRequest) writeRequest, responseItems.isEmpty() ? <strong class="jxr_keyword">null</strong> : responseItems.get(0));
-<a name="134" href="#134">134</a>         } <strong class="jxr_keyword">else</strong> {
-<a name="135" href="#135">135</a>             response = <strong class="jxr_keyword">new</strong> PlcWriteResponse(writeRequest, responseItems);
-<a name="136" href="#136">136</a>         }
-<a name="137" href="#137">137</a> 
-<a name="138" href="#138">138</a>         <strong class="jxr_keyword">return</strong> CompletableFuture.completedFuture(response);
-<a name="139" href="#139">139</a>     }
-<a name="140" href="#140">140</a> 
-<a name="141" href="#141">141</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setDataValue(Address address, Object o) {
-<a name="142" href="#142">142</a>         dataValueMap.put(address, o);
-<a name="143" href="#143">143</a>     }
-<a name="144" href="#144">144</a> 
-<a name="145" href="#145">145</a>     <strong class="jxr_keyword">public</strong> Object getDataValue(Address address) {
-<a name="146" href="#146">146</a>         <strong class="jxr_keyword">return</strong> dataValueMap.get(address);
-<a name="147" href="#147">147</a>     }
-<a name="148" href="#148">148</a> 
-<a name="149" href="#149">149</a>     <strong class="jxr_keyword">public</strong> Map&lt;Address, Object&gt; getAllDataValues() {
-<a name="150" href="#150">150</a>         <strong class="jxr_keyword">return</strong> dataValueMap;
-<a name="151" href="#151">151</a>     }
-<a name="152" href="#152">152</a> 
-<a name="153" href="#153">153</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> clearAllDataValues() {
-<a name="154" href="#154">154</a>         dataValueMap.clear();
-<a name="155" href="#155">155</a>     }
-<a name="156" href="#156">156</a> 
-<a name="157" href="#157">157</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setReadException(<strong class="jxr_keyword">int</strong> readTriggerCount, String msg) {
-<a name="158" href="#158">158</a>         readExceptionTriggerCount = readTriggerCount;
-<a name="159" href="#159">159</a>         readExceptionMsg = msg;
-<a name="160" href="#160">160</a>         curReadCnt = 0;
-<a name="161" href="#161">161</a>     }
-<a name="162" href="#162">162</a> 
-<a name="163" href="#163">163</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setWriteException(<strong class="jxr_keyword">int</strong> writeTriggerCount, String msg) {
-<a name="164" href="#164">164</a>         writeExceptionTriggerCount = writeTriggerCount;
-<a name="165" href="#165">165</a>         writeExceptionMsg = msg;
-<a name="166" href="#166">166</a>         curWriteCnt = 0;
-<a name="167" href="#167">167</a>     }
-<a name="168" href="#168">168</a> }
+<a name="90" href="#90">90</a>      @Override
+<a name="91" href="#91">91</a>      <strong class="jxr_keyword">public</strong> CompletableFuture&lt;PlcReadResponse&gt; read(PlcReadRequest readRequest) {
+<a name="92" href="#92">92</a>          curReadCnt++;
+<a name="93" href="#93">93</a>          <strong class="jxr_keyword">if</strong> (readExceptionTriggerCount &gt; 0 &amp;&amp; curReadCnt == readExceptionTriggerCount) {
+<a name="94" href="#94">94</a>              curReadCnt = 0;
+<a name="95" href="#95">95</a>              CompletableFuture&lt;PlcReadResponse&gt; cf = <strong class="jxr_keyword">new</strong> CompletableFuture&lt;&gt;();
+<a name="96" href="#96">96</a>              cf.completeExceptionally(<strong class="jxr_keyword">new</strong> PlcIoException(readExceptionMsg));
+<a name="97" href="#97">97</a>              <strong class="jxr_keyword">return</strong> cf;
+<a name="98" href="#98">98</a>          }
+<a name="99" href="#99">99</a>          List&lt;ReadResponseItem&lt;?&gt;&gt; responseItems = <strong class="jxr_keyword">new</strong> LinkedList&lt;&gt;();
+<a name="100" href="#100">100</a>         <strong class="jxr_keyword">for</strong> (ReadRequestItem requestItem : readRequest.getRequestItems()) {
+<a name="101" href="#101">101</a>             ReadResponseItem responseItem = <strong class="jxr_keyword">new</strong> ReadResponseItem(requestItem, ResponseCode.OK,
+<a name="102" href="#102">102</a>                 Collections.singletonList(getDataValue(requestItem.getAddress())));
+<a name="103" href="#103">103</a>             responseItems.add(responseItem);
+<a name="104" href="#104">104</a>         }
+<a name="105" href="#105">105</a>         PlcReadResponse response;
+<a name="106" href="#106">106</a>         <strong class="jxr_keyword">if</strong> (readRequest instanceof TypeSafePlcReadRequest) {
+<a name="107" href="#107">107</a>             response = <strong class="jxr_keyword">new</strong> TypeSafePlcReadResponse((TypeSafePlcReadRequest) readRequest, responseItems.isEmpty() ? <strong class="jxr_keyword">null</strong> : responseItems.get(0));
+<a name="108" href="#108">108</a>         } <strong class="jxr_keyword">else</strong> {
+<a name="109" href="#109">109</a>             response = <strong class="jxr_keyword">new</strong> PlcReadResponse(readRequest, responseItems);
+<a name="110" href="#110">110</a>         }
+<a name="111" href="#111">111</a>         <strong class="jxr_keyword">return</strong> CompletableFuture.completedFuture(response);
+<a name="112" href="#112">112</a>     }
+<a name="113" href="#113">113</a> 
+<a name="114" href="#114">114</a>     @SuppressWarnings(<span class="jxr_string">"unchecked"</span>)
+<a name="115" href="#115">115</a>     @Override
+<a name="116" href="#116">116</a>     <strong class="jxr_keyword">public</strong> CompletableFuture&lt;PlcWriteResponse&gt; write(PlcWriteRequest writeRequest) {
+<a name="117" href="#117">117</a>         curWriteCnt++;
+<a name="118" href="#118">118</a>         <strong class="jxr_keyword">if</strong> (writeExceptionTriggerCount &gt; 0 &amp;&amp; curWriteCnt == writeExceptionTriggerCount) {
+<a name="119" href="#119">119</a>             curWriteCnt = 0;
+<a name="120" href="#120">120</a>             CompletableFuture&lt;PlcWriteResponse&gt; cf = <strong class="jxr_keyword">new</strong> CompletableFuture&lt;&gt;();
+<a name="121" href="#121">121</a>             cf.completeExceptionally(<strong class="jxr_keyword">new</strong> PlcIoException(writeExceptionMsg));
+<a name="122" href="#122">122</a>             <strong class="jxr_keyword">return</strong> cf;
+<a name="123" href="#123">123</a>         }
+<a name="124" href="#124">124</a>         List&lt;WriteResponseItem&lt;?&gt;&gt; responseItems = <strong class="jxr_keyword">new</strong> LinkedList&lt;&gt;();
+<a name="125" href="#125">125</a>         <strong class="jxr_keyword">for</strong> (WriteRequestItem requestItem : writeRequest.getRequestItems()) {
+<a name="126" href="#126">126</a>             setDataValue(requestItem.getAddress(), requestItem.getValues());
+<a name="127" href="#127">127</a>             WriteResponseItem&lt;?&gt; responseItem = <strong class="jxr_keyword">new</strong> WriteResponseItem&lt;&gt;(requestItem, ResponseCode.OK);
+<a name="128" href="#128">128</a>             responseItems.add(responseItem);
+<a name="129" href="#129">129</a>         }
+<a name="130" href="#130">130</a>         PlcWriteResponse response;
+<a name="131" href="#131">131</a>         <strong class="jxr_keyword">if</strong> (writeRequest instanceof TypeSafePlcWriteRequest) {
+<a name="132" href="#132">132</a>             response = <strong class="jxr_keyword">new</strong> TypeSafePlcWriteResponse((TypeSafePlcWriteRequest) writeRequest, responseItems.isEmpty() ? <strong class="jxr_keyword">null</strong> : responseItems.get(0));
+<a name="133" href="#133">133</a>         } <strong class="jxr_keyword">else</strong> {
+<a name="134" href="#134">134</a>             response = <strong class="jxr_keyword">new</strong> PlcWriteResponse(writeRequest, responseItems);
+<a name="135" href="#135">135</a>         }
+<a name="136" href="#136">136</a> 
+<a name="137" href="#137">137</a>         <strong class="jxr_keyword">return</strong> CompletableFuture.completedFuture(response);
+<a name="138" href="#138">138</a>     }
+<a name="139" href="#139">139</a> 
+<a name="140" href="#140">140</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setDataValue(Address address, Object o) {
+<a name="141" href="#141">141</a>         dataValueMap.put(address, o);
+<a name="142" href="#142">142</a>     }
+<a name="143" href="#143">143</a> 
+<a name="144" href="#144">144</a>     <strong class="jxr_keyword">public</strong> Object getDataValue(Address address) {
+<a name="145" href="#145">145</a>         <strong class="jxr_keyword">return</strong> dataValueMap.get(address);
+<a name="146" href="#146">146</a>     }
+<a name="147" href="#147">147</a> 
+<a name="148" href="#148">148</a>     <strong class="jxr_keyword">public</strong> Map&lt;Address, Object&gt; getAllDataValues() {
+<a name="149" href="#149">149</a>         <strong class="jxr_keyword">return</strong> dataValueMap;
+<a name="150" href="#150">150</a>     }
+<a name="151" href="#151">151</a> 
+<a name="152" href="#152">152</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> clearAllDataValues() {
+<a name="153" href="#153">153</a>         dataValueMap.clear();
+<a name="154" href="#154">154</a>     }
+<a name="155" href="#155">155</a> 
+<a name="156" href="#156">156</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setReadException(<strong class="jxr_keyword">int</strong> readTriggerCount, String msg) {
+<a name="157" href="#157">157</a>         readExceptionTriggerCount = readTriggerCount;
+<a name="158" href="#158">158</a>         readExceptionMsg = msg;
+<a name="159" href="#159">159</a>         curReadCnt = 0;
+<a name="160" href="#160">160</a>     }
+<a name="161" href="#161">161</a> 
+<a name="162" href="#162">162</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setWriteException(<strong class="jxr_keyword">int</strong> writeTriggerCount, String msg) {
+<a name="163" href="#163">163</a>         writeExceptionTriggerCount = writeTriggerCount;
+<a name="164" href="#164">164</a>         writeExceptionMsg = msg;
+<a name="165" href="#165">165</a>         curWriteCnt = 0;
+<a name="166" href="#166">166</a>     }
+<a name="167" href="#167">167</a> }
 </pre>
 <hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
 </html>
