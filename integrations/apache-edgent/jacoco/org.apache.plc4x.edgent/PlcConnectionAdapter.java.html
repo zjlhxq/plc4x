@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PlcConnectionAdapter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Integrations: Apache Edgent</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.edgent</a> &gt; <span class="el_source">PlcConnectionAdapter.java</span></div><h1>PlcConnectionAdapter.java</h1><pre class="source lang-java linenums">/*
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+&quot;License&quot;); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+&quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+*/
+package org.apache.plc4x.edgent;
+
+import java.util.Calendar;
+
+import org.apache.edgent.function.Consumer;
+import org.apache.edgent.function.Function;
+import org.apache.edgent.function.Supplier;
+import org.apache.plc4x.java.PlcDriverManager;
+import org.apache.plc4x.java.api.connection.PlcConnection;
+import org.apache.plc4x.java.api.connection.PlcReader;
+import org.apache.plc4x.java.api.connection.PlcWriter;
+import org.apache.plc4x.java.api.exceptions.PlcException;
+import org.apache.plc4x.java.api.messages.PlcWriteRequest;
+import org.apache.plc4x.java.api.messages.specific.TypeSafePlcReadRequest;
+import org.apache.plc4x.java.api.messages.specific.TypeSafePlcWriteRequest;
+import org.apache.plc4x.java.api.model.Address;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.gson.JsonObject;
+
+/**
+ * PlcConnectionAdapter encapsulates a plc4x {@link PlcConnection}.
+ * &lt;p&gt;
+ * The idea here is to use PlcConnectionAdapter to enable our Edgent Supplier/Consumer
+ * instances to be isolated from the details of / variability of
+ * PlcConnection mgmt and such.
+ * &lt;p&gt;
+ * A PlcConnectionAdapter is subject to the constraints of the underlying
+ * PlcConnection for the device.
+ * &lt;p&gt;
+ * A single PlcConnectionAdaptor represents a single underlying PlcConnection/connection
+ * to a plc device.
+ * &lt;p&gt;
+ * Multiple PlcConnectionAdaptor instances, hence multiple PlcConnection instances,
+ * can be created for a single plc device subject to the underlying device's protocol's
+ * support for multiple connections from a single client.
+ * &lt;p&gt;
+ * A single PlcConnectionAdapter can be used by multiple threads concurrently
+ * (e.g., used by multiple PlcFunctions Consumers for {@code Topology.poll()} and/or
+ * multiple Suppliers for {@code TStream.sink()}).
+ *
+ * @see PlcFunctions
+ */
+public class PlcConnectionAdapter implements AutoCloseable {
+
+<span class="fc" id="L65">    private static final Logger logger = LoggerFactory.getLogger(PlcConnectionAdapter.class);</span>
+
+    private String plcConnectionUrl;
+    private PlcConnection plcConnection;
+  
+  /*
+   * NOTES:
+   * - if we get to the point of the application needing some feedback (possibly control)
+   *   of read or write errors, my thinking is to enhance the PlcConnectionAdapter
+   *   to enable the app to register an error callback handler or such.
+   */
+
+<span class="fc" id="L77">    public PlcConnectionAdapter(PlcConnection plcConnection) {</span>
+<span class="fc" id="L78">        this.plcConnection = plcConnection;</span>
+<span class="fc" id="L79">    }</span>
+
+<span class="fc" id="L81">    public PlcConnectionAdapter(String plcConnectionUrl) {</span>
+<span class="fc" id="L82">        this.plcConnectionUrl = plcConnectionUrl;</span>
+<span class="fc" id="L83">    }</span>
+
+    PlcConnection getConnection() throws PlcException {
+<span class="fc" id="L86">        synchronized (this) {</span>
+<span class="fc bfc" id="L87" title="All 2 branches covered.">            if (plcConnection == null) {</span>
+<span class="fc" id="L88">                plcConnection = new PlcDriverManager().getConnection(plcConnectionUrl);</span>
+            }
+<span class="fc" id="L90">            return plcConnection;</span>
+        }
+    }
+
+    @Override
+    public void close() throws Exception {
+        // only close a connection this instance created/connected
+<span class="pc bpc" id="L97" title="1 of 4 branches missed.">        if (plcConnectionUrl != null &amp;&amp; plcConnection != null) {</span>
+<span class="fc" id="L98">            plcConnection.close();</span>
+        }
+<span class="fc" id="L100">    }</span>
+
+    &lt;T&gt; Supplier&lt;T&gt; newSupplier(Class&lt;T&gt; datatype, String addressStr) {
+<span class="fc" id="L103">        PlcConnectionAdapter.checkDatatype(datatype);</span>
+<span class="fc" id="L104">        return new Supplier&lt;T&gt;() {</span>
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public T get() {
+<span class="fc" id="L109">                PlcConnection connection = null;</span>
+<span class="fc" id="L110">                Address address = null;</span>
+                try {
+<span class="fc" id="L112">                    connection = getConnection();</span>
+<span class="fc" id="L113">                    address = connection.parseAddress(addressStr);</span>
+<span class="fc" id="L114">                    PlcReader reader = connection.getReader()</span>
+<span class="pc" id="L115">                        .orElseThrow(() -&gt; new NullPointerException(&quot;No reader available&quot;));</span>
+<span class="fc" id="L116">                    TypeSafePlcReadRequest&lt;T&gt; readRequest = PlcConnectionAdapter.newPlcReadRequest(datatype, address);</span>
+<span class="fc" id="L117">                    return reader.read(readRequest).get().getResponseItem()</span>
+<span class="pc" id="L118">                        .orElseThrow(() -&gt; new IllegalStateException(&quot;No response available&quot;))</span>
+<span class="fc" id="L119">                        .getValues().get(0);</span>
+<span class="fc" id="L120">                } catch (Exception e) {</span>
+<span class="fc" id="L121">                    logger.error(&quot;reading from plc device {} {} failed&quot;, connection, address, e);</span>
+<span class="fc" id="L122">                    return null;</span>
+                }
+            }
+        };
+    }
+
+    &lt;T&gt; Consumer&lt;T&gt; newConsumer(Class&lt;T&gt; datatype, String addressStr) {
+<span class="fc" id="L129">        PlcConnectionAdapter.checkDatatype(datatype);</span>
+<span class="fc" id="L130">        return new Consumer&lt;T&gt;() {</span>
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void accept(T arg0) {
+<span class="fc" id="L135">                PlcConnection connection = null;</span>
+<span class="fc" id="L136">                Address address = null;</span>
+                try {
+<span class="fc" id="L138">                    connection = getConnection();</span>
+<span class="fc" id="L139">                    address = connection.parseAddress(addressStr);</span>
+<span class="fc" id="L140">                    PlcWriter writer = connection.getWriter()</span>
+<span class="pc" id="L141">                        .orElseThrow(() -&gt; new NullPointerException(&quot;No writer available&quot;));</span>
+<span class="fc" id="L142">                    PlcWriteRequest writeReq = PlcConnectionAdapter.newPlcWriteRequest(address, arg0);</span>
+<span class="fc" id="L143">                    writer.write(writeReq).get();</span>
+<span class="fc" id="L144">                } catch (Exception e) {</span>
+<span class="fc" id="L145">                    logger.error(&quot;writing to plc device {} {} failed&quot;, connection, address, e);</span>
+<span class="fc" id="L146">                }</span>
+<span class="fc" id="L147">            }</span>
+
+        };
+    }
+
+    &lt;T&gt; Consumer&lt;JsonObject&gt; newConsumer(Class&lt;T&gt; datatype, Function&lt;JsonObject, String&gt; addressFn, Function&lt;JsonObject, T&gt; valueFn) {
+<span class="fc" id="L153">        PlcConnectionAdapter.checkDatatype(datatype);</span>
+<span class="fc" id="L154">        return new Consumer&lt;JsonObject&gt;() {</span>
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void accept(JsonObject jo) {
+<span class="fc" id="L159">                PlcConnection connection = null;</span>
+<span class="fc" id="L160">                Address address = null;</span>
+                try {
+<span class="fc" id="L162">                    connection = getConnection();</span>
+<span class="fc" id="L163">                    String addressStr = addressFn.apply(jo);</span>
+<span class="fc" id="L164">                    address = connection.parseAddress(addressStr);</span>
+<span class="fc" id="L165">                    T value = valueFn.apply(jo);</span>
+<span class="fc" id="L166">                    PlcWriter writer = connection.getWriter()</span>
+<span class="pc" id="L167">                        .orElseThrow(() -&gt; new NullPointerException(&quot;No writer available&quot;));</span>
+<span class="fc" id="L168">                    PlcWriteRequest writeReq = newPlcWriteRequest(address, value);</span>
+<span class="fc" id="L169">                    writer.write(writeReq).get();</span>
+<span class="fc" id="L170">                } catch (Exception e) {</span>
+<span class="fc" id="L171">                    logger.error(&quot;writing to plc device {} {} failed&quot;, connection, address, e);</span>
+<span class="fc" id="L172">                }</span>
+<span class="fc" id="L173">            }</span>
+
+        };
+    }
+
+    static void checkDatatype(Class&lt;?&gt; cls) {
+<span class="fc bfc" id="L179" title="All 14 branches covered.">        if (cls == Boolean.class</span>
+            || cls == Byte.class
+            || cls == Short.class
+            || cls == Integer.class
+            || cls == Float.class
+            || cls == String.class
+            || cls == Calendar.class)
+<span class="fc" id="L186">            return;</span>
+<span class="fc" id="L187">        throw new IllegalArgumentException(&quot;Not a legal plc data type: &quot; + cls.getSimpleName());</span>
+    }
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    static &lt;T&gt; TypeSafePlcWriteRequest&lt;T&gt; newPlcWriteRequest(Address address, T value) {
+<span class="fc" id="L192">        Class&lt;T&gt; cls = (Class&lt;T&gt;) value.getClass();</span>
+<span class="fc" id="L193">        return new TypeSafePlcWriteRequest&lt;&gt;(cls, address, value);</span>
+    }
+
+    static &lt;T&gt; TypeSafePlcReadRequest&lt;T&gt; newPlcReadRequest(Class&lt;T&gt; datatype, Address address) {
+<span class="fc" id="L197">        return new TypeSafePlcReadRequest&lt;&gt;(datatype, address);</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

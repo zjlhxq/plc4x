@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PlcRequest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PLC4J: API</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.java.api.messages</a> &gt; <span class="el_source">PlcRequest.java</span></div><h1>PlcRequest.java</h1><pre class="source lang-java linenums">/*
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+&quot;License&quot;); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+&quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+*/
+package org.apache.plc4x.java.api.messages;
+
+import org.apache.plc4x.java.api.messages.items.RequestItem;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * Base type for all messages sent from the plc4x system to a connected plc.
+ */
+public abstract class PlcRequest&lt;REQUEST_ITEM extends RequestItem&gt; implements PlcMessage {
+
+    protected final List&lt;REQUEST_ITEM&gt; requestItems;
+
+<span class="fc" id="L34">    public PlcRequest() {</span>
+<span class="fc" id="L35">        this.requestItems = new LinkedList&lt;&gt;();</span>
+<span class="fc" id="L36">    }</span>
+
+<span class="fc" id="L38">    public PlcRequest(List&lt;REQUEST_ITEM&gt; requestItems) {</span>
+<span class="fc" id="L39">        this.requestItems = requestItems;</span>
+<span class="fc" id="L40">    }</span>
+
+    public void addItem(REQUEST_ITEM readRequestItem) {
+<span class="fc" id="L43">        getRequestItems().add(readRequestItem);</span>
+<span class="fc" id="L44">    }</span>
+
+    public List&lt;REQUEST_ITEM&gt; getRequestItems() {
+<span class="fc" id="L47">        return requestItems;</span>
+    }
+
+    public Optional&lt;? extends REQUEST_ITEM&gt; getRequestItem() {
+<span class="fc bfc" id="L51" title="All 2 branches covered.">        if (isMultiValue()) {</span>
+<span class="fc" id="L52">            throw new IllegalStateException(&quot;too many items &quot; + getNumberOfItems());</span>
+        }
+<span class="fc bfc" id="L54" title="All 2 branches covered.">        if (isEmpty()) {</span>
+<span class="fc" id="L55">            return Optional.empty();</span>
+        }
+<span class="fc" id="L57">        return Optional.of(getRequestItems().get(0));</span>
+    }
+
+    public void setRequestItem(REQUEST_ITEM requestItem) {
+<span class="fc bfc" id="L61" title="All 2 branches covered.">        if (isMultiValue()) {</span>
+<span class="fc" id="L62">            throw new IllegalStateException(&quot;too many items &quot; + getNumberOfItems());</span>
+        }
+<span class="fc" id="L64">        addItem(requestItem);</span>
+<span class="fc" id="L65">    }</span>
+
+    public int getNumberOfItems() {
+<span class="fc" id="L68">        return getRequestItems().size();</span>
+    }
+
+    public boolean isMultiValue() {
+<span class="fc bfc" id="L72" title="All 2 branches covered.">        return getNumberOfItems() &gt; 1;</span>
+    }
+
+    public boolean isEmpty() {
+<span class="fc bfc" id="L76" title="All 2 branches covered.">        return getNumberOfItems() &lt; 1;</span>
+    }
+
+<span class="fc" id="L79">    public abstract static class Builder&lt;REQUEST_ITEM&gt; {</span>
+
+        Class&lt;?&gt; firstType;
+
+<span class="fc" id="L83">        boolean mixed = false;</span>
+
+<span class="fc" id="L85">        List&lt;REQUEST_ITEM&gt; requests = new LinkedList&lt;&gt;();</span>
+
+        void checkType(Class dataType) {
+<span class="fc bfc" id="L88" title="All 2 branches covered.">            if (firstType == null) {</span>
+<span class="fc" id="L89">                firstType = dataType;</span>
+            }
+<span class="fc bfc" id="L91" title="All 2 branches covered.">            if (firstType != dataType) {</span>
+<span class="fc" id="L92">                mixed = true;</span>
+            }
+<span class="fc" id="L94">        }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
