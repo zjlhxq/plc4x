@@ -18,6 +18,7 @@ under the License.
 */
 package org.apache.plc4x.java.api.messages;
 
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 public class PlcRequestContainer&lt;T extends PlcRequest, R extends PlcResponse&gt; {
@@ -25,17 +26,19 @@ public class PlcRequestContainer&lt;T extends PlcRequest, R extends PlcResponse&
     private final T request;
     private final CompletableFuture&lt;R&gt; responseFuture;
 
-<span class="nc" id="L28">    public PlcRequestContainer(T request, CompletableFuture&lt;R&gt; responseFuture) {</span>
-<span class="nc" id="L29">        this.request = request;</span>
-<span class="nc" id="L30">        this.responseFuture = responseFuture;</span>
-<span class="nc" id="L31">    }</span>
+<span class="nc" id="L29">    public PlcRequestContainer(T request, CompletableFuture&lt;R&gt; responseFuture) {</span>
+<span class="nc" id="L30">        Objects.requireNonNull(request, &quot;Request must not be null&quot;);</span>
+<span class="nc" id="L31">        Objects.requireNonNull(responseFuture, &quot;Response future must not be null&quot;);</span>
+<span class="nc" id="L32">        this.request = request;</span>
+<span class="nc" id="L33">        this.responseFuture = responseFuture;</span>
+<span class="nc" id="L34">    }</span>
 
     public T getRequest() {
-<span class="nc" id="L34">        return request;</span>
+<span class="nc" id="L37">        return request;</span>
     }
 
     public CompletableFuture&lt;R&gt; getResponseFuture() {
-<span class="nc" id="L38">        return responseFuture;</span>
+<span class="nc" id="L41">        return responseFuture;</span>
     }
 
 }

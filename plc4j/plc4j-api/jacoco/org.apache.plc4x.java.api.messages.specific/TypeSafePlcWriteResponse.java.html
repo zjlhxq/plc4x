@@ -26,35 +26,55 @@ import java.util.Optional;
 
 public class TypeSafePlcWriteResponse&lt;T&gt; extends PlcWriteResponse {
 
-    public TypeSafePlcWriteResponse(PlcWriteResponse plcWriteResponse) {
-<span class="fc" id="L30">        super(plcWriteResponse.getRequest(), plcWriteResponse.getResponseItems());</span>
-<span class="fc" id="L31">    }</span>
-
     public TypeSafePlcWriteResponse(TypeSafePlcWriteRequest&lt;T&gt; request, WriteResponseItem&lt;T&gt; responseItem) {
-<span class="fc" id="L34">        super(request, responseItem);</span>
-<span class="fc" id="L35">    }</span>
+<span class="fc" id="L30">        super(request, responseItem);</span>
+<span class="fc" id="L31">    }</span>
 
     @SuppressWarnings(&quot;unchecked&quot;)
     public TypeSafePlcWriteResponse(TypeSafePlcWriteRequest&lt;T&gt; request, List&lt;WriteResponseItem&lt;T&gt;&gt; responseItems) {
-<span class="fc" id="L39">        super(request, responseItems);</span>
-<span class="fc" id="L40">    }</span>
+<span class="fc" id="L35">        super(request, responseItems);</span>
+<span class="fc" id="L36">    }</span>
 
     @Override
     @SuppressWarnings(&quot;unchecked&quot;)
     public TypeSafePlcWriteRequest&lt;T&gt; getRequest() {
-<span class="fc" id="L45">        return (TypeSafePlcWriteRequest&lt;T&gt;) super.getRequest();</span>
+<span class="fc" id="L41">        return (TypeSafePlcWriteRequest&lt;T&gt;) super.getRequest();</span>
     }
 
     @Override
     @SuppressWarnings(&quot;unchecked&quot;)
     public List&lt;? extends WriteResponseItem&lt;T&gt;&gt; getResponseItems() {
-<span class="fc" id="L51">        return (List&lt;WriteResponseItem&lt;T&gt;&gt;) super.getResponseItems();</span>
+<span class="fc" id="L47">        return (List&lt;WriteResponseItem&lt;T&gt;&gt;) super.getResponseItems();</span>
     }
 
     @Override
     @SuppressWarnings(&quot;unchecked&quot;)
     public Optional&lt;WriteResponseItem&lt;T&gt;&gt; getResponseItem() {
-<span class="fc" id="L57">        return (Optional&lt;WriteResponseItem&lt;T&gt;&gt;) super.getResponseItem();</span>
+<span class="fc" id="L53">        return (Optional&lt;WriteResponseItem&lt;T&gt;&gt;) super.getResponseItem();</span>
+    }
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public static TypeSafePlcWriteResponse of(PlcWriteResponse plcWriteResponse) {
+<span class="fc bfc" id="L58" title="All 2 branches covered.">        if (plcWriteResponse instanceof TypeSafePlcWriteResponse) {</span>
+<span class="fc" id="L59">            return (TypeSafePlcWriteResponse) plcWriteResponse;</span>
+        }
+<span class="pc bpc" id="L61" title="1 of 2 branches missed.">        if (plcWriteResponse.getRequest() instanceof TypeSafePlcWriteRequest) {</span>
+<span class="nc" id="L62">            return new TypeSafePlcWriteResponse((TypeSafePlcWriteRequest) plcWriteResponse.getRequest(), plcWriteResponse.getResponseItems());</span>
+        }
+<span class="fc" id="L64">        Class&lt;?&gt; referenceType = null;</span>
+<span class="pc bpc" id="L65" title="1 of 2 branches missed.">        for (WriteResponseItem&lt;?&gt; writeResponseItem : plcWriteResponse.getResponseItems()) {</span>
+<span class="nc" id="L66">            Class&lt;?&gt; foundDataType = writeResponseItem.getRequestItem().getDatatype();</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">            if (referenceType == null) {</span>
+<span class="nc" id="L68">                referenceType = foundDataType;</span>
+            }
+<span class="nc bnc" id="L70" title="All 2 branches missed.">            if (referenceType != foundDataType) {</span>
+<span class="nc" id="L71">                throw new IllegalArgumentException(&quot;invalid types found &quot; + foundDataType + &quot;. Required &quot; + referenceType);</span>
+            }
+<span class="nc" id="L73">        }</span>
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">        if (referenceType == null) {</span>
+<span class="fc" id="L75">            referenceType = Object.class;</span>
+        }
+<span class="fc" id="L77">        return new TypeSafePlcWriteResponse(new TypeSafePlcWriteRequest(referenceType, plcWriteResponse.getRequest()), plcWriteResponse.getResponseItems());</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

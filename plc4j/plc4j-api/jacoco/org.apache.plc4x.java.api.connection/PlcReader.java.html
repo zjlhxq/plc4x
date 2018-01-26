@@ -47,8 +47,8 @@ public interface PlcReader {
      * @return a {@link CompletableFuture} giving async access to the returned value.
      */
     default &lt;T&gt; CompletableFuture&lt;TypeSafePlcReadResponse&lt;T&gt;&gt; read(TypeSafePlcReadRequest&lt;T&gt; readRequest) {
-<span class="fc" id="L50">        Objects.requireNonNull(readRequest);</span>
-<span class="fc" id="L51">        return read((PlcReadRequest) readRequest).thenApply(TypeSafePlcReadResponse::new);</span>
+<span class="fc" id="L50">        Objects.requireNonNull(readRequest, &quot;Read request must not be null&quot;);</span>
+<span class="fc" id="L51">        return read((PlcReadRequest) readRequest).thenApply(TypeSafePlcReadResponse::of);</span>
     }
 
 }

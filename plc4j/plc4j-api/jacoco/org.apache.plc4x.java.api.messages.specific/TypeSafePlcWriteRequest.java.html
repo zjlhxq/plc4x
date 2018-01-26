@@ -31,53 +31,57 @@ public class TypeSafePlcWriteRequest&lt;T&gt; extends PlcWriteRequest {
     private final Class&lt;T&gt; dataType;
 
 <span class="fc" id="L33">    public TypeSafePlcWriteRequest(Class&lt;T&gt; dataType) {</span>
-<span class="fc" id="L34">        this.dataType = dataType;</span>
-<span class="fc" id="L35">    }</span>
+<span class="fc" id="L34">        Objects.requireNonNull(dataType, &quot;Data type must not be null&quot;);</span>
+<span class="fc" id="L35">        this.dataType = dataType;</span>
+<span class="fc" id="L36">    }</span>
 
     public TypeSafePlcWriteRequest(Class&lt;T&gt; dataType, PlcWriteRequest plcWriteRequest) {
-<span class="fc" id="L38">        this(dataType);</span>
-<span class="fc bfc" id="L39" title="All 2 branches covered.">        for (WriteRequestItem&lt;?&gt; WriteRequestItem : plcWriteRequest.getRequestItems()) {</span>
-<span class="fc" id="L40">            addItem(WriteRequestItem);</span>
-<span class="fc" id="L41">        }</span>
-<span class="fc" id="L42">    }</span>
+<span class="fc" id="L39">        this(dataType);</span>
+<span class="fc" id="L40">        Objects.requireNonNull(plcWriteRequest, &quot;PLC write request must not be null&quot;);</span>
+<span class="fc" id="L41">        Objects.requireNonNull(plcWriteRequest.getRequestItems(), &quot;plc write request item on &quot; + plcWriteRequest + &quot; must not be null&quot;);</span>
+<span class="fc bfc" id="L42" title="All 2 branches covered.">        for (WriteRequestItem&lt;?&gt; WriteRequestItem : plcWriteRequest.getRequestItems()) {</span>
+<span class="fc" id="L43">            addItem(WriteRequestItem);</span>
+<span class="fc" id="L44">        }</span>
+<span class="fc" id="L45">    }</span>
 
     @SafeVarargs
     public TypeSafePlcWriteRequest(Class&lt;T&gt; dataType, Address address, T... values) {
-<span class="fc" id="L46">        this(dataType);</span>
-<span class="fc" id="L47">        addItem(new WriteRequestItem&lt;&gt;(dataType, address, values));</span>
-<span class="fc" id="L48">    }</span>
+<span class="fc" id="L49">        this(dataType);</span>
+<span class="fc" id="L50">        Objects.requireNonNull(address, &quot;Address must not be null&quot;);</span>
+<span class="fc" id="L51">        addItem(new WriteRequestItem&lt;&gt;(dataType, address, values));</span>
+<span class="fc" id="L52">    }</span>
 
     @SafeVarargs
     public TypeSafePlcWriteRequest(Class&lt;T&gt; dataType, WriteRequestItem&lt;T&gt;... requestItems) {
-<span class="fc" id="L52">        this(dataType);</span>
-<span class="fc" id="L53">        Objects.requireNonNull(requestItems);</span>
-<span class="fc bfc" id="L54" title="All 2 branches covered.">        for (WriteRequestItem&lt;T&gt; requestItem : requestItems) {</span>
-<span class="fc" id="L55">            getRequestItems().add(requestItem);</span>
+<span class="fc" id="L56">        this(dataType);</span>
+<span class="fc" id="L57">        Objects.requireNonNull(requestItems, &quot;Request item must not be null&quot;);</span>
+<span class="fc bfc" id="L58" title="All 2 branches covered.">        for (WriteRequestItem&lt;T&gt; requestItem : requestItems) {</span>
+<span class="fc" id="L59">            getRequestItems().add(requestItem);</span>
         }
-<span class="fc" id="L57">    }</span>
+<span class="fc" id="L61">    }</span>
 
     @Override
     public void addItem(WriteRequestItem&lt;?&gt; writeRequestItem) {
-<span class="fc" id="L61">        Objects.requireNonNull(writeRequestItem);</span>
-<span class="fc bfc" id="L62" title="All 2 branches covered.">        if (writeRequestItem.getDatatype() != dataType) {</span>
-<span class="fc" id="L63">            throw new IllegalArgumentException(&quot;Incompatible dataType &quot; + writeRequestItem.getDatatype());</span>
+<span class="fc" id="L65">        Objects.requireNonNull(writeRequestItem, &quot;Write request item must not be null&quot;);</span>
+<span class="fc bfc" id="L66" title="All 2 branches covered.">        if (writeRequestItem.getDatatype() != dataType) {</span>
+<span class="fc" id="L67">            throw new IllegalArgumentException(&quot;Incompatible dataType &quot; + writeRequestItem.getDatatype());</span>
         }
-<span class="fc" id="L65">        super.addItem(writeRequestItem);</span>
-<span class="fc" id="L66">    }</span>
+<span class="fc" id="L69">        super.addItem(writeRequestItem);</span>
+<span class="fc" id="L70">    }</span>
 
     @SuppressWarnings(&quot;unchecked&quot;)
     public List&lt;WriteRequestItem&lt;T&gt;&gt; getCheckedRequestItems() {
-<span class="fc" id="L70">        return (List) getRequestItems();</span>
+<span class="fc" id="L74">        return (List) getRequestItems();</span>
     }
 
     @Override
     @SuppressWarnings(&quot;unchecked&quot;)
     public Optional&lt;WriteRequestItem&lt;T&gt;&gt; getRequestItem() {
-<span class="fc" id="L76">        return (Optional&lt;WriteRequestItem&lt;T&gt;&gt;) super.getRequestItem();</span>
+<span class="fc" id="L80">        return (Optional&lt;WriteRequestItem&lt;T&gt;&gt;) super.getRequestItem();</span>
     }
 
     public Class&lt;T&gt; getDataType() {
-<span class="fc" id="L80">        return dataType;</span>
+<span class="fc" id="L84">        return dataType;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

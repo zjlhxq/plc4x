@@ -31,57 +31,62 @@ public class TypeSafePlcReadRequest&lt;T&gt; extends PlcReadRequest {
     private Class&lt;T&gt; dataType;
 
 <span class="fc" id="L33">    public TypeSafePlcReadRequest(Class&lt;T&gt; dataType) {</span>
-<span class="fc" id="L34">        this.dataType = dataType;</span>
-<span class="fc" id="L35">    }</span>
+<span class="fc" id="L34">        Objects.requireNonNull(dataType, &quot;data type must not be null&quot;);</span>
+<span class="fc" id="L35">        this.dataType = dataType;</span>
+<span class="fc" id="L36">    }</span>
 
     public TypeSafePlcReadRequest(Class&lt;T&gt; dataType, PlcReadRequest plcReadRequest) {
-<span class="fc" id="L38">        this(dataType);</span>
-<span class="fc bfc" id="L39" title="All 2 branches covered.">        for (ReadRequestItem&lt;?&gt; readRequestItem : plcReadRequest.getRequestItems()) {</span>
-<span class="fc" id="L40">            addItem(readRequestItem);</span>
-<span class="fc" id="L41">        }</span>
-<span class="fc" id="L42">    }</span>
+<span class="fc" id="L39">        this(dataType);</span>
+<span class="fc" id="L40">        Objects.requireNonNull(plcReadRequest, &quot;plc read request must not be null&quot;);</span>
+<span class="fc" id="L41">        Objects.requireNonNull(plcReadRequest.getRequestItems(), &quot;plc read request item on &quot; + plcReadRequest + &quot; must not be null&quot;);</span>
+<span class="fc bfc" id="L42" title="All 2 branches covered.">        for (ReadRequestItem&lt;?&gt; readRequestItem : plcReadRequest.getRequestItems()) {</span>
+<span class="fc" id="L43">            addItem(readRequestItem);</span>
+<span class="fc" id="L44">        }</span>
+<span class="fc" id="L45">    }</span>
 
     public TypeSafePlcReadRequest(Class&lt;T&gt; dataType, Address address) {
-<span class="fc" id="L45">        this(dataType);</span>
-<span class="fc" id="L46">        addItem(new ReadRequestItem&lt;&gt;(dataType, address));</span>
-<span class="fc" id="L47">    }</span>
+<span class="fc" id="L48">        this(dataType);</span>
+<span class="fc" id="L49">        Objects.requireNonNull(address, &quot;Address must not be null&quot;);</span>
+<span class="fc" id="L50">        addItem(new ReadRequestItem&lt;&gt;(dataType, address));</span>
+<span class="fc" id="L51">    }</span>
 
     public TypeSafePlcReadRequest(Class&lt;T&gt; dataType, Address address, int size) {
-<span class="fc" id="L50">        this(dataType);</span>
-<span class="fc" id="L51">        addItem(new ReadRequestItem&lt;&gt;(dataType, address, size));</span>
-<span class="fc" id="L52">    }</span>
+<span class="fc" id="L54">        this(dataType);</span>
+<span class="fc" id="L55">        Objects.requireNonNull(address, &quot;Address must not be null&quot;);</span>
+<span class="fc" id="L56">        addItem(new ReadRequestItem&lt;&gt;(dataType, address, size));</span>
+<span class="fc" id="L57">    }</span>
 
     @SafeVarargs
     public TypeSafePlcReadRequest(Class&lt;T&gt; dataType, ReadRequestItem&lt;T&gt;... requestItems) {
-<span class="fc" id="L56">        this(dataType);</span>
-<span class="fc" id="L57">        Objects.requireNonNull(requestItems);</span>
-<span class="fc bfc" id="L58" title="All 2 branches covered.">        for (ReadRequestItem&lt;T&gt; readRequestItem : requestItems) {</span>
-<span class="fc" id="L59">            addItem(readRequestItem);</span>
+<span class="fc" id="L61">        this(dataType);</span>
+<span class="fc" id="L62">        Objects.requireNonNull(requestItems, &quot;Read request items must not be null&quot;);</span>
+<span class="fc bfc" id="L63" title="All 2 branches covered.">        for (ReadRequestItem&lt;T&gt; readRequestItem : requestItems) {</span>
+<span class="fc" id="L64">            addItem(readRequestItem);</span>
         }
-<span class="fc" id="L61">    }</span>
+<span class="fc" id="L66">    }</span>
 
     @Override
     public void addItem(ReadRequestItem&lt;?&gt; readRequestItem) {
-<span class="fc" id="L65">        Objects.requireNonNull(readRequestItem);</span>
-<span class="fc bfc" id="L66" title="All 2 branches covered.">        if (readRequestItem.getDatatype() != dataType) {</span>
-<span class="fc" id="L67">            throw new IllegalArgumentException(&quot;Unexpected data type &quot; + readRequestItem.getDatatype() + &quot; on readRequestItem. Expected &quot; + dataType);</span>
+<span class="fc" id="L70">        Objects.requireNonNull(readRequestItem, &quot;Read request item must not be null&quot;);</span>
+<span class="fc bfc" id="L71" title="All 2 branches covered.">        if (readRequestItem.getDatatype() != dataType) {</span>
+<span class="fc" id="L72">            throw new IllegalArgumentException(&quot;Unexpected data type &quot; + readRequestItem.getDatatype() + &quot; on readRequestItem. Expected &quot; + dataType);</span>
         }
-<span class="fc" id="L69">        super.addItem(readRequestItem);</span>
-<span class="fc" id="L70">    }</span>
+<span class="fc" id="L74">        super.addItem(readRequestItem);</span>
+<span class="fc" id="L75">    }</span>
 
     @SuppressWarnings(&quot;unchecked&quot;)
     public List&lt;ReadRequestItem&lt;T&gt;&gt; getCheckedReadRequestItems() {
-<span class="fc" id="L74">        return (List) getRequestItems();</span>
+<span class="fc" id="L79">        return (List) getRequestItems();</span>
     }
 
     @SuppressWarnings(&quot;unchecked&quot;)
     @Override
     public Optional&lt;ReadRequestItem&lt;T&gt;&gt; getRequestItem() {
-<span class="fc" id="L80">        return (Optional&lt;ReadRequestItem&lt;T&gt;&gt;) super.getRequestItem();</span>
+<span class="fc" id="L85">        return (Optional&lt;ReadRequestItem&lt;T&gt;&gt;) super.getRequestItem();</span>
     }
 
     public Class&lt;T&gt; getDataType() {
-<span class="fc" id="L84">        return dataType;</span>
+<span class="fc" id="L89">        return dataType;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
