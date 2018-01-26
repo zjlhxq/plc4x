@@ -30,6 +30,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Interface implemented by all PlcConnections that are able to write to remote resources.
  */
+@FunctionalInterface
 public interface PlcWriter {
 
     /**
@@ -47,7 +48,6 @@ public interface PlcWriter {
      * @param &lt;T&gt;          type that is being requested.
      * @return a {@link CompletableFuture} giving async access to the response of the write operation.
      */
-    @SuppressWarnings(&quot;unchecked&quot;)
     default &lt;T&gt; CompletableFuture&lt;TypeSafePlcWriteResponse&lt;T&gt;&gt; write(TypeSafePlcWriteRequest&lt;T&gt; writeRequest) {
 <span class="fc" id="L52">        Objects.requireNonNull(writeRequest, &quot;write request must not be null&quot;);</span>
 <span class="fc" id="L53">        return write((PlcWriteRequest) writeRequest).thenApply(TypeSafePlcWriteResponse::of);</span>
