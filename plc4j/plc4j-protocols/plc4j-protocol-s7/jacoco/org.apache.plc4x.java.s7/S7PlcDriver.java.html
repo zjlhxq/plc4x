@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
  */
 <span class="fc" id="L37">public class S7PlcDriver implements PlcDriver {</span>
 
-<span class="fc" id="L39">    private static final Pattern S7_URI_PATTERN = Pattern.compile(&quot;^s7://(?&lt;host&gt;.*)/(?&lt;rack&gt;\\d{1,4})/(?&lt;slot&gt;\\d{1,4})(\\?.*)?&quot;);</span>
+<span class="fc" id="L39">    private static final Pattern S7_URI_PATTERN = Pattern.compile(&quot;^s7://(?&lt;host&gt;.*)/(?&lt;rack&gt;\\d{1,4})/(?&lt;slot&gt;\\d{1,4})(?&lt;params&gt;\\?.*)?&quot;);</span>
 
     @Override
     public String getProtocolCode() {
@@ -58,12 +58,13 @@ import java.util.regex.Pattern;
 <span class="nc" id="L58">        String host = matcher.group(&quot;host&quot;);</span>
 <span class="nc" id="L59">        int rack = Integer.parseInt(matcher.group(&quot;rack&quot;));</span>
 <span class="nc" id="L60">        int slot = Integer.parseInt(matcher.group(&quot;slot&quot;));</span>
-<span class="nc" id="L61">        return new S7PlcConnection(host, rack, slot);</span>
+<span class="nc" id="L61">        String params = matcher.group(&quot;params&quot;).substring(1);</span>
+<span class="nc" id="L62">        return new S7PlcConnection(host, rack, slot, params);</span>
     }
 
     @Override
     public PlcConnection connect(String url, PlcAuthentication authentication) throws PlcConnectionException {
-<span class="fc" id="L66">        throw new PlcConnectionException(&quot;Basic S7 connections don't support authentication.&quot;);</span>
+<span class="fc" id="L67">        throw new PlcConnectionException(&quot;Basic S7 connections don't support authentication.&quot;);</span>
     }
 
 }

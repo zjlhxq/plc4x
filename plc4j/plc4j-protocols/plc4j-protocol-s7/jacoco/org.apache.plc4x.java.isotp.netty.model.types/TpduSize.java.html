@@ -21,35 +21,56 @@ package org.apache.plc4x.java.isotp.netty.model.types;
 import java.util.HashMap;
 import java.util.Map;
 
-<span class="fc" id="L24">public enum TpduSize {</span>
-<span class="fc" id="L25">    SIZE_8192((byte) 0x0d),</span>
-<span class="fc" id="L26">    SIZE_4096((byte) 0x0c),</span>
-<span class="fc" id="L27">    SIZE_2048((byte) 0x0b),</span>
-<span class="fc" id="L28">    SIZE_1024((byte) 0x0a),</span>
-<span class="fc" id="L29">    SIZE_512((byte) 0x09),</span>
-<span class="fc" id="L30">    SIZE_256((byte) 0x08),</span>
-<span class="fc" id="L31">    SIZE_128((byte) 0x07);</span>
+<span class="pc bpc" id="L24" title="1 of 2 branches missed.">public enum TpduSize {</span>
+<span class="fc" id="L25">    SIZE_128((byte) 0x07, 128),</span>
+<span class="fc" id="L26">    SIZE_256((byte) 0x08, 256),</span>
+<span class="fc" id="L27">    SIZE_512((byte) 0x09, 512),</span>
+<span class="fc" id="L28">    SIZE_1024((byte) 0x0a, 1024),</span>
+<span class="fc" id="L29">    SIZE_2048((byte) 0x0b, 2048),</span>
+<span class="fc" id="L30">    SIZE_4096((byte) 0x0c, 4096),</span>
+<span class="fc" id="L31">    SIZE_8192((byte) 0x0d, 8192);</span>
 
 <span class="fc" id="L33">    private static Map&lt;Byte, TpduSize&gt; map = null;</span>
     
     private final byte code;
+    private final int value;
 
-<span class="fc" id="L37">    TpduSize(byte code) {</span>
-<span class="fc" id="L38">        this.code = code;</span>
-<span class="fc" id="L39">    }</span>
+<span class="fc" id="L38">    TpduSize(byte code, int value) {</span>
+<span class="fc" id="L39">        this.code = code;</span>
+<span class="fc" id="L40">        this.value = value;</span>
+<span class="fc" id="L41">    }</span>
 
     public byte getCode() {
-<span class="fc" id="L42">        return code;</span>
+<span class="fc" id="L44">        return code;</span>
+    }
+
+    public int getValue() {
+<span class="nc" id="L48">        return value;</span>
+    }
+
+    public static TpduSize valueForGivenSize(int pduSize) {
+<span class="nc bnc" id="L52" title="All 4 branches missed.">        assert pduSize &gt; 0;</span>
+<span class="nc bnc" id="L53" title="All 2 branches missed.">        for (TpduSize tpduSize : values()) {</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">            if(tpduSize.getValue() &lt;= pduSize) {</span>
+<span class="nc" id="L55">                return tpduSize;</span>
+            }
+        }
+        // If the requested pdu size is greater than 8MB,
+        // Simply use that as the given size is simple a
+        // requested size, if the remote responds with a
+        // lower value the application has to live with
+        // this anyway.
+<span class="nc" id="L63">        return SIZE_8192;</span>
     }
 
     public static TpduSize valueOf(byte code) {
-<span class="pc bpc" id="L46" title="1 of 2 branches missed.">        if (map == null) {</span>
-<span class="fc" id="L47">            map = new HashMap&lt;&gt;();</span>
-<span class="fc bfc" id="L48" title="All 2 branches covered.">            for (TpduSize tpduSize : TpduSize.values()) {</span>
-<span class="fc" id="L49">                map.put(tpduSize.code, tpduSize);</span>
+<span class="pc bpc" id="L67" title="1 of 2 branches missed.">        if (map == null) {</span>
+<span class="fc" id="L68">            map = new HashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L69" title="All 2 branches covered.">            for (TpduSize tpduSize : TpduSize.values()) {</span>
+<span class="fc" id="L70">                map.put(tpduSize.code, tpduSize);</span>
             }
         }
-<span class="fc" id="L52">        return map.get(code);</span>
+<span class="fc" id="L73">        return map.get(code);</span>
     }
 
 }
