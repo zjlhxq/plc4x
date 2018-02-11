@@ -18,18 +18,17 @@ under the License.
 */
 package org.apache.plc4x.java.s7.connection;
 
-import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.nio.NioSocketChannel;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.plc4x.java.api.connection.AbstractPlcConnection;
 import org.apache.plc4x.java.api.connection.PlcReader;
 import org.apache.plc4x.java.api.connection.PlcWriter;
 import org.apache.plc4x.java.api.exceptions.PlcConnectionException;
 import org.apache.plc4x.java.api.exceptions.PlcException;
 import org.apache.plc4x.java.api.messages.*;
 import org.apache.plc4x.java.api.model.Address;
+import org.apache.plc4x.java.base.connection.AbstractPlcConnection;
+import org.apache.plc4x.java.base.connection.ChannelFactory;
+import org.apache.plc4x.java.base.connection.TcpSocketChannelFactory;
 import org.apache.plc4x.java.isoontcp.netty.IsoOnTcpProtocol;
 import org.apache.plc4x.java.isotp.netty.IsoTPProtocol;
 import org.apache.plc4x.java.isotp.netty.model.tpdus.DisconnectRequestTpdu;
@@ -47,10 +46,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -58,215 +55,180 @@ public class S7PlcConnection extends AbstractPlcConnection implements PlcReader,
 
     private static final int ISO_ON_TCP_PORT = 102;
 
-<span class="nc" id="L61">    private static final Pattern S7_DATABLOCK_ADDRESS_PATTERN =</span>
-<span class="nc" id="L62">        Pattern.compile(&quot;^DATA_BLOCKS/(?&lt;blockNumber&gt;\\d{1,4})/(?&lt;byteOffset&gt;\\d{1,4})&quot;);</span>
-<span class="nc" id="L63">    private static final Pattern S7_ADDRESS_PATTERN =</span>
-<span class="nc" id="L64">        Pattern.compile(&quot;^(?&lt;memoryArea&gt;.*?)/(?&lt;byteOffset&gt;\\d{1,4})(?:/(?&lt;bitOffset&gt;\\d))?&quot;);</span>
+<span class="fc" id="L58">    private static final Pattern S7_DATABLOCK_ADDRESS_PATTERN =</span>
+<span class="fc" id="L59">        Pattern.compile(&quot;^DATA_BLOCKS/(?&lt;blockNumber&gt;\\d{1,4})/(?&lt;byteOffset&gt;\\d{1,4})&quot;);</span>
+<span class="fc" id="L60">    private static final Pattern S7_ADDRESS_PATTERN =</span>
+<span class="fc" id="L61">        Pattern.compile(&quot;^(?&lt;memoryArea&gt;.*?)/(?&lt;byteOffset&gt;\\d{1,4})(?:/(?&lt;bitOffset&gt;\\d))?&quot;);</span>
 
-<span class="nc" id="L66">    private static final Logger logger = LoggerFactory.getLogger(S7PlcConnection.class);</span>
+<span class="fc" id="L63">    private static final Logger logger = LoggerFactory.getLogger(S7PlcConnection.class);</span>
 
-    private final String hostName;
     private final int rack;
     private final int slot;
 
-    private final int paramPduSize;
+    private final TpduSize paramPduSize;
     private final short paramMaxAmqCaller;
     private final short paramMaxAmqCallee;
 
-    private EventLoopGroup workerGroup;
-    private Channel channel;
+    public S7PlcConnection(InetAddress address, int rack, int slot, String params) {
+<span class="fc" id="L73">        this(new TcpSocketChannelFactory(address, ISO_ON_TCP_PORT), rack, slot, params);</span>
 
-<span class="nc" id="L79">    public S7PlcConnection(String hostName, int rack, int slot, String params) {</span>
-<span class="nc" id="L80">        this.hostName = hostName;</span>
-<span class="nc" id="L81">        this.rack = rack;</span>
-<span class="nc" id="L82">        this.slot = slot;</span>
+<span class="fc" id="L75">        logger.info(&quot;Configured S7cConnection with: host-name {}, rack {}, slot {}, pdu-size {}, max-amq-caller {}, &quot; +</span>
+<span class="fc" id="L76">            &quot;max-amq-callee {}&quot;, address.getHostAddress(), rack, slot,</span>
+<span class="fc" id="L77">            paramPduSize, paramMaxAmqCaller, paramMaxAmqCallee);</span>
+<span class="fc" id="L78">    }</span>
 
-<span class="nc" id="L84">        int paramPduSize = 1024;</span>
-<span class="nc" id="L85">        short paramMaxAmqCaller = 8;</span>
-<span class="nc" id="L86">        short paramMaxAmqCallee = 8;</span>
+    public S7PlcConnection(ChannelFactory channelFactory, int rack, int slot, String params) {
+<span class="fc" id="L81">        super(channelFactory);</span>
 
-<span class="nc bnc" id="L88" title="All 2 branches missed.">        if(!StringUtils.isEmpty(params)) {</span>
-<span class="nc bnc" id="L89" title="All 2 branches missed.">            for (String param : params.split(&quot;&amp;&quot;)) {</span>
-<span class="nc" id="L90">                String[] paramElements = param.split(&quot;=&quot;);</span>
-<span class="nc" id="L91">                String paramName = paramElements[0];</span>
-<span class="nc bnc" id="L92" title="All 2 branches missed.">                if(paramElements.length == 2) {</span>
-<span class="nc" id="L93">                    String paramValue = paramElements[1];</span>
-<span class="nc bnc" id="L94" title="All 4 branches missed.">                    switch (paramName) {</span>
+<span class="fc" id="L83">        this.rack = rack;</span>
+<span class="fc" id="L84">        this.slot = slot;</span>
+
+<span class="fc" id="L86">        int paramPduSize = 1024;</span>
+<span class="fc" id="L87">        short paramMaxAmqCaller = 8;</span>
+<span class="fc" id="L88">        short paramMaxAmqCallee = 8;</span>
+
+<span class="pc bpc" id="L90" title="1 of 2 branches missed.">        if(!StringUtils.isEmpty(params)) {</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">            for (String param : params.split(&quot;&amp;&quot;)) {</span>
+<span class="nc" id="L92">                String[] paramElements = param.split(&quot;=&quot;);</span>
+<span class="nc" id="L93">                String paramName = paramElements[0];</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">                if(paramElements.length == 2) {</span>
+<span class="nc" id="L95">                    String paramValue = paramElements[1];</span>
+<span class="nc bnc" id="L96" title="All 4 branches missed.">                    switch (paramName) {</span>
                         case &quot;pdu-size&quot;:
-<span class="nc" id="L96">                            paramPduSize = Integer.parseInt(paramValue);</span>
-<span class="nc" id="L97">                            break;</span>
+<span class="nc" id="L98">                            paramPduSize = Integer.parseInt(paramValue);</span>
+<span class="nc" id="L99">                            break;</span>
                         case &quot;max-amq-caller&quot;:
-<span class="nc" id="L99">                            paramMaxAmqCaller = Short.parseShort(paramValue);</span>
-<span class="nc" id="L100">                            break;</span>
+<span class="nc" id="L101">                            paramMaxAmqCaller = Short.parseShort(paramValue);</span>
+<span class="nc" id="L102">                            break;</span>
                         case &quot;max-amq-callee&quot;:
-<span class="nc" id="L102">                            paramMaxAmqCallee = Short.parseShort(paramValue);</span>
-<span class="nc" id="L103">                            break;</span>
+<span class="nc" id="L104">                            paramMaxAmqCallee = Short.parseShort(paramValue);</span>
+<span class="nc" id="L105">                            break;</span>
                         default:
-<span class="nc" id="L105">                            logger.debug(&quot;Unknown parameter {} with value {}&quot;, paramName, paramValue);</span>
+<span class="nc" id="L107">                            logger.debug(&quot;Unknown parameter {} with value {}&quot;, paramName, paramValue);</span>
                     }
-<span class="nc" id="L107">                } else {</span>
-<span class="nc" id="L108">                    logger.debug(&quot;Unknown no-value parameter {}&quot;, paramName);</span>
+<span class="nc" id="L109">                } else {</span>
+<span class="nc" id="L110">                    logger.debug(&quot;Unknown no-value parameter {}&quot;, paramName);</span>
                 }
             }
         }
-<span class="nc" id="L112">        this.paramPduSize = paramPduSize;</span>
-<span class="nc" id="L113">        this.paramMaxAmqCaller = paramMaxAmqCaller;</span>
-<span class="nc" id="L114">        this.paramMaxAmqCallee = paramMaxAmqCallee;</span>
 
-<span class="nc" id="L116">        logger.info(&quot;Configured S7cConnection with: host-name {}, rack {}, slot {}, pdu-size {}, max-amq-caller {}, &quot; +</span>
-<span class="nc" id="L117">            &quot;max-amq-callee {}&quot;, hostName, rack, slot, paramPduSize, paramMaxAmqCaller, paramMaxAmqCallee);</span>
-<span class="nc" id="L118">    }</span>
+        // IsoTP uses pre defined sizes. Find the smallest box,
+        // that would be able to contain the requested pdu size.
+<span class="fc" id="L117">        this.paramPduSize = TpduSize.valueForGivenSize(paramPduSize);</span>
+<span class="fc" id="L118">        this.paramMaxAmqCaller = paramMaxAmqCaller;</span>
+<span class="fc" id="L119">        this.paramMaxAmqCallee = paramMaxAmqCallee;</span>
+<span class="fc" id="L120">    }</span>
 
-    public String getHostName() {
-<span class="nc" id="L121">        return hostName;</span>
+    @Override
+    protected ChannelHandler getChannelHandler(CompletableFuture&lt;Void&gt; sessionSetupCompleteFuture) {
+<span class="nc" id="L124">        return new ChannelInitializer() {</span>
+            @Override
+            protected void initChannel(Channel channel) {
+                // Build the protocol stack for communicating with the s7 protocol.
+<span class="nc" id="L128">                ChannelPipeline pipeline = channel.pipeline();</span>
+<span class="nc" id="L129">                pipeline.addLast(new ChannelInboundHandlerAdapter() {</span>
+                    @Override
+                    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+<span class="nc bnc" id="L132" title="All 2 branches missed.">                        if(evt instanceof S7ConnectionEvent &amp;&amp;</span>
+<span class="nc bnc" id="L133" title="All 2 branches missed.">                            ((S7ConnectionEvent) evt).getState() == S7ConnectionState.SETUP_COMPLETE) {</span>
+<span class="nc" id="L134">                            sessionSetupCompleteFuture.complete(null);</span>
+                        } else {
+<span class="nc" id="L136">                            super.userEventTriggered(ctx, evt);</span>
+                        }
+<span class="nc" id="L138">                    }</span>
+                });
+<span class="nc" id="L140">                pipeline.addLast(new IsoOnTcpProtocol());</span>
+<span class="nc" id="L141">                pipeline.addLast(new IsoTPProtocol((byte) rack, (byte) slot, paramPduSize));</span>
+<span class="nc" id="L142">                pipeline.addLast(new S7Protocol(paramMaxAmqCaller, paramMaxAmqCallee, (short) paramPduSize.getValue()));</span>
+<span class="nc" id="L143">                pipeline.addLast(new Plc4XS7Protocol());</span>
+<span class="nc" id="L144">            }</span>
+        };
     }
 
+    @Override
+    protected void sendChannelCreatedEvent() {
+        // Send an event to the pipeline telling the Protocol filters what's going on.
+<span class="nc" id="L151">        getChannel().pipeline().fireUserEventTriggered(new S7ConnectionEvent());</span>
+<span class="nc" id="L152">    }</span>
+
     public int getRack() {
-<span class="nc" id="L125">        return rack;</span>
+<span class="fc" id="L155">        return rack;</span>
     }
 
     public int getSlot() {
-<span class="nc" id="L129">        return slot;</span>
+<span class="fc" id="L159">        return slot;</span>
     }
 
-    public int getParamPduSize() {
-<span class="nc" id="L133">        return paramPduSize;</span>
+    public TpduSize getParamPduSize() {
+<span class="fc" id="L163">        return paramPduSize;</span>
     }
 
     public int getParamMaxAmqCaller() {
-<span class="nc" id="L137">        return paramMaxAmqCaller;</span>
+<span class="fc" id="L167">        return paramMaxAmqCaller;</span>
     }
 
     public int getParamMaxAmqCallee() {
-<span class="nc" id="L141">        return paramMaxAmqCallee;</span>
+<span class="fc" id="L171">        return paramMaxAmqCallee;</span>
     }
 
     @Override
-    public void connect() throws PlcConnectionException {
-<span class="nc" id="L146">        workerGroup = new NioEventLoopGroup();</span>
-
-        try {
-            // As we don't just want to wait till the connection is established,
-            // define a future we can use to signal back that the s7 session is
-            // finished initializing.
-<span class="nc" id="L152">            CompletableFuture&lt;Void&gt; sessionSetupCompleteFuture = new CompletableFuture&lt;&gt;();</span>
-
-<span class="nc" id="L154">            InetAddress serverInetAddress = InetAddress.getByName(hostName);</span>
-
-            // IsoTP uses pre defined sizes. Find the smallest box,
-            // that would be able to contain the requested pdu size.
-<span class="nc" id="L158">            TpduSize isoTpTpduSize = TpduSize.valueForGivenSize(paramPduSize);</span>
-
-            // If the pdu size was very big, it might have exceeded the
-            // maximum of 8MB defined in the IsoTP protocol, so we have
-            // to generally downgrade the requested size.
-<span class="nc bnc" id="L163" title="All 2 branches missed.">            int pduSize = (isoTpTpduSize.getValue() &lt; paramPduSize) ? isoTpTpduSize.getValue() : paramPduSize;</span>
-
-<span class="nc" id="L165">            Bootstrap bootstrap = new Bootstrap();</span>
-<span class="nc" id="L166">            bootstrap.group(workerGroup);</span>
-<span class="nc" id="L167">            bootstrap.channel(NioSocketChannel.class);</span>
-<span class="nc" id="L168">            bootstrap.option(ChannelOption.SO_KEEPALIVE, true);</span>
-<span class="nc" id="L169">            bootstrap.option(ChannelOption.TCP_NODELAY, true);</span>
-<span class="nc" id="L170">            bootstrap.handler(new ChannelInitializer() {</span>
-                @Override
-                protected void initChannel(Channel channel) {
-                    // Build the protocol stack for communicating with the s7 protocol.
-<span class="nc" id="L174">                    ChannelPipeline pipeline = channel.pipeline();</span>
-<span class="nc" id="L175">                    pipeline.addLast(new ChannelInboundHandlerAdapter() {</span>
-                        @Override
-                        public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-<span class="nc bnc" id="L178" title="All 2 branches missed.">                            if(evt instanceof S7ConnectionEvent &amp;&amp;</span>
-<span class="nc bnc" id="L179" title="All 2 branches missed.">                                ((S7ConnectionEvent) evt).getState() == S7ConnectionState.SETUP_COMPLETE) {</span>
-<span class="nc" id="L180">                                sessionSetupCompleteFuture.complete(null);</span>
-                            } else {
-<span class="nc" id="L182">                                super.userEventTriggered(ctx, evt);</span>
-                            }
-<span class="nc" id="L184">                        }</span>
-                    });
-<span class="nc" id="L186">                    pipeline.addLast(new IsoOnTcpProtocol());</span>
-<span class="nc" id="L187">                    pipeline.addLast(new IsoTPProtocol((byte) rack, (byte) slot, isoTpTpduSize));</span>
-<span class="nc" id="L188">                    pipeline.addLast(new S7Protocol(paramMaxAmqCaller, paramMaxAmqCallee, (short) pduSize));</span>
-<span class="nc" id="L189">                    pipeline.addLast(new Plc4XS7Protocol());</span>
-<span class="nc" id="L190">                }</span>
-            });
-            // Start the client.
-<span class="nc" id="L193">            ChannelFuture f = bootstrap.connect(serverInetAddress, ISO_ON_TCP_PORT).sync();</span>
-<span class="nc" id="L194">            f.awaitUninterruptibly();</span>
-            // Wait till the session is finished initializing.
-<span class="nc" id="L196">            channel = f.channel();</span>
-
-            // Send an event to the pipeline telling the Protocol filters what's going on.
-<span class="nc" id="L199">            channel.pipeline().fireUserEventTriggered(new S7ConnectionEvent());</span>
-
-<span class="nc" id="L201">            sessionSetupCompleteFuture.get();</span>
-<span class="nc" id="L202">        } catch (UnknownHostException e) {</span>
-<span class="nc" id="L203">            throw new PlcConnectionException(&quot;Unknown Host &quot; + hostName, e);</span>
-<span class="nc" id="L204">        } catch (InterruptedException e) {</span>
-<span class="nc" id="L205">            Thread.currentThread().interrupt();</span>
-<span class="nc" id="L206">            throw new PlcConnectionException(e);</span>
-        }
-<span class="nc" id="L208">        catch (ExecutionException e) {</span>
-<span class="nc" id="L209">            throw new PlcConnectionException(e);</span>
-<span class="nc" id="L210">        }</span>
-<span class="nc" id="L211">    }</span>
-
-    @Override
     public void close() {
-<span class="nc bnc" id="L215" title="All 4 branches missed.">        if((channel != null) &amp;&amp; channel.isOpen()) {</span>
+<span class="nc" id="L176">        Channel channel = getChannel();</span>
+<span class="nc bnc" id="L177" title="All 4 branches missed.">        if((channel != null) &amp;&amp; channel.isOpen()) {</span>
             // Send the PLC a message that the connection is being closed.
-<span class="nc" id="L217">            DisconnectRequestTpdu disconnectRequest = new DisconnectRequestTpdu(</span>
-<span class="nc" id="L218">                (short) 0x0000, (short) 0x000F, DisconnectReason.NORMAL, Collections.emptyList(),</span>
+<span class="nc" id="L179">            DisconnectRequestTpdu disconnectRequest = new DisconnectRequestTpdu(</span>
+<span class="nc" id="L180">                (short) 0x0000, (short) 0x000F, DisconnectReason.NORMAL, Collections.emptyList(),</span>
                 null);
-<span class="nc" id="L220">            ChannelFuture sendDisconnectRequestFuture = channel.writeAndFlush(disconnectRequest);</span>
-<span class="nc" id="L221">            sendDisconnectRequestFuture.addListener((ChannelFutureListener) future -&gt; {</span>
+<span class="nc" id="L182">            ChannelFuture sendDisconnectRequestFuture = channel.writeAndFlush(disconnectRequest);</span>
+<span class="nc" id="L183">            sendDisconnectRequestFuture.addListener((ChannelFutureListener) future -&gt; {</span>
                 // Close the session itself.
-<span class="nc" id="L223">                channel.closeFuture().await();</span>
-<span class="nc" id="L224">                workerGroup.shutdownGracefully();</span>
-<span class="nc" id="L225">            });</span>
-<span class="nc" id="L226">            sendDisconnectRequestFuture.awaitUninterruptibly();</span>
-<span class="nc bnc" id="L227" title="All 2 branches missed.">        } else if (workerGroup != null) {</span>
-<span class="nc" id="L228">            workerGroup.shutdownGracefully();</span>
+<span class="nc" id="L185">                channel.closeFuture().await();</span>
+<span class="nc" id="L186">                channel.eventLoop().parent().shutdownGracefully();</span>
+<span class="nc" id="L187">            });</span>
+<span class="nc" id="L188">            sendDisconnectRequestFuture.awaitUninterruptibly();</span>
         }
-<span class="nc" id="L230">    }</span>
+<span class="nc" id="L190">        super.close();</span>
+<span class="nc" id="L191">    }</span>
+
 
     @Override
     public Address parseAddress(String addressString) throws PlcException {
-<span class="nc" id="L234">        Matcher datablockAddressMatcher = S7_DATABLOCK_ADDRESS_PATTERN.matcher(addressString);</span>
-<span class="nc bnc" id="L235" title="All 2 branches missed.">        if (datablockAddressMatcher.matches()) {</span>
-<span class="nc" id="L236">            int datablockNumber = Integer.parseInt(datablockAddressMatcher.group(&quot;blockNumber&quot;));</span>
-<span class="nc" id="L237">            int datablockByteOffset = Integer.parseInt(datablockAddressMatcher.group(&quot;byteOffset&quot;));</span>
-<span class="nc" id="L238">            return new S7DataBlockAddress((short) datablockNumber, (short) datablockByteOffset);</span>
+<span class="fc" id="L196">        Matcher datablockAddressMatcher = S7_DATABLOCK_ADDRESS_PATTERN.matcher(addressString);</span>
+<span class="fc bfc" id="L197" title="All 2 branches covered.">        if (datablockAddressMatcher.matches()) {</span>
+<span class="fc" id="L198">            int datablockNumber = Integer.parseInt(datablockAddressMatcher.group(&quot;blockNumber&quot;));</span>
+<span class="fc" id="L199">            int datablockByteOffset = Integer.parseInt(datablockAddressMatcher.group(&quot;byteOffset&quot;));</span>
+<span class="fc" id="L200">            return new S7DataBlockAddress((short) datablockNumber, (short) datablockByteOffset);</span>
         }
-<span class="nc" id="L240">        Matcher addressMatcher = S7_ADDRESS_PATTERN.matcher(addressString);</span>
-<span class="nc bnc" id="L241" title="All 2 branches missed.">        if (!addressMatcher.matches()) {</span>
-<span class="nc" id="L242">            throw new PlcConnectionException(</span>
+<span class="fc" id="L202">        Matcher addressMatcher = S7_ADDRESS_PATTERN.matcher(addressString);</span>
+<span class="fc bfc" id="L203" title="All 2 branches covered.">        if (!addressMatcher.matches()) {</span>
+<span class="fc" id="L204">            throw new PlcConnectionException(</span>
                 &quot;Address string doesn't match the format '{area}/{offset}[/{bit-offset}]'&quot;);
         }
-<span class="nc" id="L245">        MemoryArea memoryArea = MemoryArea.valueOf(addressMatcher.group(&quot;memoryArea&quot;));</span>
-<span class="nc" id="L246">        int byteOffset = Integer.parseInt(addressMatcher.group(&quot;byteOffset&quot;));</span>
-<span class="nc" id="L247">        String bitOffset =  addressMatcher.group(&quot;bitOffset&quot;);</span>
-<span class="nc bnc" id="L248" title="All 2 branches missed.">        if (bitOffset != null) {</span>
-<span class="nc" id="L249">            return new S7BitAddress(memoryArea, (short) byteOffset, Byte.valueOf(bitOffset));</span>
+<span class="fc" id="L207">        MemoryArea memoryArea = MemoryArea.valueOf(addressMatcher.group(&quot;memoryArea&quot;));</span>
+<span class="fc" id="L208">        int byteOffset = Integer.parseInt(addressMatcher.group(&quot;byteOffset&quot;));</span>
+<span class="fc" id="L209">        String bitOffset =  addressMatcher.group(&quot;bitOffset&quot;);</span>
+<span class="fc bfc" id="L210" title="All 2 branches covered.">        if (bitOffset != null) {</span>
+<span class="fc" id="L211">            return new S7BitAddress(memoryArea, (short) byteOffset, Byte.valueOf(bitOffset));</span>
         }
-<span class="nc" id="L251">        return new S7Address(memoryArea, (short) byteOffset);</span>
+<span class="fc" id="L213">        return new S7Address(memoryArea, (short) byteOffset);</span>
     }
 
     @Override
     public CompletableFuture&lt;PlcReadResponse&gt; read(PlcReadRequest readRequest) {
-<span class="nc" id="L256">        CompletableFuture&lt;PlcReadResponse&gt; readFuture = new CompletableFuture&lt;&gt;();</span>
-<span class="nc" id="L257">        PlcRequestContainer&lt;PlcReadRequest, PlcReadResponse&gt; container =</span>
+<span class="nc" id="L218">        CompletableFuture&lt;PlcReadResponse&gt; readFuture = new CompletableFuture&lt;&gt;();</span>
+<span class="nc" id="L219">        PlcRequestContainer&lt;PlcReadRequest, PlcReadResponse&gt; container =</span>
             new PlcRequestContainer&lt;&gt;(readRequest, readFuture);
-<span class="nc" id="L259">        channel.writeAndFlush(container);</span>
-<span class="nc" id="L260">        return readFuture;</span>
+<span class="nc" id="L221">        getChannel().writeAndFlush(container);</span>
+<span class="nc" id="L222">        return readFuture;</span>
     }
 
     @Override
     public CompletableFuture&lt;PlcWriteResponse&gt; write(PlcWriteRequest writeRequest) {
-<span class="nc" id="L265">        CompletableFuture&lt;PlcWriteResponse&gt; writeFuture = new CompletableFuture&lt;&gt;();</span>
-<span class="nc" id="L266">        PlcRequestContainer&lt;PlcWriteRequest, PlcWriteResponse&gt; container =</span>
+<span class="nc" id="L227">        CompletableFuture&lt;PlcWriteResponse&gt; writeFuture = new CompletableFuture&lt;&gt;();</span>
+<span class="nc" id="L228">        PlcRequestContainer&lt;PlcWriteRequest, PlcWriteResponse&gt; container =</span>
             new PlcRequestContainer&lt;&gt;(writeRequest, writeFuture);
-<span class="nc" id="L268">        channel.writeAndFlush(container);</span>
-<span class="nc" id="L269">        return writeFuture;</span>
+<span class="nc" id="L230">        getChannel().writeAndFlush(container);</span>
+<span class="nc" id="L231">        return writeFuture;</span>
     }
 
 }

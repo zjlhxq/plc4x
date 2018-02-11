@@ -27,65 +27,64 @@
 <a class="jxr_linenumber" name="L19" href="#L19">19</a>  
 <a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">package</strong> org.apache.plc4x.java.s7.netty.model.params;
 <a class="jxr_linenumber" name="L21" href="#L21">21</a>  
-<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.s7.netty.model.params.items.S7AnyVarParameterItem;
-<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.s7.netty.model.params.items.VarParameterItem;
-<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.s7.netty.model.types.MemoryArea;
-<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.s7.netty.model.types.ParameterType;
-<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.s7.netty.model.types.SpecificationType;
-<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.s7.netty.model.types.TransportSize;
-<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> org.junit.jupiter.api.Tag;
-<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> org.junit.jupiter.api.Test;
-<a class="jxr_linenumber" name="L30" href="#L30">30</a>  
-<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> java.util.ArrayList;
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>  
-<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.junit.jupiter.api.Assertions.*;
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>  
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">class</strong> <a href="../../../../../../../../org/apache/plc4x/java/s7/netty/model/params/S7ParameterTests.html">S7ParameterTests</a> {
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>  
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>      @Test
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>      @Tag(<span class="jxr_string">"fast"</span>)
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>      <strong class="jxr_keyword">void</strong> varParameter() {
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>          ParameterType parameterType = ParameterType.READ_VAR;
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>          ArrayList&lt;VarParameterItem&gt; parameterItems = <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;();
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>          SpecificationType specificationType = SpecificationType.VARIABLE_SPECIFICATION;
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>          MemoryArea memoryArea = MemoryArea.DATA_BLOCKS;
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>          TransportSize transportSize = TransportSize.INT;
-<a class="jxr_linenumber" name="L45" href="#L45">45</a>          <strong class="jxr_keyword">short</strong> numElements = 1;
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>          byte dataBlock = (byte) 0x1;
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>          byte byteOffset = (byte) 0x10;
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>          byte bitOffset = (byte) 0x0;
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>  
-<a class="jxr_linenumber" name="L50" href="#L50">50</a>          parameterItems.add(<strong class="jxr_keyword">new</strong> S7AnyVarParameterItem(specificationType, memoryArea, transportSize, numElements, dataBlock, byteOffset, bitOffset));
-<a class="jxr_linenumber" name="L51" href="#L51">51</a>  
-<a class="jxr_linenumber" name="L52" href="#L52">52</a>          VarParameter varParameter = <strong class="jxr_keyword">new</strong> VarParameter(parameterType, parameterItems);
-<a class="jxr_linenumber" name="L53" href="#L53">53</a>          assertTrue(varParameter.getType() == ParameterType.READ_VAR, <span class="jxr_string">"Unexpected parameter type"</span>);
-<a class="jxr_linenumber" name="L54" href="#L54">54</a>          assertTrue(varParameter.getItems().containsAll(parameterItems), <span class="jxr_string">"Unexpected paramater items"</span>);
-<a class="jxr_linenumber" name="L55" href="#L55">55</a>      }
-<a class="jxr_linenumber" name="L56" href="#L56">56</a>  
-<a class="jxr_linenumber" name="L57" href="#L57">57</a>      @Test
-<a class="jxr_linenumber" name="L58" href="#L58">58</a>      @Tag(<span class="jxr_string">"fast"</span>)
-<a class="jxr_linenumber" name="L59" href="#L59">59</a>      <strong class="jxr_keyword">void</strong> cpuServicesParameter() {
-<a class="jxr_linenumber" name="L60" href="#L60">60</a>          CpuServicesParameter cpuParameter = <strong class="jxr_keyword">new</strong> CpuServicesParameter();
-<a class="jxr_linenumber" name="L61" href="#L61">61</a>          assertTrue(cpuParameter.getType() == ParameterType.CPU_SERVICES, <span class="jxr_string">"Unexpected parameter type"</span>);
-<a class="jxr_linenumber" name="L62" href="#L62">62</a>      }
-<a class="jxr_linenumber" name="L63" href="#L63">63</a>      
-<a class="jxr_linenumber" name="L64" href="#L64">64</a>      @Test
-<a class="jxr_linenumber" name="L65" href="#L65">65</a>      @Tag(<span class="jxr_string">"fast"</span>)
-<a class="jxr_linenumber" name="L66" href="#L66">66</a>      <strong class="jxr_keyword">void</strong> setupCommunicationsParameter() {
-<a class="jxr_linenumber" name="L67" href="#L67">67</a>          <strong class="jxr_keyword">short</strong> maxAmqCaller = 4;
-<a class="jxr_linenumber" name="L68" href="#L68">68</a>          <strong class="jxr_keyword">short</strong> maxAmqCallee = 8;
-<a class="jxr_linenumber" name="L69" href="#L69">69</a>          <strong class="jxr_keyword">short</strong> pduLength = 512;
-<a class="jxr_linenumber" name="L70" href="#L70">70</a>  
-<a class="jxr_linenumber" name="L71" href="#L71">71</a>          SetupCommunicationParameter setupParameter = <strong class="jxr_keyword">new</strong> SetupCommunicationParameter(maxAmqCaller, maxAmqCallee, pduLength);
-<a class="jxr_linenumber" name="L72" href="#L72">72</a>          assertTrue(setupParameter.getType() == ParameterType.SETUP_COMMUNICATION, <span class="jxr_string">"Unexpected parameter type"</span>);
-<a class="jxr_linenumber" name="L73" href="#L73">73</a>          assertTrue(setupParameter.getMaxAmqCallee() == maxAmqCallee, <span class="jxr_string">"Unexpected value for maxAmqCallee"</span>);
-<a class="jxr_linenumber" name="L74" href="#L74">74</a>          assertTrue(setupParameter.getMaxAmqCaller() == maxAmqCaller, <span class="jxr_string">"Unexpected value for maxAmqCaller"</span>);
-<a class="jxr_linenumber" name="L75" href="#L75">75</a>          assertTrue(setupParameter.getPduLength() == pduLength, <span class="jxr_string">"Unexpected value for pduLength"</span>);
-<a class="jxr_linenumber" name="L76" href="#L76">76</a>      }
-<a class="jxr_linenumber" name="L77" href="#L77">77</a>  
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.assertj.core.api.Assertions.assertThat;
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.s7.netty.model.params.items.S7AnyVarParameterItem;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.s7.netty.model.params.items.VarParameterItem;
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.s7.netty.model.types.MemoryArea;
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.s7.netty.model.types.ParameterType;
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.s7.netty.model.types.SpecificationType;
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.s7.netty.model.types.TransportSize;
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.test.FastTests;
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> org.junit.Test;
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> org.junit.experimental.categories.Category;
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> java.util.ArrayList;
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../../../../org/apache/plc4x/java/s7/netty/model/params/S7ParameterTests.html">S7ParameterTests</a> {
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>      @Test
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>      @Category(FastTests.<strong class="jxr_keyword">class</strong>)
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> varParameter() {
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>          ParameterType parameterType = ParameterType.READ_VAR;
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>          ArrayList&lt;VarParameterItem&gt; parameterItems = <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;();
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>          SpecificationType specificationType = SpecificationType.VARIABLE_SPECIFICATION;
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>          MemoryArea memoryArea = MemoryArea.DATA_BLOCKS;
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>          TransportSize transportSize = TransportSize.INT;
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>          <strong class="jxr_keyword">short</strong> numElements = 1;
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>          byte dataBlock = (byte) 0x1;
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>          byte byteOffset = (byte) 0x10;
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>          byte bitOffset = (byte) 0x0;
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>  
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>          parameterItems.add(<strong class="jxr_keyword">new</strong> S7AnyVarParameterItem(specificationType, memoryArea, transportSize, numElements, dataBlock, byteOffset, bitOffset));
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>  
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>          VarParameter varParameter = <strong class="jxr_keyword">new</strong> VarParameter(parameterType, parameterItems);
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>          assertThat(varParameter.getType()).isEqualTo(ParameterType.READ_VAR).withFailMessage(<span class="jxr_string">"Unexpected parameter type"</span>);
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>          assertThat(varParameter.getItems()).containsAll(parameterItems).withFailMessage(<span class="jxr_string">"Unexpected paramater items"</span>);
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>      }
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>  
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>      @Test
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>      @Category(FastTests.<strong class="jxr_keyword">class</strong>)
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> cpuServicesParameter() {
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>          CpuServicesParameter cpuParameter = <strong class="jxr_keyword">new</strong> CpuServicesParameter();
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>          assertThat(cpuParameter.getType()).isEqualTo(ParameterType.CPU_SERVICES).withFailMessage(<span class="jxr_string">"Unexpected parameter type"</span>);
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>      }
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>      
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>      @Test
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>      @Category(FastTests.<strong class="jxr_keyword">class</strong>)
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setupCommunicationsParameter() {
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>          <strong class="jxr_keyword">short</strong> maxAmqCaller = 4;
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>          <strong class="jxr_keyword">short</strong> maxAmqCallee = 8;
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>          <strong class="jxr_keyword">short</strong> pduLength = 512;
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>  
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>          SetupCommunicationParameter setupParameter = <strong class="jxr_keyword">new</strong> SetupCommunicationParameter(maxAmqCaller, maxAmqCallee, pduLength);
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>          assertThat(setupParameter.getType()).isEqualTo(ParameterType.SETUP_COMMUNICATION).withFailMessage(<span class="jxr_string">"Unexpected parameter type"</span>);
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>          assertThat(setupParameter.getMaxAmqCallee()).isEqualTo(maxAmqCallee).withFailMessage(<span class="jxr_string">"Unexpected value for maxAmqCallee"</span>);
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>          assertThat(setupParameter.getMaxAmqCaller()).isEqualTo(maxAmqCaller).withFailMessage(<span class="jxr_string">"Unexpected value for maxAmqCaller"</span>);
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>          assertThat(setupParameter.getPduLength()).isEqualTo(pduLength).withFailMessage(<span class="jxr_string">"Unexpected value for pduLength"</span>);
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>      }
 <a class="jxr_linenumber" name="L78" href="#L78">78</a>  
-<a class="jxr_linenumber" name="L79" href="#L79">79</a>  
-<a class="jxr_linenumber" name="L80" href="#L80">80</a>  }
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>  }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2017&#x2013;2018 <a href="https://www.apache.org/">The Apache Software Foundation</a>. All rights reserved.</div>
