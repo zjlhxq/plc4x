@@ -18,38 +18,53 @@ under the License.
 */
 package org.apache.plc4x.java.s7.netty.model.types;
 
-<span class="nc" id="L21">public enum ParameterError {</span>
-<span class="nc" id="L22">    NO_ERROR((short) 0x0000),</span>
-<span class="nc" id="L23">    INVALID_BLOCK_TYPE_NUMBER((short) 0x0110),</span>
-<span class="nc" id="L24">    INVALID_PARAMETER((short) 0x0112),</span>
-<span class="nc" id="L25">    PG_RESSOURCE_ERROR((short) 0x011A),</span>
-<span class="nc" id="L26">    PLC_RESSOURCE_ERROR((short) 0x011B),</span>
-<span class="nc" id="L27">    PROTOCOL_ERROR((short) 0x011C),</span>
-<span class="nc" id="L28">    USER_BUFFER_TOO_SHORT((short) 0x011F),</span>
-<span class="nc" id="L29">    REQUEST_ERROR((short) 0x0141),</span>
-<span class="nc" id="L30">    VERSION_MISMATCH((short) 0x01C0),</span>
-<span class="nc" id="L31">    NOT_IMPLEMENTED((short) 0x01F0),</span>
-<span class="nc" id="L32">    L7_INVALID_CPU_STATE((short) 0x8001),</span>
-<span class="nc" id="L33">    L7_PDU_SIZE_ERROR((short) 0x8500),</span>
-<span class="nc" id="L34">    L7_INVALID_SZL_ID((short) 0xD401),</span>
-<span class="nc" id="L35">    L7_INVALID_INDEX((short) 0xD402),</span>
-<span class="nc" id="L36">    L7_DGS_CONNECTION_ALREADY_ANNOUNCED((short) 0xD403),</span>
-<span class="nc" id="L37">    L7_MAX_USER_NB((short) 0xD404),</span>
-<span class="nc" id="L38">    L7_DGS_FUNCTION_PARAMETER_SYNTAX_ERROR((short) 0xD405),</span>
-<span class="nc" id="L39">    L7_NO_INFO((short) 0xD406),</span>
-<span class="nc" id="L40">    L7_PRT_FUNCTION_PARAMETER_SYNTAX_ERROR((short) 0xD601),</span>
-<span class="nc" id="L41">    L7_INVALID_VARIABLE_ADDRESS((short) 0xD801),</span>
-<span class="nc" id="L42">    L7_UNKNOWN_REQUEST((short) 0xD802),</span>
-<span class="nc" id="L43">    L7_INVALID_REQUEST_STATUS((short) 0xD803);</span>
+import java.util.HashMap;
+import java.util.Map;
+
+<span class="fc" id="L24">public enum ParameterError {</span>
+<span class="fc" id="L25">    NO_ERROR((short) 0x0000),</span>
+<span class="fc" id="L26">    INVALID_BLOCK_TYPE_NUMBER((short) 0x0110),</span>
+<span class="fc" id="L27">    INVALID_PARAMETER((short) 0x0112),</span>
+<span class="fc" id="L28">    PG_RESSOURCE_ERROR((short) 0x011A),</span>
+<span class="fc" id="L29">    PLC_RESSOURCE_ERROR((short) 0x011B),</span>
+<span class="fc" id="L30">    PROTOCOL_ERROR((short) 0x011C),</span>
+<span class="fc" id="L31">    USER_BUFFER_TOO_SHORT((short) 0x011F),</span>
+<span class="fc" id="L32">    REQUEST_ERROR((short) 0x0141),</span>
+<span class="fc" id="L33">    VERSION_MISMATCH((short) 0x01C0),</span>
+<span class="fc" id="L34">    NOT_IMPLEMENTED((short) 0x01F0),</span>
+<span class="fc" id="L35">    L7_INVALID_CPU_STATE((short) 0x8001),</span>
+<span class="fc" id="L36">    L7_PDU_SIZE_ERROR((short) 0x8500),</span>
+<span class="fc" id="L37">    L7_INVALID_SZL_ID((short) 0xD401),</span>
+<span class="fc" id="L38">    L7_INVALID_INDEX((short) 0xD402),</span>
+<span class="fc" id="L39">    L7_DGS_CONNECTION_ALREADY_ANNOUNCED((short) 0xD403),</span>
+<span class="fc" id="L40">    L7_MAX_USER_NB((short) 0xD404),</span>
+<span class="fc" id="L41">    L7_DGS_FUNCTION_PARAMETER_SYNTAX_ERROR((short) 0xD405),</span>
+<span class="fc" id="L42">    L7_NO_INFO((short) 0xD406),</span>
+<span class="fc" id="L43">    L7_PRT_FUNCTION_PARAMETER_SYNTAX_ERROR((short) 0xD601),</span>
+<span class="fc" id="L44">    L7_INVALID_VARIABLE_ADDRESS((short) 0xD801),</span>
+<span class="fc" id="L45">    L7_UNKNOWN_REQUEST((short) 0xD802),</span>
+<span class="fc" id="L46">    L7_INVALID_REQUEST_STATUS((short) 0xD803);</span>
+
+<span class="fc" id="L48">    private static Map&lt;Short, ParameterError&gt; map = null;</span>
 
     private final short code;
 
-<span class="nc" id="L47">    ParameterError(short code) {</span>
-<span class="nc" id="L48">        this.code = code;</span>
-<span class="nc" id="L49">    }</span>
+<span class="fc" id="L52">    ParameterError(short code) {</span>
+<span class="fc" id="L53">        this.code = code;</span>
+<span class="fc" id="L54">    }</span>
 
     public short getCode() {
-<span class="nc" id="L52">        return code;</span>
+<span class="fc" id="L57">        return code;</span>
+    }
+
+    public static ParameterError valueOf(short code) {
+<span class="pc bpc" id="L61" title="1 of 2 branches missed.">        if (map == null) {</span>
+<span class="fc" id="L62">            map = new HashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L63" title="All 2 branches covered.">            for (ParameterError parameterError : ParameterError.values()) {</span>
+<span class="fc" id="L64">                map.put(parameterError.code, parameterError);</span>
+            }
+        }
+<span class="fc" id="L67">        return map.get(code);</span>
     }
 
 }
