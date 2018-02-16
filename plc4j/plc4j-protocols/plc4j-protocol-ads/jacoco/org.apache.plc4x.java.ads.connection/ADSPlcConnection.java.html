@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ADSPlcConnection.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PLC4J: Protocol: ADS</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.java.ads.connection</a> &gt; <span class="el_source">ADSPlcConnection.java</span></div><h1>ADSPlcConnection.java</h1><pre class="source lang-java linenums">/*
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+&quot;License&quot;); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+&quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+*/
+package org.apache.plc4x.java.ads.connection;
+
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelPipeline;
+import org.apache.plc4x.java.ads.api.generic.types.AMSNetId;
+import org.apache.plc4x.java.ads.api.generic.types.AMSPort;
+import org.apache.plc4x.java.ads.model.ADSAddress;
+import org.apache.plc4x.java.ads.netty.ADSProtocol;
+import org.apache.plc4x.java.ads.netty.Plc4XADSProtocol;
+import org.apache.plc4x.java.api.connection.PlcReader;
+import org.apache.plc4x.java.api.connection.PlcWriter;
+import org.apache.plc4x.java.api.exceptions.PlcException;
+import org.apache.plc4x.java.api.messages.*;
+import org.apache.plc4x.java.api.model.Address;
+import org.apache.plc4x.java.base.connection.AbstractPlcConnection;
+import org.apache.plc4x.java.base.connection.TcpSocketChannelFactory;
+
+import java.net.InetAddress;
+import java.util.concurrent.CompletableFuture;
+
+public class ADSPlcConnection extends AbstractPlcConnection implements PlcReader, PlcWriter {
+
+    public static final int TCP_PORT = 48898;
+
+    private final AMSNetId targetAmsNetId;
+
+    private final AMSPort targetAmsPort;
+
+    private final AMSNetId sourceAmsNetId;
+
+    private final AMSPort sourceAmsPort;
+
+    public ADSPlcConnection(InetAddress address, AMSNetId targetAmsNetId, AMSPort targetAmsPort) {
+<span class="fc" id="L54">        this(address, targetAmsNetId, targetAmsPort, generateAMSNetId(), generateAMSPort());</span>
+<span class="fc" id="L55">    }</span>
+
+    public ADSPlcConnection(InetAddress address, Integer port, AMSNetId targetAmsNetId, AMSPort targetAmsPort) {
+<span class="nc" id="L58">        this(address, port, targetAmsNetId, targetAmsPort, generateAMSNetId(), generateAMSPort());</span>
+<span class="nc" id="L59">    }</span>
+
+
+    public ADSPlcConnection(InetAddress address, AMSNetId targetAmsNetId, AMSPort targetAmsPort, AMSNetId sourceAmsNetId, AMSPort sourceAmsPort) {
+<span class="fc" id="L63">        this(address, null, targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort);</span>
+<span class="fc" id="L64">    }</span>
+
+    public ADSPlcConnection(InetAddress address, Integer port, AMSNetId targetAmsNetId, AMSPort targetAmsPort, AMSNetId sourceAmsNetId, AMSPort sourceAmsPort) {
+<span class="fc bfc" id="L67" title="All 2 branches covered.">        super(new TcpSocketChannelFactory(address, port != null ? port : TCP_PORT));</span>
+<span class="fc" id="L68">        this.targetAmsNetId = targetAmsNetId;</span>
+<span class="fc" id="L69">        this.targetAmsPort = targetAmsPort;</span>
+<span class="fc" id="L70">        this.sourceAmsNetId = sourceAmsNetId;</span>
+<span class="fc" id="L71">        this.sourceAmsPort = sourceAmsPort;</span>
+<span class="fc" id="L72">    }</span>
+
+    public AMSNetId getTargetAmsNetId() {
+<span class="fc" id="L75">        return targetAmsNetId;</span>
+    }
+
+    public AMSPort getTargetAmsPort() {
+<span class="fc" id="L79">        return targetAmsPort;</span>
+    }
+
+    public AMSNetId getSourceAmsNetId() {
+<span class="nc" id="L83">        return sourceAmsNetId;</span>
+    }
+
+    public AMSPort getSourceAmsPort() {
+<span class="nc" id="L87">        return sourceAmsPort;</span>
+    }
+
+    @Override
+    protected ChannelHandler getChannelHandler(CompletableFuture&lt;Void&gt; sessionSetupCompleteFuture) {
+<span class="fc" id="L92">        return new ChannelInitializer() {</span>
+            @Override
+            protected void initChannel(Channel channel) {
+                // Build the protocol stack for communicating with the ads protocol.
+<span class="fc" id="L96">                ChannelPipeline pipeline = channel.pipeline();</span>
+<span class="fc" id="L97">                pipeline.addLast(new Plc4XADSProtocol(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort));</span>
+<span class="fc" id="L98">                pipeline.addLast(new ADSProtocol());</span>
+<span class="fc" id="L99">            }</span>
+        };
+    }
+
+    @Override
+    public Address parseAddress(String addressString) throws PlcException {
+<span class="fc" id="L105">        return ADSAddress.of(addressString);</span>
+    }
+
+    @Override
+    public CompletableFuture&lt;PlcReadResponse&gt; read(PlcReadRequest readRequest) {
+<span class="nc" id="L110">        CompletableFuture&lt;PlcReadResponse&gt; readFuture = new CompletableFuture&lt;&gt;();</span>
+<span class="nc" id="L111">        PlcRequestContainer&lt;PlcReadRequest, PlcReadResponse&gt; container =</span>
+            new PlcRequestContainer&lt;&gt;(readRequest, readFuture);
+<span class="nc" id="L113">        channel.writeAndFlush(container);</span>
+<span class="nc" id="L114">        return readFuture;</span>
+    }
+
+    @Override
+    public CompletableFuture&lt;PlcWriteResponse&gt; write(PlcWriteRequest writeRequest) {
+<span class="nc" id="L119">        CompletableFuture&lt;PlcWriteResponse&gt; writeFuture = new CompletableFuture&lt;&gt;();</span>
+<span class="nc" id="L120">        PlcRequestContainer&lt;PlcWriteRequest, PlcWriteResponse&gt; container =</span>
+            new PlcRequestContainer&lt;&gt;(writeRequest, writeFuture);
+<span class="nc" id="L122">        channel.writeAndFlush(container);</span>
+<span class="nc" id="L123">        return writeFuture;</span>
+    }
+
+    private static AMSNetId generateAMSNetId() {
+<span class="fc" id="L127">        return AMSNetId.of(&quot;0.0.0.0.0.0&quot;);</span>
+    }
+
+    private static AMSPort generateAMSPort() {
+<span class="fc" id="L131">        return AMSPort.of(TCP_PORT);</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

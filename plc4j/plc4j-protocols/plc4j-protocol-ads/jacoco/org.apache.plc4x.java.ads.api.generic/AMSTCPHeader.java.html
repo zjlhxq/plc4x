@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AMSTCPHeader.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PLC4J: Protocol: ADS</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.java.ads.api.generic</a> &gt; <span class="el_source">AMSTCPHeader.java</span></div><h1>AMSTCPHeader.java</h1><pre class="source lang-java linenums">/*
+ Licensed to the Apache Software Foundation (ASF) under one
+ or more contributor license agreements.  See the NOTICE file
+ distributed with this work for additional information
+ regarding copyright ownership.  The ASF licenses this file
+ to you under the Apache License, Version 2.0 (the
+ &quot;License&quot;); you may not use this file except in compliance
+ with the License.  You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing,
+ software distributed under the License is distributed on an
+ &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ KIND, either express or implied.  See the License for the
+ specific language governing permissions and limitations
+ under the License.
+ */
+package org.apache.plc4x.java.ads.api.generic;
+
+import io.netty.buffer.ByteBuf;
+import org.apache.plc4x.java.ads.api.generic.types.Length;
+import org.apache.plc4x.java.ads.api.util.ByteReadable;
+import org.apache.plc4x.java.ads.api.util.ByteValue;
+import org.apache.plc4x.java.ads.api.util.LengthSupplier;
+
+import static java.util.Objects.requireNonNull;
+import static org.apache.plc4x.java.ads.api.util.ByteReadableUtils.buildByteBuff;
+
+/**
+ * AMS/TCP Header	6 bytes	contains the length of the data packet.
+ */
+public class AMSTCPHeader implements ByteReadable {
+
+    protected final Reserved reserved;
+
+    protected final Length length;
+
+    ////
+    // Used when fields should be calculated. TODO: check if we better work with a subclass.
+    private final LengthSupplier[] lengthSuppliers;
+    private final boolean calculated;
+    //
+    ///
+
+<span class="fc" id="L46">    protected AMSTCPHeader(Length length) {</span>
+<span class="fc" id="L47">        this.reserved = requireNonNull(Reserved.CONSTANT);</span>
+<span class="fc" id="L48">        this.length = requireNonNull(length);</span>
+<span class="fc" id="L49">        lengthSuppliers = null;</span>
+<span class="fc" id="L50">        calculated = false;</span>
+<span class="fc" id="L51">    }</span>
+
+<span class="fc" id="L53">    protected AMSTCPHeader(LengthSupplier... lengthSuppliers) {</span>
+<span class="fc" id="L54">        this.reserved = requireNonNull(Reserved.CONSTANT);</span>
+<span class="fc" id="L55">        this.length = null;</span>
+<span class="fc" id="L56">        this.lengthSuppliers = requireNonNull(lengthSuppliers);</span>
+<span class="fc" id="L57">        calculated = true;</span>
+<span class="fc" id="L58">    }</span>
+
+    public static AMSTCPHeader of(long length) {
+<span class="fc" id="L61">        return new AMSTCPHeader(Length.of(length));</span>
+    }
+
+    public static AMSTCPHeader of(LengthSupplier... lengthSuppliers) {
+<span class="fc" id="L65">        return new AMSTCPHeader(lengthSuppliers);</span>
+    }
+
+    @Override
+    public ByteBuf getByteBuf() {
+<span class="pc bpc" id="L70" title="1 of 2 branches missed.">        return buildByteBuff(reserved, (calculated ? Length.of(getCalculatedLength()) : length));</span>
+    }
+
+    /**
+     * Size: 2 bytes
+     * These bytes must be set to 0.
+     */
+    public static class Reserved extends ByteValue {
+
+        public static final int NUM_BYTES = 2;
+
+<span class="fc" id="L81">        private static final Reserved CONSTANT = new Reserved();</span>
+
+        private Reserved() {
+<span class="fc" id="L84">            super((byte) 0x00, (byte) 0x00);</span>
+<span class="fc" id="L85">            assertLength(NUM_BYTES);</span>
+<span class="fc" id="L86">        }</span>
+    }
+
+    public long getCalculatedLength() {
+<span class="pc bpc" id="L90" title="1 of 2 branches missed.">        if (calculated) {</span>
+<span class="fc" id="L91">            long aggregateLength = 0;</span>
+<span class="fc bfc" id="L92" title="All 2 branches covered.">            for (LengthSupplier supplier : lengthSuppliers) {</span>
+<span class="fc" id="L93">                aggregateLength += supplier.getCalculatedLength();</span>
+            }
+<span class="fc" id="L95">            return aggregateLength;</span>
+        } else {
+<span class="nc" id="L97">            return length.getAsLong();</span>
+        }
+    }
+
+    @Override
+    public String toString() {
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">        return &quot;AMSTCPHeader{&quot; +</span>
+            &quot;reserved=&quot; + reserved +
+<span class="pc" id="L105">            &quot;, length=&quot; + (calculated ? Length.of(getCalculatedLength()) : length) +</span>
+            '}';
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>State.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PLC4J: Protocol: ADS</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.java.ads.api.generic.types</a> &gt; <span class="el_source">State.java</span></div><h1>State.java</h1><pre class="source lang-java linenums">/*
+ Licensed to the Apache Software Foundation (ASF) under one
+ or more contributor license agreements.  See the NOTICE file
+ distributed with this work for additional information
+ regarding copyright ownership.  The ASF licenses this file
+ to you under the Apache License, Version 2.0 (the
+ &quot;License&quot;); you may not use this file except in compliance
+ with the License.  You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing,
+ software distributed under the License is distributed on an
+ &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ KIND, either express or implied.  See the License for the
+ specific language governing permissions and limitations
+ under the License.
+ */
+package org.apache.plc4x.java.ads.api.generic.types;
+
+import io.netty.buffer.ByteBuf;
+import org.apache.plc4x.java.ads.api.util.UnsignedShortLEByteValue;
+
+import java.util.EnumSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.stream.Stream;
+
+import static org.apache.plc4x.java.ads.api.generic.types.State.StateMask.*;
+
+/**
+ * 2 bytes	see below.
+ * &lt;p&gt;
+ * State Flags
+ * Flag     Description
+ * 0x0001	0: Request / 1: Response
+ * 0x0004	ADS command
+ * The first bit marks, whether it´s a request or response. The third bit must be set to 1, to exchange data with ADS commands. The other bits are not defined or were used for other internal purposes.
+ * &lt;p&gt;
+ * Therefore the other bits must be set to 0!
+ * &lt;p&gt;
+ * Flag     Description
+ * 0x000x	TCP Protocol
+ * 0x004x	UDP Protocol
+ * Bit number 7 marks, if it should be transfered with TCP or UDP.
+ */
+public class State extends UnsignedShortLEByteValue {
+
+<span class="fc" id="L49">    public enum StateMask {</span>
+<span class="fc" id="L50">        RESPONSE(0b0000_0000_0000_0001),</span>
+<span class="fc" id="L51">        NO_RETURN(0b0000_0000_0000_0010),</span>
+<span class="fc" id="L52">        ADS_COMMAND(0b0000_0000_0000_0100),</span>
+<span class="fc" id="L53">        SYSTEM_COMMAND(0b0000_0000_0000_1000),</span>
+<span class="fc" id="L54">        HIGH_PRIORITY_COMMAND(0b0000_0000_0001_0000),</span>
+<span class="fc" id="L55">        TIMESTAMP_ADDED(0b0000_0000_0010_0000),</span>
+<span class="fc" id="L56">        UDP_COMMAND(0b0000_0000_0100_0000),</span>
+<span class="fc" id="L57">        INIT_COMMAND(0b0000_0000_1000_0000),</span>
+<span class="fc" id="L58">        BROADCAST(0b1000_0000_0000_0000);</span>
+
+        private final int mask;
+
+<span class="fc" id="L62">        StateMask(int mask) {</span>
+<span class="fc" id="L63">            this.mask = mask;</span>
+<span class="fc" id="L64">        }</span>
+
+        public boolean applies(int value) {
+<span class="nc bnc" id="L67" title="All 2 branches missed.">            return (value &amp; this.mask) != 0;</span>
+        }
+
+        public boolean applies(State state) {
+<span class="fc bfc" id="L71" title="All 2 branches covered.">            return (state.getAsInt() &amp; this.mask) != 0;</span>
+        }
+
+        public int getMask() {
+<span class="fc" id="L75">            return mask;</span>
+        }
+    }
+
+<span class="fc" id="L79">    public static final State DEFAULT = State.of(ADS_COMMAND);</span>
+
+<span class="fc" id="L81">    public static final State DEFAULT_RESPONSE = State.of(ADS_COMMAND, RESPONSE);</span>
+
+    public static final int NUM_BYTES = UnsignedShortLEByteValue.NUM_BYTES;
+
+    protected State(byte... values) {
+<span class="nc" id="L86">        super(values);</span>
+<span class="nc" id="L87">    }</span>
+
+    protected State(int value) {
+<span class="fc" id="L90">        super(value);</span>
+<span class="fc" id="L91">    }</span>
+
+    protected State(ByteBuf byteBuf) {
+<span class="fc" id="L94">        super(byteBuf);</span>
+<span class="fc" id="L95">    }</span>
+
+    public static State of(byte... values) {
+<span class="nc" id="L98">        return new State(values);</span>
+    }
+
+    public static State of(int value) {
+<span class="fc" id="L102">        checkUnsignedBounds(value, NUM_BYTES);</span>
+<span class="fc" id="L103">        return new State(value);</span>
+    }
+
+    public static State of(ByteBuf byteBuf) {
+<span class="fc" id="L107">        return new State(byteBuf);</span>
+    }
+
+    public static State of(String length) {
+<span class="nc" id="L111">        return of(Integer.parseInt(length));</span>
+    }
+
+    public static State of(StateMask... stateMasks) {
+<span class="fc" id="L115">        return State.of(Stream.of(stateMasks).map(StateMask::getMask).reduce(0, (a, b) -&gt; a | b));</span>
+    }
+
+    public EnumSet&lt;StateMask&gt; getStateMaskEnumSet() {
+<span class="nc" id="L119">        List&lt;StateMask&gt; result = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">        if (isResponse()) {</span>
+<span class="nc" id="L121">            result.add(StateMask.RESPONSE);</span>
+        }
+<span class="nc bnc" id="L123" title="All 2 branches missed.">        if (isNoReturn()) {</span>
+<span class="nc" id="L124">            result.add(NO_RETURN);</span>
+        }
+<span class="nc bnc" id="L126" title="All 2 branches missed.">        if (isADSCommand()) {</span>
+<span class="nc" id="L127">            result.add(StateMask.ADS_COMMAND);</span>
+        }
+<span class="nc bnc" id="L129" title="All 2 branches missed.">        if (isSystemCommand()) {</span>
+<span class="nc" id="L130">            result.add(StateMask.SYSTEM_COMMAND);</span>
+        }
+<span class="nc bnc" id="L132" title="All 2 branches missed.">        if (isHighPriorityCommand()) {</span>
+<span class="nc" id="L133">            result.add(StateMask.HIGH_PRIORITY_COMMAND);</span>
+        }
+<span class="nc bnc" id="L135" title="All 2 branches missed.">        if (isTimestampAdded()) {</span>
+<span class="nc" id="L136">            result.add(StateMask.TIMESTAMP_ADDED);</span>
+        }
+<span class="nc bnc" id="L138" title="All 2 branches missed.">        if (isUDPCommand()) {</span>
+<span class="nc" id="L139">            result.add(StateMask.UDP_COMMAND);</span>
+        }
+<span class="nc bnc" id="L141" title="All 2 branches missed.">        if (isInitCommand()) {</span>
+<span class="nc" id="L142">            result.add(StateMask.INIT_COMMAND);</span>
+        }
+<span class="nc bnc" id="L144" title="All 2 branches missed.">        if (isBroadcast()) {</span>
+<span class="nc" id="L145">            result.add(StateMask.BROADCAST);</span>
+        }
+<span class="nc" id="L147">        return EnumSet.copyOf(result);</span>
+    }
+
+    public boolean isResponse() {
+<span class="fc" id="L151">        return RESPONSE.applies(this);</span>
+    }
+
+    public boolean isRequest() {
+<span class="fc bfc" id="L155" title="All 2 branches covered.">        return !isResponse();</span>
+    }
+
+    public boolean isNoReturn() {
+<span class="nc" id="L159">        return NO_RETURN.applies(this);</span>
+    }
+
+    public boolean isADSCommand() {
+<span class="nc" id="L163">        return ADS_COMMAND.applies(this);</span>
+    }
+
+    public boolean isSystemCommand() {
+<span class="nc" id="L167">        return SYSTEM_COMMAND.applies(this);</span>
+    }
+
+    public boolean isHighPriorityCommand() {
+<span class="nc" id="L171">        return HIGH_PRIORITY_COMMAND.applies(this);</span>
+    }
+
+    public boolean isTimestampAdded() {
+<span class="nc" id="L175">        return TIMESTAMP_ADDED.applies(this);</span>
+    }
+
+    public boolean isUDPCommand() {
+<span class="nc" id="L179">        return UDP_COMMAND.applies(this);</span>
+    }
+
+    public boolean isInitCommand() {
+<span class="nc" id="L183">        return INIT_COMMAND.applies(this);</span>
+    }
+
+    public boolean isBroadcast() {
+<span class="nc" id="L187">        return BROADCAST.applies(this);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ADSReadWriteRequest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PLC4J: Protocol: ADS</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.java.ads.api.commands</a> &gt; <span class="el_source">ADSReadWriteRequest.java</span></div><h1>ADSReadWriteRequest.java</h1><pre class="source lang-java linenums">/*
+ Licensed to the Apache Software Foundation (ASF) under one
+ or more contributor license agreements.  See the NOTICE file
+ distributed with this work for additional information
+ regarding copyright ownership.  The ASF licenses this file
+ to you under the Apache License, Version 2.0 (the
+ &quot;License&quot;); you may not use this file except in compliance
+ with the License.  You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing,
+ software distributed under the License is distributed on an
+ &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ KIND, either express or implied.  See the License for the
+ specific language governing permissions and limitations
+ under the License.
+ */
+package org.apache.plc4x.java.ads.api.commands;
+
+import org.apache.plc4x.java.ads.api.commands.types.*;
+import org.apache.plc4x.java.ads.api.generic.ADSData;
+import org.apache.plc4x.java.ads.api.generic.AMSHeader;
+import org.apache.plc4x.java.ads.api.generic.AMSTCPHeader;
+import org.apache.plc4x.java.ads.api.generic.types.AMSNetId;
+import org.apache.plc4x.java.ads.api.generic.types.AMSPort;
+import org.apache.plc4x.java.ads.api.generic.types.Command;
+import org.apache.plc4x.java.ads.api.generic.types.Invoke;
+import org.apache.plc4x.java.ads.api.util.LengthSupplier;
+
+import java.util.Objects;
+
+/**
+ * With ADS Read Write data will be written to an ADS device. Additionally, data can be read from the ADS device.
+ * &lt;p&gt;
+ * The data which can be read are addressed by the Index Group and the Index Offset
+ */
+@ADSCommandType(Command.ADS_Read_Write)
+public class ADSReadWriteRequest extends ADSAbstractRequest {
+
+    /**
+     * 4 bytes	Index Group, in which the data should be written.
+     */
+    private final IndexGroup indexGroup;
+    /**
+     * 4 bytes	Index Offset, in which the data should be written
+     */
+    private final IndexOffset indexOffset;
+    /**
+     * 4 bytes	Length of data in bytes, which should be read.
+     */
+    private final ReadLength readLength;
+    /**
+     * 4 bytes	Length of data in bytes, which should be written
+     */
+    private final WriteLength writeLength;
+    /**
+     * n bytes	Data which are written in the ADS device.
+     */
+    private final Data data;
+
+    ////
+    // Used when fields should be calculated. TODO: check if we better work with a subclass.
+    private final LengthSupplier lengthSupplier;
+    private final boolean calculated;
+    //
+    ///
+
+    protected ADSReadWriteRequest(AMSTCPHeader amstcpHeader, AMSHeader amsHeader, IndexGroup indexGroup, IndexOffset indexOffset, ReadLength readLength, WriteLength writeLength, Data data) {
+<span class="fc" id="L70">        super(amstcpHeader, amsHeader);</span>
+<span class="fc" id="L71">        this.indexGroup = Objects.requireNonNull(indexGroup);</span>
+<span class="fc" id="L72">        this.indexOffset = Objects.requireNonNull(indexOffset);</span>
+<span class="fc" id="L73">        this.readLength = Objects.requireNonNull(readLength);</span>
+<span class="fc" id="L74">        this.writeLength = Objects.requireNonNull(writeLength);</span>
+<span class="fc" id="L75">        this.data = Objects.requireNonNull(data);</span>
+<span class="fc" id="L76">        this.lengthSupplier = null;</span>
+<span class="fc" id="L77">        this.calculated = false;</span>
+<span class="fc" id="L78">    }</span>
+
+    protected ADSReadWriteRequest(AMSHeader amsHeader, IndexGroup indexGroup, IndexOffset indexOffset, ReadLength readLength, WriteLength writeLength, Data data) {
+<span class="nc" id="L81">        super(amsHeader);</span>
+<span class="nc" id="L82">        this.indexGroup = Objects.requireNonNull(indexGroup);</span>
+<span class="nc" id="L83">        this.indexOffset = Objects.requireNonNull(indexOffset);</span>
+<span class="nc" id="L84">        this.readLength = Objects.requireNonNull(readLength);</span>
+<span class="nc" id="L85">        this.writeLength = Objects.requireNonNull(writeLength);</span>
+<span class="nc" id="L86">        this.data = Objects.requireNonNull(data);</span>
+<span class="nc" id="L87">        this.lengthSupplier = null;</span>
+<span class="nc" id="L88">        this.calculated = false;</span>
+<span class="nc" id="L89">    }</span>
+
+    protected ADSReadWriteRequest(AMSNetId targetAmsNetId, AMSPort targetAmsPort, AMSNetId sourceAmsNetId, AMSPort sourceAmsPort, Invoke invokeId, IndexGroup indexGroup, IndexOffset indexOffset, ReadLength readLength, Data data) {
+<span class="fc" id="L92">        super(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId);</span>
+<span class="fc" id="L93">        this.indexGroup = Objects.requireNonNull(indexGroup);</span>
+<span class="fc" id="L94">        this.indexOffset = Objects.requireNonNull(indexOffset);</span>
+<span class="fc" id="L95">        this.readLength = Objects.requireNonNull(readLength);</span>
+<span class="fc" id="L96">        this.writeLength = null;</span>
+<span class="fc" id="L97">        this.data = Objects.requireNonNull(data);</span>
+<span class="fc" id="L98">        this.lengthSupplier = () -&gt; data.getCalculatedLength();</span>
+<span class="fc" id="L99">        this.calculated = true;</span>
+<span class="fc" id="L100">    }</span>
+
+    public static ADSReadWriteRequest of(AMSTCPHeader amstcpHeader, AMSHeader amsHeader, IndexGroup indexGroup, IndexOffset indexOffset, ReadLength readLength, WriteLength writeLength, Data data) {
+<span class="fc" id="L103">        return new ADSReadWriteRequest(amstcpHeader, amsHeader, indexGroup, indexOffset, readLength, writeLength, data);</span>
+    }
+
+    public static ADSReadWriteRequest of(AMSHeader amsHeader, IndexGroup indexGroup, IndexOffset indexOffset, ReadLength readLength, WriteLength writeLength, Data data) {
+<span class="nc" id="L107">        return new ADSReadWriteRequest(amsHeader, indexGroup, indexOffset, readLength, writeLength, data);</span>
+    }
+
+    public static ADSReadWriteRequest of(AMSNetId targetAmsNetId, AMSPort targetAmsPort, AMSNetId sourceAmsNetId, AMSPort sourceAmsPort, Invoke invokeId, IndexGroup indexGroup, IndexOffset indexOffset, ReadLength readLength, Data data) {
+<span class="fc" id="L111">        return new ADSReadWriteRequest(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId, indexGroup, indexOffset, readLength, data);</span>
+    }
+
+    @Override
+    public ADSData getAdsData() {
+<span class="pc bpc" id="L116" title="1 of 2 branches missed.">        return buildADSData(indexGroup, indexOffset, readLength, (calculated ? WriteLength.of(lengthSupplier.getCalculatedLength()) : writeLength), data);</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="pc bpc" id="L121" title="1 of 2 branches missed.">        return &quot;ADSReadWriteRequest{&quot; +</span>
+            &quot;indexGroup=&quot; + indexGroup +
+            &quot;, indexOffset=&quot; + indexOffset +
+            &quot;, readLength=&quot; + readLength +
+<span class="pc" id="L125">            &quot;, writeLength=&quot; + (calculated ? WriteLength.of(lengthSupplier.getCalculatedLength()) : writeLength) +</span>
+            &quot;, data=&quot; + data +
+<span class="fc" id="L127">            &quot;} &quot; + super.toString();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

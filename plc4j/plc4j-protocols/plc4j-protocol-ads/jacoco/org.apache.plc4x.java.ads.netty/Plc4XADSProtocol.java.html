@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Plc4XADSProtocol.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PLC4J: Protocol: ADS</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.java.ads.netty</a> &gt; <span class="el_source">Plc4XADSProtocol.java</span></div><h1>Plc4XADSProtocol.java</h1><pre class="source lang-java linenums">/*
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+&quot;License&quot;); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+&quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+*/
+package org.apache.plc4x.java.ads.netty;
+
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.MessageToMessageCodec;
+import org.apache.commons.lang3.SerializationUtils;
+import org.apache.plc4x.java.ads.api.commands.ADSReadRequest;
+import org.apache.plc4x.java.ads.api.commands.ADSReadResponse;
+import org.apache.plc4x.java.ads.api.commands.ADSWriteRequest;
+import org.apache.plc4x.java.ads.api.commands.ADSWriteResponse;
+import org.apache.plc4x.java.ads.api.commands.types.*;
+import org.apache.plc4x.java.ads.api.generic.AMSTCPPaket;
+import org.apache.plc4x.java.ads.api.generic.types.AMSNetId;
+import org.apache.plc4x.java.ads.api.generic.types.AMSPort;
+import org.apache.plc4x.java.ads.api.generic.types.Invoke;
+import org.apache.plc4x.java.ads.model.ADSAddress;
+import org.apache.plc4x.java.api.exceptions.PlcException;
+import org.apache.plc4x.java.api.exceptions.PlcProtocolException;
+import org.apache.plc4x.java.api.messages.*;
+import org.apache.plc4x.java.api.messages.items.ReadRequestItem;
+import org.apache.plc4x.java.api.messages.items.ReadResponseItem;
+import org.apache.plc4x.java.api.messages.items.WriteRequestItem;
+import org.apache.plc4x.java.api.messages.items.WriteResponseItem;
+import org.apache.plc4x.java.api.messages.specific.TypeSafePlcReadRequest;
+import org.apache.plc4x.java.api.messages.specific.TypeSafePlcReadResponse;
+import org.apache.plc4x.java.api.messages.specific.TypeSafePlcWriteRequest;
+import org.apache.plc4x.java.api.messages.specific.TypeSafePlcWriteResponse;
+import org.apache.plc4x.java.api.model.Address;
+import org.apache.plc4x.java.api.types.ResponseCode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicLong;
+
+public class Plc4XADSProtocol extends MessageToMessageCodec&lt;AMSTCPPaket, PlcRequestContainer&lt;PlcRequest, PlcResponse&gt;&gt; {
+
+<span class="fc" id="L61">    private static final Logger LOGGER = LoggerFactory.getLogger(Plc4XADSProtocol.class);</span>
+
+<span class="fc" id="L63">    private static final AtomicLong correlationBuilder = new AtomicLong(1);</span>
+
+    private ConcurrentMap&lt;Long, PlcRequestContainer&lt;PlcRequest, PlcResponse&gt;&gt; requests;
+
+    private final AMSNetId targetAmsNetId;
+    private final AMSPort targetAmsPort;
+    private final AMSNetId sourceAmsNetId;
+    private final AMSPort sourceAmsPort;
+
+<span class="fc" id="L72">    public Plc4XADSProtocol(AMSNetId targetAmsNetId, AMSPort targetAmsPort, AMSNetId sourceAmsNetId, AMSPort sourceAmsPort) {</span>
+<span class="fc" id="L73">        this.targetAmsNetId = targetAmsNetId;</span>
+<span class="fc" id="L74">        this.targetAmsPort = targetAmsPort;</span>
+<span class="fc" id="L75">        this.sourceAmsNetId = sourceAmsNetId;</span>
+<span class="fc" id="L76">        this.sourceAmsPort = sourceAmsPort;</span>
+<span class="fc" id="L77">        this.requests = new ConcurrentHashMap&lt;&gt;();</span>
+<span class="fc" id="L78">    }</span>
+
+    @Override
+    protected void encode(ChannelHandlerContext ctx, PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; msg, List&lt;Object&gt; out) throws Exception {
+<span class="fc" id="L82">        PlcRequest request = msg.getRequest();</span>
+<span class="fc bfc" id="L83" title="All 2 branches covered.">        if (request instanceof PlcReadRequest) {</span>
+<span class="fc" id="L84">            encodeReadRequest(msg, out);</span>
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">        } else if (request instanceof PlcWriteRequest) {</span>
+<span class="fc" id="L86">            encodeWriteRequest(msg, out);</span>
+        }
+<span class="fc" id="L88">    }</span>
+
+
+    private void encodeWriteRequest(PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; msg, List&lt;Object&gt; out) throws PlcException {
+<span class="fc" id="L92">        PlcWriteRequest writeRequest = (PlcWriteRequest) msg.getRequest();</span>
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">        if (writeRequest.getRequestItems().size() != 1) {</span>
+<span class="nc" id="L94">            throw new PlcProtocolException(&quot;Only one item supported&quot;);</span>
+        }
+<span class="fc" id="L96">        WriteRequestItem&lt;?&gt; writeRequestItem = writeRequest.getRequestItems().get(0);</span>
+<span class="fc" id="L97">        Address address = writeRequestItem.getAddress();</span>
+<span class="pc bpc" id="L98" title="1 of 2 branches missed.">        if (!(address instanceof ADSAddress)) {</span>
+<span class="nc" id="L99">            throw new PlcProtocolException(&quot;Address not of type ADSAddress: &quot; + address.getClass());</span>
+        }
+<span class="fc" id="L101">        ADSAddress adsAddress = (ADSAddress) address;</span>
+<span class="fc" id="L102">        Invoke invokeId = Invoke.of(correlationBuilder.incrementAndGet());</span>
+<span class="fc" id="L103">        IndexGroup indexGroup = IndexGroup.of(adsAddress.getIndexGroup());</span>
+<span class="fc" id="L104">        IndexOffset indexOffset = IndexOffset.of(adsAddress.getIndexOffset());</span>
+<span class="fc" id="L105">        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();</span>
+<span class="fc bfc" id="L106" title="All 2 branches covered.">        for (Object o : writeRequestItem.getValues()) {</span>
+            // TODO: we need custom serialization here as java types don't really help here
+<span class="fc" id="L108">            byte[] serialize = SerializationUtils.serialize((Serializable) o);</span>
+            try {
+<span class="fc" id="L110">                byteArrayOutputStream.write(serialize);</span>
+<span class="nc" id="L111">            } catch (IOException e) {</span>
+<span class="nc" id="L112">                throw new PlcException(e);</span>
+<span class="fc" id="L113">            }</span>
+<span class="fc" id="L114">        }</span>
+<span class="fc" id="L115">        byte[] bytes = byteArrayOutputStream.toByteArray();</span>
+<span class="fc" id="L116">        Data data = Data.of(bytes);</span>
+<span class="fc" id="L117">        AMSTCPPaket amstcpPaket = ADSWriteRequest.of(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId, indexGroup, indexOffset, data);</span>
+<span class="fc" id="L118">        out.add(amstcpPaket);</span>
+<span class="fc" id="L119">        requests.put(invokeId.getAsLong(), msg);</span>
+<span class="fc" id="L120">    }</span>
+
+    private void encodeReadRequest(PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; msg, List&lt;Object&gt; out) throws PlcException {
+<span class="fc" id="L123">        PlcReadRequest readRequest = (PlcReadRequest) msg.getRequest();</span>
+
+<span class="pc bpc" id="L125" title="1 of 2 branches missed.">        if (readRequest.getRequestItems().size() != 1) {</span>
+<span class="nc" id="L126">            throw new PlcProtocolException(&quot;Only one item supported&quot;);</span>
+        }
+<span class="fc" id="L128">        ReadRequestItem&lt;?&gt; readRequestItem = readRequest.getRequestItems().get(0);</span>
+<span class="fc" id="L129">        Address address = readRequestItem.getAddress();</span>
+<span class="pc bpc" id="L130" title="1 of 2 branches missed.">        if (!(address instanceof ADSAddress)) {</span>
+<span class="nc" id="L131">            throw new PlcProtocolException(&quot;Address not of type ADSAddress: &quot; + address.getClass());</span>
+        }
+<span class="fc" id="L133">        ADSAddress adsAddress = (ADSAddress) address;</span>
+<span class="fc" id="L134">        Invoke invokeId = Invoke.of(correlationBuilder.incrementAndGet());</span>
+<span class="fc" id="L135">        IndexGroup indexGroup = IndexGroup.of(adsAddress.getIndexGroup());</span>
+<span class="fc" id="L136">        IndexOffset indexOffset = IndexOffset.of(adsAddress.getIndexOffset());</span>
+<span class="fc" id="L137">        Length length = Length.of(readRequestItem.getSize());</span>
+<span class="fc" id="L138">        AMSTCPPaket amstcpPaket = ADSReadRequest.of(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId, indexGroup, indexOffset, length);</span>
+<span class="fc" id="L139">        out.add(amstcpPaket);</span>
+<span class="fc" id="L140">        requests.put(invokeId.getAsLong(), msg);</span>
+<span class="fc" id="L141">    }</span>
+
+    @Override
+    protected void decode(ChannelHandlerContext channelHandlerContext, AMSTCPPaket amstcpPaket, List&lt;Object&gt; out) throws Exception {
+<span class="nc" id="L145">        PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; plcRequestContainer = requests.remove(amstcpPaket.getAmsHeader().getInvokeId().getAsLong());</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">        if (plcRequestContainer == null) {</span>
+<span class="nc" id="L147">            LOGGER.info(&quot;Unmapped packet received {}&quot;, amstcpPaket);</span>
+<span class="nc" id="L148">            return;</span>
+        }
+<span class="nc" id="L150">        PlcRequest request = plcRequestContainer.getRequest();</span>
+<span class="nc" id="L151">        PlcResponse response = null;</span>
+
+        // Handle the response to a read request.
+<span class="nc bnc" id="L154" title="All 2 branches missed.">        if (request instanceof PlcReadRequest) {</span>
+<span class="nc bnc" id="L155" title="All 2 branches missed.">            if (amstcpPaket instanceof ADSReadResponse) {</span>
+<span class="nc" id="L156">                response = decodeReadResponse((ADSReadResponse) amstcpPaket, plcRequestContainer);</span>
+            } else {
+<span class="nc" id="L158">                throw new PlcProtocolException(&quot;Wrong type correlated &quot; + amstcpPaket);</span>
+            }
+<span class="nc bnc" id="L160" title="All 2 branches missed.">        } else if (request instanceof PlcWriteRequest) {</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">            if (amstcpPaket instanceof ADSWriteResponse) {</span>
+<span class="nc" id="L162">                response = decodeWriteResponse((ADSWriteResponse) amstcpPaket, plcRequestContainer);</span>
+            } else {
+<span class="nc" id="L164">                throw new PlcProtocolException(&quot;Wrong type correlated &quot; + amstcpPaket);</span>
+            }
+        }
+
+        // Confirm the response being handled.
+<span class="nc bnc" id="L169" title="All 2 branches missed.">        if (response != null) {</span>
+<span class="nc" id="L170">            plcRequestContainer.getResponseFuture().complete(response);</span>
+        }
+<span class="nc" id="L172">        out.add(plcRequestContainer);</span>
+<span class="nc" id="L173">    }</span>
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    private PlcResponse decodeWriteResponse(ADSWriteResponse responseMessage, PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; requestContainer) throws PlcProtocolException {
+<span class="nc" id="L177">        PlcWriteRequest plcWriteRequest = (PlcWriteRequest) requestContainer.getRequest();</span>
+<span class="nc" id="L178">        WriteRequestItem requestItem = plcWriteRequest.getRequestItems().get(0);</span>
+
+<span class="nc" id="L180">        ResponseCode responseCode = decodeResponseCode(responseMessage.getResult());</span>
+
+<span class="nc bnc" id="L182" title="All 2 branches missed.">        if (plcWriteRequest instanceof TypeSafePlcWriteRequest) {</span>
+<span class="nc" id="L183">            return new TypeSafePlcWriteResponse((TypeSafePlcWriteRequest) plcWriteRequest, Collections.singletonList(new WriteResponseItem&lt;&gt;(requestItem, responseCode)));</span>
+        } else {
+<span class="nc" id="L185">            return new PlcWriteResponse(plcWriteRequest, Collections.singletonList(new WriteResponseItem&lt;&gt;(requestItem, responseCode)));</span>
+        }
+    }
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    private PlcResponse decodeReadResponse(ADSReadResponse responseMessage, PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; requestContainer) throws PlcProtocolException {
+<span class="nc" id="L191">        PlcReadRequest plcReadRequest = (PlcReadRequest) requestContainer.getRequest();</span>
+<span class="nc" id="L192">        ReadRequestItem requestItem = plcReadRequest.getRequestItems().get(0);</span>
+
+<span class="nc" id="L194">        ResponseCode responseCode = decodeResponseCode(responseMessage.getResult());</span>
+<span class="nc" id="L195">        byte[] bytes = responseMessage.getData().getBytes();</span>
+        // TODO: we need custom serialization here as java types don't really help here
+<span class="nc" id="L197">        Object deserialize = SerializationUtils.deserialize(bytes);</span>
+
+<span class="nc bnc" id="L199" title="All 2 branches missed.">        if (plcReadRequest instanceof TypeSafePlcReadRequest) {</span>
+<span class="nc" id="L200">            return new TypeSafePlcReadResponse((TypeSafePlcReadRequest) plcReadRequest, Collections.singletonList(new ReadResponseItem&lt;&gt;(requestItem, responseCode, Collections.singletonList(deserialize))));</span>
+        } else {
+<span class="nc" id="L202">            return new PlcReadResponse(plcReadRequest, Collections.singletonList(new ReadResponseItem&lt;&gt;(requestItem, responseCode, Collections.singletonList(bytes))));</span>
+        }
+    }
+
+    private ResponseCode decodeResponseCode(Result result) {
+<span class="nc bnc" id="L207" title="All 7 branches missed.">        switch (result.toAdsReturnCode()) {</span>
+            case ADS_CODE_0:
+<span class="nc" id="L209">                return ResponseCode.OK;</span>
+            case ADS_CODE_1:
+<span class="nc" id="L211">                return ResponseCode.INTERNAL_ERROR;</span>
+            case ADS_CODE_2:
+            case ADS_CODE_3:
+            case ADS_CODE_4:
+            case ADS_CODE_5:
+<span class="nc" id="L216">                return ResponseCode.INTERNAL_ERROR;</span>
+            case ADS_CODE_6:
+            case ADS_CODE_7:
+<span class="nc" id="L219">                return ResponseCode.INVALID_ADDRESS;</span>
+            case ADS_CODE_8:
+            case ADS_CODE_9:
+            case ADS_CODE_10:
+            case ADS_CODE_11:
+            case ADS_CODE_12:
+            case ADS_CODE_13:
+            case ADS_CODE_14:
+            case ADS_CODE_15:
+            case ADS_CODE_16:
+            case ADS_CODE_17:
+            case ADS_CODE_18:
+            case ADS_CODE_19:
+            case ADS_CODE_20:
+            case ADS_CODE_21:
+            case ADS_CODE_22:
+            case ADS_CODE_23:
+            case ADS_CODE_24:
+            case ADS_CODE_25:
+            case ADS_CODE_26:
+            case ADS_CODE_27:
+            case ADS_CODE_28:
+            case ADS_CODE_1280:
+            case ADS_CODE_1281:
+            case ADS_CODE_1282:
+            case ADS_CODE_1283:
+            case ADS_CODE_1284:
+            case ADS_CODE_1285:
+            case ADS_CODE_1286:
+            case ADS_CODE_1287:
+            case ADS_CODE_1288:
+            case ADS_CODE_1289:
+            case ADS_CODE_1290:
+            case ADS_CODE_1291:
+            case ADS_CODE_1292:
+            case ADS_CODE_1293:
+            case ADS_CODE_1792:
+            case ADS_CODE_1793:
+            case ADS_CODE_1794:
+            case ADS_CODE_1795:
+            case ADS_CODE_1796:
+            case ADS_CODE_1797:
+            case ADS_CODE_1798:
+            case ADS_CODE_1799:
+            case ADS_CODE_1800:
+            case ADS_CODE_1801:
+            case ADS_CODE_1802:
+            case ADS_CODE_1803:
+            case ADS_CODE_1804:
+            case ADS_CODE_1805:
+            case ADS_CODE_1806:
+            case ADS_CODE_1807:
+            case ADS_CODE_1808:
+            case ADS_CODE_1809:
+            case ADS_CODE_1810:
+            case ADS_CODE_1811:
+            case ADS_CODE_1812:
+            case ADS_CODE_1813:
+            case ADS_CODE_1814:
+            case ADS_CODE_1815:
+            case ADS_CODE_1816:
+            case ADS_CODE_1817:
+            case ADS_CODE_1818:
+            case ADS_CODE_1819:
+            case ADS_CODE_1820:
+            case ADS_CODE_1821:
+            case ADS_CODE_1822:
+            case ADS_CODE_1823:
+            case ADS_CODE_1824:
+            case ADS_CODE_1825:
+            case ADS_CODE_1826:
+            case ADS_CODE_1827:
+            case ADS_CODE_1828:
+            case ADS_CODE_1836:
+            case ADS_CODE_1856:
+            case ADS_CODE_1857:
+            case ADS_CODE_1858:
+            case ADS_CODE_1859:
+            case ADS_CODE_1860:
+            case ADS_CODE_1861:
+            case ADS_CODE_1862:
+            case ADS_CODE_1863:
+            case ADS_CODE_1864:
+            case ADS_CODE_1872:
+            case ADS_CODE_1873:
+            case ADS_CODE_1874:
+            case ADS_CODE_1875:
+            case ADS_CODE_1876:
+            case ADS_CODE_1877:
+            case ADS_CODE_4096:
+            case ADS_CODE_4097:
+            case ADS_CODE_4098:
+            case ADS_CODE_4099:
+            case ADS_CODE_4100:
+            case ADS_CODE_4101:
+            case ADS_CODE_4102:
+            case ADS_CODE_4103:
+            case ADS_CODE_4104:
+            case ADS_CODE_4105:
+            case ADS_CODE_4106:
+            case ADS_CODE_4107:
+            case ADS_CODE_4108:
+            case ADS_CODE_4109:
+            case ADS_CODE_4110:
+            case ADS_CODE_4111:
+            case ADS_CODE_4112:
+            case ADS_CODE_4119:
+            case ADS_CODE_4120:
+            case ADS_CODE_4121:
+            case ADS_CODE_4122:
+            case ADS_CODE_10060:
+            case ADS_CODE_10061:
+            case ADS_CODE_10065:
+<span class="nc" id="L332">                return ResponseCode.INTERNAL_ERROR;</span>
+            case UNKNOWN:
+<span class="nc" id="L334">                return ResponseCode.INTERNAL_ERROR;</span>
+        }
+<span class="nc" id="L336">        throw new IllegalStateException(result.toAdsReturnCode() + &quot; not mapped&quot;);</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UnsignedIntLEByteValue.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PLC4J: Protocol: ADS</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.java.ads.api.util</a> &gt; <span class="el_source">UnsignedIntLEByteValue.java</span></div><h1>UnsignedIntLEByteValue.java</h1><pre class="source lang-java linenums">/*
+ Licensed to the Apache Software Foundation (ASF) under one
+ or more contributor license agreements.  See the NOTICE file
+ distributed with this work for additional information
+ regarding copyright ownership.  The ASF licenses this file
+ to you under the Apache License, Version 2.0 (the
+ &quot;License&quot;); you may not use this file except in compliance
+ with the License.  You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing,
+ software distributed under the License is distributed on an
+ &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ KIND, either express or implied.  See the License for the
+ specific language governing permissions and limitations
+ under the License.
+ */
+package org.apache.plc4x.java.ads.api.util;
+
+import io.netty.buffer.ByteBuf;
+
+import java.nio.ByteBuffer;
+
+public abstract class UnsignedIntLEByteValue extends ByteValue {
+
+    public static final int NUM_BYTES = 4;
+
+    protected final long longValue;
+
+    public UnsignedIntLEByteValue(byte... value) {
+<span class="fc" id="L32">        super(value);</span>
+<span class="fc" id="L33">        assertLength(NUM_BYTES);</span>
+<span class="fc" id="L34">        longValue = getBytes()[3] &lt;&lt; 24 | getBytes()[2] &lt;&lt; 16 | getBytes()[1] &lt;&lt; 8 | getBytes()[0];</span>
+<span class="fc" id="L35">    }</span>
+
+    public UnsignedIntLEByteValue(long value) {
+<span class="fc" id="L38">        super(ofLong(value));</span>
+<span class="fc" id="L39">        checkUnsignedBounds(value, NUM_BYTES);</span>
+<span class="fc" id="L40">        longValue = value;</span>
+<span class="fc" id="L41">    }</span>
+
+    public UnsignedIntLEByteValue(ByteBuf byteBuf) {
+<span class="fc" id="L44">        this(byteBuf.readUnsignedIntLE());</span>
+<span class="fc" id="L45">    }</span>
+
+    protected static byte[] ofLong(long value) {
+<span class="fc" id="L48">        return ByteBuffer.allocate(NUM_BYTES)</span>
+            // LE
+<span class="fc" id="L50">            .put((byte) (value &amp; 0xff))</span>
+<span class="fc" id="L51">            .put((byte) (value &gt;&gt; 8 &amp; 0xff))</span>
+<span class="fc" id="L52">            .put((byte) (value &gt;&gt; 16 &amp; 0xff))</span>
+<span class="fc" id="L53">            .put((byte) (value &gt;&gt; 24 &amp; 0xff))</span>
+<span class="fc" id="L54">            .array();</span>
+    }
+
+    public long getAsLong() {
+<span class="fc" id="L58">        return longValue;</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="fc" id="L63">        return String.valueOf(getAsLong());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
