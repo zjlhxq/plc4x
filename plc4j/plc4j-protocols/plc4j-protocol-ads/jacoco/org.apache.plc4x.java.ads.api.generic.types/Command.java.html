@@ -26,21 +26,23 @@ import org.apache.plc4x.java.ads.api.util.ByteValue;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-<span class="fc" id="L29">public enum Command implements ByteReadable {</span>
-<span class="fc" id="L30">    Invalid(0x00),</span>
-<span class="fc" id="L31">    ADS_Read_Device_Info(0x01),</span>
-<span class="fc" id="L32">    ADS_Read(0x02),</span>
-<span class="fc" id="L33">    ADS_Write(0x03),</span>
-<span class="fc" id="L34">    ADS_Read_State(0x04),</span>
-<span class="fc" id="L35">    ADS_Write_Control(0x05),</span>
-<span class="fc" id="L36">    ADS_Add_Device_Notification(0x06),</span>
-<span class="fc" id="L37">    ADS_Delete_Device_Notification(0x07),</span>
-<span class="fc" id="L38">    ADS_Device_Notification(0x08),</span>
-<span class="fc" id="L39">    ADS_Read_Write(0x09),</span>
+import static java.lang.Integer.toHexString;
+
+<span class="fc" id="L31">public enum Command implements ByteReadable {</span>
+<span class="fc" id="L32">    Invalid(0x00),</span>
+<span class="fc" id="L33">    ADS_Read_Device_Info(0x01),</span>
+<span class="fc" id="L34">    ADS_Read(0x02),</span>
+<span class="fc" id="L35">    ADS_Write(0x03),</span>
+<span class="fc" id="L36">    ADS_Read_State(0x04),</span>
+<span class="fc" id="L37">    ADS_Write_Control(0x05),</span>
+<span class="fc" id="L38">    ADS_Add_Device_Notification(0x06),</span>
+<span class="fc" id="L39">    ADS_Delete_Device_Notification(0x07),</span>
+<span class="fc" id="L40">    ADS_Device_Notification(0x08),</span>
+<span class="fc" id="L41">    ADS_Read_Write(0x09),</span>
     /**
      * Other commands are not defined or are used internally. Therefore the Command Id  is only allowed to contain the above enumerated values!
      */
-<span class="fc" id="L43">    UNKNOWN();</span>
+<span class="fc" id="L45">    UNKNOWN();</span>
 
     public static final int NUM_BYTES = 2;
 
@@ -48,59 +50,64 @@ import java.util.Arrays;
 
     final int intValue;
 
-<span class="fc" id="L51">    Command() {</span>
+<span class="fc" id="L53">    Command() {</span>
         // Only used for unkown enum
-<span class="fc" id="L53">        value = new byte[0];</span>
-<span class="fc" id="L54">        intValue = 0;</span>
-<span class="fc" id="L55">    }</span>
+<span class="fc" id="L55">        value = new byte[0];</span>
+<span class="fc" id="L56">        intValue = 0;</span>
+<span class="fc" id="L57">    }</span>
 
-<span class="fc" id="L57">    Command(int value) {</span>
-<span class="fc" id="L58">        ByteValue.checkUnsignedBounds(value, NUM_BYTES);</span>
-<span class="fc" id="L59">        this.intValue = value;</span>
-<span class="fc" id="L60">        this.value = ByteBuffer.allocate(NUM_BYTES)</span>
+<span class="fc" id="L59">    Command(int value) {</span>
+<span class="fc" id="L60">        ByteValue.checkUnsignedBounds(value, NUM_BYTES);</span>
+<span class="fc" id="L61">        this.intValue = value;</span>
+<span class="fc" id="L62">        this.value = ByteBuffer.allocate(NUM_BYTES)</span>
             // LE
-<span class="fc" id="L62">            .put((byte) (value &amp; 0xff))</span>
-<span class="fc" id="L63">            .put((byte) (value &gt;&gt; 8 &amp; 0xff))</span>
-<span class="fc" id="L64">            .array();</span>
-<span class="fc" id="L65">    }</span>
+<span class="fc" id="L64">            .put((byte) (value &amp; 0xff))</span>
+<span class="fc" id="L65">            .put((byte) (value &gt;&gt; 8 &amp; 0xff))</span>
+<span class="fc" id="L66">            .array();</span>
+<span class="fc" id="L67">    }</span>
 
     @Override
     public byte[] getBytes() {
-<span class="nc bnc" id="L69" title="All 2 branches missed.">        if (this == UNKNOWN) {</span>
-<span class="nc" id="L70">            throw new IllegalStateException(&quot;Unknown enum can't be serialized&quot;);</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">        if (this == UNKNOWN) {</span>
+<span class="nc" id="L72">            throw new IllegalStateException(&quot;Unknown enum can't be serialized&quot;);</span>
         }
-<span class="nc" id="L72">        return value;</span>
+<span class="nc" id="L74">        return value;</span>
     }
 
     public ByteBuf getByteBuf() {
-<span class="pc bpc" id="L76" title="1 of 2 branches missed.">        if (this == UNKNOWN) {</span>
-<span class="nc" id="L77">            throw new IllegalStateException(&quot;Unknown enum can't be serialized&quot;);</span>
+<span class="pc bpc" id="L78" title="1 of 2 branches missed.">        if (this == UNKNOWN) {</span>
+<span class="nc" id="L79">            throw new IllegalStateException(&quot;Unknown enum can't be serialized&quot;);</span>
         }
-<span class="fc" id="L79">        return Unpooled.buffer().writeBytes(value);</span>
+<span class="fc" id="L81">        return Unpooled.buffer().writeBytes(value);</span>
     }
 
     public static Command of(byte... bytes) {
         // TODO: improve by using a map
-<span class="nc bnc" id="L84" title="All 2 branches missed.">        for (Command command : values()) {</span>
-<span class="nc bnc" id="L85" title="All 2 branches missed.">            if (Arrays.equals(bytes, command.value)) {</span>
-<span class="nc" id="L86">                return command;</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">        for (Command command : values()) {</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">            if (Arrays.equals(bytes, command.value)) {</span>
+<span class="nc" id="L88">                return command;</span>
             }
         }
-<span class="nc" id="L89">        return UNKNOWN;</span>
+<span class="nc" id="L91">        return UNKNOWN;</span>
     }
 
     public static Command of(int intValue) {
         // TODO: improve by using a map
-<span class="pc bpc" id="L94" title="1 of 2 branches missed.">        for (Command command : values()) {</span>
-<span class="fc bfc" id="L95" title="All 2 branches covered.">            if (command.intValue == intValue) {</span>
-<span class="fc" id="L96">                return command;</span>
+<span class="pc bpc" id="L96" title="1 of 2 branches missed.">        for (Command command : values()) {</span>
+<span class="fc bfc" id="L97" title="All 2 branches covered.">            if (command.intValue == intValue) {</span>
+<span class="fc" id="L98">                return command;</span>
             }
         }
-<span class="nc" id="L99">        return UNKNOWN;</span>
+<span class="nc" id="L101">        return UNKNOWN;</span>
     }
 
     public static Command of(ByteBuf byteBuf) {
-<span class="fc" id="L103">        return of(byteBuf.readUnsignedShortLE());</span>
+<span class="fc" id="L105">        return of(byteBuf.readUnsignedShortLE());</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="fc" id="L110">        return name() + &quot;/hex=&quot; + String.format(&quot;0x%2s&quot;, toHexString(intValue)).replace(' ', '0');</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
