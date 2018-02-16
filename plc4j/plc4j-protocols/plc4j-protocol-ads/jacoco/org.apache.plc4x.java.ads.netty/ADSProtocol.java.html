@@ -26,7 +26,7 @@ import org.apache.plc4x.java.ads.api.commands.types.*;
 import org.apache.plc4x.java.ads.api.commands.types.Length;
 import org.apache.plc4x.java.ads.api.generic.AMSHeader;
 import org.apache.plc4x.java.ads.api.generic.AMSTCPHeader;
-import org.apache.plc4x.java.ads.api.generic.AMSTCPPaket;
+import org.apache.plc4x.java.ads.api.generic.AMSTCPPacket;
 import org.apache.plc4x.java.ads.api.generic.types.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,23 +37,23 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-public class ADSProtocol extends MessageToMessageCodec&lt;ByteBuf, AMSTCPPaket&gt; {
+public class ADSProtocol extends MessageToMessageCodec&lt;ByteBuf, AMSTCPPacket&gt; {
 
 <span class="fc" id="L42">    private static final Logger LOGGER = LoggerFactory.getLogger(ADSProtocol.class);</span>
 
-    private ConcurrentMap&lt;Invoke, AMSTCPPaket&gt; requests;
+    private ConcurrentMap&lt;Invoke, AMSTCPPacket&gt; requests;
 
 <span class="fc" id="L46">    public ADSProtocol() {</span>
 <span class="fc" id="L47">        this.requests = new ConcurrentHashMap&lt;&gt;();</span>
 <span class="fc" id="L48">    }</span>
 
     @Override
-    protected void encode(ChannelHandlerContext channelHandlerContext, AMSTCPPaket amstcpPaket, List&lt;Object&gt; out) throws Exception {
-<span class="fc" id="L52">        Invoke invokeId = amstcpPaket.getAmsHeader().getInvokeId();</span>
+    protected void encode(ChannelHandlerContext channelHandlerContext, AMSTCPPacket amstcpPacket, List&lt;Object&gt; out) throws Exception {
+<span class="fc" id="L52">        Invoke invokeId = amstcpPacket.getAmsHeader().getInvokeId();</span>
 <span class="pc bpc" id="L53" title="1 of 2 branches missed.">        if (invokeId != Invoke.NONE) {</span>
-<span class="fc" id="L54">            requests.put(invokeId, amstcpPaket);</span>
+<span class="fc" id="L54">            requests.put(invokeId, amstcpPacket);</span>
         }
-<span class="fc" id="L56">        out.add(amstcpPaket.getByteBuf());</span>
+<span class="fc" id="L56">        out.add(amstcpPacket.getByteBuf());</span>
 <span class="fc" id="L57">    }</span>
 
 
@@ -72,7 +72,7 @@ public class ADSProtocol extends MessageToMessageCodec&lt;ByteBuf, AMSTCPPaket&g
 <span class="fc" id="L72">        DataLength dataLength = DataLength.of(byteBuf);</span>
 <span class="fc" id="L73">        AMSError errorCode = AMSError.of(byteBuf);</span>
 <span class="fc" id="L74">        Invoke invoke = Invoke.of(byteBuf);</span>
-<span class="fc" id="L75">        AMSTCPPaket correlatedAmstcpPacket = requests.remove(invoke);</span>
+<span class="fc" id="L75">        AMSTCPPacket correlatedAmstcpPacket = requests.remove(invoke);</span>
 <span class="pc bpc" id="L76" title="1 of 2 branches missed.">        if (correlatedAmstcpPacket != null) {</span>
 <span class="nc" id="L77">            LOGGER.debug(&quot;Correlated packet received {}&quot;, correlatedAmstcpPacket);</span>
         }
@@ -82,21 +82,21 @@ public class ADSProtocol extends MessageToMessageCodec&lt;ByteBuf, AMSTCPPaket&g
 <span class="fc" id="L82">        ByteBuf commandBuffer = byteBuf.readBytes((int) dataLength.getAsLong());</span>
 <span class="fc" id="L83">        AMSTCPHeader amstcpHeader = AMSTCPHeader.of(packetLength);</span>
 <span class="fc" id="L84">        AMSHeader amsHeader = AMSHeader.of(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, commandId, stateId, dataLength, errorCode, invoke);</span>
-        final AMSTCPPaket amstcpPaket;
+        final AMSTCPPacket amstcpPacket;
 <span class="pc bpc" id="L86" title="2 of 11 branches missed.">        switch (commandId) {</span>
             case Invalid:
-<span class="nc" id="L88">                amstcpPaket = UnknownCommand.of(amstcpHeader, amsHeader, commandBuffer);</span>
+<span class="nc" id="L88">                amstcpPacket = UnknownCommand.of(amstcpHeader, amsHeader, commandBuffer);</span>
 <span class="nc" id="L89">                break;</span>
             case ADS_Read_Device_Info:
 <span class="fc bfc" id="L91" title="All 2 branches covered.">                if (stateId.isRequest()) {</span>
-<span class="fc" id="L92">                    amstcpPaket = ADSReadDeviceInfoRequest.of(amstcpHeader, amsHeader);</span>
+<span class="fc" id="L92">                    amstcpPacket = ADSReadDeviceInfoRequest.of(amstcpHeader, amsHeader);</span>
                 } else {
 <span class="fc" id="L94">                    Result result = Result.of(commandBuffer);</span>
 <span class="fc" id="L95">                    MajorVersion majorVersion = MajorVersion.of(commandBuffer);</span>
 <span class="fc" id="L96">                    MinorVersion minorVersion = MinorVersion.of(commandBuffer);</span>
 <span class="fc" id="L97">                    Version version = Version.of(commandBuffer);</span>
 <span class="fc" id="L98">                    Device device = Device.of(commandBuffer);</span>
-<span class="fc" id="L99">                    amstcpPaket = ADSReadDeviceInfoResponse.of(amstcpHeader, amsHeader, result, majorVersion, minorVersion, version, device);</span>
+<span class="fc" id="L99">                    amstcpPacket = ADSReadDeviceInfoResponse.of(amstcpHeader, amsHeader, result, majorVersion, minorVersion, version, device);</span>
                 }
 <span class="fc" id="L101">                break;</span>
             case ADS_Read:
@@ -104,7 +104,7 @@ public class ADSProtocol extends MessageToMessageCodec&lt;ByteBuf, AMSTCPPaket&g
 <span class="fc" id="L104">                    IndexGroup indexGroup = IndexGroup.of(commandBuffer);</span>
 <span class="fc" id="L105">                    IndexOffset indexOffset = IndexOffset.of(commandBuffer);</span>
 <span class="fc" id="L106">                    Length length = Length.of(commandBuffer);</span>
-<span class="fc" id="L107">                    amstcpPaket = ADSReadRequest.of(amstcpHeader, amsHeader, indexGroup, indexOffset, length);</span>
+<span class="fc" id="L107">                    amstcpPacket = ADSReadRequest.of(amstcpHeader, amsHeader, indexGroup, indexOffset, length);</span>
 <span class="fc" id="L108">                } else {</span>
 <span class="fc" id="L109">                    Result result = Result.of(commandBuffer);</span>
 <span class="fc" id="L110">                    Length length = Length.of(commandBuffer);</span>
@@ -114,7 +114,7 @@ public class ADSProtocol extends MessageToMessageCodec&lt;ByteBuf, AMSTCPPaket&g
 <span class="fc" id="L114">                    byte[] dataToRead = new byte[(int) length.getAsLong()];</span>
 <span class="fc" id="L115">                    commandBuffer.readBytes(dataToRead);</span>
 <span class="fc" id="L116">                    Data data = Data.of(dataToRead);</span>
-<span class="fc" id="L117">                    amstcpPaket = ADSReadResponse.of(amstcpHeader, amsHeader, result, length, data);</span>
+<span class="fc" id="L117">                    amstcpPacket = ADSReadResponse.of(amstcpHeader, amsHeader, result, length, data);</span>
                 }
 <span class="fc" id="L119">                break;</span>
             case ADS_Write:
@@ -128,18 +128,18 @@ public class ADSProtocol extends MessageToMessageCodec&lt;ByteBuf, AMSTCPPaket&g
 <span class="fc" id="L128">                    byte[] dataToRead = new byte[(int) length.getAsLong()];</span>
 <span class="fc" id="L129">                    commandBuffer.readBytes(dataToRead);</span>
 <span class="fc" id="L130">                    Data data = Data.of(dataToRead);</span>
-<span class="fc" id="L131">                    amstcpPaket = ADSWriteRequest.of(amstcpHeader, amsHeader, indexGroup, indexOffset, length, data);</span>
+<span class="fc" id="L131">                    amstcpPacket = ADSWriteRequest.of(amstcpHeader, amsHeader, indexGroup, indexOffset, length, data);</span>
 <span class="fc" id="L132">                } else {</span>
 <span class="fc" id="L133">                    Result result = Result.of(commandBuffer);</span>
-<span class="fc" id="L134">                    amstcpPaket = ADSWriteResponse.of(amstcpHeader, amsHeader, result);</span>
+<span class="fc" id="L134">                    amstcpPacket = ADSWriteResponse.of(amstcpHeader, amsHeader, result);</span>
                 }
 <span class="fc" id="L136">                break;</span>
             case ADS_Read_State:
 <span class="fc bfc" id="L138" title="All 2 branches covered.">                if (stateId.isRequest()) {</span>
-<span class="fc" id="L139">                    amstcpPaket = ADSReadStateRequest.of(amstcpHeader, amsHeader);</span>
+<span class="fc" id="L139">                    amstcpPacket = ADSReadStateRequest.of(amstcpHeader, amsHeader);</span>
                 } else {
 <span class="fc" id="L141">                    Result result = Result.of(commandBuffer);</span>
-<span class="fc" id="L142">                    amstcpPaket = ADSReadStateResponse.of(amstcpHeader, amsHeader, result);</span>
+<span class="fc" id="L142">                    amstcpPacket = ADSReadStateResponse.of(amstcpHeader, amsHeader, result);</span>
                 }
 <span class="fc" id="L144">                break;</span>
             case ADS_Write_Control:
@@ -155,10 +155,10 @@ public class ADSProtocol extends MessageToMessageCodec&lt;ByteBuf, AMSTCPPaket&g
 <span class="fc" id="L155">                    byte[] dataToRead = new byte[(int) length.getAsLong()];</span>
 <span class="fc" id="L156">                    commandBuffer.readBytes(dataToRead);</span>
 <span class="fc" id="L157">                    Data data = Data.of(dataToRead);</span>
-<span class="fc" id="L158">                    amstcpPaket = ADSWriteControlRequest.of(amstcpHeader, amsHeader, adsState, deviceState, length, data);</span>
+<span class="fc" id="L158">                    amstcpPacket = ADSWriteControlRequest.of(amstcpHeader, amsHeader, adsState, deviceState, length, data);</span>
 <span class="fc" id="L159">                } else {</span>
 <span class="fc" id="L160">                    Result result = Result.of(commandBuffer);</span>
-<span class="fc" id="L161">                    amstcpPaket = ADSWriteControlResponse.of(amstcpHeader, amsHeader, result);</span>
+<span class="fc" id="L161">                    amstcpPacket = ADSWriteControlResponse.of(amstcpHeader, amsHeader, result);</span>
                 }
 <span class="fc" id="L163">                break;</span>
             case ADS_Add_Device_Notification:
@@ -170,20 +170,20 @@ public class ADSProtocol extends MessageToMessageCodec&lt;ByteBuf, AMSTCPPaket&g
 <span class="fc" id="L170">                    MaxDelay maxDelay = MaxDelay.of(commandBuffer);</span>
 <span class="fc" id="L171">                    CycleTime cycleTime = CycleTime.of(commandBuffer);</span>
 <span class="fc" id="L172">                    commandBuffer.skipBytes(ADSAddDeviceNotificationRequest.Reserved.NUM_BYTES);</span>
-<span class="fc" id="L173">                    amstcpPaket = ADSAddDeviceNotificationRequest.of(amstcpHeader, amsHeader, indexGroup, indexOffset, length, transmissionMode, maxDelay, cycleTime);</span>
+<span class="fc" id="L173">                    amstcpPacket = ADSAddDeviceNotificationRequest.of(amstcpHeader, amsHeader, indexGroup, indexOffset, length, transmissionMode, maxDelay, cycleTime);</span>
 <span class="fc" id="L174">                } else {</span>
 <span class="fc" id="L175">                    Result result = Result.of(commandBuffer);</span>
 <span class="fc" id="L176">                    NotificationHandle notificationHandle = NotificationHandle.of(commandBuffer);</span>
-<span class="fc" id="L177">                    amstcpPaket = ADSAddDeviceNotificationResponse.of(amstcpHeader, amsHeader, result, notificationHandle);</span>
+<span class="fc" id="L177">                    amstcpPacket = ADSAddDeviceNotificationResponse.of(amstcpHeader, amsHeader, result, notificationHandle);</span>
                 }
 <span class="fc" id="L179">                break;</span>
             case ADS_Delete_Device_Notification:
 <span class="fc bfc" id="L181" title="All 2 branches covered.">                if (stateId.isRequest()) {</span>
 <span class="fc" id="L182">                    NotificationHandle notificationHandle = NotificationHandle.of(commandBuffer);</span>
-<span class="fc" id="L183">                    amstcpPaket = ADSDeleteDeviceNotificationRequest.of(amstcpHeader, amsHeader, notificationHandle);</span>
+<span class="fc" id="L183">                    amstcpPacket = ADSDeleteDeviceNotificationRequest.of(amstcpHeader, amsHeader, notificationHandle);</span>
 <span class="fc" id="L184">                } else {</span>
 <span class="fc" id="L185">                    Result result = Result.of(commandBuffer);</span>
-<span class="fc" id="L186">                    amstcpPaket = ADSDeleteDeviceNotificationResponse.of(amstcpHeader, amsHeader, result);</span>
+<span class="fc" id="L186">                    amstcpPacket = ADSDeleteDeviceNotificationResponse.of(amstcpHeader, amsHeader, result);</span>
                 }
 <span class="fc" id="L188">                break;</span>
             case ADS_Device_Notification:
@@ -220,9 +220,9 @@ public class ADSProtocol extends MessageToMessageCodec&lt;ByteBuf, AMSTCPPaket&g
 <span class="fc" id="L220">                        AdsStampHeader adsStampHeader = AdsStampHeader.of(timeStamp, samples, adsNotificationSamples);</span>
 <span class="fc" id="L221">                        adsStampHeaders.add(adsStampHeader);</span>
                     }
-<span class="fc" id="L223">                    amstcpPaket = ADSDeviceNotificationRequest.of(amstcpHeader, amsHeader, length, stamps, adsStampHeaders);</span>
+<span class="fc" id="L223">                    amstcpPacket = ADSDeviceNotificationRequest.of(amstcpHeader, amsHeader, length, stamps, adsStampHeaders);</span>
 <span class="fc" id="L224">                } else {</span>
-<span class="nc" id="L225">                    amstcpPaket = UnknownCommand.of(amstcpHeader, amsHeader, commandBuffer);</span>
+<span class="nc" id="L225">                    amstcpPacket = UnknownCommand.of(amstcpHeader, amsHeader, commandBuffer);</span>
                 }
 <span class="nc" id="L227">                break;</span>
             case ADS_Read_Write:
@@ -243,7 +243,7 @@ public class ADSProtocol extends MessageToMessageCodec&lt;ByteBuf, AMSTCPPaket&g
 <span class="fc" id="L243">                    byte[] dataToRead = new byte[(int) readLength.getAsLong()];</span>
 <span class="fc" id="L244">                    commandBuffer.readBytes(dataToRead);</span>
 <span class="fc" id="L245">                    Data data = Data.of(dataToRead);</span>
-<span class="fc" id="L246">                    amstcpPaket = ADSReadWriteRequest.of(amstcpHeader, amsHeader, indexGroup, indexOffset, readLength, writeLength, data);</span>
+<span class="fc" id="L246">                    amstcpPacket = ADSReadWriteRequest.of(amstcpHeader, amsHeader, indexGroup, indexOffset, readLength, writeLength, data);</span>
 <span class="fc" id="L247">                } else {</span>
 <span class="fc" id="L248">                    Result result = Result.of(commandBuffer);</span>
 <span class="fc" id="L249">                    Length length = Length.of(commandBuffer);</span>
@@ -253,15 +253,15 @@ public class ADSProtocol extends MessageToMessageCodec&lt;ByteBuf, AMSTCPPaket&g
 <span class="fc" id="L253">                    byte[] dataToRead = new byte[(int) length.getAsLong()];</span>
 <span class="fc" id="L254">                    commandBuffer.readBytes(dataToRead);</span>
 <span class="fc" id="L255">                    Data data = Data.of(dataToRead);</span>
-<span class="fc" id="L256">                    amstcpPaket = ADSReadWriteResponse.of(amstcpHeader, amsHeader, result, length, data);</span>
+<span class="fc" id="L256">                    amstcpPacket = ADSReadWriteResponse.of(amstcpHeader, amsHeader, result, length, data);</span>
                 }
 <span class="fc" id="L258">                break;</span>
             case UNKNOWN:
             default:
-<span class="nc" id="L261">                amstcpPaket = UnknownCommand.of(amstcpHeader, amsHeader, commandBuffer);</span>
+<span class="nc" id="L261">                amstcpPacket = UnknownCommand.of(amstcpHeader, amsHeader, commandBuffer);</span>
         }
-<span class="fc" id="L263">        out.add(amstcpPaket);</span>
-<span class="fc" id="L264">        LOGGER.trace(&quot;Set amstcpPaket {} to out&quot;, amstcpPaket);</span>
+<span class="fc" id="L263">        out.add(amstcpPacket);</span>
+<span class="fc" id="L264">        LOGGER.trace(&quot;Set amstcpPacket {} to out&quot;, amstcpPacket);</span>
 <span class="pc bpc" id="L265" title="1 of 2 branches missed.">        if (commandBuffer.readableBytes() &gt; 0) {</span>
 <span class="nc" id="L266">            throw new IllegalStateException(&quot;Unread bytes left: &quot; + commandBuffer.readableBytes());</span>
         }

@@ -29,7 +29,7 @@
 <a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> org.apache.commons.io.HexDump;
 <a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.ads.api.commands.*;
 <a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.ads.api.commands.types.*;
-<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.ads.api.<strong class="jxr_keyword">generic</strong>.AMSTCPPaket;
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.ads.api.<strong class="jxr_keyword">generic</strong>.AMSTCPPacket;
 <a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.ads.api.<strong class="jxr_keyword">generic</strong>.types.AMSNetId;
 <a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.ads.api.<strong class="jxr_keyword">generic</strong>.types.AMSPort;
 <a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.ads.api.<strong class="jxr_keyword">generic</strong>.types.Invoke;
@@ -59,7 +59,7 @@
 <a class="jxr_linenumber" name="L51" href="#L51">51</a>      <strong class="jxr_keyword">private</strong> ADSProtocol SUT;
 <a class="jxr_linenumber" name="L52" href="#L52">52</a>  
 <a class="jxr_linenumber" name="L53" href="#L53">53</a>      @Parameterized.Parameter
-<a class="jxr_linenumber" name="L54" href="#L54">54</a>      <strong class="jxr_keyword">public</strong> AMSTCPPaket amstcpPaket;
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>      <strong class="jxr_keyword">public</strong> AMSTCPPacket amstcpPacket;
 <a class="jxr_linenumber" name="L55" href="#L55">55</a>  
 <a class="jxr_linenumber" name="L56" href="#L56">56</a>      @Parameterized.Parameters(name = <span class="jxr_string">"{0} {index}"</span>)
 <a class="jxr_linenumber" name="L57" href="#L57">57</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> Collection&lt;Object[]&gt; data() {
@@ -166,14 +166,14 @@
 <a class="jxr_linenumber" name="L158" href="#L158">158</a> <em class="jxr_comment">                targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId,</em>
 <a class="jxr_linenumber" name="L159" href="#L159">159</a> <em class="jxr_comment">                Unpooled.wrappedBuffer(new byte[]{42})</em>
 <a class="jxr_linenumber" name="L160" href="#L160">160</a> <em class="jxr_comment">            )*/</em>
-<a class="jxr_linenumber" name="L161" href="#L161">161</a>         ).map(amstcpPaket -&gt; <strong class="jxr_keyword">new</strong> Object[]{amstcpPaket}).collect(Collectors.toList());
+<a class="jxr_linenumber" name="L161" href="#L161">161</a>         ).map(amstcpPacket -&gt; <strong class="jxr_keyword">new</strong> Object[]{amstcpPacket}).collect(Collectors.toList());
 <a class="jxr_linenumber" name="L162" href="#L162">162</a>     }
 <a class="jxr_linenumber" name="L163" href="#L163">163</a> 
 <a class="jxr_linenumber" name="L164" href="#L164">164</a>     @Before
 <a class="jxr_linenumber" name="L165" href="#L165">165</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setUp() <strong class="jxr_keyword">throws</strong> Exception {
 <a class="jxr_linenumber" name="L166" href="#L166">166</a>         SUT = <strong class="jxr_keyword">new</strong> ADSProtocol();
-<a class="jxr_linenumber" name="L167" href="#L167">167</a>         byte[] bytes = amstcpPaket.getBytes();
-<a class="jxr_linenumber" name="L168" href="#L168">168</a>         LOGGER.info(<span class="jxr_string">"amstcpPaket:\n{} has \n{}bytes"</span>, amstcpPaket, bytes.length);
+<a class="jxr_linenumber" name="L167" href="#L167">167</a>         byte[] bytes = amstcpPacket.getBytes();
+<a class="jxr_linenumber" name="L168" href="#L168">168</a>         LOGGER.info(<span class="jxr_string">"amstcpPacket:\n{} has \n{}bytes"</span>, amstcpPacket, bytes.length);
 <a class="jxr_linenumber" name="L169" href="#L169">169</a>         <strong class="jxr_keyword">try</strong> (ByteArrayOutputStream byteArrayOutputStream = <strong class="jxr_keyword">new</strong> ByteArrayOutputStream()) {
 <a class="jxr_linenumber" name="L170" href="#L170">170</a>             HexDump.dump(bytes, 0, byteArrayOutputStream, 0);
 <a class="jxr_linenumber" name="L171" href="#L171">171</a>             byteArrayOutputStream.flush();
@@ -184,7 +184,7 @@
 <a class="jxr_linenumber" name="L176" href="#L176">176</a>     @Test
 <a class="jxr_linenumber" name="L177" href="#L177">177</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> encode() <strong class="jxr_keyword">throws</strong> Exception {
 <a class="jxr_linenumber" name="L178" href="#L178">178</a>         ArrayList&lt;Object&gt; out = <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;();
-<a class="jxr_linenumber" name="L179" href="#L179">179</a>         SUT.encode(<strong class="jxr_keyword">null</strong>, amstcpPaket, out);
+<a class="jxr_linenumber" name="L179" href="#L179">179</a>         SUT.encode(<strong class="jxr_keyword">null</strong>, amstcpPacket, out);
 <a class="jxr_linenumber" name="L180" href="#L180">180</a>         assertEquals(1, out.size());
 <a class="jxr_linenumber" name="L181" href="#L181">181</a>         assertThat(out, hasSize(1));
 <a class="jxr_linenumber" name="L182" href="#L182">182</a>     }
@@ -192,7 +192,7 @@
 <a class="jxr_linenumber" name="L184" href="#L184">184</a>     @Test
 <a class="jxr_linenumber" name="L185" href="#L185">185</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> decode() <strong class="jxr_keyword">throws</strong> Exception {
 <a class="jxr_linenumber" name="L186" href="#L186">186</a>         ArrayList&lt;Object&gt; out = <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;();
-<a class="jxr_linenumber" name="L187" href="#L187">187</a>         SUT.decode(<strong class="jxr_keyword">null</strong>, amstcpPaket.getByteBuf(), out);
+<a class="jxr_linenumber" name="L187" href="#L187">187</a>         SUT.decode(<strong class="jxr_keyword">null</strong>, amstcpPacket.getByteBuf(), out);
 <a class="jxr_linenumber" name="L188" href="#L188">188</a>         assertThat(out, hasSize(1));
 <a class="jxr_linenumber" name="L189" href="#L189">189</a>     }
 <a class="jxr_linenumber" name="L190" href="#L190">190</a> 

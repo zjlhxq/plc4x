@@ -26,7 +26,7 @@ import org.apache.plc4x.java.ads.api.commands.ADSReadResponse;
 import org.apache.plc4x.java.ads.api.commands.ADSWriteRequest;
 import org.apache.plc4x.java.ads.api.commands.ADSWriteResponse;
 import org.apache.plc4x.java.ads.api.commands.types.*;
-import org.apache.plc4x.java.ads.api.generic.AMSTCPPaket;
+import org.apache.plc4x.java.ads.api.generic.AMSTCPPacket;
 import org.apache.plc4x.java.ads.api.generic.types.AMSNetId;
 import org.apache.plc4x.java.ads.api.generic.types.AMSPort;
 import org.apache.plc4x.java.ads.api.generic.types.Invoke;
@@ -56,7 +56,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class Plc4XADSProtocol extends MessageToMessageCodec&lt;AMSTCPPaket, PlcRequestContainer&lt;PlcRequest, PlcResponse&gt;&gt; {
+public class Plc4XADSProtocol extends MessageToMessageCodec&lt;AMSTCPPacket, PlcRequestContainer&lt;PlcRequest, PlcResponse&gt;&gt; {
 
 <span class="fc" id="L61">    private static final Logger LOGGER = LoggerFactory.getLogger(Plc4XADSProtocol.class);</span>
 
@@ -114,8 +114,8 @@ public class Plc4XADSProtocol extends MessageToMessageCodec&lt;AMSTCPPaket, PlcR
 <span class="fc" id="L114">        }</span>
 <span class="fc" id="L115">        byte[] bytes = byteArrayOutputStream.toByteArray();</span>
 <span class="fc" id="L116">        Data data = Data.of(bytes);</span>
-<span class="fc" id="L117">        AMSTCPPaket amstcpPaket = ADSWriteRequest.of(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId, indexGroup, indexOffset, data);</span>
-<span class="fc" id="L118">        out.add(amstcpPaket);</span>
+<span class="fc" id="L117">        AMSTCPPacket amstcpPacket = ADSWriteRequest.of(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId, indexGroup, indexOffset, data);</span>
+<span class="fc" id="L118">        out.add(amstcpPacket);</span>
 <span class="fc" id="L119">        requests.put(invokeId.getAsLong(), msg);</span>
 <span class="fc" id="L120">    }</span>
 
@@ -135,16 +135,16 @@ public class Plc4XADSProtocol extends MessageToMessageCodec&lt;AMSTCPPaket, PlcR
 <span class="fc" id="L135">        IndexGroup indexGroup = IndexGroup.of(adsAddress.getIndexGroup());</span>
 <span class="fc" id="L136">        IndexOffset indexOffset = IndexOffset.of(adsAddress.getIndexOffset());</span>
 <span class="fc" id="L137">        Length length = Length.of(readRequestItem.getSize());</span>
-<span class="fc" id="L138">        AMSTCPPaket amstcpPaket = ADSReadRequest.of(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId, indexGroup, indexOffset, length);</span>
-<span class="fc" id="L139">        out.add(amstcpPaket);</span>
+<span class="fc" id="L138">        AMSTCPPacket amstcpPacket = ADSReadRequest.of(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId, indexGroup, indexOffset, length);</span>
+<span class="fc" id="L139">        out.add(amstcpPacket);</span>
 <span class="fc" id="L140">        requests.put(invokeId.getAsLong(), msg);</span>
 <span class="fc" id="L141">    }</span>
 
     @Override
-    protected void decode(ChannelHandlerContext channelHandlerContext, AMSTCPPaket amstcpPaket, List&lt;Object&gt; out) throws Exception {
-<span class="nc" id="L145">        PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; plcRequestContainer = requests.remove(amstcpPaket.getAmsHeader().getInvokeId().getAsLong());</span>
+    protected void decode(ChannelHandlerContext channelHandlerContext, AMSTCPPacket amstcpPacket, List&lt;Object&gt; out) throws Exception {
+<span class="nc" id="L145">        PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; plcRequestContainer = requests.remove(amstcpPacket.getAmsHeader().getInvokeId().getAsLong());</span>
 <span class="nc bnc" id="L146" title="All 2 branches missed.">        if (plcRequestContainer == null) {</span>
-<span class="nc" id="L147">            LOGGER.info(&quot;Unmapped packet received {}&quot;, amstcpPaket);</span>
+<span class="nc" id="L147">            LOGGER.info(&quot;Unmapped packet received {}&quot;, amstcpPacket);</span>
 <span class="nc" id="L148">            return;</span>
         }
 <span class="nc" id="L150">        PlcRequest request = plcRequestContainer.getRequest();</span>
@@ -152,16 +152,16 @@ public class Plc4XADSProtocol extends MessageToMessageCodec&lt;AMSTCPPaket, PlcR
 
         // Handle the response to a read request.
 <span class="nc bnc" id="L154" title="All 2 branches missed.">        if (request instanceof PlcReadRequest) {</span>
-<span class="nc bnc" id="L155" title="All 2 branches missed.">            if (amstcpPaket instanceof ADSReadResponse) {</span>
-<span class="nc" id="L156">                response = decodeReadResponse((ADSReadResponse) amstcpPaket, plcRequestContainer);</span>
+<span class="nc bnc" id="L155" title="All 2 branches missed.">            if (amstcpPacket instanceof ADSReadResponse) {</span>
+<span class="nc" id="L156">                response = decodeReadResponse((ADSReadResponse) amstcpPacket, plcRequestContainer);</span>
             } else {
-<span class="nc" id="L158">                throw new PlcProtocolException(&quot;Wrong type correlated &quot; + amstcpPaket);</span>
+<span class="nc" id="L158">                throw new PlcProtocolException(&quot;Wrong type correlated &quot; + amstcpPacket);</span>
             }
 <span class="nc bnc" id="L160" title="All 2 branches missed.">        } else if (request instanceof PlcWriteRequest) {</span>
-<span class="nc bnc" id="L161" title="All 2 branches missed.">            if (amstcpPaket instanceof ADSWriteResponse) {</span>
-<span class="nc" id="L162">                response = decodeWriteResponse((ADSWriteResponse) amstcpPaket, plcRequestContainer);</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">            if (amstcpPacket instanceof ADSWriteResponse) {</span>
+<span class="nc" id="L162">                response = decodeWriteResponse((ADSWriteResponse) amstcpPacket, plcRequestContainer);</span>
             } else {
-<span class="nc" id="L164">                throw new PlcProtocolException(&quot;Wrong type correlated &quot; + amstcpPaket);</span>
+<span class="nc" id="L164">                throw new PlcProtocolException(&quot;Wrong type correlated &quot; + amstcpPacket);</span>
             }
         }
 
