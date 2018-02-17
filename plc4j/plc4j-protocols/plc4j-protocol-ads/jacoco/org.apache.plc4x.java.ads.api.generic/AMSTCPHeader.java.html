@@ -65,9 +65,21 @@ public class AMSTCPHeader implements ByteReadable {
 <span class="fc" id="L65">        return new AMSTCPHeader(lengthSuppliers);</span>
     }
 
+    public Length getLength() {
+<span class="fc" id="L69">        return length;</span>
+    }
+
+    public LengthSupplier[] getLengthSuppliers() {
+<span class="fc" id="L73">        return lengthSuppliers;</span>
+    }
+
+    public boolean isCalculated() {
+<span class="fc" id="L77">        return calculated;</span>
+    }
+
     @Override
     public ByteBuf getByteBuf() {
-<span class="pc bpc" id="L70" title="1 of 2 branches missed.">        return buildByteBuff(reserved, calculated ? Length.of(getCalculatedLength()) : length);</span>
+<span class="fc bfc" id="L82" title="All 2 branches covered.">        return buildByteBuff(reserved, calculated ? Length.of(getCalculatedLength()) : length);</span>
     }
 
     /**
@@ -78,31 +90,31 @@ public class AMSTCPHeader implements ByteReadable {
 
         public static final int NUM_BYTES = 2;
 
-<span class="fc" id="L81">        private static final Reserved CONSTANT = new Reserved();</span>
+<span class="fc" id="L93">        private static final Reserved CONSTANT = new Reserved();</span>
 
         private Reserved() {
-<span class="fc" id="L84">            super((byte) 0x00, (byte) 0x00);</span>
-<span class="fc" id="L85">            assertLength(NUM_BYTES);</span>
-<span class="fc" id="L86">        }</span>
+<span class="fc" id="L96">            super((byte) 0x00, (byte) 0x00);</span>
+<span class="fc" id="L97">            assertLength(NUM_BYTES);</span>
+<span class="fc" id="L98">        }</span>
     }
 
     public long getCalculatedLength() {
-<span class="pc bpc" id="L90" title="1 of 2 branches missed.">        if (calculated) {</span>
-<span class="fc" id="L91">            long aggregateLength = 0;</span>
-<span class="fc bfc" id="L92" title="All 2 branches covered.">            for (LengthSupplier supplier : lengthSuppliers) {</span>
-<span class="fc" id="L93">                aggregateLength += supplier.getCalculatedLength();</span>
+<span class="fc bfc" id="L102" title="All 2 branches covered.">        if (calculated) {</span>
+<span class="fc" id="L103">            long aggregateLength = 0;</span>
+<span class="fc bfc" id="L104" title="All 2 branches covered.">            for (LengthSupplier supplier : lengthSuppliers) {</span>
+<span class="fc" id="L105">                aggregateLength += supplier.getCalculatedLength();</span>
             }
-<span class="fc" id="L95">            return aggregateLength;</span>
+<span class="fc" id="L107">            return aggregateLength;</span>
         } else {
-<span class="nc" id="L97">            return length.getAsLong();</span>
+<span class="fc" id="L109">            return length.getAsLong();</span>
         }
     }
 
     @Override
     public String toString() {
-<span class="pc bpc" id="L103" title="1 of 2 branches missed.">        return &quot;AMSTCPHeader{&quot; +</span>
+<span class="fc bfc" id="L115" title="All 2 branches covered.">        return &quot;AMSTCPHeader{&quot; +</span>
             &quot;reserved=&quot; + reserved +
-<span class="pc" id="L105">            &quot;, length=&quot; + (calculated ? Length.of(getCalculatedLength()) : length) +</span>
+<span class="fc" id="L117">            &quot;, length=&quot; + (calculated ? Length.of(getCalculatedLength()) : length) +</span>
             '}';
     }
 }
