@@ -19,7 +19,7 @@
 package org.apache.plc4x.java.ads.api.generic;
 
 import io.netty.buffer.ByteBuf;
-import org.apache.plc4x.java.ads.api.generic.types.Length;
+import org.apache.plc4x.java.ads.api.generic.types.TcpLength;
 import org.apache.plc4x.java.ads.api.util.ByteReadable;
 import org.apache.plc4x.java.ads.api.util.ByteValue;
 import org.apache.plc4x.java.ads.api.util.LengthSupplier;
@@ -28,13 +28,13 @@ import static java.util.Objects.requireNonNull;
 import static org.apache.plc4x.java.ads.api.util.ByteReadableUtils.buildByteBuff;
 
 /**
- * AMS/TCP Header	6 bytes	contains the length of the data packet.
+ * AMS/TCP Header	6 bytes	contains the tcpLength of the data packet.
  */
 public class AMSTCPHeader implements ByteReadable {
 
     private final Reserved reserved;
 
-    private final Length length;
+    private final TcpLength tcpLength;
 
     ////
     // Used when fields should be calculated. TODO: check if we better work with a subclass.
@@ -43,30 +43,30 @@ public class AMSTCPHeader implements ByteReadable {
     //
     ///
 
-<span class="fc" id="L46">    private AMSTCPHeader(Length length) {</span>
+<span class="fc" id="L46">    private AMSTCPHeader(TcpLength tcpLength) {</span>
 <span class="fc" id="L47">        this.reserved = requireNonNull(Reserved.CONSTANT);</span>
-<span class="fc" id="L48">        this.length = requireNonNull(length);</span>
+<span class="fc" id="L48">        this.tcpLength = requireNonNull(tcpLength);</span>
 <span class="fc" id="L49">        lengthSuppliers = null;</span>
 <span class="fc" id="L50">        calculated = false;</span>
 <span class="fc" id="L51">    }</span>
 
 <span class="fc" id="L53">    private AMSTCPHeader(LengthSupplier... lengthSuppliers) {</span>
 <span class="fc" id="L54">        this.reserved = requireNonNull(Reserved.CONSTANT);</span>
-<span class="fc" id="L55">        this.length = null;</span>
+<span class="fc" id="L55">        this.tcpLength = null;</span>
 <span class="fc" id="L56">        this.lengthSuppliers = requireNonNull(lengthSuppliers);</span>
 <span class="fc" id="L57">        calculated = true;</span>
 <span class="fc" id="L58">    }</span>
 
     public static AMSTCPHeader of(long length) {
-<span class="fc" id="L61">        return new AMSTCPHeader(Length.of(length));</span>
+<span class="fc" id="L61">        return new AMSTCPHeader(TcpLength.of(length));</span>
     }
 
     public static AMSTCPHeader of(LengthSupplier... lengthSuppliers) {
 <span class="fc" id="L65">        return new AMSTCPHeader(lengthSuppliers);</span>
     }
 
-    public Length getLength() {
-<span class="fc" id="L69">        return length;</span>
+    public TcpLength getTcpLength() {
+<span class="fc" id="L69">        return tcpLength;</span>
     }
 
     public LengthSupplier[] getLengthSuppliers() {
@@ -79,7 +79,7 @@ public class AMSTCPHeader implements ByteReadable {
 
     @Override
     public ByteBuf getByteBuf() {
-<span class="fc bfc" id="L82" title="All 2 branches covered.">        return buildByteBuff(reserved, calculated ? Length.of(getCalculatedLength()) : length);</span>
+<span class="fc bfc" id="L82" title="All 2 branches covered.">        return buildByteBuff(reserved, calculated ? TcpLength.of(getCalculatedLength()) : tcpLength);</span>
     }
 
     /**
@@ -98,23 +98,24 @@ public class AMSTCPHeader implements ByteReadable {
 <span class="fc" id="L98">        }</span>
     }
 
+    @Override
     public long getCalculatedLength() {
-<span class="fc bfc" id="L102" title="All 2 branches covered.">        if (calculated) {</span>
-<span class="fc" id="L103">            long aggregateLength = 0;</span>
-<span class="fc bfc" id="L104" title="All 2 branches covered.">            for (LengthSupplier supplier : lengthSuppliers) {</span>
-<span class="fc" id="L105">                aggregateLength += supplier.getCalculatedLength();</span>
+<span class="fc bfc" id="L103" title="All 2 branches covered.">        if (calculated) {</span>
+<span class="fc" id="L104">            long aggregateLength = 0;</span>
+<span class="fc bfc" id="L105" title="All 2 branches covered.">            for (LengthSupplier supplier : lengthSuppliers) {</span>
+<span class="fc" id="L106">                aggregateLength += supplier.getCalculatedLength();</span>
             }
-<span class="fc" id="L107">            return aggregateLength;</span>
+<span class="fc" id="L108">            return aggregateLength;</span>
         } else {
-<span class="fc" id="L109">            return length.getAsLong();</span>
+<span class="fc" id="L110">            return tcpLength.getAsLong();</span>
         }
     }
 
     @Override
     public String toString() {
-<span class="fc bfc" id="L115" title="All 2 branches covered.">        return &quot;AMSTCPHeader{&quot; +</span>
+<span class="fc bfc" id="L116" title="All 2 branches covered.">        return &quot;AMSTCPHeader{&quot; +</span>
             &quot;reserved=&quot; + reserved +
-<span class="fc" id="L117">            &quot;, length=&quot; + (calculated ? Length.of(getCalculatedLength()) : length) +</span>
+<span class="fc" id="L118">            &quot;, tcpLength=&quot; + (calculated ? TcpLength.of(getCalculatedLength()) : tcpLength) +</span>
             '}';
     }
 }
