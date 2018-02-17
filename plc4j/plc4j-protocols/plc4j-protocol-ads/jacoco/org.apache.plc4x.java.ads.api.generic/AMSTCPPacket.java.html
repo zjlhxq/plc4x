@@ -27,23 +27,23 @@ import static java.util.Objects.requireNonNull;
 import static org.apache.plc4x.java.ads.api.util.ByteReadableUtils.buildByteBuff;
 
 public abstract class AMSTCPPacket implements ByteReadable {
-    private final AMSTCPHeader amstcpHeader;
+    private final AMSTCPHeader amsTcpHeader;
 
     private final AMSHeader amsHeader;
 
-<span class="fc" id="L34">    public AMSTCPPacket(AMSTCPHeader amstcpHeader, AMSHeader amsHeader) {</span>
-<span class="fc" id="L35">        this.amstcpHeader = requireNonNull(amstcpHeader);</span>
+<span class="fc" id="L34">    protected AMSTCPPacket(AMSTCPHeader amsTcpHeader, AMSHeader amsHeader) {</span>
+<span class="fc" id="L35">        this.amsTcpHeader = requireNonNull(amsTcpHeader);</span>
 <span class="fc" id="L36">        this.amsHeader = requireNonNull(amsHeader);</span>
 <span class="fc" id="L37">    }</span>
 
-<span class="nc" id="L39">    public AMSTCPPacket(AMSHeader amsHeader) {</span>
+<span class="fc" id="L39">    protected AMSTCPPacket(AMSHeader amsHeader) {</span>
         // It is important that we wrap the ads data call as this will initialized in the constructor
         // so this value will be null if we call adsData now.
-<span class="nc" id="L42">        this.amstcpHeader = AMSTCPHeader.of(requireNonNull(amsHeader), () -&gt; getAdsData().getCalculatedLength());</span>
-<span class="nc" id="L43">        this.amsHeader = requireNonNull(amsHeader);</span>
-<span class="nc" id="L44">    }</span>
+<span class="pc" id="L42">        this.amsTcpHeader = AMSTCPHeader.of(requireNonNull(amsHeader), () -&gt; getAdsData().getCalculatedLength());</span>
+<span class="fc" id="L43">        this.amsHeader = requireNonNull(amsHeader);</span>
+<span class="fc" id="L44">    }</span>
 
-<span class="fc" id="L46">    public AMSTCPPacket(AMSNetId targetAmsNetId, AMSPort targetAmsPort, AMSNetId sourceAmsNetId, AMSPort sourceAmsPort, State stateId, Invoke invokeId) {</span>
+<span class="fc" id="L46">    protected AMSTCPPacket(AMSNetId targetAmsNetId, AMSPort targetAmsPort, AMSNetId sourceAmsNetId, AMSPort sourceAmsPort, State stateId, Invoke invokeId) {</span>
 <span class="pc bpc" id="L47" title="1 of 2 branches missed.">        if (!getClass().isAnnotationPresent(ADSCommandType.class)) {</span>
 <span class="nc" id="L48">            throw new IllegalArgumentException(ADSCommandType.class + &quot; need to be present.&quot;);</span>
         }
@@ -57,22 +57,22 @@ public abstract class AMSTCPPacket implements ByteReadable {
 <span class="fc" id="L57">            () -&gt; getAdsData().getCalculatedLength(),</span>
 <span class="fc" id="L58">            requireNonNull(AMSError.NONE),</span>
 <span class="fc" id="L59">            requireNonNull(invokeId));</span>
-<span class="fc" id="L60">        this.amstcpHeader = AMSTCPHeader.of(amsHeader, () -&gt; getAdsData().getCalculatedLength());</span>
+<span class="fc" id="L60">        this.amsTcpHeader = AMSTCPHeader.of(amsHeader, () -&gt; getAdsData().getCalculatedLength());</span>
 <span class="fc" id="L61">    }</span>
 
-    public AMSTCPHeader getAmstcpHeader() {
-<span class="nc" id="L64">        return amstcpHeader;</span>
+    public AMSTCPHeader getAmsTcpHeader() {
+<span class="nc" id="L64">        return amsTcpHeader;</span>
     }
 
     public AMSHeader getAmsHeader() {
 <span class="fc" id="L68">        return amsHeader;</span>
     }
 
-    public abstract ADSData getAdsData();
+    protected abstract ADSData getAdsData();
 
     @Override
     public ByteBuf getByteBuf() {
-<span class="fc" id="L75">        return buildByteBuff(amstcpHeader, amsHeader, getAdsData());</span>
+<span class="fc" id="L75">        return buildByteBuff(amsTcpHeader, amsHeader, getAdsData());</span>
     }
 
     protected ADSData buildADSData(ByteReadable... byteReadables) {
@@ -82,7 +82,7 @@ public abstract class AMSTCPPacket implements ByteReadable {
     @Override
     public String toString() {
 <span class="fc" id="L84">        return getClass().getSimpleName() + &quot;{&quot; +</span>
-            &quot;amstcpHeader=&quot; + amstcpHeader +
+            &quot;amsTcpHeader=&quot; + amsTcpHeader +
             &quot;, amsHeader=&quot; + amsHeader +
             '}';
     }

@@ -21,23 +21,40 @@ package org.apache.plc4x.java.ads.api.commands.types;
 import io.netty.buffer.ByteBuf;
 import org.apache.plc4x.java.ads.api.util.ByteValue;
 
+import java.util.Arrays;
+
 public class MajorVersion extends ByteValue {
 
     public static final int NUM_BYTES = 1;
 
-    MajorVersion(byte... values) {
-<span class="fc" id="L29">        super(values);</span>
-<span class="fc" id="L30">        assertLength(NUM_BYTES);</span>
-<span class="fc" id="L31">    }</span>
+    private MajorVersion(byte... values) {
+<span class="fc" id="L31">        super(values);</span>
+<span class="fc" id="L32">        assertLength(NUM_BYTES);</span>
+<span class="fc" id="L33">    }</span>
 
     public static MajorVersion of(byte... values) {
-<span class="fc" id="L34">        return new MajorVersion(values);</span>
+<span class="fc" id="L36">        return new MajorVersion(values);</span>
+    }
+
+    public static MajorVersion of(int value) {
+<span class="fc" id="L40">        return new MajorVersion((byte) value);</span>
+    }
+
+    public static MajorVersion of(String value) {
+<span class="fc" id="L44">        return of(Integer.parseInt(value));</span>
     }
 
     public static MajorVersion of(ByteBuf byteBuf) {
-<span class="fc" id="L38">        byte[] values = new byte[NUM_BYTES];</span>
-<span class="fc" id="L39">        byteBuf.readBytes(values);</span>
-<span class="fc" id="L40">        return of(values);</span>
+<span class="fc" id="L48">        byte[] values = new byte[NUM_BYTES];</span>
+<span class="fc" id="L49">        byteBuf.readBytes(values);</span>
+<span class="fc" id="L50">        return of(values);</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="fc" id="L55">        return &quot;MajorVersion{&quot; +</span>
+<span class="fc" id="L56">            &quot;value=&quot; + Arrays.toString(value) +</span>
+<span class="fc" id="L57">            &quot;} &quot; + super.toString();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

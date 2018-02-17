@@ -23,9 +23,9 @@ import org.apache.plc4x.java.ads.api.generic.ADSData;
 import org.apache.plc4x.java.ads.api.generic.AMSHeader;
 import org.apache.plc4x.java.ads.api.generic.AMSTCPHeader;
 import org.apache.plc4x.java.ads.api.generic.AMSTCPPacket;
-import org.apache.plc4x.java.ads.api.generic.types.Command;
+import org.apache.plc4x.java.ads.api.generic.types.*;
 
-import java.util.Objects;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Unknown ADS Package
@@ -33,20 +33,29 @@ import java.util.Objects;
 @ADSCommandType(Command.UNKNOWN)
 public class UnknownCommand extends AMSTCPPacket {
 
-    final ByteBuf remainingBytes;
+    private final ByteBuf remainingBytes;
 
-    protected UnknownCommand(AMSTCPHeader amstcpHeader, AMSHeader amsHeader, ByteBuf remainingBytes) {
-<span class="nc" id="L39">        super(amstcpHeader, amsHeader);</span>
-<span class="nc" id="L40">        this.remainingBytes = Objects.requireNonNull(remainingBytes);</span>
-<span class="nc" id="L41">    }</span>
+    private UnknownCommand(AMSTCPHeader amstcpHeader, AMSHeader amsHeader, ByteBuf remainingBytes) {
+<span class="fc" id="L39">        super(amstcpHeader, amsHeader);</span>
+<span class="fc" id="L40">        this.remainingBytes = requireNonNull(remainingBytes);</span>
+<span class="fc" id="L41">    }</span>
+
+    private UnknownCommand(AMSNetId targetAmsNetId, AMSPort targetAmsPort, AMSNetId sourceAmsNetId, AMSPort sourceAmsPort, State stateId, Invoke invokeId, ByteBuf remainingBytes) {
+<span class="fc" id="L44">        super(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, stateId, invokeId);</span>
+<span class="fc" id="L45">        this.remainingBytes = requireNonNull(remainingBytes);</span>
+<span class="fc" id="L46">    }</span>
 
     @Override
     public ADSData getAdsData() {
-<span class="nc" id="L45">        return () -&gt; remainingBytes;</span>
+<span class="nc" id="L50">        return () -&gt; remainingBytes;</span>
     }
 
     public static AMSTCPPacket of(AMSTCPHeader amstcpHeader, AMSHeader amsHeader, ByteBuf remainingBytes) {
-<span class="nc" id="L49">        return new UnknownCommand(amstcpHeader, amsHeader, remainingBytes);</span>
+<span class="fc" id="L54">        return new UnknownCommand(amstcpHeader, amsHeader, remainingBytes);</span>
+    }
+
+    public static UnknownCommand of(AMSNetId targetAmsNetId, AMSPort targetAmsPort, AMSNetId sourceAmsNetId, AMSPort sourceAmsPort, State stateId, Invoke invokeId, ByteBuf remainingBytes) {
+<span class="fc" id="L58">        return new UnknownCommand(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, stateId, invokeId, remainingBytes);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

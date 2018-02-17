@@ -83,15 +83,15 @@ import static java.lang.Integer.toHexString;
 
     public static Command of(byte... bytes) {
         // TODO: improve by using a map
-<span class="nc bnc" id="L86" title="All 2 branches missed.">        for (Command command : values()) {</span>
-<span class="nc bnc" id="L87" title="All 2 branches missed.">            if (Arrays.equals(bytes, command.value)) {</span>
-<span class="nc" id="L88">                return command;</span>
+<span class="pc bpc" id="L86" title="1 of 2 branches missed.">        for (Command command : values()) {</span>
+<span class="pc bpc" id="L87" title="1 of 2 branches missed.">            if (Arrays.equals(bytes, command.value)) {</span>
+<span class="fc" id="L88">                return command;</span>
             }
         }
 <span class="nc" id="L91">        return UNKNOWN;</span>
     }
 
-    public static Command of(int intValue) {
+    private static Command of(int intValue) {
         // TODO: improve by using a map
 <span class="pc bpc" id="L96" title="1 of 2 branches missed.">        for (Command command : values()) {</span>
 <span class="fc bfc" id="L97" title="All 2 branches covered.">            if (command.intValue == intValue) {</span>
@@ -101,13 +101,21 @@ import static java.lang.Integer.toHexString;
 <span class="nc" id="L101">        return UNKNOWN;</span>
     }
 
+    public static Command of(String value) {
+<span class="fc" id="L105">        return valueOf(value);</span>
+    }
+
+    public static Command ofInt(String intValue) {
+<span class="nc" id="L109">        return of(Integer.parseInt(intValue));</span>
+    }
+
     public static Command of(ByteBuf byteBuf) {
-<span class="fc" id="L105">        return of(byteBuf.readUnsignedShortLE());</span>
+<span class="fc" id="L113">        return of(byteBuf.readUnsignedShortLE());</span>
     }
 
     @Override
     public String toString() {
-<span class="fc" id="L110">        return name() + &quot;/hex=&quot; + String.format(&quot;0x%2s&quot;, toHexString(intValue)).replace(' ', '0');</span>
+<span class="fc" id="L118">        return name() + &quot;/hex=&quot; + String.format(&quot;0x%2s&quot;, toHexString(intValue)).replace(' ', '0');</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

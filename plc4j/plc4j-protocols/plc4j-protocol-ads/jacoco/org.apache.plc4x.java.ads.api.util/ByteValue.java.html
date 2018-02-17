@@ -29,19 +29,19 @@ public class ByteValue implements ByteReadable {
 
     protected final byte[] value;
 
-<span class="fc" id="L32">    public ByteValue(byte... value) {</span>
+<span class="fc" id="L32">    protected ByteValue(byte... value) {</span>
 <span class="fc" id="L33">        Objects.requireNonNull(value);</span>
 <span class="fc" id="L34">        this.value = value;</span>
 <span class="fc" id="L35">    }</span>
 
-    public void assertLength(int length) {
+    protected void assertLength(int length) {
 <span class="fc bfc" id="L38" title="All 2 branches covered.">        if (value.length != length) {</span>
 <span class="fc" id="L39">            throw new IllegalArgumentException(&quot;Expected length &quot; + length + &quot; got &quot; + value.length);</span>
         }
 <span class="fc" id="L41">    }</span>
 
     public static void checkUnsignedBounds(long value, int numberOfBytes) {
-<span class="fc" id="L44">        double upperBound = Math.pow(2, 8 * numberOfBytes);</span>
+<span class="fc" id="L44">        double upperBound = Math.pow((double) 2, (double) (8 * numberOfBytes));</span>
 <span class="fc bfc" id="L45" title="All 4 branches covered.">        if (value &lt; 0 || value &gt;= upperBound) {</span>
 <span class="fc" id="L46">            throw new IllegalArgumentException(&quot;Value must between 0 and &quot; + upperBound + &quot;. Was &quot; + value);</span>
         }
@@ -67,7 +67,7 @@ public class ByteValue implements ByteReadable {
     @Override
     public boolean equals(Object o) {
 <span class="nc bnc" id="L69" title="All 2 branches missed.">        if (this == o) return true;</span>
-<span class="nc bnc" id="L70" title="All 4 branches missed.">        if (o == null || getClass() != o.getClass()) return false;</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">        if (!(o instanceof ByteValue)) return false;</span>
 
 <span class="nc" id="L72">        ByteValue byteValue = (ByteValue) o;</span>
 

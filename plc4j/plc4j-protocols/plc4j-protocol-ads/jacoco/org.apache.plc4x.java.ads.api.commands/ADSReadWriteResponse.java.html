@@ -30,7 +30,7 @@ import org.apache.plc4x.java.ads.api.generic.types.Command;
 import org.apache.plc4x.java.ads.api.generic.types.Invoke;
 import org.apache.plc4x.java.ads.api.util.LengthSupplier;
 
-import java.util.Objects;
+import static java.util.Objects.requireNonNull;
 
 /**
  * With ADS Read Write data will be written to an ADS device. Additionally, data can be read from the ADS device.
@@ -60,21 +60,21 @@ public class ADSReadWriteResponse extends ADSAbstractResponse {
     //
     ///
 
-    protected ADSReadWriteResponse(AMSTCPHeader amstcpHeader, AMSHeader amsHeader, Result result, Length length, Data data) {
+    private ADSReadWriteResponse(AMSTCPHeader amstcpHeader, AMSHeader amsHeader, Result result, Length length, Data data) {
 <span class="fc" id="L64">        super(amstcpHeader, amsHeader);</span>
-<span class="fc" id="L65">        this.result = Objects.requireNonNull(result);</span>
-<span class="fc" id="L66">        this.length = Objects.requireNonNull(length);</span>
-<span class="fc" id="L67">        this.data = Objects.requireNonNull(data);</span>
+<span class="fc" id="L65">        this.result = requireNonNull(result);</span>
+<span class="fc" id="L66">        this.length = requireNonNull(length);</span>
+<span class="fc" id="L67">        this.data = requireNonNull(data);</span>
 <span class="fc" id="L68">        this.lengthSupplier = null;</span>
 <span class="fc" id="L69">        this.calculated = false;</span>
 <span class="fc" id="L70">    }</span>
 
-    protected ADSReadWriteResponse(AMSNetId targetAmsNetId, AMSPort targetAmsPort, AMSNetId sourceAmsNetId, AMSPort sourceAmsPort, Invoke invokeId, Result result, Data data) {
+    private ADSReadWriteResponse(AMSNetId targetAmsNetId, AMSPort targetAmsPort, AMSNetId sourceAmsNetId, AMSPort sourceAmsPort, Invoke invokeId, Result result, Data data) {
 <span class="fc" id="L73">        super(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId);</span>
-<span class="fc" id="L74">        this.result = Objects.requireNonNull(result);</span>
+<span class="fc" id="L74">        this.result = requireNonNull(result);</span>
 <span class="fc" id="L75">        this.length = null;</span>
-<span class="fc" id="L76">        this.data = Objects.requireNonNull(data);</span>
-<span class="fc" id="L77">        this.lengthSupplier = () -&gt; data.getCalculatedLength();</span>
+<span class="fc" id="L76">        this.data = requireNonNull(data);</span>
+<span class="fc" id="L77">        this.lengthSupplier = data;</span>
 <span class="fc" id="L78">        this.calculated = true;</span>
 <span class="fc" id="L79">    }</span>
 

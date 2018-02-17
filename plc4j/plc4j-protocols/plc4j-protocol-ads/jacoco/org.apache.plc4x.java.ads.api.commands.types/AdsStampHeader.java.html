@@ -22,14 +22,14 @@ import io.netty.buffer.ByteBuf;
 import org.apache.plc4x.java.ads.api.util.ByteReadable;
 
 import java.util.List;
-import java.util.Objects;
 
+import static java.util.Objects.requireNonNull;
 import static org.apache.plc4x.java.ads.api.util.ByteReadableUtils.buildByteBuff;
 
 public class AdsStampHeader implements ByteReadable {
 
     /**
-     * 8 bytes	The timestamp is coded after the Windos FILETIME format. I.e. the value contains the number of the nano seconds, which passed since 1.1.1601. In addition, the local time change is not considered. Thus the time stamp is present as universal Coordinated time (UTC).
+     * 8 bytes	The timestamp is coded after the Windows FILETIME format. I.e. the value contains the number of the nano seconds, which passed since 1.1.1601. In addition, the local time change is not considered. Thus the time stamp is present as universal Coordinated time (UTC).
      */
     private final TimeStamp timeStamp;
     /**
@@ -41,24 +41,34 @@ public class AdsStampHeader implements ByteReadable {
      */
     private final List&lt;AdsNotificationSample&gt; adsNotificationSamples;
 
-<span class="fc" id="L44">    protected AdsStampHeader(TimeStamp timeStamp, Samples samples, List&lt;AdsNotificationSample&gt; adsNotificationSamples) {</span>
-<span class="fc" id="L45">        this.timeStamp = Objects.requireNonNull(timeStamp);</span>
-<span class="fc" id="L46">        this.samples = Objects.requireNonNull(samples);</span>
-<span class="fc" id="L47">        this.adsNotificationSamples = Objects.requireNonNull(adsNotificationSamples);</span>
+<span class="fc" id="L44">    private AdsStampHeader(TimeStamp timeStamp, Samples samples, List&lt;AdsNotificationSample&gt; adsNotificationSamples) {</span>
+<span class="fc" id="L45">        this.timeStamp = requireNonNull(timeStamp);</span>
+<span class="fc" id="L46">        this.samples = requireNonNull(samples);</span>
+<span class="fc" id="L47">        this.adsNotificationSamples = requireNonNull(adsNotificationSamples);</span>
 <span class="fc" id="L48">    }</span>
 
+<span class="fc" id="L50">    private AdsStampHeader(TimeStamp timeStamp, List&lt;AdsNotificationSample&gt; adsNotificationSamples) {</span>
+<span class="fc" id="L51">        this.timeStamp = requireNonNull(timeStamp);</span>
+<span class="fc" id="L52">        this.adsNotificationSamples = requireNonNull(adsNotificationSamples);</span>
+<span class="fc" id="L53">        this.samples = Samples.of(adsNotificationSamples.size());</span>
+<span class="fc" id="L54">    }</span>
+
     public static AdsStampHeader of(TimeStamp timeStamp, Samples samples, List&lt;AdsNotificationSample&gt; adsNotificationSamples) {
-<span class="fc" id="L51">        return new AdsStampHeader(timeStamp, samples, adsNotificationSamples);</span>
+<span class="fc" id="L57">        return new AdsStampHeader(timeStamp, samples, adsNotificationSamples);</span>
+    }
+
+    public static AdsStampHeader of(TimeStamp timeStamp, List&lt;AdsNotificationSample&gt; adsNotificationSamples) {
+<span class="fc" id="L61">        return new AdsStampHeader(timeStamp, adsNotificationSamples);</span>
     }
 
     @Override
     public ByteBuf getByteBuf() {
-<span class="fc" id="L56">        return buildByteBuff(timeStamp, samples, () -&gt; buildByteBuff(adsNotificationSamples.toArray(new ByteReadable[adsNotificationSamples.size()])));</span>
+<span class="fc" id="L66">        return buildByteBuff(timeStamp, samples, () -&gt; buildByteBuff(adsNotificationSamples.toArray(new ByteReadable[adsNotificationSamples.size()])));</span>
     }
 
     @Override
     public String toString() {
-<span class="fc" id="L61">        return &quot;AdsStampHeader{&quot; +</span>
+<span class="fc" id="L71">        return &quot;AdsStampHeader{&quot; +</span>
             &quot;timeStamp=&quot; + timeStamp +
             &quot;, samples=&quot; + samples +
             &quot;, adsNotificationSamples=&quot; + adsNotificationSamples +

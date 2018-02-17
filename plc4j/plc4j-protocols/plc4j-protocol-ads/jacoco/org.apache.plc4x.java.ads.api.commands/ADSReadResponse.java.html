@@ -30,7 +30,7 @@ import org.apache.plc4x.java.ads.api.generic.types.Command;
 import org.apache.plc4x.java.ads.api.generic.types.Invoke;
 import org.apache.plc4x.java.ads.api.util.LengthSupplier;
 
-import java.util.Objects;
+import static java.util.Objects.requireNonNull;
 
 /**
  * With ADS Read data can be read from an ADS device
@@ -58,22 +58,22 @@ public class ADSReadResponse extends ADSAbstractResponse {
     //
     ///
 
-    protected ADSReadResponse(AMSTCPHeader amstcpHeader, AMSHeader amsHeader, Result result, Length length, Data data) {
+    private ADSReadResponse(AMSTCPHeader amstcpHeader, AMSHeader amsHeader, Result result, Length length, Data data) {
 <span class="fc" id="L62">        super(amstcpHeader, amsHeader);</span>
-<span class="fc" id="L63">        this.result = Objects.requireNonNull(result);</span>
-<span class="fc" id="L64">        this.length = Objects.requireNonNull(length);</span>
-<span class="fc" id="L65">        this.data = Objects.requireNonNull(data);</span>
+<span class="fc" id="L63">        this.result = requireNonNull(result);</span>
+<span class="fc" id="L64">        this.length = requireNonNull(length);</span>
+<span class="fc" id="L65">        this.data = requireNonNull(data);</span>
 <span class="fc" id="L66">        this.lengthSupplier = null;</span>
 <span class="fc" id="L67">        this.calculated = false;</span>
 <span class="fc" id="L68">    }</span>
 
-    protected ADSReadResponse(AMSNetId targetAmsNetId, AMSPort targetAmsPort, AMSNetId sourceAmsNetId, AMSPort sourceAmsPort, Invoke invokeId, Result result, Data data) {
+    private ADSReadResponse(AMSNetId targetAmsNetId, AMSPort targetAmsPort, AMSNetId sourceAmsNetId, AMSPort sourceAmsPort, Invoke invokeId, Result result, Data data) {
 <span class="fc" id="L71">        super(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId);</span>
-<span class="fc" id="L72">        this.result = Objects.requireNonNull(result);</span>
+<span class="fc" id="L72">        this.result = requireNonNull(result);</span>
 <span class="fc" id="L73">        this.length = null;</span>
-<span class="fc" id="L74">        this.data = Objects.requireNonNull(data);</span>
-<span class="fc" id="L75">        this.lengthSupplier = () -&gt; data.getCalculatedLength();</span>
-<span class="fc" id="L76">        this.calculated = Objects.requireNonNull(true);</span>
+<span class="fc" id="L74">        this.data = requireNonNull(data);</span>
+<span class="fc" id="L75">        this.lengthSupplier = data;</span>
+<span class="fc" id="L76">        this.calculated = true;</span>
 <span class="fc" id="L77">    }</span>
 
     public static ADSReadResponse of(AMSTCPHeader amstcpHeader, AMSHeader amsHeader, Result result, Length length, Data data) {
@@ -90,7 +90,7 @@ public class ADSReadResponse extends ADSAbstractResponse {
     }
 
     public Result getResult() {
-<span class="nc" id="L93">        return result;</span>
+<span class="fc" id="L93">        return result;</span>
     }
 
     public Length getLength() {
@@ -98,7 +98,7 @@ public class ADSReadResponse extends ADSAbstractResponse {
     }
 
     public Data getData() {
-<span class="nc" id="L101">        return data;</span>
+<span class="fc" id="L101">        return data;</span>
     }
 
     @Override

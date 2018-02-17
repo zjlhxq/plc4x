@@ -62,7 +62,7 @@ public class Plc4XADSProtocol extends MessageToMessageCodec&lt;AMSTCPPacket, Plc
 
 <span class="fc" id="L63">    private static final AtomicLong correlationBuilder = new AtomicLong(1);</span>
 
-    private ConcurrentMap&lt;Long, PlcRequestContainer&lt;PlcRequest, PlcResponse&gt;&gt; requests;
+    private final ConcurrentMap&lt;Long, PlcRequestContainer&lt;PlcRequest, PlcResponse&gt;&gt; requests;
 
     private final AMSNetId targetAmsNetId;
     private final AMSPort targetAmsPort;
@@ -142,71 +142,71 @@ public class Plc4XADSProtocol extends MessageToMessageCodec&lt;AMSTCPPacket, Plc
 
     @Override
     protected void decode(ChannelHandlerContext channelHandlerContext, AMSTCPPacket amstcpPacket, List&lt;Object&gt; out) throws Exception {
-<span class="nc" id="L145">        PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; plcRequestContainer = requests.remove(amstcpPacket.getAmsHeader().getInvokeId().getAsLong());</span>
-<span class="nc bnc" id="L146" title="All 2 branches missed.">        if (plcRequestContainer == null) {</span>
+<span class="fc" id="L145">        PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; plcRequestContainer = requests.remove(amstcpPacket.getAmsHeader().getInvokeId().getAsLong());</span>
+<span class="pc bpc" id="L146" title="1 of 2 branches missed.">        if (plcRequestContainer == null) {</span>
 <span class="nc" id="L147">            LOGGER.info(&quot;Unmapped packet received {}&quot;, amstcpPacket);</span>
 <span class="nc" id="L148">            return;</span>
         }
-<span class="nc" id="L150">        PlcRequest request = plcRequestContainer.getRequest();</span>
-<span class="nc" id="L151">        PlcResponse response = null;</span>
+<span class="fc" id="L150">        PlcRequest request = plcRequestContainer.getRequest();</span>
+<span class="fc" id="L151">        PlcResponse response = null;</span>
 
         // Handle the response to a read request.
-<span class="nc bnc" id="L154" title="All 2 branches missed.">        if (request instanceof PlcReadRequest) {</span>
-<span class="nc bnc" id="L155" title="All 2 branches missed.">            if (amstcpPacket instanceof ADSReadResponse) {</span>
-<span class="nc" id="L156">                response = decodeReadResponse((ADSReadResponse) amstcpPacket, plcRequestContainer);</span>
+<span class="fc bfc" id="L154" title="All 2 branches covered.">        if (request instanceof PlcReadRequest) {</span>
+<span class="pc bpc" id="L155" title="1 of 2 branches missed.">            if (amstcpPacket instanceof ADSReadResponse) {</span>
+<span class="fc" id="L156">                response = decodeReadResponse((ADSReadResponse) amstcpPacket, plcRequestContainer);</span>
             } else {
 <span class="nc" id="L158">                throw new PlcProtocolException(&quot;Wrong type correlated &quot; + amstcpPacket);</span>
             }
-<span class="nc bnc" id="L160" title="All 2 branches missed.">        } else if (request instanceof PlcWriteRequest) {</span>
-<span class="nc bnc" id="L161" title="All 2 branches missed.">            if (amstcpPacket instanceof ADSWriteResponse) {</span>
-<span class="nc" id="L162">                response = decodeWriteResponse((ADSWriteResponse) amstcpPacket, plcRequestContainer);</span>
+<span class="pc bpc" id="L160" title="1 of 2 branches missed.">        } else if (request instanceof PlcWriteRequest) {</span>
+<span class="pc bpc" id="L161" title="1 of 2 branches missed.">            if (amstcpPacket instanceof ADSWriteResponse) {</span>
+<span class="fc" id="L162">                response = decodeWriteResponse((ADSWriteResponse) amstcpPacket, plcRequestContainer);</span>
             } else {
 <span class="nc" id="L164">                throw new PlcProtocolException(&quot;Wrong type correlated &quot; + amstcpPacket);</span>
             }
         }
 
         // Confirm the response being handled.
-<span class="nc bnc" id="L169" title="All 2 branches missed.">        if (response != null) {</span>
-<span class="nc" id="L170">            plcRequestContainer.getResponseFuture().complete(response);</span>
+<span class="pc bpc" id="L169" title="1 of 2 branches missed.">        if (response != null) {</span>
+<span class="fc" id="L170">            plcRequestContainer.getResponseFuture().complete(response);</span>
         }
-<span class="nc" id="L172">        out.add(plcRequestContainer);</span>
-<span class="nc" id="L173">    }</span>
+<span class="fc" id="L172">        out.add(plcRequestContainer);</span>
+<span class="fc" id="L173">    }</span>
 
     @SuppressWarnings(&quot;unchecked&quot;)
-    private PlcResponse decodeWriteResponse(ADSWriteResponse responseMessage, PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; requestContainer) throws PlcProtocolException {
-<span class="nc" id="L177">        PlcWriteRequest plcWriteRequest = (PlcWriteRequest) requestContainer.getRequest();</span>
-<span class="nc" id="L178">        WriteRequestItem requestItem = plcWriteRequest.getRequestItems().get(0);</span>
+    private PlcResponse decodeWriteResponse(ADSWriteResponse responseMessage, PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; requestContainer) {
+<span class="fc" id="L177">        PlcWriteRequest plcWriteRequest = (PlcWriteRequest) requestContainer.getRequest();</span>
+<span class="fc" id="L178">        WriteRequestItem requestItem = plcWriteRequest.getRequestItems().get(0);</span>
 
-<span class="nc" id="L180">        ResponseCode responseCode = decodeResponseCode(responseMessage.getResult());</span>
+<span class="fc" id="L180">        ResponseCode responseCode = decodeResponseCode(responseMessage.getResult());</span>
 
-<span class="nc bnc" id="L182" title="All 2 branches missed.">        if (plcWriteRequest instanceof TypeSafePlcWriteRequest) {</span>
-<span class="nc" id="L183">            return new TypeSafePlcWriteResponse((TypeSafePlcWriteRequest) plcWriteRequest, Collections.singletonList(new WriteResponseItem&lt;&gt;(requestItem, responseCode)));</span>
+<span class="pc bpc" id="L182" title="1 of 2 branches missed.">        if (plcWriteRequest instanceof TypeSafePlcWriteRequest) {</span>
+<span class="fc" id="L183">            return new TypeSafePlcWriteResponse((TypeSafePlcWriteRequest) plcWriteRequest, Collections.singletonList(new WriteResponseItem&lt;&gt;(requestItem, responseCode)));</span>
         } else {
 <span class="nc" id="L185">            return new PlcWriteResponse(plcWriteRequest, Collections.singletonList(new WriteResponseItem&lt;&gt;(requestItem, responseCode)));</span>
         }
     }
 
     @SuppressWarnings(&quot;unchecked&quot;)
-    private PlcResponse decodeReadResponse(ADSReadResponse responseMessage, PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; requestContainer) throws PlcProtocolException {
-<span class="nc" id="L191">        PlcReadRequest plcReadRequest = (PlcReadRequest) requestContainer.getRequest();</span>
-<span class="nc" id="L192">        ReadRequestItem requestItem = plcReadRequest.getRequestItems().get(0);</span>
+    private PlcResponse decodeReadResponse(ADSReadResponse responseMessage, PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; requestContainer) {
+<span class="fc" id="L191">        PlcReadRequest plcReadRequest = (PlcReadRequest) requestContainer.getRequest();</span>
+<span class="fc" id="L192">        ReadRequestItem requestItem = plcReadRequest.getRequestItems().get(0);</span>
 
-<span class="nc" id="L194">        ResponseCode responseCode = decodeResponseCode(responseMessage.getResult());</span>
-<span class="nc" id="L195">        byte[] bytes = responseMessage.getData().getBytes();</span>
+<span class="fc" id="L194">        ResponseCode responseCode = decodeResponseCode(responseMessage.getResult());</span>
+<span class="fc" id="L195">        byte[] bytes = responseMessage.getData().getBytes();</span>
         // TODO: we need custom serialization here as java types don't really help here
-<span class="nc" id="L197">        Object deserialize = SerializationUtils.deserialize(bytes);</span>
+<span class="fc" id="L197">        Object deserialize = SerializationUtils.deserialize(bytes);</span>
 
-<span class="nc bnc" id="L199" title="All 2 branches missed.">        if (plcReadRequest instanceof TypeSafePlcReadRequest) {</span>
-<span class="nc" id="L200">            return new TypeSafePlcReadResponse((TypeSafePlcReadRequest) plcReadRequest, Collections.singletonList(new ReadResponseItem&lt;&gt;(requestItem, responseCode, Collections.singletonList(deserialize))));</span>
+<span class="pc bpc" id="L199" title="1 of 2 branches missed.">        if (plcReadRequest instanceof TypeSafePlcReadRequest) {</span>
+<span class="fc" id="L200">            return new TypeSafePlcReadResponse((TypeSafePlcReadRequest) plcReadRequest, Collections.singletonList(new ReadResponseItem&lt;&gt;(requestItem, responseCode, Collections.singletonList(deserialize))));</span>
         } else {
 <span class="nc" id="L202">            return new PlcReadResponse(plcReadRequest, Collections.singletonList(new ReadResponseItem&lt;&gt;(requestItem, responseCode, Collections.singletonList(bytes))));</span>
         }
     }
 
     private ResponseCode decodeResponseCode(Result result) {
-<span class="nc bnc" id="L207" title="All 7 branches missed.">        switch (result.toAdsReturnCode()) {</span>
+<span class="pc bpc" id="L207" title="6 of 7 branches missed.">        switch (result.toAdsReturnCode()) {</span>
             case ADS_CODE_0:
-<span class="nc" id="L209">                return ResponseCode.OK;</span>
+<span class="fc" id="L209">                return ResponseCode.OK;</span>
             case ADS_CODE_1:
 <span class="nc" id="L211">                return ResponseCode.INTERNAL_ERROR;</span>
             case ADS_CODE_2:
