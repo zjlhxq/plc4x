@@ -53,71 +53,78 @@ public class ADSReadWriteResponse extends ADSAbstractResponse {
      */
     private final Data data;
 
-    ////
-    // Used when fields should be calculated. TODO: check if we better work with a subclass.
     private final LengthSupplier lengthSupplier;
-    private final boolean calculated;
-    //
-    ///
 
     private ADSReadWriteResponse(AMSTCPHeader amstcpHeader, AMSHeader amsHeader, Result result, Length length, Data data) {
-<span class="fc" id="L64">        super(amstcpHeader, amsHeader);</span>
-<span class="fc" id="L65">        this.result = requireNonNull(result);</span>
-<span class="fc" id="L66">        this.length = requireNonNull(length);</span>
-<span class="fc" id="L67">        this.data = requireNonNull(data);</span>
-<span class="fc" id="L68">        this.lengthSupplier = null;</span>
-<span class="fc" id="L69">        this.calculated = false;</span>
-<span class="fc" id="L70">    }</span>
+<span class="fc" id="L59">        super(amstcpHeader, amsHeader);</span>
+<span class="fc" id="L60">        this.result = requireNonNull(result);</span>
+<span class="fc" id="L61">        this.length = requireNonNull(length);</span>
+<span class="fc" id="L62">        this.data = requireNonNull(data);</span>
+<span class="fc" id="L63">        this.lengthSupplier = null;</span>
+<span class="fc" id="L64">    }</span>
 
     private ADSReadWriteResponse(AMSNetId targetAmsNetId, AMSPort targetAmsPort, AMSNetId sourceAmsNetId, AMSPort sourceAmsPort, Invoke invokeId, Result result, Data data) {
-<span class="fc" id="L73">        super(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId);</span>
-<span class="fc" id="L74">        this.result = requireNonNull(result);</span>
-<span class="fc" id="L75">        this.length = null;</span>
-<span class="fc" id="L76">        this.data = requireNonNull(data);</span>
-<span class="fc" id="L77">        this.lengthSupplier = data;</span>
-<span class="fc" id="L78">        this.calculated = true;</span>
-<span class="fc" id="L79">    }</span>
+<span class="fc" id="L67">        super(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId);</span>
+<span class="fc" id="L68">        this.result = requireNonNull(result);</span>
+<span class="fc" id="L69">        this.length = null;</span>
+<span class="fc" id="L70">        this.data = requireNonNull(data);</span>
+<span class="fc" id="L71">        this.lengthSupplier = data;</span>
+<span class="fc" id="L72">    }</span>
 
     public static ADSReadWriteResponse of(AMSTCPHeader amstcpHeader, AMSHeader amsHeader, Result result, Length length, Data data) {
-<span class="fc" id="L82">        return new ADSReadWriteResponse(amstcpHeader, amsHeader, result, length, data);</span>
+<span class="fc" id="L75">        return new ADSReadWriteResponse(amstcpHeader, amsHeader, result, length, data);</span>
     }
 
     public static ADSReadWriteResponse of(AMSNetId targetAmsNetId, AMSPort targetAmsPort, AMSNetId sourceAmsNetId, AMSPort sourceAmsPort, Invoke invokeId, Result result, Data data) {
-<span class="fc" id="L86">        return new ADSReadWriteResponse(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId, result, data);</span>
+<span class="fc" id="L79">        return new ADSReadWriteResponse(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId, result, data);</span>
     }
 
     public Result getResult() {
-<span class="fc" id="L90">        return result;</span>
+<span class="fc" id="L83">        return result;</span>
     }
 
     public Length getLength() {
-<span class="fc" id="L94">        return length;</span>
+<span class="fc bfc" id="L87" title="All 2 branches covered.">        return lengthSupplier == null ? length : Length.of(lengthSupplier);</span>
     }
 
     public Data getData() {
-<span class="fc" id="L98">        return data;</span>
-    }
-
-    public LengthSupplier getLengthSupplier() {
-<span class="fc" id="L102">        return lengthSupplier;</span>
-    }
-
-    public boolean isCalculated() {
-<span class="fc" id="L106">        return calculated;</span>
+<span class="fc" id="L91">        return data;</span>
     }
 
     @Override
     public ADSData getAdsData() {
-<span class="fc bfc" id="L111" title="All 2 branches covered.">        return buildADSData(result, calculated ? Length.of(lengthSupplier.getCalculatedLength()) : length, data);</span>
+<span class="fc" id="L96">        return buildADSData(result, getLength(), data);</span>
+    }
+
+    @Override
+    public boolean equals(Object o) {
+<span class="pc bpc" id="L101" title="1 of 2 branches missed.">        if (this == o) return true;</span>
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">        if (!(o instanceof ADSReadWriteResponse)) return false;</span>
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">        if (!super.equals(o)) return false;</span>
+
+<span class="fc" id="L105">        ADSReadWriteResponse that = (ADSReadWriteResponse) o;</span>
+
+<span class="pc bpc" id="L107" title="1 of 2 branches missed.">        if (!result.equals(that.result)) return false;</span>
+<span class="pc bpc" id="L108" title="1 of 2 branches missed.">        if (!getLength().equals(that.getLength())) return false;</span>
+<span class="fc" id="L109">        return data.equals(that.data);</span>
+    }
+
+    @Override
+    public int hashCode() {
+<span class="nc" id="L114">        int result1 = super.hashCode();</span>
+<span class="nc" id="L115">        result1 = 31 * result1 + result.hashCode();</span>
+<span class="nc" id="L116">        result1 = 31 * result1 + getLength().hashCode();</span>
+<span class="nc" id="L117">        result1 = 31 * result1 + data.hashCode();</span>
+<span class="nc" id="L118">        return result1;</span>
     }
 
     @Override
     public String toString() {
-<span class="fc bfc" id="L116" title="All 2 branches covered.">        return &quot;ADSReadWriteResponse{&quot; +</span>
+<span class="fc" id="L123">        return &quot;ADSReadWriteResponse{&quot; +</span>
             &quot;result=&quot; + result +
-<span class="fc" id="L118">            &quot;, length=&quot; + (calculated ? Length.of(lengthSupplier.getCalculatedLength()) : length) +</span>
+<span class="fc" id="L125">            &quot;, length=&quot; + getLength() +</span>
             &quot;, data=&quot; + data +
-<span class="fc" id="L120">            &quot;} &quot; + super.toString();</span>
+<span class="fc" id="L127">            &quot;} &quot; + super.toString();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

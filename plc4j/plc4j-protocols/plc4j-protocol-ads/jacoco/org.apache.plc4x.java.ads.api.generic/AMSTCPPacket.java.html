@@ -80,8 +80,26 @@ public abstract class AMSTCPPacket implements ByteReadable {
     }
 
     @Override
+    public boolean equals(Object o) {
+<span class="pc bpc" id="L84" title="1 of 2 branches missed.">        if (this == o) return true;</span>
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">        if (!(o instanceof AMSTCPPacket)) return false;</span>
+
+<span class="fc" id="L87">        AMSTCPPacket that = (AMSTCPPacket) o;</span>
+
+<span class="pc bpc" id="L89" title="1 of 2 branches missed.">        if (!amsTcpHeader.equals(that.amsTcpHeader)) return false;</span>
+<span class="fc" id="L90">        return amsHeader.equals(that.amsHeader);</span>
+    }
+
+    @Override
+    public int hashCode() {
+<span class="nc" id="L95">        int result = amsTcpHeader.hashCode();</span>
+<span class="nc" id="L96">        result = 31 * result + amsHeader.hashCode();</span>
+<span class="nc" id="L97">        return result;</span>
+    }
+
+    @Override
     public String toString() {
-<span class="fc" id="L84">        return getClass().getSimpleName() + &quot;{&quot; +</span>
+<span class="fc" id="L102">        return getClass().getSimpleName() + &quot;{&quot; +</span>
             &quot;amsTcpHeader=&quot; + amsTcpHeader +
             &quot;, amsHeader=&quot; + amsHeader +
             '}';

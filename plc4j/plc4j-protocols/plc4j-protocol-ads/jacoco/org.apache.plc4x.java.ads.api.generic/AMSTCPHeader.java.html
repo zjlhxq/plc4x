@@ -36,50 +36,40 @@ public class AMSTCPHeader implements ByteReadable {
 
     private final TcpLength tcpLength;
 
-    ////
-    // Used when fields should be calculated. TODO: check if we better work with a subclass.
     private final LengthSupplier[] lengthSuppliers;
-    private final boolean calculated;
-    //
-    ///
 
-<span class="fc" id="L46">    private AMSTCPHeader(TcpLength tcpLength) {</span>
-<span class="fc" id="L47">        this.reserved = requireNonNull(Reserved.CONSTANT);</span>
-<span class="fc" id="L48">        this.tcpLength = requireNonNull(tcpLength);</span>
-<span class="fc" id="L49">        lengthSuppliers = null;</span>
-<span class="fc" id="L50">        calculated = false;</span>
-<span class="fc" id="L51">    }</span>
+<span class="fc" id="L41">    private AMSTCPHeader(TcpLength tcpLength) {</span>
+<span class="fc" id="L42">        this.reserved = requireNonNull(Reserved.CONSTANT);</span>
+<span class="fc" id="L43">        this.tcpLength = requireNonNull(tcpLength);</span>
+<span class="fc" id="L44">        lengthSuppliers = null;</span>
 
-<span class="fc" id="L53">    private AMSTCPHeader(LengthSupplier... lengthSuppliers) {</span>
-<span class="fc" id="L54">        this.reserved = requireNonNull(Reserved.CONSTANT);</span>
-<span class="fc" id="L55">        this.tcpLength = null;</span>
-<span class="fc" id="L56">        this.lengthSuppliers = requireNonNull(lengthSuppliers);</span>
-<span class="fc" id="L57">        calculated = true;</span>
-<span class="fc" id="L58">    }</span>
+<span class="fc" id="L46">    }</span>
+
+<span class="fc" id="L48">    private AMSTCPHeader(LengthSupplier... lengthSuppliers) {</span>
+<span class="fc" id="L49">        this.reserved = requireNonNull(Reserved.CONSTANT);</span>
+<span class="fc" id="L50">        this.tcpLength = null;</span>
+<span class="fc" id="L51">        this.lengthSuppliers = requireNonNull(lengthSuppliers);</span>
+<span class="fc" id="L52">    }</span>
+
+    public static AMSTCPHeader of(TcpLength tcpLength) {
+<span class="fc" id="L55">        return new AMSTCPHeader(tcpLength);</span>
+    }
 
     public static AMSTCPHeader of(long length) {
-<span class="fc" id="L61">        return new AMSTCPHeader(TcpLength.of(length));</span>
+<span class="fc" id="L59">        return new AMSTCPHeader(TcpLength.of(length));</span>
     }
 
     public static AMSTCPHeader of(LengthSupplier... lengthSuppliers) {
-<span class="fc" id="L65">        return new AMSTCPHeader(lengthSuppliers);</span>
+<span class="fc" id="L63">        return new AMSTCPHeader(lengthSuppliers);</span>
     }
 
     public TcpLength getTcpLength() {
-<span class="fc" id="L69">        return tcpLength;</span>
-    }
-
-    public LengthSupplier[] getLengthSuppliers() {
-<span class="fc" id="L73">        return lengthSuppliers;</span>
-    }
-
-    public boolean isCalculated() {
-<span class="fc" id="L77">        return calculated;</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">        return lengthSuppliers == null ? tcpLength : TcpLength.of(getCalculatedLength());</span>
     }
 
     @Override
     public ByteBuf getByteBuf() {
-<span class="fc bfc" id="L82" title="All 2 branches covered.">        return buildByteBuff(reserved, calculated ? TcpLength.of(getCalculatedLength()) : tcpLength);</span>
+<span class="fc" id="L72">        return buildByteBuff(reserved, getTcpLength());</span>
     }
 
     /**
@@ -90,32 +80,49 @@ public class AMSTCPHeader implements ByteReadable {
 
         public static final int NUM_BYTES = 2;
 
-<span class="fc" id="L93">        private static final Reserved CONSTANT = new Reserved();</span>
+<span class="fc" id="L83">        private static final Reserved CONSTANT = new Reserved();</span>
 
         private Reserved() {
-<span class="fc" id="L96">            super((byte) 0x00, (byte) 0x00);</span>
-<span class="fc" id="L97">            assertLength(NUM_BYTES);</span>
-<span class="fc" id="L98">        }</span>
+<span class="fc" id="L86">            super((byte) 0x00, (byte) 0x00);</span>
+<span class="fc" id="L87">            assertLength(NUM_BYTES);</span>
+<span class="fc" id="L88">        }</span>
     }
 
     @Override
     public long getCalculatedLength() {
-<span class="fc bfc" id="L103" title="All 2 branches covered.">        if (calculated) {</span>
-<span class="fc" id="L104">            long aggregateLength = 0;</span>
-<span class="fc bfc" id="L105" title="All 2 branches covered.">            for (LengthSupplier supplier : lengthSuppliers) {</span>
-<span class="fc" id="L106">                aggregateLength += supplier.getCalculatedLength();</span>
-            }
-<span class="fc" id="L108">            return aggregateLength;</span>
+<span class="fc bfc" id="L93" title="All 2 branches covered.">        if (lengthSuppliers == null) {</span>
+<span class="fc" id="L94">            return tcpLength.getAsLong();</span>
         } else {
-<span class="fc" id="L110">            return tcpLength.getAsLong();</span>
+<span class="fc" id="L96">            long aggregateLength = 0;</span>
+<span class="fc bfc" id="L97" title="All 2 branches covered.">            for (LengthSupplier supplier : lengthSuppliers) {</span>
+<span class="fc" id="L98">                aggregateLength += supplier.getCalculatedLength();</span>
+            }
+<span class="fc" id="L100">            return aggregateLength;</span>
         }
     }
 
     @Override
+    public boolean equals(Object o) {
+<span class="pc bpc" id="L106" title="1 of 2 branches missed.">        if (this == o) return true;</span>
+<span class="pc bpc" id="L107" title="1 of 2 branches missed.">        if (!(o instanceof AMSTCPHeader)) return false;</span>
+
+<span class="fc" id="L109">        AMSTCPHeader that = (AMSTCPHeader) o;</span>
+
+<span class="fc" id="L111">        return getTcpLength().equals(that.getTcpLength());</span>
+    }
+
+    @Override
+    public int hashCode() {
+<span class="nc bnc" id="L116" title="All 2 branches missed.">        int result = reserved != null ? reserved.hashCode() : 0;</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">        result = 31 * result + (getTcpLength() != null ? getTcpLength().hashCode() : 0);</span>
+<span class="nc" id="L118">        return result;</span>
+    }
+
+    @Override
     public String toString() {
-<span class="fc bfc" id="L116" title="All 2 branches covered.">        return &quot;AMSTCPHeader{&quot; +</span>
+<span class="fc" id="L123">        return &quot;AMSTCPHeader{&quot; +</span>
             &quot;reserved=&quot; + reserved +
-<span class="fc" id="L118">            &quot;, tcpLength=&quot; + (calculated ? TcpLength.of(getCalculatedLength()) : tcpLength) +</span>
+<span class="fc" id="L125">            &quot;, tcpLength=&quot; + getTcpLength() +</span>
             '}';
     }
 }

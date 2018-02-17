@@ -18,7 +18,10 @@
  */
 package org.apache.plc4x.java.ads.api.commands;
 
-import org.apache.plc4x.java.ads.api.commands.types.*;
+import org.apache.plc4x.java.ads.api.commands.types.Data;
+import org.apache.plc4x.java.ads.api.commands.types.IndexGroup;
+import org.apache.plc4x.java.ads.api.commands.types.IndexOffset;
+import org.apache.plc4x.java.ads.api.commands.types.Length;
 import org.apache.plc4x.java.ads.api.generic.ADSData;
 import org.apache.plc4x.java.ads.api.generic.AMSHeader;
 import org.apache.plc4x.java.ads.api.generic.AMSTCPHeader;
@@ -53,92 +56,100 @@ public class ADSWriteRequest extends ADSAbstractRequest {
      */
     private final Data data;
 
-    ////
-    // Used when fields should be calculated. TODO: check if we better work with a subclass.
     private final LengthSupplier lengthSupplier;
-    private final boolean calculated;
-    //
-    ///
 
     private ADSWriteRequest(AMSTCPHeader amstcpHeader, AMSHeader amsHeader, IndexGroup indexGroup, IndexOffset indexOffset, Length length, Data data) {
-<span class="fc" id="L64">        super(amstcpHeader, amsHeader);</span>
-<span class="fc" id="L65">        this.indexGroup = requireNonNull(indexGroup);</span>
-<span class="fc" id="L66">        this.indexOffset = requireNonNull(indexOffset);</span>
-<span class="fc" id="L67">        this.length = requireNonNull(length);</span>
-<span class="fc" id="L68">        this.data = requireNonNull(data);</span>
-<span class="fc" id="L69">        this.lengthSupplier = null;</span>
-<span class="fc" id="L70">        this.calculated = false;</span>
-<span class="fc" id="L71">    }</span>
+<span class="fc" id="L62">        super(amstcpHeader, amsHeader);</span>
+<span class="fc" id="L63">        this.indexGroup = requireNonNull(indexGroup);</span>
+<span class="fc" id="L64">        this.indexOffset = requireNonNull(indexOffset);</span>
+<span class="fc" id="L65">        this.length = requireNonNull(length);</span>
+<span class="fc" id="L66">        this.data = requireNonNull(data);</span>
+<span class="fc" id="L67">        this.lengthSupplier = null;</span>
+<span class="fc" id="L68">    }</span>
 
     private ADSWriteRequest(AMSHeader amsHeader, IndexGroup indexGroup, IndexOffset indexOffset, Length length, Data data) {
-<span class="fc" id="L74">        super(amsHeader);</span>
-<span class="fc" id="L75">        this.indexGroup = requireNonNull(indexGroup);</span>
-<span class="fc" id="L76">        this.indexOffset = requireNonNull(indexOffset);</span>
-<span class="fc" id="L77">        this.length = requireNonNull(length);</span>
-<span class="fc" id="L78">        this.data = requireNonNull(data);</span>
-<span class="fc" id="L79">        this.lengthSupplier = null;</span>
-<span class="fc" id="L80">        this.calculated = false;</span>
-<span class="fc" id="L81">    }</span>
+<span class="fc" id="L71">        super(amsHeader);</span>
+<span class="fc" id="L72">        this.indexGroup = requireNonNull(indexGroup);</span>
+<span class="fc" id="L73">        this.indexOffset = requireNonNull(indexOffset);</span>
+<span class="fc" id="L74">        this.length = requireNonNull(length);</span>
+<span class="fc" id="L75">        this.data = requireNonNull(data);</span>
+<span class="fc" id="L76">        this.lengthSupplier = null;</span>
+<span class="fc" id="L77">    }</span>
 
     private ADSWriteRequest(AMSNetId targetAmsNetId, AMSPort targetAmsPort, AMSNetId sourceAmsNetId, AMSPort sourceAmsPort, Invoke invokeId, IndexGroup indexGroup, IndexOffset indexOffset, Data data) {
-<span class="fc" id="L84">        super(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId);</span>
-<span class="fc" id="L85">        this.indexGroup = requireNonNull(indexGroup);</span>
-<span class="fc" id="L86">        this.indexOffset = requireNonNull(indexOffset);</span>
-<span class="fc" id="L87">        this.length = null;</span>
-<span class="fc" id="L88">        this.data = requireNonNull(data);</span>
-<span class="fc" id="L89">        this.lengthSupplier = data;</span>
-<span class="fc" id="L90">        this.calculated = true;</span>
-<span class="fc" id="L91">    }</span>
+<span class="fc" id="L80">        super(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId);</span>
+<span class="fc" id="L81">        this.indexGroup = requireNonNull(indexGroup);</span>
+<span class="fc" id="L82">        this.indexOffset = requireNonNull(indexOffset);</span>
+<span class="fc" id="L83">        this.length = null;</span>
+<span class="fc" id="L84">        this.data = requireNonNull(data);</span>
+<span class="fc" id="L85">        this.lengthSupplier = data;</span>
+<span class="fc" id="L86">    }</span>
 
     public static ADSWriteRequest of(AMSTCPHeader amstcpHeader, AMSHeader amsHeader, IndexGroup indexGroup, IndexOffset indexOffset, Length length, Data data) {
-<span class="fc" id="L94">        return new ADSWriteRequest(amstcpHeader, amsHeader, indexGroup, indexOffset, length, data);</span>
+<span class="fc" id="L89">        return new ADSWriteRequest(amstcpHeader, amsHeader, indexGroup, indexOffset, length, data);</span>
     }
 
     public static ADSWriteRequest of(AMSHeader amsHeader, IndexGroup indexGroup, IndexOffset indexOffset, Length length, Data data) {
-<span class="fc" id="L98">        return new ADSWriteRequest(amsHeader, indexGroup, indexOffset, length, data);</span>
+<span class="fc" id="L93">        return new ADSWriteRequest(amsHeader, indexGroup, indexOffset, length, data);</span>
     }
 
     public static ADSWriteRequest of(AMSNetId targetAmsNetId, AMSPort targetAmsPort, AMSNetId sourceAmsNetId, AMSPort sourceAmsPort, Invoke invokeId, IndexGroup indexGroup, IndexOffset indexOffset, Data data) {
-<span class="fc" id="L102">        return new ADSWriteRequest(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId, indexGroup, indexOffset, data);</span>
+<span class="fc" id="L97">        return new ADSWriteRequest(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId, indexGroup, indexOffset, data);</span>
     }
 
     public IndexGroup getIndexGroup() {
-<span class="fc" id="L106">        return indexGroup;</span>
+<span class="fc" id="L101">        return indexGroup;</span>
     }
 
     public IndexOffset getIndexOffset() {
-<span class="fc" id="L110">        return indexOffset;</span>
+<span class="fc" id="L105">        return indexOffset;</span>
     }
 
     public Length getLength() {
-<span class="fc" id="L114">        return length;</span>
+<span class="fc bfc" id="L109" title="All 2 branches covered.">        return lengthSupplier == null ? length : Length.of(lengthSupplier);</span>
     }
 
     public Data getData() {
-<span class="fc" id="L118">        return data;</span>
-    }
-
-    public LengthSupplier getLengthSupplier() {
-<span class="fc" id="L122">        return lengthSupplier;</span>
-    }
-
-    public boolean isCalculated() {
-<span class="fc" id="L126">        return calculated;</span>
+<span class="fc" id="L113">        return data;</span>
     }
 
     @Override
     public ADSData getAdsData() {
-<span class="fc bfc" id="L131" title="All 2 branches covered.">        return buildADSData(indexGroup, indexOffset, calculated ? WriteLength.of(lengthSupplier.getCalculatedLength()) : length, data);</span>
+<span class="fc" id="L118">        return buildADSData(indexGroup, indexOffset, getLength(), data);</span>
+    }
+
+    @Override
+    public boolean equals(Object o) {
+<span class="pc bpc" id="L123" title="1 of 2 branches missed.">        if (this == o) return true;</span>
+<span class="pc bpc" id="L124" title="1 of 2 branches missed.">        if (!(o instanceof ADSWriteRequest)) return false;</span>
+<span class="pc bpc" id="L125" title="1 of 2 branches missed.">        if (!super.equals(o)) return false;</span>
+
+<span class="fc" id="L127">        ADSWriteRequest that = (ADSWriteRequest) o;</span>
+
+<span class="pc bpc" id="L129" title="1 of 2 branches missed.">        if (!indexGroup.equals(that.indexGroup)) return false;</span>
+<span class="pc bpc" id="L130" title="1 of 2 branches missed.">        if (!indexOffset.equals(that.indexOffset)) return false;</span>
+<span class="pc bpc" id="L131" title="1 of 2 branches missed.">        if (!getLength().equals(that.getLength())) return false;</span>
+<span class="fc" id="L132">        return data.equals(that.data);</span>
+    }
+
+    @Override
+    public int hashCode() {
+<span class="nc" id="L137">        int result = super.hashCode();</span>
+<span class="nc" id="L138">        result = 31 * result + indexGroup.hashCode();</span>
+<span class="nc" id="L139">        result = 31 * result + indexOffset.hashCode();</span>
+<span class="nc" id="L140">        result = 31 * result + getLength().hashCode();</span>
+<span class="nc" id="L141">        result = 31 * result + data.hashCode();</span>
+<span class="nc" id="L142">        return result;</span>
     }
 
     @Override
     public String toString() {
-<span class="fc bfc" id="L136" title="All 2 branches covered.">        return &quot;ADSWriteRequest{&quot; +</span>
+<span class="fc" id="L147">        return &quot;ADSWriteRequest{&quot; +</span>
             &quot;indexGroup=&quot; + indexGroup +
             &quot;, indexOffset=&quot; + indexOffset +
-<span class="fc" id="L139">            &quot;, length=&quot; + (calculated ? WriteLength.of(lengthSupplier.getCalculatedLength()) : length) +</span>
+<span class="fc" id="L150">            &quot;, length=&quot; + getLength() +</span>
             &quot;, data=&quot; + data +
-<span class="fc" id="L141">            &quot;} &quot; + super.toString();</span>
+<span class="fc" id="L152">            &quot;} &quot; + super.toString();</span>
     }
 
 }

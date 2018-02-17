@@ -40,67 +40,72 @@ public class AdsNotificationSample implements ByteReadable {
      */
     private final Data data;
 
-    ////
-    // Used when fields should be calculated. TODO: check if we better work with a subclass.
     private final LengthSupplier lengthSupplier;
-    private final boolean calculated;
-    //
-    ///
 
-<span class="fc" id="L50">    private AdsNotificationSample(NotificationHandle notificationHandle, Data data) {</span>
-<span class="fc" id="L51">        this.notificationHandle = requireNonNull(notificationHandle);</span>
-<span class="fc" id="L52">        this.sampleSize = null;</span>
-<span class="fc" id="L53">        this.data = requireNonNull(data);</span>
-<span class="fc" id="L54">        calculated = true;</span>
-<span class="fc" id="L55">        lengthSupplier = data;</span>
-<span class="fc" id="L56">    }</span>
+<span class="fc" id="L45">    private AdsNotificationSample(NotificationHandle notificationHandle, Data data) {</span>
+<span class="fc" id="L46">        this.notificationHandle = requireNonNull(notificationHandle);</span>
+<span class="fc" id="L47">        this.sampleSize = null;</span>
+<span class="fc" id="L48">        this.data = requireNonNull(data);</span>
+<span class="fc" id="L49">        lengthSupplier = data;</span>
+<span class="fc" id="L50">    }</span>
 
-<span class="fc" id="L58">    private AdsNotificationSample(NotificationHandle notificationHandle, SampleSize sampleSize, Data data) {</span>
-<span class="fc" id="L59">        this.notificationHandle = requireNonNull(notificationHandle);</span>
-<span class="fc" id="L60">        this.sampleSize = requireNonNull(sampleSize);</span>
-<span class="fc" id="L61">        this.data = requireNonNull(data);</span>
-<span class="fc" id="L62">        calculated = true;</span>
-<span class="fc" id="L63">        lengthSupplier = null;</span>
-<span class="fc" id="L64">    }</span>
+<span class="fc" id="L52">    private AdsNotificationSample(NotificationHandle notificationHandle, SampleSize sampleSize, Data data) {</span>
+<span class="fc" id="L53">        this.notificationHandle = requireNonNull(notificationHandle);</span>
+<span class="fc" id="L54">        this.sampleSize = requireNonNull(sampleSize);</span>
+<span class="fc" id="L55">        this.data = requireNonNull(data);</span>
+<span class="fc" id="L56">        lengthSupplier = null;</span>
+<span class="fc" id="L57">    }</span>
 
     public static AdsNotificationSample of(NotificationHandle notificationHandle, Data data) {
-<span class="fc" id="L67">        return new AdsNotificationSample(notificationHandle, data);</span>
+<span class="fc" id="L60">        return new AdsNotificationSample(notificationHandle, data);</span>
     }
 
     public static AdsNotificationSample of(NotificationHandle notificationHandle, SampleSize sampleSize, Data data) {
-<span class="fc" id="L71">        return new AdsNotificationSample(notificationHandle, sampleSize, data);</span>
+<span class="fc" id="L64">        return new AdsNotificationSample(notificationHandle, sampleSize, data);</span>
     }
 
     @Override
     public ByteBuf getByteBuf() {
-<span class="pc bpc" id="L76" title="1 of 2 branches missed.">        return buildByteBuff(notificationHandle, calculated ? SampleSize.of(lengthSupplier.getCalculatedLength()) : sampleSize, data);</span>
+<span class="fc" id="L69">        return buildByteBuff(notificationHandle, getSampleSize(), data);</span>
     }
 
     public NotificationHandle getNotificationHandle() {
-<span class="nc" id="L80">        return notificationHandle;</span>
+<span class="nc" id="L73">        return notificationHandle;</span>
     }
 
     public SampleSize getSampleSize() {
-<span class="nc" id="L84">        return sampleSize;</span>
+<span class="fc bfc" id="L77" title="All 2 branches covered.">        return lengthSupplier == null ? sampleSize : SampleSize.of(lengthSupplier);</span>
     }
 
     public Data getData() {
-<span class="nc" id="L88">        return data;</span>
+<span class="nc" id="L81">        return data;</span>
     }
 
-    public LengthSupplier getLengthSupplier() {
-<span class="nc" id="L92">        return lengthSupplier;</span>
+    @Override
+    public boolean equals(Object o) {
+<span class="pc bpc" id="L86" title="1 of 2 branches missed.">        if (this == o) return true;</span>
+<span class="pc bpc" id="L87" title="1 of 2 branches missed.">        if (!(o instanceof AdsNotificationSample)) return false;</span>
+
+<span class="fc" id="L89">        AdsNotificationSample that = (AdsNotificationSample) o;</span>
+
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">        if (!notificationHandle.equals(that.notificationHandle)) return false;</span>
+<span class="pc bpc" id="L92" title="1 of 2 branches missed.">        if (!data.equals(that.data)) return false;</span>
+<span class="fc" id="L93">        return getSampleSize().equals(that.getSampleSize());</span>
     }
 
-    public boolean isCalculated() {
-<span class="nc" id="L96">        return calculated;</span>
+    @Override
+    public int hashCode() {
+<span class="nc" id="L98">        int result = notificationHandle.hashCode();</span>
+<span class="nc" id="L99">        result = 31 * result + data.hashCode();</span>
+<span class="nc" id="L100">        result = 31 * result + getSampleSize().hashCode();</span>
+<span class="nc" id="L101">        return result;</span>
     }
 
     @Override
     public String toString() {
-<span class="pc bpc" id="L101" title="1 of 2 branches missed.">        return &quot;AdsNotificationSample{&quot; +</span>
+<span class="fc" id="L106">        return &quot;AdsNotificationSample{&quot; +</span>
             &quot;notificationHandle=&quot; + notificationHandle +
-<span class="pc" id="L103">            &quot;, sampleSize=&quot; + (calculated ? SampleSize.of(lengthSupplier.getCalculatedLength()) : sampleSize) +</span>
+<span class="fc" id="L108">            &quot;, sampleSize=&quot; + getSampleSize() +</span>
             &quot;, data=&quot; + data +
             '}';
     }
