@@ -25,6 +25,8 @@ import org.apache.edgent.function.Function;
 import org.apache.edgent.function.Supplier;
 
 import com.google.gson.JsonObject;
+import org.apache.plc4x.java.api.messages.PlcReadRequest;
+import org.apache.plc4x.java.api.messages.PlcReadResponse;
 
 /**
  * WIP - A plc4x Apache Edgent {@link Supplier} and {@link Consumer} connector factory.
@@ -69,8 +71,8 @@ import com.google.gson.JsonObject;
  */
 public class PlcFunctions {
 
-<span class="nc" id="L72">  private PlcFunctions() {</span>
-<span class="nc" id="L73">    throw new IllegalStateException(&quot;Utility class!&quot;);</span>
+<span class="nc" id="L74">  private PlcFunctions() {</span>
+<span class="nc" id="L75">    throw new IllegalStateException(&quot;Utility class!&quot;);</span>
   }
 
   /**
@@ -90,25 +92,28 @@ public class PlcFunctions {
    * //see org.apache.edgent.topology.Topology#poll(Supplier, long, java.util.concurrent.TimeUnit)
    */
   public static Supplier&lt;Boolean&gt; booleanSupplier(PlcConnectionAdapter adapter, String addressStr) {
-<span class="fc" id="L93">    return adapter.newSupplier(Boolean.class, addressStr);</span>
+<span class="fc" id="L95">    return adapter.newSupplier(Boolean.class, addressStr);</span>
   }
   public static Supplier&lt;Byte&gt; byteSupplier(PlcConnectionAdapter adapter, String addressStr) {
-<span class="fc" id="L96">    return adapter.newSupplier(Byte.class, addressStr);</span>
+<span class="fc" id="L98">    return adapter.newSupplier(Byte.class, addressStr);</span>
   }
   public static Supplier&lt;Short&gt; shortSupplier(PlcConnectionAdapter adapter, String addressStr) {
-<span class="fc" id="L99">    return adapter.newSupplier(Short.class, addressStr);</span>
+<span class="fc" id="L101">    return adapter.newSupplier(Short.class, addressStr);</span>
   }
   public static Supplier&lt;Integer&gt; integerSupplier(PlcConnectionAdapter adapter, String addressStr) {
-<span class="fc" id="L102">    return adapter.newSupplier(Integer.class, addressStr);</span>
+<span class="fc" id="L104">    return adapter.newSupplier(Integer.class, addressStr);</span>
   }
   public static Supplier&lt;Float&gt; floatSupplier(PlcConnectionAdapter adapter, String addressStr) {
-<span class="fc" id="L105">    return adapter.newSupplier(Float.class, addressStr);</span>
+<span class="fc" id="L107">    return adapter.newSupplier(Float.class, addressStr);</span>
   }
   public static Supplier&lt;String&gt; stringSupplier(PlcConnectionAdapter adapter, String addressStr) {
-<span class="fc" id="L108">    return adapter.newSupplier(String.class, addressStr);</span>
+<span class="fc" id="L110">    return adapter.newSupplier(String.class, addressStr);</span>
   }
   public static Supplier&lt;Calendar&gt; calendarSupplier(PlcConnectionAdapter adapter, String addressStr) {
-<span class="nc" id="L111">    return adapter.newSupplier(Calendar.class, addressStr);</span>
+<span class="nc" id="L113">    return adapter.newSupplier(Calendar.class, addressStr);</span>
+  }
+  public static Supplier&lt;PlcReadResponse&gt; batchSupplier(PlcConnectionAdapter adapter, PlcReadRequest readRequest) {
+<span class="nc" id="L116">    return adapter.newSupplier(readRequest);</span>
   }
 
   /**
@@ -127,25 +132,25 @@ public class PlcFunctions {
    * //see org.apache.edgent.topology.TStream#sink(Consumer)
    */
   public static Consumer&lt;Boolean&gt; booleanConsumer(PlcConnectionAdapter adapter, String addressStr) {
-<span class="fc" id="L130">    return adapter.newConsumer(Boolean.class, addressStr);</span>
+<span class="fc" id="L135">    return adapter.newConsumer(Boolean.class, addressStr);</span>
   }
   public static Consumer&lt;Byte&gt; byteConsumer(PlcConnectionAdapter adapter, String addressStr) {
-<span class="fc" id="L133">    return adapter.newConsumer(Byte.class, addressStr);</span>
+<span class="fc" id="L138">    return adapter.newConsumer(Byte.class, addressStr);</span>
   }
   public static Consumer&lt;Short&gt; shortConsumer(PlcConnectionAdapter adapter, String addressStr) {
-<span class="fc" id="L136">    return adapter.newConsumer(Short.class, addressStr);</span>
+<span class="fc" id="L141">    return adapter.newConsumer(Short.class, addressStr);</span>
   }
   public static Consumer&lt;Integer&gt; integerConsumer(PlcConnectionAdapter adapter, String addressStr) {
-<span class="fc" id="L139">    return adapter.newConsumer(Integer.class, addressStr);</span>
+<span class="fc" id="L144">    return adapter.newConsumer(Integer.class, addressStr);</span>
   }
   public static Consumer&lt;Float&gt; floatConsumer(PlcConnectionAdapter adapter, String addressStr) {
-<span class="fc" id="L142">    return adapter.newConsumer(Float.class, addressStr);</span>
+<span class="fc" id="L147">    return adapter.newConsumer(Float.class, addressStr);</span>
   }
   public static Consumer&lt;String&gt; stringConsumer(PlcConnectionAdapter adapter, String addressStr) {
-<span class="fc" id="L145">    return adapter.newConsumer(String.class, addressStr);</span>
+<span class="fc" id="L150">    return adapter.newConsumer(String.class, addressStr);</span>
   }
   public static Consumer&lt;Calendar&gt; calendarConsumer(PlcConnectionAdapter adapter, String addressStr) {
-<span class="nc" id="L148">    return adapter.newConsumer(Calendar.class, addressStr);</span>
+<span class="nc" id="L153">    return adapter.newConsumer(Calendar.class, addressStr);</span>
   }
 
   /**
@@ -171,25 +176,25 @@ public class PlcFunctions {
    * //see org.apache.edgent.topology.TStream#sink(Consumer)
    */
   public static Consumer&lt;JsonObject&gt; booleanConsumer(PlcConnectionAdapter adapter, Function&lt;JsonObject,String&gt; addressFn, Function&lt;JsonObject,Boolean&gt; valueFn) {
-<span class="fc" id="L174">    return adapter.newConsumer(Boolean.class, addressFn, valueFn);</span>
+<span class="fc" id="L179">    return adapter.newConsumer(Boolean.class, addressFn, valueFn);</span>
   }
   public static Consumer&lt;JsonObject&gt; byteConsumer(PlcConnectionAdapter adapter, Function&lt;JsonObject,String&gt; addressFn, Function&lt;JsonObject,Byte&gt; valueFn) {
-<span class="fc" id="L177">    return adapter.newConsumer(Byte.class, addressFn, valueFn);</span>
+<span class="fc" id="L182">    return adapter.newConsumer(Byte.class, addressFn, valueFn);</span>
   }
   public static Consumer&lt;JsonObject&gt; shortConsumer(PlcConnectionAdapter adapter, Function&lt;JsonObject,String&gt; addressFn, Function&lt;JsonObject,Short&gt; valueFn) {
-<span class="fc" id="L180">    return adapter.newConsumer(Short.class, addressFn, valueFn);</span>
+<span class="fc" id="L185">    return adapter.newConsumer(Short.class, addressFn, valueFn);</span>
   }
   public static Consumer&lt;JsonObject&gt; integerConsumer(PlcConnectionAdapter adapter, Function&lt;JsonObject,String&gt; addressFn, Function&lt;JsonObject,Integer&gt; valueFn) {
-<span class="fc" id="L183">    return adapter.newConsumer(Integer.class, addressFn, valueFn);</span>
+<span class="fc" id="L188">    return adapter.newConsumer(Integer.class, addressFn, valueFn);</span>
   }
   public static Consumer&lt;JsonObject&gt; floatConsumer(PlcConnectionAdapter adapter, Function&lt;JsonObject,String&gt; addressFn, Function&lt;JsonObject,Float&gt; valueFn) {
-<span class="fc" id="L186">    return adapter.newConsumer(Float.class, addressFn, valueFn);</span>
+<span class="fc" id="L191">    return adapter.newConsumer(Float.class, addressFn, valueFn);</span>
   }
   public static Consumer&lt;JsonObject&gt; stringConsumer(PlcConnectionAdapter adapter, Function&lt;JsonObject,String&gt; addressFn, Function&lt;JsonObject,String&gt; valueFn) {
-<span class="fc" id="L189">    return adapter.newConsumer(String.class, addressFn, valueFn);</span>
+<span class="fc" id="L194">    return adapter.newConsumer(String.class, addressFn, valueFn);</span>
   }
   public static Consumer&lt;JsonObject&gt; calendarConsumer(PlcConnectionAdapter adapter, Function&lt;JsonObject,String&gt; addressFn, Function&lt;JsonObject,Calendar&gt; valueFn) {
-<span class="nc" id="L192">    return adapter.newConsumer(Calendar.class, addressFn, valueFn);</span>
+<span class="nc" id="L197">    return adapter.newConsumer(Calendar.class, addressFn, valueFn);</span>
   }
   
 }
