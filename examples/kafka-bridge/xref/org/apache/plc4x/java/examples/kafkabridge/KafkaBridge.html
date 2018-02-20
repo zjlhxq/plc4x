@@ -102,31 +102,29 @@
 <a class="jxr_linenumber" name="L94" href="#L94">94</a>          TStream&lt;Byte&gt; source = top.poll(plcSupplier, config.getPollingInterval(), TimeUnit.MILLISECONDS);
 <a class="jxr_linenumber" name="L95" href="#L95">95</a>  
 <a class="jxr_linenumber" name="L96" href="#L96">96</a>          <em class="jxr_comment">// Convert the byte into a string.</em>
-<a class="jxr_linenumber" name="L97" href="#L97">97</a>          TStream&lt;String&gt; stringSource = source.map(value -&gt; {
-<a class="jxr_linenumber" name="L98" href="#L98">98</a>              <strong class="jxr_keyword">return</strong> Byte.toString(value);
-<a class="jxr_linenumber" name="L99" href="#L99">99</a>          });
-<a class="jxr_linenumber" name="L100" href="#L100">100</a> 
-<a class="jxr_linenumber" name="L101" href="#L101">101</a>         <em class="jxr_comment">// Publish the stream to the topic.  The String tuple is the message value.</em>
-<a class="jxr_linenumber" name="L102" href="#L102">102</a>         kafka.publish(stringSource, config.getKafkaConfig().getTopicName());
-<a class="jxr_linenumber" name="L103" href="#L103">103</a> 
-<a class="jxr_linenumber" name="L104" href="#L104">104</a>         dp.submit(top);
-<a class="jxr_linenumber" name="L105" href="#L105">105</a>     }
-<a class="jxr_linenumber" name="L106" href="#L106">106</a> 
-<a class="jxr_linenumber" name="L107" href="#L107">107</a>     <strong class="jxr_keyword">private</strong> Map&lt;String,Object&gt; createKafkaConfig() {
-<a class="jxr_linenumber" name="L108" href="#L108">108</a>         Map&lt;String,Object&gt; kafkaConfig = <strong class="jxr_keyword">new</strong> HashMap&lt;&gt;();
-<a class="jxr_linenumber" name="L109" href="#L109">109</a>         kafkaConfig.put(<span class="jxr_string">"bootstrap.servers"</span>, config.getKafkaConfig().getBootstrapServers());
-<a class="jxr_linenumber" name="L110" href="#L110">110</a>         <strong class="jxr_keyword">return</strong> kafkaConfig;
-<a class="jxr_linenumber" name="L111" href="#L111">111</a>     }
-<a class="jxr_linenumber" name="L112" href="#L112">112</a> 
-<a class="jxr_linenumber" name="L113" href="#L113">113</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> main(String[] args) {
-<a class="jxr_linenumber" name="L114" href="#L114">114</a>         <strong class="jxr_keyword">if</strong>(args.length != 1) {
-<a class="jxr_linenumber" name="L115" href="#L115">115</a>             System.out.println(<span class="jxr_string">"Usage: KafkaBridge {path-to-kafkabridge-yml}"</span>);
-<a class="jxr_linenumber" name="L116" href="#L116">116</a>         }
-<a class="jxr_linenumber" name="L117" href="#L117">117</a>         <a href="../../../../../../org/apache/plc4x/java/examples/kafkabridge/KafkaBridge.html">KafkaBridge</a> kafkaBridge = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/examples/kafkabridge/KafkaBridge.html">KafkaBridge</a>(args[0]);
-<a class="jxr_linenumber" name="L118" href="#L118">118</a>         kafkaBridge.run();
-<a class="jxr_linenumber" name="L119" href="#L119">119</a>     }
-<a class="jxr_linenumber" name="L120" href="#L120">120</a> 
-<a class="jxr_linenumber" name="L121" href="#L121">121</a> }
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>          TStream&lt;String&gt; stringSource = source.map(value -&gt; Byte.toString(value));
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>  
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>          <em class="jxr_comment">// Publish the stream to the topic.  The String tuple is the message value.</em>
+<a class="jxr_linenumber" name="L100" href="#L100">100</a>         kafka.publish(stringSource, config.getKafkaConfig().getTopicName());
+<a class="jxr_linenumber" name="L101" href="#L101">101</a> 
+<a class="jxr_linenumber" name="L102" href="#L102">102</a>         dp.submit(top);
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>     }
+<a class="jxr_linenumber" name="L104" href="#L104">104</a> 
+<a class="jxr_linenumber" name="L105" href="#L105">105</a>     <strong class="jxr_keyword">private</strong> Map&lt;String,Object&gt; createKafkaConfig() {
+<a class="jxr_linenumber" name="L106" href="#L106">106</a>         Map&lt;String,Object&gt; kafkaConfig = <strong class="jxr_keyword">new</strong> HashMap&lt;&gt;();
+<a class="jxr_linenumber" name="L107" href="#L107">107</a>         kafkaConfig.put(<span class="jxr_string">"bootstrap.servers"</span>, config.getKafkaConfig().getBootstrapServers());
+<a class="jxr_linenumber" name="L108" href="#L108">108</a>         <strong class="jxr_keyword">return</strong> kafkaConfig;
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>     }
+<a class="jxr_linenumber" name="L110" href="#L110">110</a> 
+<a class="jxr_linenumber" name="L111" href="#L111">111</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> main(String[] args) {
+<a class="jxr_linenumber" name="L112" href="#L112">112</a>         <strong class="jxr_keyword">if</strong>(args.length != 1) {
+<a class="jxr_linenumber" name="L113" href="#L113">113</a>             System.out.println(<span class="jxr_string">"Usage: KafkaBridge {path-to-kafkabridge-yml}"</span>);
+<a class="jxr_linenumber" name="L114" href="#L114">114</a>         }
+<a class="jxr_linenumber" name="L115" href="#L115">115</a>         <a href="../../../../../../org/apache/plc4x/java/examples/kafkabridge/KafkaBridge.html">KafkaBridge</a> kafkaBridge = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/examples/kafkabridge/KafkaBridge.html">KafkaBridge</a>(args[0]);
+<a class="jxr_linenumber" name="L116" href="#L116">116</a>         kafkaBridge.run();
+<a class="jxr_linenumber" name="L117" href="#L117">117</a>     }
+<a class="jxr_linenumber" name="L118" href="#L118">118</a> 
+<a class="jxr_linenumber" name="L119" href="#L119">119</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2017&#x2013;2018 <a href="https://www.apache.org/">The Apache Software Foundation</a>. All rights reserved.</div>
