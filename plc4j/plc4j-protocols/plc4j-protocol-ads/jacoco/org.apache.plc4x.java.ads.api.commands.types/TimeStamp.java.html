@@ -30,7 +30,7 @@ public class TimeStamp extends ByteValue {
     /**
      * @see &lt;a href=&quot;https://github.com/java-native-access/jna/blob/master/contrib/platform/src/com/sun/jna/platform/win32/WinBase.java&quot;&gt;java-native-access WinBase&lt;/a&gt;
      */
-<span class="fc" id="L33">    public final static BigInteger EPOCH_DIFF_IN_MILLIS = BigInteger.valueOf((369L * 365L + 89L) * 86400L * 1000L);</span>
+<span class="fc" id="L33">    public static final BigInteger EPOCH_DIFF_IN_MILLIS = BigInteger.valueOf((369L * 365L + 89L) * 86400L * 1000L);</span>
 
     public static final int NUM_BYTES = 8;
 
@@ -60,106 +60,114 @@ public class TimeStamp extends ByteValue {
 <span class="fc" id="L60">        bigIntegerValue = value;</span>
 <span class="fc" id="L61">    }</span>
 
+    private static byte checkByte(byte[] valueBytes, int length, int i) {
+<span class="fc bfc" id="L64" title="All 2 branches covered.">        return length &gt; i ? valueBytes[i] : 0;</span>
+    }
+    
     private static byte[] ofBigInteger(BigInteger value) {
-<span class="fc" id="L64">        byte[] valueBytes = value.toByteArray();</span>
-<span class="fc" id="L65">        int length = valueBytes.length;</span>
-<span class="fc bfc" id="L66" title="All 2 branches covered.">        return ByteBuffer.allocate(NUM_BYTES)</span>
+<span class="fc" id="L68">        byte[] valueBytes = value.toByteArray();</span>
+<span class="fc" id="L69">        int length = valueBytes.length;</span>
+<span class="fc" id="L70">        return ByteBuffer.allocate(NUM_BYTES)</span>
             // LE
-<span class="fc bfc" id="L68" title="All 2 branches covered.">            .put(length &gt; 7 ? valueBytes[7] : 0)</span>
-<span class="fc bfc" id="L69" title="All 2 branches covered.">            .put(length &gt; 6 ? valueBytes[6] : 0)</span>
-<span class="fc bfc" id="L70" title="All 2 branches covered.">            .put(length &gt; 5 ? valueBytes[5] : 0)</span>
-<span class="fc bfc" id="L71" title="All 2 branches covered.">            .put(length &gt; 4 ? valueBytes[4] : 0)</span>
+<span class="fc" id="L72">            .put(checkByte(valueBytes, length, 7))</span>
+<span class="fc" id="L73">            .put(checkByte(valueBytes, length, 6))</span>
+<span class="fc" id="L74">            .put(checkByte(valueBytes, length, 5))</span>
+<span class="fc" id="L75">            .put(checkByte(valueBytes, length, 4))</span>
 
-<span class="fc bfc" id="L73" title="All 2 branches covered.">            .put(length &gt; 3 ? valueBytes[3] : 0)</span>
-<span class="fc bfc" id="L74" title="All 2 branches covered.">            .put(length &gt; 2 ? valueBytes[2] : 0)</span>
-<span class="pc bpc" id="L75" title="1 of 2 branches missed.">            .put(length &gt; 1 ? valueBytes[1] : 0)</span>
-<span class="fc" id="L76">            .put(length &gt; 0 ? valueBytes[0] : 0)</span>
-<span class="fc" id="L77">            .array();</span>
+<span class="fc" id="L77">            .put(checkByte(valueBytes, length, 3))</span>
+<span class="fc" id="L78">            .put(checkByte(valueBytes, length, 2))</span>
+<span class="fc" id="L79">            .put(checkByte(valueBytes, length, 1))</span>
+<span class="fc" id="L80">            .put(checkByte(valueBytes, length, 0))</span>
+<span class="fc" id="L81">            .array();</span>
     }
 
+
     public static TimeStamp of(BigInteger value) {
-<span class="fc" id="L81">        return new TimeStamp(javaToWinTime(value));</span>
+<span class="fc" id="L86">        return new TimeStamp(javaToWinTime(value));</span>
     }
 
     public static TimeStamp ofWinTime(BigInteger value) {
-<span class="fc" id="L85">        return new TimeStamp(value);</span>
+<span class="fc" id="L90">        return new TimeStamp(value);</span>
     }
 
     public static TimeStamp of(long value) {
-<span class="fc" id="L89">        return of(BigInteger.valueOf(value));</span>
+<span class="fc" id="L94">        return of(BigInteger.valueOf(value));</span>
     }
 
     public static TimeStamp of(String value) {
-<span class="fc" id="L93">        return of(Long.valueOf(value));</span>
+<span class="fc" id="L98">        return of(Long.valueOf(value));</span>
     }
 
     public static TimeStamp ofWinTime(long value) {
-<span class="fc" id="L97">        return of(BigInteger.valueOf(value));</span>
+<span class="fc" id="L102">        return of(BigInteger.valueOf(value));</span>
     }
 
     public static TimeStamp ofWinTime(String value) {
-<span class="fc" id="L101">        return of(Long.valueOf(value));</span>
+<span class="fc" id="L106">        return of(Long.valueOf(value));</span>
     }
 
     public static TimeStamp of(byte... values) {
-<span class="fc" id="L105">        return new TimeStamp(values);</span>
+<span class="fc" id="L110">        return new TimeStamp(values);</span>
     }
 
     public static TimeStamp of(Date timestamp) {
-<span class="fc" id="L109">        BigInteger winStamp = javaToWinTime(BigInteger.valueOf(timestamp.getTime()));</span>
-<span class="fc" id="L110">        return new TimeStamp(winStamp);</span>
+<span class="fc" id="L114">        BigInteger winStamp = javaToWinTime(BigInteger.valueOf(timestamp.getTime()));</span>
+<span class="fc" id="L115">        return new TimeStamp(winStamp);</span>
     }
 
     public static TimeStamp of(ByteBuf byteBuf) {
-<span class="fc" id="L114">        byte[] values = new byte[NUM_BYTES];</span>
-<span class="fc" id="L115">        byteBuf.readBytes(values);</span>
-<span class="fc" id="L116">        return of(values);</span>
+<span class="fc" id="L119">        byte[] values = new byte[NUM_BYTES];</span>
+<span class="fc" id="L120">        byteBuf.readBytes(values);</span>
+<span class="fc" id="L121">        return of(values);</span>
     }
 
     private BigInteger getBigIntegerValue() {
-<span class="fc" id="L120">        return bigIntegerValue;</span>
+<span class="fc" id="L125">        return bigIntegerValue;</span>
     }
 
     private Date getAsDate() {
-<span class="fc" id="L124">        return new Date(winTimeToJava(bigIntegerValue).longValue());</span>
+<span class="fc" id="L129">        return new Date(winTimeToJava(bigIntegerValue).longValue());</span>
     }
 
     private static BigInteger javaToWinTime(BigInteger timeMillisSince19700101) {
-<span class="fc" id="L128">        BigInteger timeMillisSince16010101 = EPOCH_DIFF_IN_MILLIS.add(timeMillisSince19700101);</span>
-<span class="fc" id="L129">        return timeMillisSince16010101.multiply(BigInteger.valueOf(10_000));</span>
+<span class="fc" id="L133">        BigInteger timeMillisSince16010101 = EPOCH_DIFF_IN_MILLIS.add(timeMillisSince19700101);</span>
+<span class="fc" id="L134">        return timeMillisSince16010101.multiply(BigInteger.valueOf(10_000));</span>
     }
 
     private static BigInteger winTimeToJava(BigInteger winTime) {
-<span class="fc" id="L133">        BigInteger timeMillisSince16010101 = winTime.divide(BigInteger.valueOf(10_000));</span>
-<span class="fc" id="L134">        return timeMillisSince16010101.subtract(EPOCH_DIFF_IN_MILLIS);</span>
+<span class="fc" id="L138">        BigInteger timeMillisSince16010101 = winTime.divide(BigInteger.valueOf(10_000));</span>
+<span class="fc" id="L139">        return timeMillisSince16010101.subtract(EPOCH_DIFF_IN_MILLIS);</span>
     }
 
     @Override
     public long getCalculatedLength() {
-<span class="fc" id="L139">        return NUM_BYTES;</span>
+<span class="fc" id="L144">        return NUM_BYTES;</span>
     }
 
     @Override
     public boolean equals(Object o) {
-<span class="pc bpc" id="L144" title="1 of 2 branches missed.">        if (this == o) return true;</span>
-<span class="pc bpc" id="L145" title="1 of 2 branches missed.">        if (!(o instanceof TimeStamp)) return false;</span>
-<span class="pc bpc" id="L146" title="1 of 2 branches missed.">        if (!super.equals(o)) return false;</span>
+<span class="pc bpc" id="L149" title="1 of 2 branches missed.">        if (this == o)</span>
+<span class="nc" id="L150">            return true;</span>
+<span class="pc bpc" id="L151" title="1 of 2 branches missed.">        if (!(o instanceof TimeStamp))</span>
+<span class="nc" id="L152">            return false;</span>
+<span class="pc bpc" id="L153" title="1 of 2 branches missed.">        if (!super.equals(o))</span>
+<span class="nc" id="L154">            return false;</span>
 
-<span class="fc" id="L148">        TimeStamp timeStamp = (TimeStamp) o;</span>
+<span class="fc" id="L156">        TimeStamp timeStamp = (TimeStamp) o;</span>
 
-<span class="fc" id="L150">        return bigIntegerValue.equals(timeStamp.bigIntegerValue);</span>
+<span class="fc" id="L158">        return bigIntegerValue.equals(timeStamp.bigIntegerValue);</span>
     }
 
     @Override
     public int hashCode() {
-<span class="fc" id="L155">        int result = super.hashCode();</span>
-<span class="fc" id="L156">        result = 31 * result + bigIntegerValue.hashCode();</span>
-<span class="fc" id="L157">        return result;</span>
+<span class="fc" id="L163">        int result = super.hashCode();</span>
+<span class="fc" id="L164">        result = 31 * result + bigIntegerValue.hashCode();</span>
+<span class="fc" id="L165">        return result;</span>
     }
 
     @Override
     public String toString() {
-<span class="fc" id="L162">        return &quot;TimeStamp{winTime=&quot; + getBigIntegerValue() + &quot;/date=&quot; + getAsDate() + &quot;} &quot; + super.toString();</span>
+<span class="fc" id="L170">        return &quot;TimeStamp{winTime=&quot; + getBigIntegerValue() + &quot;/date=&quot; + getAsDate() + &quot;} &quot; + super.toString();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
