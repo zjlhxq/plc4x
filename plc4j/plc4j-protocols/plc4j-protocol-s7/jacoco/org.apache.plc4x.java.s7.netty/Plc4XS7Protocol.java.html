@@ -49,209 +49,212 @@ import org.apache.plc4x.java.s7.netty.model.types.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.apache.plc4x.java.s7.netty.util.BigEndianDecoder.decodeData;
+import static org.apache.plc4x.java.s7.netty.util.BigEndianEncoder.encodeData;
+
 public class Plc4XS7Protocol extends MessageToMessageCodec&lt;S7Message, PlcRequestContainer&gt; {
 
-<span class="fc" id="L54">    private static final AtomicInteger tpduGenerator = new AtomicInteger(1);</span>
+<span class="fc" id="L57">    private static final AtomicInteger tpduGenerator = new AtomicInteger(1);</span>
 
     private Map&lt;Short, PlcRequestContainer&gt; requests;
 
-<span class="fc" id="L58">    public Plc4XS7Protocol() {</span>
-<span class="fc" id="L59">        this.requests = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L60">    }</span>
+<span class="fc" id="L61">    public Plc4XS7Protocol() {</span>
+<span class="fc" id="L62">        this.requests = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L63">    }</span>
 
     @Override
     protected void encode(ChannelHandlerContext ctx, PlcRequestContainer msg, List&lt;Object&gt; out) throws Exception {
-<span class="fc" id="L64">        PlcRequest request = msg.getRequest();</span>
-<span class="fc bfc" id="L65" title="All 2 branches covered.">        if (request instanceof PlcReadRequest) {</span>
-<span class="fc" id="L66">            encodeReadRequest(msg, out);</span>
-<span class="pc bpc" id="L67" title="1 of 2 branches missed.">        } else if (request instanceof PlcWriteRequest) {</span>
-<span class="fc" id="L68">            encodeWriteRequest(msg, out);</span>
+<span class="fc" id="L67">        PlcRequest request = msg.getRequest();</span>
+<span class="fc bfc" id="L68" title="All 2 branches covered.">        if (request instanceof PlcReadRequest) {</span>
+<span class="fc" id="L69">            encodeReadRequest(msg, out);</span>
+<span class="pc bpc" id="L70" title="1 of 2 branches missed.">        } else if (request instanceof PlcWriteRequest) {</span>
+<span class="fc" id="L71">            encodeWriteRequest(msg, out);</span>
         }
-<span class="fc" id="L70">    }</span>
+<span class="fc" id="L73">    }</span>
 
     private void encodeWriteRequest(PlcRequestContainer msg, List&lt;Object&gt; out) throws PlcException {
-<span class="fc" id="L73">        List&lt;VarParameterItem&gt; parameterItems = new LinkedList&lt;&gt;();</span>
-<span class="fc" id="L74">        List&lt;VarPayloadItem&gt; payloadItems = new LinkedList&lt;&gt;();</span>
+<span class="fc" id="L76">        List&lt;VarParameterItem&gt; parameterItems = new LinkedList&lt;&gt;();</span>
+<span class="fc" id="L77">        List&lt;VarPayloadItem&gt; payloadItems = new LinkedList&lt;&gt;();</span>
 
-<span class="fc" id="L76">        PlcWriteRequest writeRequest = (PlcWriteRequest) msg.getRequest();</span>
-<span class="fc bfc" id="L77" title="All 2 branches covered.">        for (WriteRequestItem requestItem : writeRequest.getRequestItems()) {</span>
+<span class="fc" id="L79">        PlcWriteRequest writeRequest = (PlcWriteRequest) msg.getRequest();</span>
+<span class="fc bfc" id="L80" title="All 2 branches covered.">        for (WriteRequestItem requestItem : writeRequest.getRequestItems()) {</span>
             // Try to get the correct S7 transport size for the given data type.
             // (Map PLC4X data type to S7 data type)
-<span class="fc" id="L80">            TransportSize transportSize = encodeTransportSize(requestItem.getDatatype());</span>
-<span class="pc bpc" id="L81" title="1 of 2 branches missed.">            if (transportSize == null) {</span>
-<span class="nc" id="L82">                throw new PlcException(&quot;Unknown transport size for datatype &quot; + requestItem.getDatatype());</span>
+<span class="fc" id="L83">            TransportSize transportSize = encodeTransportSize(requestItem.getDatatype());</span>
+<span class="pc bpc" id="L84" title="1 of 2 branches missed.">            if (transportSize == null) {</span>
+<span class="nc" id="L85">                throw new PlcException(&quot;Unknown transport size for datatype &quot; + requestItem.getDatatype());</span>
             }
 
             // Depending on the address type, generate the corresponding type of request item.
-<span class="fc" id="L86">            VarParameterItem varParameterItem = encodeVarParameterItem(</span>
-<span class="fc" id="L87">                requestItem.getAddress(), transportSize, requestItem.getValues().size());</span>
-<span class="fc" id="L88">            parameterItems.add(varParameterItem);</span>
+<span class="fc" id="L89">            VarParameterItem varParameterItem = encodeVarParameterItem(</span>
+<span class="fc" id="L90">                requestItem.getAddress(), transportSize, requestItem.getValues().size());</span>
+<span class="fc" id="L91">            parameterItems.add(varParameterItem);</span>
 
-<span class="fc" id="L90">            DataTransportSize dataTransportSize = encodeDataTransportSize(requestItem.getDatatype());</span>
-<span class="pc bpc" id="L91" title="1 of 2 branches missed.">            if (dataTransportSize == null) {</span>
-<span class="nc" id="L92">                throw new PlcException(&quot;Unknown data transport size for datatype &quot; + requestItem.getDatatype());</span>
+<span class="fc" id="L93">            DataTransportSize dataTransportSize = encodeDataTransportSize(requestItem.getDatatype());</span>
+<span class="pc bpc" id="L94" title="1 of 2 branches missed.">            if (dataTransportSize == null) {</span>
+<span class="nc" id="L95">                throw new PlcException(&quot;Unknown data transport size for datatype &quot; + requestItem.getDatatype());</span>
             }
 
-<span class="fc" id="L95">            VarPayloadItem varPayloadItem = new VarPayloadItem(</span>
-<span class="fc" id="L96">                DataTransportErrorCode.RESERVED, dataTransportSize, encodeData(requestItem.getValues().toArray()));</span>
+<span class="fc" id="L98">            VarPayloadItem varPayloadItem = new VarPayloadItem(</span>
+<span class="fc" id="L99">                DataTransportErrorCode.RESERVED, dataTransportSize, encodeData(requestItem.getValues().toArray()));</span>
 
-<span class="fc" id="L98">            payloadItems.add(varPayloadItem);</span>
-<span class="fc" id="L99">        }</span>
-<span class="fc" id="L100">        VarParameter writeVarParameter = new VarParameter(ParameterType.WRITE_VAR, parameterItems);</span>
-<span class="fc" id="L101">        VarPayload writeVarPayload = new VarPayload(ParameterType.WRITE_VAR, payloadItems);</span>
+<span class="fc" id="L101">            payloadItems.add(varPayloadItem);</span>
+<span class="fc" id="L102">        }</span>
+<span class="fc" id="L103">        VarParameter writeVarParameter = new VarParameter(ParameterType.WRITE_VAR, parameterItems);</span>
+<span class="fc" id="L104">        VarPayload writeVarPayload = new VarPayload(ParameterType.WRITE_VAR, payloadItems);</span>
 
         // Assemble the request.
-<span class="fc" id="L104">        S7RequestMessage s7WriteRequest = new S7RequestMessage(MessageType.JOB,</span>
-<span class="fc" id="L105">            (short) tpduGenerator.getAndIncrement(), Collections.singletonList(writeVarParameter),</span>
-<span class="fc" id="L106">            Collections.singletonList(writeVarPayload));</span>
+<span class="fc" id="L107">        S7RequestMessage s7WriteRequest = new S7RequestMessage(MessageType.JOB,</span>
+<span class="fc" id="L108">            (short) tpduGenerator.getAndIncrement(), Collections.singletonList(writeVarParameter),</span>
+<span class="fc" id="L109">            Collections.singletonList(writeVarPayload));</span>
 
-<span class="fc" id="L108">        requests.put(s7WriteRequest.getTpduReference(), msg);</span>
+<span class="fc" id="L111">        requests.put(s7WriteRequest.getTpduReference(), msg);</span>
 
-<span class="fc" id="L110">        out.add(s7WriteRequest);</span>
-<span class="fc" id="L111">    }</span>
+<span class="fc" id="L113">        out.add(s7WriteRequest);</span>
+<span class="fc" id="L114">    }</span>
 
     private void encodeReadRequest(PlcRequestContainer msg, List&lt;Object&gt; out) throws PlcException {
-<span class="fc" id="L114">        List&lt;VarParameterItem&gt; parameterItems = new LinkedList&lt;&gt;();</span>
+<span class="fc" id="L117">        List&lt;VarParameterItem&gt; parameterItems = new LinkedList&lt;&gt;();</span>
 
-<span class="fc" id="L116">        PlcReadRequest readRequest = (PlcReadRequest) msg.getRequest();</span>
-<span class="fc" id="L117">        encodeParameterItems(parameterItems, readRequest);</span>
-<span class="fc" id="L118">        VarParameter readVarParameter = new VarParameter(ParameterType.READ_VAR, parameterItems);</span>
+<span class="fc" id="L119">        PlcReadRequest readRequest = (PlcReadRequest) msg.getRequest();</span>
+<span class="fc" id="L120">        encodeParameterItems(parameterItems, readRequest);</span>
+<span class="fc" id="L121">        VarParameter readVarParameter = new VarParameter(ParameterType.READ_VAR, parameterItems);</span>
 
         // Assemble the request.
-<span class="fc" id="L121">        S7RequestMessage s7ReadRequest = new S7RequestMessage(MessageType.JOB,</span>
-<span class="fc" id="L122">            (short) tpduGenerator.getAndIncrement(), Collections.singletonList(readVarParameter),</span>
-<span class="fc" id="L123">            Collections.emptyList());</span>
+<span class="fc" id="L124">        S7RequestMessage s7ReadRequest = new S7RequestMessage(MessageType.JOB,</span>
+<span class="fc" id="L125">            (short) tpduGenerator.getAndIncrement(), Collections.singletonList(readVarParameter),</span>
+<span class="fc" id="L126">            Collections.emptyList());</span>
 
-<span class="fc" id="L125">        requests.put(s7ReadRequest.getTpduReference(), msg);</span>
+<span class="fc" id="L128">        requests.put(s7ReadRequest.getTpduReference(), msg);</span>
 
-<span class="fc" id="L127">        out.add(s7ReadRequest);</span>
-<span class="fc" id="L128">    }</span>
+<span class="fc" id="L130">        out.add(s7ReadRequest);</span>
+<span class="fc" id="L131">    }</span>
 
     private void encodeParameterItems(List&lt;VarParameterItem&gt; parameterItems, PlcReadRequest readRequest) throws PlcException {
-<span class="fc bfc" id="L131" title="All 2 branches covered.">        for (ReadRequestItem requestItem : readRequest.getRequestItems()) {</span>
+<span class="fc bfc" id="L134" title="All 2 branches covered.">        for (ReadRequestItem requestItem : readRequest.getRequestItems()) {</span>
             // Try to get the correct S7 transport size for the given data type.
             // (Map PLC4X data type to S7 data type)
-<span class="fc" id="L134">            TransportSize transportSize = encodeTransportSize(requestItem.getDatatype());</span>
-<span class="pc bpc" id="L135" title="1 of 2 branches missed.">            if (transportSize == null) {</span>
-<span class="nc" id="L136">                throw new PlcException(&quot;Unknown transport size for datatype &quot; + requestItem.getDatatype());</span>
+<span class="fc" id="L137">            TransportSize transportSize = encodeTransportSize(requestItem.getDatatype());</span>
+<span class="pc bpc" id="L138" title="1 of 2 branches missed.">            if (transportSize == null) {</span>
+<span class="nc" id="L139">                throw new PlcException(&quot;Unknown transport size for datatype &quot; + requestItem.getDatatype());</span>
             }
 
             // Depending on the address type, generate the corresponding type of request item.
-<span class="fc" id="L140">            VarParameterItem varParameterItem = encodeVarParameterItem(requestItem.getAddress(), transportSize, requestItem.getSize());</span>
-<span class="fc" id="L141">            parameterItems.add(varParameterItem);</span>
-<span class="fc" id="L142">        }</span>
-<span class="fc" id="L143">    }</span>
+<span class="fc" id="L143">            VarParameterItem varParameterItem = encodeVarParameterItem(requestItem.getAddress(), transportSize, requestItem.getSize());</span>
+<span class="fc" id="L144">            parameterItems.add(varParameterItem);</span>
+<span class="fc" id="L145">        }</span>
+<span class="fc" id="L146">    }</span>
 
     @SuppressWarnings(&quot;unchecked&quot;)
     @Override
     protected void decode(ChannelHandlerContext ctx, S7Message msg, List&lt;Object&gt; out) throws Exception {
-<span class="pc bpc" id="L148" title="1 of 2 branches missed.">        if (!(msg instanceof S7ResponseMessage)) {</span>
-<span class="nc" id="L149">            return;</span>
+<span class="pc bpc" id="L151" title="1 of 2 branches missed.">        if (!(msg instanceof S7ResponseMessage)) {</span>
+<span class="nc" id="L152">            return;</span>
         }
-<span class="fc" id="L151">        S7ResponseMessage responseMessage = (S7ResponseMessage) msg;</span>
-<span class="fc" id="L152">        short tpduReference = responseMessage.getTpduReference();</span>
-<span class="pc bpc" id="L153" title="1 of 2 branches missed.">        if (requests.containsKey(tpduReference)) {</span>
-<span class="fc" id="L154">            PlcRequestContainer requestContainer = requests.remove(tpduReference);</span>
-<span class="fc" id="L155">            PlcRequest request = requestContainer.getRequest();</span>
-<span class="fc" id="L156">            PlcResponse response = null;</span>
+<span class="fc" id="L154">        S7ResponseMessage responseMessage = (S7ResponseMessage) msg;</span>
+<span class="fc" id="L155">        short tpduReference = responseMessage.getTpduReference();</span>
+<span class="pc bpc" id="L156" title="1 of 2 branches missed.">        if (requests.containsKey(tpduReference)) {</span>
+<span class="fc" id="L157">            PlcRequestContainer requestContainer = requests.remove(tpduReference);</span>
+<span class="fc" id="L158">            PlcRequest request = requestContainer.getRequest();</span>
+<span class="fc" id="L159">            PlcResponse response = null;</span>
 
             // Handle the response to a read request.
-<span class="fc bfc" id="L159" title="All 2 branches covered.">            if (request instanceof PlcReadRequest) {</span>
-<span class="fc" id="L160">                response = decodeReadRequest(responseMessage, requestContainer);</span>
+<span class="fc bfc" id="L162" title="All 2 branches covered.">            if (request instanceof PlcReadRequest) {</span>
+<span class="fc" id="L163">                response = decodeReadRequest(responseMessage, requestContainer);</span>
             }
-<span class="pc bpc" id="L162" title="1 of 2 branches missed.">            else if (request instanceof PlcWriteRequest) {</span>
-<span class="fc" id="L163">                response = decodeWriteRequest(responseMessage, requestContainer);</span>
+<span class="pc bpc" id="L165" title="1 of 2 branches missed.">            else if (request instanceof PlcWriteRequest) {</span>
+<span class="fc" id="L166">                response = decodeWriteRequest(responseMessage, requestContainer);</span>
             }
 
             // Confirm the response being handled.
-<span class="pc bpc" id="L167" title="1 of 2 branches missed.">            if (response != null) {</span>
-<span class="fc" id="L168">                requestContainer.getResponseFuture().complete(response);</span>
+<span class="pc bpc" id="L170" title="1 of 2 branches missed.">            if (response != null) {</span>
+<span class="fc" id="L171">                requestContainer.getResponseFuture().complete(response);</span>
             }
         }
-<span class="fc" id="L171">    }</span>
+<span class="fc" id="L174">    }</span>
 
     @SuppressWarnings(&quot;unchecked&quot;)
     private PlcResponse decodeWriteRequest(S7ResponseMessage responseMessage, PlcRequestContainer requestContainer) throws PlcProtocolException {
         PlcResponse response;
-<span class="fc" id="L176">        PlcWriteRequest plcWriteRequest = (PlcWriteRequest) requestContainer.getRequest();</span>
-<span class="fc" id="L177">        List&lt;WriteResponseItem&lt;?&gt;&gt; responseItems = new LinkedList&lt;&gt;();</span>
-<span class="fc" id="L178">        VarPayload payload = responseMessage.getPayload(VarPayload.class)</span>
-<span class="pc" id="L179">            .orElseThrow(() -&gt; new PlcProtocolException(&quot;No VarPayload supplied&quot;));</span>
+<span class="fc" id="L179">        PlcWriteRequest plcWriteRequest = (PlcWriteRequest) requestContainer.getRequest();</span>
+<span class="fc" id="L180">        List&lt;WriteResponseItem&lt;?&gt;&gt; responseItems = new LinkedList&lt;&gt;();</span>
+<span class="fc" id="L181">        VarPayload payload = responseMessage.getPayload(VarPayload.class)</span>
+<span class="pc" id="L182">            .orElseThrow(() -&gt; new PlcProtocolException(&quot;No VarPayload supplied&quot;));</span>
         // If the numbers of items don't match, we're in big trouble as the only
         // way to know how to interpret the responses is by aligning them with the
         // items from the request as this information is not returned by the PLC.
-<span class="pc bpc" id="L183" title="1 of 2 branches missed.">        if (plcWriteRequest.getRequestItems().size() != payload.getPayloadItems().size()) {</span>
-<span class="nc" id="L184">            throw new PlcProtocolException(</span>
+<span class="pc bpc" id="L186" title="1 of 2 branches missed.">        if (plcWriteRequest.getRequestItems().size() != payload.getPayloadItems().size()) {</span>
+<span class="nc" id="L187">            throw new PlcProtocolException(</span>
                 &quot;The number of requested items doesn't match the number of returned items&quot;);
         }
-<span class="fc" id="L187">        List&lt;VarPayloadItem&gt; payloadItems = payload.getPayloadItems();</span>
-<span class="fc" id="L188">        final int noPayLoadItems = payloadItems.size();</span>
-<span class="fc bfc" id="L189" title="All 2 branches covered.">        for (int i = 0; i &lt; noPayLoadItems; i++) {</span>
-<span class="fc" id="L190">            VarPayloadItem payloadItem = payloadItems.get(i);</span>
+<span class="fc" id="L190">        List&lt;VarPayloadItem&gt; payloadItems = payload.getPayloadItems();</span>
+<span class="fc" id="L191">        final int noPayLoadItems = payloadItems.size();</span>
+<span class="fc bfc" id="L192" title="All 2 branches covered.">        for (int i = 0; i &lt; noPayLoadItems; i++) {</span>
+<span class="fc" id="L193">            VarPayloadItem payloadItem = payloadItems.get(i);</span>
 
             // Get the request item for this payload item
-<span class="fc" id="L193">            WriteRequestItem requestItem = plcWriteRequest.getRequestItems().get(i);</span>
+<span class="fc" id="L196">            WriteRequestItem requestItem = plcWriteRequest.getRequestItems().get(i);</span>
 
             // A write response contains only the return code for every item.
-<span class="fc" id="L196">            ResponseCode responseCode = decodeResponseCode(payloadItem.getReturnCode());</span>
+<span class="fc" id="L199">            ResponseCode responseCode = decodeResponseCode(payloadItem.getReturnCode());</span>
 
-<span class="fc" id="L198">            WriteResponseItem responseItem = new WriteResponseItem(requestItem, responseCode);</span>
-<span class="fc" id="L199">            responseItems.add(responseItem);</span>
+<span class="fc" id="L201">            WriteResponseItem responseItem = new WriteResponseItem(requestItem, responseCode);</span>
+<span class="fc" id="L202">            responseItems.add(responseItem);</span>
         }
 
-<span class="pc bpc" id="L202" title="1 of 2 branches missed.">        if (plcWriteRequest instanceof TypeSafePlcWriteRequest) {</span>
-<span class="fc" id="L203">            response = new TypeSafePlcWriteResponse((TypeSafePlcWriteRequest) plcWriteRequest, responseItems);</span>
+<span class="pc bpc" id="L205" title="1 of 2 branches missed.">        if (plcWriteRequest instanceof TypeSafePlcWriteRequest) {</span>
+<span class="fc" id="L206">            response = new TypeSafePlcWriteResponse((TypeSafePlcWriteRequest) plcWriteRequest, responseItems);</span>
         } else {
-<span class="nc" id="L205">            response = new PlcWriteResponse(plcWriteRequest, responseItems);</span>
+<span class="nc" id="L208">            response = new PlcWriteResponse(plcWriteRequest, responseItems);</span>
         }
-<span class="fc" id="L207">        return response;</span>
+<span class="fc" id="L210">        return response;</span>
     }
 
     @SuppressWarnings(&quot;unchecked&quot;)
     private PlcResponse decodeReadRequest(S7ResponseMessage responseMessage, PlcRequestContainer requestContainer) throws PlcProtocolException {
         PlcResponse response;
-<span class="fc" id="L213">        PlcReadRequest plcReadRequest = (PlcReadRequest) requestContainer.getRequest();</span>
+<span class="fc" id="L216">        PlcReadRequest plcReadRequest = (PlcReadRequest) requestContainer.getRequest();</span>
 
-<span class="fc" id="L215">        List&lt;ReadResponseItem&lt;?&gt;&gt; responseItems = new LinkedList&lt;&gt;();</span>
-<span class="fc" id="L216">        VarPayload payload = responseMessage.getPayload(VarPayload.class)</span>
-<span class="pc" id="L217">            .orElseThrow(() -&gt; new PlcProtocolException(&quot;No VarPayload supplied&quot;));</span>
+<span class="fc" id="L218">        List&lt;ReadResponseItem&lt;?&gt;&gt; responseItems = new LinkedList&lt;&gt;();</span>
+<span class="fc" id="L219">        VarPayload payload = responseMessage.getPayload(VarPayload.class)</span>
+<span class="pc" id="L220">            .orElseThrow(() -&gt; new PlcProtocolException(&quot;No VarPayload supplied&quot;));</span>
         // If the numbers of items don't match, we're in big trouble as the only
         // way to know how to interpret the responses is by aligning them with the
         // items from the request as this information is not returned by the PLC.
-<span class="pc bpc" id="L221" title="1 of 2 branches missed.">        if (plcReadRequest.getRequestItems().size() != payload.getPayloadItems().size()) {</span>
-<span class="nc" id="L222">            throw new PlcProtocolException(</span>
+<span class="pc bpc" id="L224" title="1 of 2 branches missed.">        if (plcReadRequest.getRequestItems().size() != payload.getPayloadItems().size()) {</span>
+<span class="nc" id="L225">            throw new PlcProtocolException(</span>
                 &quot;The number of requested items doesn't match the number of returned items&quot;);
         }
-<span class="fc" id="L225">        List&lt;VarPayloadItem&gt; payloadItems = payload.getPayloadItems();</span>
-<span class="fc" id="L226">        final int noPayLoadItems = payloadItems.size();</span>
-<span class="fc bfc" id="L227" title="All 2 branches covered.">        for (int i = 0; i &lt; noPayLoadItems; i++) {</span>
-<span class="fc" id="L228">            VarPayloadItem payloadItem = payloadItems.get(i);</span>
+<span class="fc" id="L228">        List&lt;VarPayloadItem&gt; payloadItems = payload.getPayloadItems();</span>
+<span class="fc" id="L229">        final int noPayLoadItems = payloadItems.size();</span>
+<span class="fc bfc" id="L230" title="All 2 branches covered.">        for (int i = 0; i &lt; noPayLoadItems; i++) {</span>
+<span class="fc" id="L231">            VarPayloadItem payloadItem = payloadItems.get(i);</span>
 
             // Get the request item for this payload item
-<span class="fc" id="L231">            ReadRequestItem requestItem = plcReadRequest.getRequestItems().get(i);</span>
+<span class="fc" id="L234">            ReadRequestItem requestItem = plcReadRequest.getRequestItems().get(i);</span>
 
-<span class="fc" id="L233">            ResponseCode responseCode = decodeResponseCode(payloadItem.getReturnCode());</span>
+<span class="fc" id="L236">            ResponseCode responseCode = decodeResponseCode(payloadItem.getReturnCode());</span>
 
             ReadResponseItem responseItem;
             // Something went wrong.
-<span class="pc bpc" id="L237" title="1 of 2 branches missed.">            if (responseCode != ResponseCode.OK) {</span>
-<span class="nc" id="L238">                responseItem = new ReadResponseItem&lt;&gt;(requestItem, responseCode, null);</span>
+<span class="pc bpc" id="L240" title="1 of 2 branches missed.">            if (responseCode != ResponseCode.OK) {</span>
+<span class="nc" id="L241">                responseItem = new ReadResponseItem&lt;&gt;(requestItem, responseCode, null);</span>
             }
             // All Ok.
             else {
-<span class="fc" id="L242">                byte[] data = payloadItem.getData();</span>
-<span class="fc" id="L243">                Class&lt;?&gt; datatype = requestItem.getDatatype();</span>
-<span class="fc" id="L244">                List&lt;?&gt; value = decodeData(datatype, data);</span>
-<span class="fc" id="L245">                responseItem = new ReadResponseItem(requestItem, responseCode, value);</span>
+<span class="fc" id="L245">                byte[] data = payloadItem.getData();</span>
+<span class="fc" id="L246">                Class&lt;?&gt; datatype = requestItem.getDatatype();</span>
+<span class="fc" id="L247">                List&lt;?&gt; value = decodeData(datatype, data);</span>
+<span class="fc" id="L248">                responseItem = new ReadResponseItem(requestItem, responseCode, value);</span>
             }
-<span class="fc" id="L247">            responseItems.add(responseItem);</span>
+<span class="fc" id="L250">            responseItems.add(responseItem);</span>
         }
-<span class="pc bpc" id="L249" title="1 of 2 branches missed.">        if (plcReadRequest instanceof TypeSafePlcReadRequest) {</span>
-<span class="fc" id="L250">            response = new TypeSafePlcReadResponse((TypeSafePlcReadRequest) plcReadRequest, responseItems);</span>
+<span class="pc bpc" id="L252" title="1 of 2 branches missed.">        if (plcReadRequest instanceof TypeSafePlcReadRequest) {</span>
+<span class="fc" id="L253">            response = new TypeSafePlcReadResponse((TypeSafePlcReadRequest) plcReadRequest, responseItems);</span>
         } else {
-<span class="nc" id="L252">            response = new PlcReadResponse(plcReadRequest, responseItems);</span>
+<span class="nc" id="L255">            response = new PlcReadResponse(plcReadRequest, responseItems);</span>
         }
-<span class="fc" id="L254">        return response;</span>
+<span class="fc" id="L257">        return response;</span>
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -260,167 +263,67 @@ public class Plc4XS7Protocol extends MessageToMessageCodec&lt;S7Message, PlcRequ
 
     private VarParameterItem encodeVarParameterItem(Address address, TransportSize transportSize, int size) throws PlcProtocolException {
         // Depending on the address type, generate the corresponding type of request item.
-<span class="pc bpc" id="L263" title="1 of 2 branches missed.">        if (!(address instanceof S7Address)) {</span>
-<span class="nc" id="L264">            throw new PlcProtocolException(&quot;Can only use S7Address types on S7 connection&quot;);</span>
+<span class="pc bpc" id="L266" title="1 of 2 branches missed.">        if (!(address instanceof S7Address)) {</span>
+<span class="nc" id="L267">            throw new PlcProtocolException(&quot;Can only use S7Address types on S7 connection&quot;);</span>
         }
-<span class="fc" id="L266">        S7Address s7Address = (S7Address) address;</span>
-<span class="fc bfc" id="L267" title="All 2 branches covered.">        if (s7Address instanceof S7DataBlockAddress) {</span>
-<span class="fc" id="L268">            S7DataBlockAddress s7DataBlockAddress = (S7DataBlockAddress) s7Address;</span>
-<span class="fc" id="L269">            return new S7AnyVarParameterItem(</span>
-<span class="fc" id="L270">                SpecificationType.VARIABLE_SPECIFICATION, s7Address.getMemoryArea(),</span>
+<span class="fc" id="L269">        S7Address s7Address = (S7Address) address;</span>
+<span class="fc bfc" id="L270" title="All 2 branches covered.">        if (s7Address instanceof S7DataBlockAddress) {</span>
+<span class="fc" id="L271">            S7DataBlockAddress s7DataBlockAddress = (S7DataBlockAddress) s7Address;</span>
+<span class="fc" id="L272">            return new S7AnyVarParameterItem(</span>
+<span class="fc" id="L273">                SpecificationType.VARIABLE_SPECIFICATION, s7Address.getMemoryArea(),</span>
                 transportSize, (short) size,
-<span class="fc" id="L272">                s7DataBlockAddress.getDataBlockNumber(), s7DataBlockAddress.getByteOffset(), (byte) 0);</span>
-<span class="fc bfc" id="L273" title="All 2 branches covered.">        } else if (s7Address instanceof S7BitAddress) {</span>
-<span class="fc" id="L274">            S7BitAddress s7BitAddress = (S7BitAddress) s7Address;</span>
-<span class="fc" id="L275">            return new S7AnyVarParameterItem(</span>
-<span class="fc" id="L276">                SpecificationType.VARIABLE_SPECIFICATION, s7Address.getMemoryArea(),</span>
+<span class="fc" id="L275">                s7DataBlockAddress.getDataBlockNumber(), s7DataBlockAddress.getByteOffset(), (byte) 0);</span>
+<span class="fc bfc" id="L276" title="All 2 branches covered.">        } else if (s7Address instanceof S7BitAddress) {</span>
+<span class="fc" id="L277">            S7BitAddress s7BitAddress = (S7BitAddress) s7Address;</span>
+<span class="fc" id="L278">            return new S7AnyVarParameterItem(</span>
+<span class="fc" id="L279">                SpecificationType.VARIABLE_SPECIFICATION, s7Address.getMemoryArea(),</span>
                 transportSize, (short) size, (short) 0,
-<span class="fc" id="L278">                s7Address.getByteOffset(), s7BitAddress.getBitOffset());</span>
+<span class="fc" id="L281">                s7Address.getByteOffset(), s7BitAddress.getBitOffset());</span>
         } else {
-<span class="fc" id="L280">            return new S7AnyVarParameterItem(</span>
-<span class="fc" id="L281">                SpecificationType.VARIABLE_SPECIFICATION, s7Address.getMemoryArea(),</span>
+<span class="fc" id="L283">            return new S7AnyVarParameterItem(</span>
+<span class="fc" id="L284">                SpecificationType.VARIABLE_SPECIFICATION, s7Address.getMemoryArea(),</span>
                 transportSize, (short) size, (short) 0,
-<span class="fc" id="L283">                s7Address.getByteOffset(), (byte) 0);</span>
+<span class="fc" id="L286">                s7Address.getByteOffset(), (byte) 0);</span>
         }
     }
 
     private TransportSize encodeTransportSize(Class&lt;?&gt; datatype) {
-<span class="fc bfc" id="L288" title="All 2 branches covered.">        if (datatype == Boolean.class) {</span>
-<span class="fc" id="L289">            return TransportSize.BIT;</span>
-<span class="fc bfc" id="L290" title="All 2 branches covered.">        } else if (datatype == Byte.class) {</span>
-<span class="fc" id="L291">            return TransportSize.BYTE;</span>
-<span class="fc bfc" id="L292" title="All 2 branches covered.">        } else if (datatype == Short.class) {</span>
-<span class="fc" id="L293">            return TransportSize.WORD;</span>
-<span class="pc bpc" id="L294" title="1 of 2 branches missed.">        } else if (datatype == Calendar.class) {</span>
-<span class="nc" id="L295">            return TransportSize.DATE_AND_TIME;</span>
-<span class="fc bfc" id="L296" title="All 2 branches covered.">        } else if (datatype == Float.class) {</span>
-<span class="fc" id="L297">            return TransportSize.REAL;</span>
-<span class="fc bfc" id="L298" title="All 2 branches covered.">        } else if (datatype == Integer.class) {</span>
-<span class="fc" id="L299">            return TransportSize.DWORD;</span>
-<span class="pc bpc" id="L300" title="1 of 2 branches missed.">        } else if (datatype == String.class) {</span>
-<span class="fc" id="L301">            return TransportSize.CHAR;</span>
+<span class="fc bfc" id="L291" title="All 2 branches covered.">        if (datatype == Boolean.class) {</span>
+<span class="fc" id="L292">            return TransportSize.BIT;</span>
+<span class="fc bfc" id="L293" title="All 2 branches covered.">        } else if (datatype == Byte.class) {</span>
+<span class="fc" id="L294">            return TransportSize.BYTE;</span>
+<span class="fc bfc" id="L295" title="All 2 branches covered.">        } else if (datatype == Short.class) {</span>
+<span class="fc" id="L296">            return TransportSize.WORD;</span>
+<span class="pc bpc" id="L297" title="1 of 2 branches missed.">        } else if (datatype == Calendar.class) {</span>
+<span class="nc" id="L298">            return TransportSize.DATE_AND_TIME;</span>
+<span class="fc bfc" id="L299" title="All 2 branches covered.">        } else if (datatype == Float.class) {</span>
+<span class="fc" id="L300">            return TransportSize.REAL;</span>
+<span class="fc bfc" id="L301" title="All 2 branches covered.">        } else if (datatype == Integer.class) {</span>
+<span class="fc" id="L302">            return TransportSize.DWORD;</span>
+<span class="pc bpc" id="L303" title="1 of 2 branches missed.">        } else if (datatype == String.class) {</span>
+<span class="fc" id="L304">            return TransportSize.CHAR;</span>
         }
-<span class="nc" id="L303">        return null;</span>
+<span class="nc" id="L306">        return null;</span>
     }
 
     private DataTransportSize encodeDataTransportSize(Class&lt;?&gt; datatype) {
-<span class="fc bfc" id="L307" title="All 2 branches covered.">        if (datatype == Boolean.class) {</span>
-<span class="fc" id="L308">            return DataTransportSize.BIT;</span>
-<span class="fc bfc" id="L309" title="All 2 branches covered.">        } else if (datatype == Byte.class) {</span>
-<span class="fc" id="L310">            return DataTransportSize.BYTE_WORD_DWORD;</span>
-<span class="fc bfc" id="L311" title="All 2 branches covered.">        } else if (datatype == Short.class) {</span>
-<span class="fc" id="L312">            return DataTransportSize.BYTE_WORD_DWORD;</span>
-<span class="pc bpc" id="L313" title="1 of 2 branches missed.">        } else if (datatype == Calendar.class) {</span>
+<span class="fc bfc" id="L310" title="All 2 branches covered.">        if (datatype == Boolean.class) {</span>
+<span class="fc" id="L311">            return DataTransportSize.BIT;</span>
+<span class="fc bfc" id="L312" title="All 2 branches covered.">        } else if (datatype == Byte.class) {</span>
+<span class="fc" id="L313">            return DataTransportSize.BYTE_WORD_DWORD;</span>
+<span class="fc bfc" id="L314" title="All 2 branches covered.">        } else if (datatype == Short.class) {</span>
+<span class="fc" id="L315">            return DataTransportSize.BYTE_WORD_DWORD;</span>
+<span class="pc bpc" id="L316" title="1 of 2 branches missed.">        } else if (datatype == Calendar.class) {</span>
             // TODO: Decide what to do here ...
-<span class="nc" id="L315">            return null;</span>
-<span class="fc bfc" id="L316" title="All 2 branches covered.">        } else if (datatype == Float.class) {</span>
-<span class="fc" id="L317">            return DataTransportSize.REAL;</span>
-<span class="fc bfc" id="L318" title="All 2 branches covered.">        } else if (datatype == Integer.class) {</span>
-<span class="fc" id="L319">            return DataTransportSize.BYTE_WORD_DWORD;</span>
-<span class="pc bpc" id="L320" title="1 of 2 branches missed.">        } else if (datatype == String.class) {</span>
-<span class="fc" id="L321">            return DataTransportSize.OCTET_STRING;</span>
+<span class="nc" id="L318">            return null;</span>
+<span class="fc bfc" id="L319" title="All 2 branches covered.">        } else if (datatype == Float.class) {</span>
+<span class="fc" id="L320">            return DataTransportSize.REAL;</span>
+<span class="fc bfc" id="L321" title="All 2 branches covered.">        } else if (datatype == Integer.class) {</span>
+<span class="fc" id="L322">            return DataTransportSize.BYTE_WORD_DWORD;</span>
+<span class="pc bpc" id="L323" title="1 of 2 branches missed.">        } else if (datatype == String.class) {</span>
+<span class="fc" id="L324">            return DataTransportSize.OCTET_STRING;</span>
         }
-<span class="nc" id="L323">        return null;</span>
-    }
-
-    private byte[] encodeData(Object[] values) {
-<span class="fc" id="L327">        final int length = values.length;</span>
-<span class="pc bpc" id="L328" title="1 of 2 branches missed.">        if (length == 0) {</span>
-<span class="nc" id="L329">            return new byte[]{};</span>
-        }
-<span class="fc" id="L331">        byte[] result = null;</span>
-<span class="fc" id="L332">        Class valueType = values[0].getClass();</span>
-<span class="fc bfc" id="L333" title="All 2 branches covered.">        if (valueType == Boolean.class) {</span>
-<span class="fc" id="L334">            result = encodeBoolean(values, length);</span>
-<span class="fc bfc" id="L335" title="All 2 branches covered.">        } else if (valueType == Byte.class) {</span>
-<span class="fc" id="L336">            result = encodeByte(values, length);</span>
-<span class="fc bfc" id="L337" title="All 2 branches covered.">        } else if (valueType == Short.class) {</span>
-<span class="fc" id="L338">            result = encodeShort(values, length);</span>
-<span class="fc bfc" id="L339" title="All 2 branches covered.">        } else if (valueType == Integer.class) {</span>
-<span class="fc" id="L340">            result = encodeInteger(values, length);</span>
-<span class="pc bpc" id="L341" title="1 of 2 branches missed.">        } else if (valueType == Calendar.class) {</span>
-            // TODO: Decide what to do here ...
-<span class="nc" id="L343">            result = null;</span>
-<span class="fc bfc" id="L344" title="All 2 branches covered.">        } else if (valueType == Float.class) {</span>
-<span class="fc" id="L345">            result = encodeFloat(values, length);</span>
-<span class="pc bpc" id="L346" title="1 of 2 branches missed.">        } else if (valueType == String.class) {</span>
-<span class="fc" id="L347">            result = encodeString(values, length);</span>
-        }
-<span class="fc" id="L349">        return result;</span>
-    }
-
-    private byte[] encodeString(Object[] values, int length) {
-        byte[] result;
-<span class="fc" id="L354">        int size = 0;</span>
-<span class="fc bfc" id="L355" title="All 2 branches covered.">        for (Object value : values) {</span>
-<span class="fc" id="L356">            size = size + ((String) value).length();</span>
-        }
-<span class="fc" id="L358">        result = new byte[size + length];</span>
-<span class="fc" id="L359">        int j = 0;</span>
-<span class="fc bfc" id="L360" title="All 2 branches covered.">        for (Object value : values) {</span>
-<span class="fc" id="L361">            String str = (String) value;</span>
-<span class="fc bfc" id="L362" title="All 2 branches covered.">            for (int i = 0; i &lt; str.length(); i++) {</span>
-<span class="fc" id="L363">                result[j++] = (byte) str.charAt(i);</span>
-            }
-<span class="fc" id="L365">            result[j++] = (byte) 0x0;</span>
-        }
-<span class="fc" id="L367">        return result;</span>
-    }
-
-    private byte[] encodeFloat(Object[] values, int length) {
-        byte[] result;
-<span class="fc" id="L372">        result = new byte[length * 4];</span>
-<span class="fc bfc" id="L373" title="All 2 branches covered.">        for (int i = 0; i &lt; length; i++) {</span>
-<span class="fc" id="L374">            float floatValue = (float) values[i];</span>
-<span class="fc" id="L375">            int intValue = Float.floatToIntBits(floatValue);</span>
-<span class="fc" id="L376">            result[i * 4] = (byte) ((intValue &amp; 0xff000000) &gt;&gt; 24);</span>
-<span class="fc" id="L377">            result[(i * 4) + 1] = (byte) ((intValue &amp; 0x00ff0000) &gt;&gt; 16);</span>
-<span class="fc" id="L378">            result[(i * 4) + 2] = (byte) ((intValue &amp; 0x0000ff00) &gt;&gt; 8);</span>
-<span class="fc" id="L379">            result[(i * 4) + 3] = (byte) (intValue &amp; 0xff);</span>
-        }
-<span class="fc" id="L381">        return result;</span>
-    }
-
-    private byte[] encodeInteger(Object[] values, int length) {
-        byte[] result;
-<span class="fc" id="L386">        result = new byte[length * 4];</span>
-<span class="fc bfc" id="L387" title="All 2 branches covered.">        for (int i = 0; i &lt; length; i++) {</span>
-<span class="fc" id="L388">            int intValue = (int) values[i];</span>
-<span class="fc" id="L389">            result[i * 4] = (byte) ((intValue &amp; 0xff000000) &gt;&gt; 24);</span>
-<span class="fc" id="L390">            result[(i * 4) + 1] = (byte) ((intValue &amp; 0x00ff0000) &gt;&gt; 16);</span>
-<span class="fc" id="L391">            result[(i * 4) + 2] = (byte) ((intValue &amp; 0x0000ff00) &gt;&gt; 8);</span>
-<span class="fc" id="L392">            result[(i * 4) + 3] = (byte) (intValue &amp; 0xff);</span>
-        }
-<span class="fc" id="L394">        return result;</span>
-    }
-
-    private byte[] encodeShort(Object[] values, int length) {
-        byte[] result;
-<span class="fc" id="L399">        result = new byte[length * 2];</span>
-<span class="fc bfc" id="L400" title="All 2 branches covered.">        for (int i = 0; i &lt; length; i++) {</span>
-<span class="fc" id="L401">            short intValue = (short) values[i];</span>
-<span class="fc" id="L402">            result[i * 2] = (byte) ((intValue &amp; 0xff00) &gt;&gt; 8);</span>
-<span class="fc" id="L403">            result[(i * 2) + 1] = (byte) (intValue &amp; 0xff);</span>
-        }
-<span class="fc" id="L405">        return result;</span>
-    }
-
-    private byte[] encodeByte(Object[] values, int length) {
-        byte[] result;
-<span class="fc" id="L410">        result = new byte[length];</span>
-<span class="fc bfc" id="L411" title="All 2 branches covered.">        for (int i = 0; i &lt; length; i++) {</span>
-<span class="fc" id="L412">            result[i] = (byte) values[i];</span>
-        }
-<span class="fc" id="L414">        return result;</span>
-    }
-
-    private byte[] encodeBoolean(Object[] values, int length) {
-        byte[] result;// TODO: Check if this is true and the result is not Math.ceil(values.lenght / 8)
-<span class="fc" id="L419">        result = new byte[length];</span>
-<span class="fc bfc" id="L420" title="All 2 branches covered.">        for (int i = 0; i &lt; length; i++) {</span>
-<span class="pc bpc" id="L421" title="1 of 2 branches missed.">            result[i] = (byte) (((Boolean) values[i]) ? 0x01 : 0x00);</span>
-        }
-<span class="fc" id="L423">        return result;</span>
+<span class="nc" id="L326">        return null;</span>
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -428,62 +331,19 @@ public class Plc4XS7Protocol extends MessageToMessageCodec&lt;S7Message, PlcRequ
     ////////////////////////////////////////////////////////////////////////////////
 
     private ResponseCode decodeResponseCode(DataTransportErrorCode dataTransportErrorCode) {
-<span class="pc bpc" id="L431" title="1 of 2 branches missed.">        if (dataTransportErrorCode == null) {</span>
-<span class="nc" id="L432">            return ResponseCode.INTERNAL_ERROR;</span>
+<span class="pc bpc" id="L334" title="1 of 2 branches missed.">        if (dataTransportErrorCode == null) {</span>
+<span class="nc" id="L335">            return ResponseCode.INTERNAL_ERROR;</span>
         }
-<span class="pc bpc" id="L434" title="3 of 4 branches missed.">        switch (dataTransportErrorCode) {</span>
+<span class="pc bpc" id="L337" title="3 of 4 branches missed.">        switch (dataTransportErrorCode) {</span>
             case OK:
-<span class="fc" id="L436">                return ResponseCode.OK;</span>
+<span class="fc" id="L339">                return ResponseCode.OK;</span>
             case NOT_FOUND:
-<span class="nc" id="L438">                return ResponseCode.NOT_FOUND;</span>
+<span class="nc" id="L341">                return ResponseCode.NOT_FOUND;</span>
             case INVALID_ADDRESS:
-<span class="nc" id="L440">                return ResponseCode.INVALID_ADDRESS;</span>
+<span class="nc" id="L343">                return ResponseCode.INVALID_ADDRESS;</span>
             default:
-<span class="nc" id="L442">                return ResponseCode.INTERNAL_ERROR;</span>
+<span class="nc" id="L345">                return ResponseCode.INTERNAL_ERROR;</span>
         }
-    }
-
-    @SuppressWarnings(&quot;unchecked&quot;)
-    private &lt;T&gt; List&lt;T&gt; decodeData(Class&lt;T&gt; datatype, byte[] s7Data) throws PlcProtocolException {
-
-<span class="fc" id="L449">        List&lt;Object&gt; result = new LinkedList&lt;&gt;();</span>
-<span class="fc" id="L450">        int i = 0;</span>
-<span class="fc" id="L451">        final int length = s7Data.length;</span>
-<span class="fc bfc" id="L452" title="All 2 branches covered.">        while (i &lt; length) {</span>
-<span class="fc bfc" id="L453" title="All 2 branches covered.">            if (datatype == Boolean.class) {</span>
-<span class="pc bpc" id="L454" title="1 of 2 branches missed.">                result.add((s7Data[i] &amp; 0x01) == 0x01);</span>
-<span class="fc" id="L455">                i += 1;</span>
-<span class="fc bfc" id="L456" title="All 2 branches covered.">            } else if (datatype == Byte.class) {</span>
-<span class="fc" id="L457">                result.add(s7Data[i]);</span>
-<span class="fc" id="L458">                i += 1;</span>
-<span class="fc bfc" id="L459" title="All 2 branches covered.">            } else if (datatype == Short.class) {</span>
-<span class="fc" id="L460">                result.add((short) (((s7Data[i] &amp; 0xff) &lt;&lt; 8) | (s7Data[i + 1] &amp; 0xff)));</span>
-<span class="fc" id="L461">                i += 2;</span>
-<span class="fc bfc" id="L462" title="All 2 branches covered.">            } else if (datatype == Integer.class) {</span>
-<span class="fc" id="L463">                result.add(((s7Data[i] &amp; 0xff) &lt;&lt; 24) | ((s7Data[i + 1] &amp; 0xff) &lt;&lt; 16) |</span>
-                    ((s7Data[i + 2] &amp; 0xff) &lt;&lt; 8) | (s7Data[i + 3] &amp; 0xff));
-<span class="fc" id="L465">                i += 4;</span>
-<span class="fc bfc" id="L466" title="All 2 branches covered.">            } else if (datatype == Float.class) {</span>
-                // Description of the Real number format:
-                // https://www.sps-lehrgang.de/zahlenformate-step7/#c144
-                // https://de.wikipedia.org/wiki/IEEE_754
-<span class="fc" id="L470">                int intValue = ((s7Data[i] &amp; 0xff) &lt;&lt; 24) | ((s7Data[i + 1] &amp; 0xff) &lt;&lt; 16) |</span>
-                    ((s7Data[i + 2] &amp; 0xff) &lt;&lt; 8) | (s7Data[i + 3] &amp; 0xff);
-<span class="fc" id="L472">                result.add(Float.intBitsToFloat(intValue));</span>
-<span class="fc" id="L473">                i += 4;</span>
-<span class="pc bpc" id="L474" title="1 of 2 branches missed.">            } else if (datatype == String.class) {</span>
-<span class="fc" id="L475">                StringBuilder builder = new StringBuilder();</span>
-<span class="pc bpc" id="L476" title="1 of 4 branches missed.">                while (s7Data[i] != (byte) 0x0 &amp;&amp; i &lt; length) {</span>
-<span class="fc" id="L477">                    builder.append((char) s7Data[i]);</span>
-<span class="fc" id="L478">                    i++;</span>
-                }
-<span class="fc" id="L480">                i++; // skip terminating character</span>
-<span class="fc" id="L481">                result.add(builder.toString());</span>
-<span class="fc" id="L482">            } else {</span>
-<span class="nc" id="L483">                throw new PlcProtocolException(&quot;Unsupported datatype &quot; + datatype.getSimpleName());</span>
-            }
-        }
-<span class="fc" id="L486">        return (List&lt;T&gt;) result;</span>
     }
 
 }

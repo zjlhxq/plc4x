@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BigEndianDecoder.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PLC4J: Protocol: S7</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.java.s7.netty.util</a> &gt; <span class="el_source">BigEndianDecoder.java</span></div><h1>BigEndianDecoder.java</h1><pre class="source lang-java linenums">/*
+ Licensed to the Apache Software Foundation (ASF) under one
+ or more contributor license agreements.  See the NOTICE file
+ distributed with this work for additional information
+ regarding copyright ownership.  The ASF licenses this file
+ to you under the Apache License, Version 2.0 (the
+ &quot;License&quot;); you may not use this file except in compliance
+ with the License.  You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing,
+ software distributed under the License is distributed on an
+ &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ KIND, either express or implied.  See the License for the
+ specific language governing permissions and limitations
+ under the License.
+ */
+package org.apache.plc4x.java.s7.netty.util;
+
+import org.apache.plc4x.java.api.exceptions.PlcProtocolException;
+
+import java.util.LinkedList;
+import java.util.List;
+
+public class BigEndianDecoder {
+
+    private BigEndianDecoder() {
+        // Utility class
+    }
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public static &lt;T&gt; List&lt;T&gt; decodeData(Class&lt;T&gt; datatype, byte[] s7Data) throws PlcProtocolException {
+
+<span class="fc" id="L35">        List&lt;Object&gt; result = new LinkedList&lt;&gt;();</span>
+<span class="fc" id="L36">        int i = 0;</span>
+<span class="fc" id="L37">        final int length = s7Data.length;</span>
+<span class="fc bfc" id="L38" title="All 2 branches covered.">        while (i &lt; length) {</span>
+<span class="fc bfc" id="L39" title="All 2 branches covered.">            if (datatype == Boolean.class) {</span>
+<span class="pc bpc" id="L40" title="1 of 2 branches missed.">                result.add((s7Data[i] &amp; 0x01) == 0x01);</span>
+<span class="fc" id="L41">                i += 1;</span>
+<span class="fc bfc" id="L42" title="All 2 branches covered.">            } else if (datatype == Byte.class) {</span>
+<span class="fc" id="L43">                result.add(s7Data[i]);</span>
+<span class="fc" id="L44">                i += 1;</span>
+<span class="fc bfc" id="L45" title="All 2 branches covered.">            } else if (datatype == Short.class) {</span>
+<span class="fc" id="L46">                result.add((short) (((s7Data[i] &amp; 0xff) &lt;&lt; 8) | (s7Data[i + 1] &amp; 0xff)));</span>
+<span class="fc" id="L47">                i += 2;</span>
+<span class="fc bfc" id="L48" title="All 2 branches covered.">            } else if (datatype == Integer.class) {</span>
+<span class="fc" id="L49">                result.add(((s7Data[i] &amp; 0xff) &lt;&lt; 24) | ((s7Data[i + 1] &amp; 0xff) &lt;&lt; 16) |</span>
+                    ((s7Data[i + 2] &amp; 0xff) &lt;&lt; 8) | (s7Data[i + 3] &amp; 0xff));
+<span class="fc" id="L51">                i += 4;</span>
+<span class="fc bfc" id="L52" title="All 2 branches covered.">            } else if (datatype == Float.class) {</span>
+                // Description of the Real number format:
+                // https://www.sps-lehrgang.de/zahlenformate-step7/#c144
+                // https://de.wikipedia.org/wiki/IEEE_754
+<span class="fc" id="L56">                int intValue = ((s7Data[i] &amp; 0xff) &lt;&lt; 24) | ((s7Data[i + 1] &amp; 0xff) &lt;&lt; 16) |</span>
+                    ((s7Data[i + 2] &amp; 0xff) &lt;&lt; 8) | (s7Data[i + 3] &amp; 0xff);
+<span class="fc" id="L58">                result.add(Float.intBitsToFloat(intValue));</span>
+<span class="fc" id="L59">                i += 4;</span>
+<span class="pc bpc" id="L60" title="1 of 2 branches missed.">            } else if (datatype == String.class) {</span>
+<span class="fc" id="L61">                StringBuilder builder = new StringBuilder();</span>
+<span class="pc bpc" id="L62" title="1 of 4 branches missed.">                while (s7Data[i] != (byte) 0x0 &amp;&amp; i &lt; length) {</span>
+<span class="fc" id="L63">                    builder.append((char) s7Data[i]);</span>
+<span class="fc" id="L64">                    i++;</span>
+                }
+<span class="fc" id="L66">                i++; // skip terminating character</span>
+<span class="fc" id="L67">                result.add(builder.toString());</span>
+<span class="fc" id="L68">            } else {</span>
+<span class="nc" id="L69">                throw new PlcProtocolException(&quot;Unsupported datatype &quot; + datatype.getSimpleName());</span>
+            }
+        }
+<span class="fc" id="L72">        return (List&lt;T&gt;) result;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LittleEndianDecoder.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PLC4J: Protocol: ADS</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.java.ads.netty.util</a> &gt; <span class="el_source">LittleEndianDecoder.java</span></div><h1>LittleEndianDecoder.java</h1><pre class="source lang-java linenums">/*
+ Licensed to the Apache Software Foundation (ASF) under one
+ or more contributor license agreements.  See the NOTICE file
+ distributed with this work for additional information
+ regarding copyright ownership.  The ASF licenses this file
+ to you under the Apache License, Version 2.0 (the
+ &quot;License&quot;); you may not use this file except in compliance
+ with the License.  You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing,
+ software distributed under the License is distributed on an
+ &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ KIND, either express or implied.  See the License for the
+ specific language governing permissions and limitations
+ under the License.
+ */
+package org.apache.plc4x.java.ads.netty.util;
+
+import org.apache.plc4x.java.ads.api.commands.types.TimeStamp;
+import org.apache.plc4x.java.api.exceptions.PlcProtocolException;
+
+import java.math.BigInteger;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+
+public class LittleEndianDecoder {
+
+    private LittleEndianDecoder() {
+        // Utility class
+    }
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public static &lt;T&gt; List&lt;T&gt; decodeData(Class&lt;T&gt; datatype, byte[] adsData) throws PlcProtocolException {
+<span class="fc" id="L38">        List&lt;Object&gt; result = new LinkedList&lt;&gt;();</span>
+<span class="fc" id="L39">        int i = 0;</span>
+<span class="fc" id="L40">        final int length = adsData.length;</span>
+<span class="fc bfc" id="L41" title="All 2 branches covered.">        while (i &lt; length) {</span>
+<span class="fc" id="L42">            byte byteOne = adsData[i];</span>
+<span class="fc bfc" id="L43" title="All 2 branches covered.">            if (datatype == String.class) {</span>
+<span class="fc" id="L44">                StringBuilder builder = new StringBuilder();</span>
+<span class="pc bpc" id="L45" title="1 of 4 branches missed.">                while (adsData[i] != (byte) 0x0 &amp;&amp; i &lt; length) {</span>
+<span class="fc" id="L46">                    builder.append((char) adsData[i]);</span>
+<span class="fc" id="L47">                    i++;</span>
+                }
+<span class="fc" id="L49">                i++; // skip terminating character</span>
+<span class="fc" id="L50">                result.add(builder.toString());</span>
+<span class="fc bfc" id="L51" title="All 2 branches covered.">            } else if (datatype == Boolean.class) {</span>
+<span class="pc bpc" id="L52" title="1 of 2 branches missed.">                result.add((byteOne &amp; 0x01) == 0x01);</span>
+<span class="fc" id="L53">                i += 1;</span>
+<span class="fc bfc" id="L54" title="All 2 branches covered.">            } else if (datatype == Byte.class) {</span>
+<span class="fc" id="L55">                result.add(byteOne);</span>
+<span class="fc" id="L56">                i += 1;</span>
+            } else {
+<span class="fc" id="L58">                byte byteTwo = adsData[i + 1];</span>
+<span class="fc bfc" id="L59" title="All 2 branches covered.">                if (datatype == Short.class) {</span>
+<span class="fc" id="L60">                    result.add((short) (((byteOne &amp; 0xff) &amp; 0xff) | ((byteTwo &amp; 0xff) &lt;&lt; 8)));</span>
+<span class="fc" id="L61">                    i += 2;</span>
+                } else {
+<span class="fc" id="L63">                    byte byteThree = adsData[i + 2];</span>
+<span class="fc" id="L64">                    byte byteFour = adsData[i + 3];</span>
+<span class="fc bfc" id="L65" title="All 2 branches covered.">                    if (datatype == Integer.class) {</span>
+<span class="fc" id="L66">                        result.add(((byteOne &amp; 0xff)) | ((byteTwo &amp; 0xff) &lt;&lt; 8) | ((byteThree &amp; 0xff) &lt;&lt; 16) | ((byteFour &amp; 0xff)) &lt;&lt; 24);</span>
+<span class="fc" id="L67">                        i += 4;</span>
+<span class="fc bfc" id="L68" title="All 2 branches covered.">                    } else if (datatype == Float.class) {</span>
+                        // TODO: check how ads expects this data
+                        // Description of the Real number format:
+                        // https://www.sps-lehrgang.de/zahlenformate-step7/#c144
+                        // https://de.wikipedia.org/wiki/IEEE_754
+<span class="fc" id="L73">                        int intValue = ((byteOne &amp; 0xff)) | ((byteTwo &amp; 0xff) &lt;&lt; 8) | ((byteThree &amp; 0xff) &lt;&lt; 16) | ((byteFour &amp; 0xff) &lt;&lt; 24);</span>
+<span class="fc" id="L74">                        result.add(Float.intBitsToFloat(intValue));</span>
+<span class="fc" id="L75">                        i += 4;</span>
+<span class="fc" id="L76">                    } else {</span>
+<span class="pc bpc" id="L77" title="2 of 4 branches missed.">                        if (datatype == Calendar.class || Calendar.class.isAssignableFrom(datatype)) {</span>
+<span class="fc" id="L78">                            byte byteFive = adsData[i + 4];</span>
+<span class="fc" id="L79">                            byte byteSix = adsData[i + 5];</span>
+<span class="fc" id="L80">                            byte byteSeven = adsData[i + 6];</span>
+<span class="fc" id="L81">                            byte byteEight = adsData[i + 7];</span>
+<span class="fc" id="L82">                            Calendar calendar = Calendar.getInstance();</span>
+<span class="fc" id="L83">                            calendar.setTime(new Date(TimeStamp.winTimeToJava(</span>
+                                new BigInteger(new byte[]{
+                                    // LE
+                                    byteEight,
+                                    byteSeven,
+                                    byteSix,
+                                    byteFive,
+
+                                    byteFour,
+                                    byteThree,
+                                    byteTwo,
+                                    byteOne,
+<span class="fc" id="L95">                                })).longValue()));</span>
+<span class="fc" id="L96">                            result.add(calendar);</span>
+<span class="fc" id="L97">                            i += 8;</span>
+<span class="fc" id="L98">                        } else {</span>
+<span class="nc" id="L99">                            throw new PlcProtocolException(&quot;Unsupported datatype &quot; + datatype.getSimpleName());</span>
+                        }
+                    }
+                }
+            }
+<span class="fc" id="L104">        }</span>
+<span class="fc" id="L105">        return (List&lt;T&gt;) result;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
