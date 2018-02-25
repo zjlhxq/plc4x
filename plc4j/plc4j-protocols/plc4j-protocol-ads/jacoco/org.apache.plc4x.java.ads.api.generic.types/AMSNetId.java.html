@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 /**
- * The AMSNetId consists of 6 bytes and addresses the transmitter or receiver. One possible AMSNetId would be e.g.. 172.16.17.10.1.1. The storage arrangement in this example is as follows:
+ * The AMSNetId consists of 6 bytes and addresses the transmitter or receiver. One possible AMSNetId would be e.g. &quot;172.16.17.10.1.1&quot;. The storage arrangement in this example is as follows:
  * &lt;p&gt;
  * _____0     1     2     3     4     5
  * __+-----------------------------------+
@@ -34,7 +34,7 @@ import java.util.stream.Stream;
  * __+-----------------------------------+
  * &lt;p&gt;
  * &lt;p&gt;
- * The AMSNetId is purely logical and has usually no relation to the IP address. The AMSNetId is configurated at the target system. At the PC for this the TwinCAT System Control is used. If you use other hardware, see the considering documentation for notes about settings of the AMS NetId.
+ * The AMSNetId is purely logical and has usually no relation to the IP address. The AMSNetId is configured at the target system. At the PC for this the TwinCAT System Control is used. If you use other hardware, see the considering documentation for notes about settings of the AMS NetId.
  */
 public class AMSNetId extends ByteValue {
 
@@ -53,12 +53,12 @@ public class AMSNetId extends ByteValue {
     }
 
     public static AMSNetId of(int octed1, int octed2, int octed3, int octed4, int octed5, int octed6) {
-<span class="nc" id="L56">        return new AMSNetId((byte) octed1, (byte) octed2, (byte) octed3, (byte) octed4, (byte) octed5, (byte) octed6);</span>
+<span class="fc" id="L56">        return new AMSNetId((byte) octed1, (byte) octed2, (byte) octed3, (byte) octed4, (byte) octed5, (byte) octed6);</span>
     }
 
     public static AMSNetId of(String address) {
-<span class="pc bpc" id="L60" title="1 of 2 branches missed.">        if (!AMS_NET_ID_PATTERN.matcher(address).matches()) {</span>
-<span class="nc" id="L61">            throw new IllegalArgumentException(address + &quot; must match &quot; + AMS_NET_ID_PATTERN);</span>
+<span class="fc bfc" id="L60" title="All 2 branches covered.">        if (!AMS_NET_ID_PATTERN.matcher(address).matches()) {</span>
+<span class="fc" id="L61">            throw new IllegalArgumentException(address + &quot; must match &quot; + AMS_NET_ID_PATTERN);</span>
         }
 <span class="fc" id="L63">        String[] split = address.split(&quot;\\.&quot;);</span>
 <span class="fc" id="L64">        byte[] bytes = ArrayUtils.toPrimitive(Stream.of(split).map(Integer::parseInt).map(Integer::byteValue).toArray(Byte[]::new));</span>
