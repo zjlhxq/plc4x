@@ -18,83 +18,84 @@ under the License.
 */
 package org.apache.plc4x.java.api.messages;
 
-import org.apache.plc4x.java.api.messages.items.RequestItem;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import org.apache.plc4x.java.api.messages.items.RequestItem;
+
 /**
  * Base type for all messages sent from the plc4x system to a connected plc.
+ * @param &lt;REQUEST_ITEM&gt; 
  */
 public abstract class PlcRequest&lt;REQUEST_ITEM extends RequestItem&gt; implements PlcMessage {
 
     protected final List&lt;REQUEST_ITEM&gt; requestItems;
 
-<span class="fc" id="L35">    public PlcRequest() {</span>
-<span class="fc" id="L36">        this.requestItems = new LinkedList&lt;&gt;();</span>
-<span class="fc" id="L37">    }</span>
+<span class="fc" id="L36">    public PlcRequest() {</span>
+<span class="fc" id="L37">        this.requestItems = new LinkedList&lt;&gt;();</span>
+<span class="fc" id="L38">    }</span>
 
-<span class="fc" id="L39">    public PlcRequest(List&lt;REQUEST_ITEM&gt; requestItems) {</span>
-<span class="fc" id="L40">        Objects.requireNonNull(requestItems, &quot;Request items must not be null&quot;);</span>
-<span class="fc" id="L41">        this.requestItems = requestItems;</span>
-<span class="fc" id="L42">    }</span>
+<span class="fc" id="L40">    public PlcRequest(List&lt;REQUEST_ITEM&gt; requestItems) {</span>
+<span class="fc" id="L41">        Objects.requireNonNull(requestItems, &quot;Request items must not be null&quot;);</span>
+<span class="fc" id="L42">        this.requestItems = requestItems;</span>
+<span class="fc" id="L43">    }</span>
 
     public void addItem(REQUEST_ITEM readRequestItem) {
-<span class="fc" id="L45">        Objects.requireNonNull(readRequestItem, &quot;Request item must not be null&quot;);</span>
-<span class="fc" id="L46">        getRequestItems().add(readRequestItem);</span>
-<span class="fc" id="L47">    }</span>
+<span class="fc" id="L46">        Objects.requireNonNull(readRequestItem, &quot;Request item must not be null&quot;);</span>
+<span class="fc" id="L47">        getRequestItems().add(readRequestItem);</span>
+<span class="fc" id="L48">    }</span>
 
     public List&lt;REQUEST_ITEM&gt; getRequestItems() {
-<span class="fc" id="L50">        return requestItems;</span>
+<span class="fc" id="L51">        return requestItems;</span>
     }
 
     public Optional&lt;? extends REQUEST_ITEM&gt; getRequestItem() {
-<span class="fc bfc" id="L54" title="All 2 branches covered.">        if (isMultiValue()) {</span>
-<span class="fc" id="L55">            throw new IllegalStateException(&quot;Too many items &quot; + getNumberOfItems());</span>
+<span class="fc bfc" id="L55" title="All 2 branches covered.">        if (isMultiValue()) {</span>
+<span class="fc" id="L56">            throw new IllegalStateException(&quot;Too many items &quot; + getNumberOfItems());</span>
         }
-<span class="fc bfc" id="L57" title="All 2 branches covered.">        if (isEmpty()) {</span>
-<span class="fc" id="L58">            return Optional.empty();</span>
+<span class="fc bfc" id="L58" title="All 2 branches covered.">        if (isEmpty()) {</span>
+<span class="fc" id="L59">            return Optional.empty();</span>
         }
-<span class="fc" id="L60">        return Optional.of(getRequestItems().get(0));</span>
+<span class="fc" id="L61">        return Optional.of(getRequestItems().get(0));</span>
     }
 
     public void setRequestItem(REQUEST_ITEM requestItem) {
-<span class="fc bfc" id="L64" title="All 2 branches covered.">        if (isMultiValue()) {</span>
-<span class="fc" id="L65">            throw new IllegalStateException(&quot;Too many items &quot; + getNumberOfItems());</span>
+<span class="fc bfc" id="L65" title="All 2 branches covered.">        if (isMultiValue()) {</span>
+<span class="fc" id="L66">            throw new IllegalStateException(&quot;Too many items &quot; + getNumberOfItems());</span>
         }
-<span class="fc" id="L67">        addItem(requestItem);</span>
-<span class="fc" id="L68">    }</span>
+<span class="fc" id="L68">        addItem(requestItem);</span>
+<span class="fc" id="L69">    }</span>
 
     public int getNumberOfItems() {
-<span class="fc" id="L71">        return getRequestItems().size();</span>
+<span class="fc" id="L72">        return getRequestItems().size();</span>
     }
 
     public boolean isMultiValue() {
-<span class="fc bfc" id="L75" title="All 2 branches covered.">        return getNumberOfItems() &gt; 1;</span>
+<span class="fc bfc" id="L76" title="All 2 branches covered.">        return getNumberOfItems() &gt; 1;</span>
     }
 
     public boolean isEmpty() {
-<span class="fc bfc" id="L79" title="All 2 branches covered.">        return getNumberOfItems() &lt; 1;</span>
+<span class="fc bfc" id="L80" title="All 2 branches covered.">        return getNumberOfItems() &lt; 1;</span>
     }
 
-<span class="fc" id="L82">    public abstract static class Builder&lt;REQUEST_ITEM&gt; {</span>
+<span class="fc" id="L83">    public abstract static class Builder&lt;REQUEST_ITEM&gt; {</span>
 
         Class&lt;?&gt; firstType;
 
-<span class="fc" id="L86">        boolean mixed = false;</span>
+<span class="fc" id="L87">        boolean mixed = false;</span>
 
-<span class="fc" id="L88">        List&lt;REQUEST_ITEM&gt; requests = new LinkedList&lt;&gt;();</span>
+<span class="fc" id="L89">        List&lt;REQUEST_ITEM&gt; requests = new LinkedList&lt;&gt;();</span>
 
         void checkType(Class dataType) {
-<span class="fc bfc" id="L91" title="All 2 branches covered.">            if (firstType == null) {</span>
-<span class="fc" id="L92">                firstType = dataType;</span>
+<span class="fc bfc" id="L92" title="All 2 branches covered.">            if (firstType == null) {</span>
+<span class="fc" id="L93">                firstType = dataType;</span>
             }
-<span class="fc bfc" id="L94" title="All 2 branches covered.">            if (firstType != dataType) {</span>
-<span class="fc" id="L95">                mixed = true;</span>
+<span class="fc bfc" id="L95" title="All 2 branches covered.">            if (firstType != dataType) {</span>
+<span class="fc" id="L96">                mixed = true;</span>
             }
-<span class="fc" id="L97">        }</span>
+<span class="fc" id="L98">        }</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
