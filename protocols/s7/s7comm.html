@@ -8,7 +8,7 @@
 
 <head>
     <meta charset="UTF-8" />
-    <title>Apache PLC4X® (Incubating) - S7 Communication</title>
+    <title>Apache PLC4X® (Incubating) - S7 Comm (0x32)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="" />
     <meta http-equiv="content-language" content="en" />
@@ -34,7 +34,7 @@
 <link rel="stylesheet" href="../../css/font-awesome.min.css"/>
 </head>
 
-<body class="page-protocols-s7-index project-plc4x-parent" data-spy="scroll" data-offset="60" data-target="#toc-scroll-target">
+<body class="page-protocols-s7-s7comm project-plc4x-parent" data-spy="scroll" data-offset="60" data-target="#toc-scroll-target">
 
 <div class="navbar navbar-fixed-top">
     <div class="navbar-inner">
@@ -67,13 +67,13 @@
                 <li ><a href="../../developers/wiki.html" title="Wiki"    >Wiki</a></li>
         </ul>
 </li>
-                <li class="dropdown active">
+                <li class="dropdown">
     <a href="#" class="dropdown-toggle" data-toggle="dropdown">Protocols <b class="caret"></b></a>
     <ul class="dropdown-menu">
                 <li ><a href="../features.html" title="Features"    >Features</a></li>
                 <li ><a href="../modbus/index.html" title="Modbus"    >Modbus</a></li>
                 <li ><a href="../opc-ua/index.html" title="OPC-UA"    >OPC-UA</a></li>
-                <li class="active"><a href="" title="S7/Profinet"    >S7/Profinet</a></li>
+                <li ><a href="index.html" title="S7/Profinet"    >S7/Profinet</a></li>
         </ul>
 </li>
                                                                                     <li class="dropdown">
@@ -176,23 +176,11 @@
                     </a>
                     <div class="nav-collapse collapse" id="toc-nav-collapse">
                         <ul id="toc" class="nav">
-                                            <li class="toplevel"><a href="#s7_communication" title="S7 Communication">S7 Communication</a></li>
-<li class="toplevel"><a href="#overview_of_the_protocols" title="Overview of the Protocols">Overview of the Protocols</a></li>
-<li class="toplevel"><a href="#protocol_descriptions" title="Protocol Descriptions">Protocol Descriptions</a></li>
-<li class="toplevel"><a href="#interaction_with_an_s7_plc" title="Interaction with an S7 PLC">Interaction with an S7 PLC</a></li>
-<li class="dropdown">
-    <a href="#iso_tp_message_types" title="ISO TP Message Types" class="dropdown-toggle" role="button" data-toggle="dropdown" data-target="#">ISO TP Message Types <b class="caret"></b></a>
-    <ul class="dropdown-menu" role="menu">
-        <!-- Repeat the item, otherwise it is not clickable as the dropdown root -->
-        <li><a href="#iso_tp_message_types" title="ISO TP Message Types">ISO TP Message Types</a></li>
-        <li class="divider"></li>
-    <li><a href="#connection_request_tpdu" title="Connection Request TPDU">Connection Request TPDU</a></li>
-<li><a href="#connection_response_tpdu" title="Connection Response TPDU">Connection Response TPDU</a></li>
-<li><a href="#data_tpdu" title="Data TPDU">Data TPDU</a></li>
-<li><a href="#disconnect_request_tpdu" title="Disconnect Request TPDU">Disconnect Request TPDU</a></li>
-
-    </ul>
-</li>
+                                            <li class="toplevel"><a href="#s7_comm_0x32" title="S7 Comm (0x32)">S7 Comm (0x32)</a></li>
+<li class="toplevel"><a href="#general" title="General">General</a></li>
+<li class="toplevel"><a href="#structure_of_a_setup_communication_request" title="Structure of a Setup Communication Request">Structure of a Setup Communication Request</a></li>
+<li class="toplevel"><a href="#structure_of_a_setup_communication_response" title="Structure of a Setup Communication Response">Structure of a Setup Communication Response</a></li>
+<li class="toplevel"><a href="#links" title="Links">Links</a></li>
                         </ul>
                     </div>
                 </div>
@@ -206,178 +194,75 @@
                 <div class="body-content">
         <div class="sect1"> 
  <div class="page-header">
-  <h2 id="s7_communication">S7 Communication</h2>
+  <h2 id="s7_comm_0x32">S7 Comm (0x32)</h2>
  </div> 
  <div class="sectionbody"> 
-  <div class="paragraph"> 
-   <p>When communicating with S7 Devices there is a whole family of protocols, that can be used. In general you can divide them into <code>Profinet</code> protocols and <code>S7 Comm</code> protocols. The later are far simpler in structure, but also far less documented. The <code>S7 Comm</code> protocols are generally split up into to flavours: The classic <code>S7 Comm</code> and a newer version called <code>S7 Comm Plus</code>.</p> 
-  </div> 
-  <div class="sect2"> 
-   <h3 id="overview_of_the_protocols">Overview of the Protocols</h3> 
-   <div class="imageblock"> 
-    <div class="content"> 
-     <img src="../../img/protocols-s7-osi.png" alt="protocols s7 osi" width="1270" height="812" /> 
-    </div> 
+  <div class="sect3"> 
+   <h4 id="general">General</h4> 
+   <div class="paragraph"> 
+    <p>While a lot of information was available on the general structure of S7 communication, only little information was available on the constant values this protocol uses. If information was available, this was mostly provided with a GPL license and therefore was disqualified for being used in this project. The information on the S7 constants in this project were therefore generated by a little tool that generates &quot;pcapng&quot; files <code>WireShark</code> can process. The tool then generated 256 versions of a given template with the only difference being the one byte having all possible values. Using the <code>tshark</code> commandline tool, the generated packets were decoded to an XML format. For each examined byte an XPath expression was created to detect valid values. As soon as a valid value was found the tool then output the detected constant value to the console.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>The tool for generating this is located in the <code>plc4j/protocols/s7-utils</code> project.</p> 
    </div> 
   </div> 
-  <div class="sect2"> 
-   <h3 id="protocol_descriptions">Protocol Descriptions</h3> 
-   <table class="tableblock frame-all grid-all spread"> 
-    <colgroup> 
-     <col style="width: 25%;" /> 
-     <col style="width: 25%;" /> 
-     <col style="width: 25%;" /> 
-     <col style="width: 25%;" /> 
-    </colgroup> 
-    <tbody> 
-     <tr> 
-      <td class="tableblock halign-left valign-top"><p class="tableblock">Name</p></td> 
-      <td class="tableblock halign-left valign-top"><p class="tableblock">ISO</p></td> 
-      <td class="tableblock halign-left valign-top"><p class="tableblock">RFC</p></td> 
-      <td class="tableblock halign-left valign-top"><p class="tableblock">Link</p></td> 
-     </tr> 
-     <tr> 
-      <td class="tableblock halign-left valign-top"><p class="tableblock">Transmission Control Protocol (TCP)</p></td> 
-      <td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td> 
-      <td class="tableblock halign-left valign-top"><p class="tableblock">RFC 793</p></td> 
-      <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://tools.ietf.org/html/rfc793" class="bare">https://tools.ietf.org/html/rfc793</a></p></td> 
-     </tr> 
-     <tr> 
-      <td class="tableblock halign-left valign-top"><p class="tableblock">ISO Transport Protocol (Class 4)</p></td> 
-      <td class="tableblock halign-left valign-top"><p class="tableblock">ISO DP 8073</p></td> 
-      <td class="tableblock halign-left valign-top"><p class="tableblock">RFC 905</p></td> 
-      <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://tools.ietf.org/html/rfc905" class="bare">https://tools.ietf.org/html/rfc905</a></p></td> 
-     </tr> 
-     <tr> 
-      <td class="tableblock halign-left valign-top"><p class="tableblock">ISO on TCP</p></td> 
-      <td class="tableblock halign-left valign-top"><p class="tableblock">-&nbsp;</p></td> 
-      <td class="tableblock halign-left valign-top"><p class="tableblock">RFC 1006</p></td> 
-      <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://tools.ietf.org/html/rfc1006" class="bare">https://tools.ietf.org/html/rfc1006</a></p></td> 
-     </tr> 
-     <tr> 
-      <td class="tableblock halign-left valign-top"><p class="tableblock">S7 Comm (0x32)</p></td> 
-      <td class="tableblock halign-left valign-top"><p class="tableblock">-&nbsp;</p></td> 
-      <td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td> 
-      <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://gmiru.com/article/s7comm/" class="bare">http://gmiru.com/article/s7comm/</a> <a href="http://gmiru.com/article/s7comm-part2/" class="bare">http://gmiru.com/article/s7comm-part2/</a></p></td> 
-     </tr> 
-     <tr> 
-      <td class="tableblock halign-left valign-top"><p class="tableblock">S7 Comm Plus (0x72)</p></td> 
-      <td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td> 
-      <td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td> 
-      <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://opensource-security.de/thesis/MA_Maik_Brueggemann.pdf" class="bare">https://opensource-security.de/thesis/MA_Maik_Brueggemann.pdf</a></p></td> 
-     </tr> 
-     <tr> 
-      <td class="tableblock halign-left valign-top"><p class="tableblock">RPC</p></td> 
-      <td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td> 
-      <td class="tableblock halign-left valign-top"><p class="tableblock">RFC 1057 &amp; RFC 5531</p></td> 
-      <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://tools.ietf.org/html/rfc1057" class="bare">https://tools.ietf.org/html/rfc1057</a> <a href="https://tools.ietf.org/html/rfc5531" class="bare">https://tools.ietf.org/html/rfc5531</a></p></td> 
-     </tr> 
-     <tr> 
-      <td class="tableblock halign-left valign-top"><p class="tableblock">DCOM</p></td> 
-      <td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td> 
-      <td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td> 
-      <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://msdn.microsoft.com/library/cc201989.aspx" class="bare">https://msdn.microsoft.com/library/cc201989.aspx</a></p></td> 
-     </tr> 
-    </tbody> 
-   </table> 
-  </div> 
-  <div class="sect2"> 
-   <h3 id="interaction_with_an_s7_plc">Interaction with an S7 PLC</h3> 
+  <div class="sect3"> 
+   <h4 id="structure_of_a_setup_communication_request">Structure of a Setup Communication Request</h4> 
+   <div class="imageblock"> 
+    <div class="content"> 
+     <img src="../../img/s7-setup-communication-request.svg" alt="s7 setup communication request" width="896" height="440" /> 
+    </div> 
+   </div> 
    <div class="paragraph"> 
-    <p>Currently we are concentrating on implementing the TCP-based variants of the <code>S7 Comm</code> and <code>S7 Comm Plus</code> protocols. Both are transferred using <code>ISO TP</code> which is wrapped by <code>ISO on TCP</code>. Both protocols require establishing a connection on the <code>ISO TP</code> level first. After the <code>ISO TP</code> connection is established, the higher level protocols then establish their connections. These are then handled by the individual protocol sub-pages:</p> 
+    <p>Legend:</p> 
    </div> 
    <div class="ulist"> 
     <ul> 
-     <li> <p><a href="s7comm.html">S7 Comm (0x32)</a></p> </li> 
-     <li> <p><a href="s7comm-plus.html">S7 Comm Plus (0x72)</a></p> </li> 
+     <li> <p><span class="protocolIsoOnTcp">ISO on TCP Packet Header</span></p> </li> 
+     <li> <p><span class="protocolIsoTP">ISO Transport Protocol Packet Header</span></p> </li> 
+     <li> <p><span class="protocolS7">S7 Protocol</span></p> </li> 
+     <li> <p><span class="protocolId">Part of the packet that identifies the type of request</span></p> </li> 
+     <li> <p><span class="protocolParameter">Variable Parts of the ISO Transport Protocol Packet Header</span></p> </li> 
     </ul> 
    </div> 
+  </div> 
+  <div class="sect3"> 
+   <h4 id="structure_of_a_setup_communication_response">Structure of a Setup Communication Response</h4> 
    <div class="paragraph"> 
-    <p>The hex-value behind each of these correlates to the first byte used in the protocols messages to indicate the type of protocol.</p> 
+    <p>The <code>Setup Communication Response</code> is identical to the <code>Setup Communication Request</code> with the only difference that the <code>Message Type</code> has an ACK_DATA code of <code>0x03</code>.</p> 
    </div> 
-   <div class="imageblock"> 
-    <div class="content"> 
-     <img src="../../img/s7-interaction.png" alt="s7 interaction" width="448" height="659" /> 
-    </div> 
+   <div class="paragraph"> 
+    <p>Also does the response eventually provide different values for <code>Max AMQ Caller</code>, <code>Max AMQ Callee</code> and <code>PDU Size</code>.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>The values might be lower than in the request, but never higher.</p> 
+   </div> 
+   <div class="admonitionblock tip"> 
+    <table> 
+     <tbody> 
+      <tr> 
+       <td class="icon"> 
+        <div class="title">
+          Tip 
+        </div> </td> 
+       <td class="content"> One thing about <code>Setup Communication Responses</code> which is kind of strange, is that usually S7 response messages have additional <code>error class</code> and <code>error code</code> fields, which this type of response doesn’t seem to have. </td> 
+      </tr> 
+     </tbody> 
+    </table> 
    </div> 
   </div> 
   <div class="sect2"> 
-   <h3 id="iso_tp_message_types">ISO TP Message Types</h3> 
+   <h3 id="links">Links</h3> 
    <div class="paragraph"> 
-    <p>Even if <code>ISO TP</code> defines more types of messages, the ones required for <code>S7 Comm</code> or <code>S7 Comm Plus</code> are only the following. Each message is called a <code>TPDU</code> (Transport Protocol Data Unit):</p> 
+    <p>Providing some additional information without directly being used:</p> 
    </div> 
    <div class="ulist"> 
     <ul> 
-     <li> <p>Connection Request TPDU</p> </li> 
-     <li> <p>Connection Response TPDU</p> </li> 
-     <li> <p>Data TPDU</p> </li> 
-     <li> <p>Disconnect Request TPDU</p> </li> 
+     <li> <p>High Level description: <a href="http://snap7.sourceforge.net/siemens_comm.html" class="bare">http://snap7.sourceforge.net/siemens_comm.html</a></p> </li> 
+     <li> <p><a href="https://support.industry.siemens.com/cs/document/26483647/welche-eigenschaften-vorteile-und-besonderheiten-bietet-das-s7-protokoll-?dti=0&amp;lc=de-WW" class="bare">https://support.industry.siemens.com/cs/document/26483647/welche-eigenschaften-vorteile-und-besonderheiten-bietet-das-s7-protokoll-?dti=0&amp;lc=de-WW</a></p> </li> 
+     <li> <p>Interesting presentation mentioning a new protocol flavor 0x72 instead of the old 0x32: <a href="https://www.research.ibm.com/haifa/Workshops/security2014/present/Avishai_Wool_AccurateModelingoftheSiemensS7SCADAProtocol-v5.pdf" class="bare">https://www.research.ibm.com/haifa/Workshops/security2014/present/Avishai_Wool_AccurateModelingoftheSiemensS7SCADAProtocol-v5.pdf</a></p> </li> 
+     <li> <p>Open Source SCADA System: <a href="https://www.eclipse.org/eclipsescada/" class="bare">https://www.eclipse.org/eclipsescada/</a></p> </li> 
     </ul> 
-   </div> 
-   <div class="paragraph"> 
-    <p>Notice: There is no <code>Disconnect Response</code> in <code>ISO TP: Class 0</code>.</p> 
-   </div> 
-   <div class="sect3"> 
-    <h4 id="connection_request_tpdu">Connection Request TPDU</h4> 
-    <div class="imageblock"> 
-     <div class="content"> 
-      <img src="../../img/s7-connect-request.svg" alt="s7 connect request" width="896" height="360" /> 
-     </div> 
-    </div> 
-    <div class="paragraph"> 
-     <p>Legend:</p> 
-    </div> 
-    <div class="ulist"> 
-     <ul> 
-      <li> <p><span class="protocolIsoOnTcp">ISO on TCP Packet Header</span></p> </li> 
-      <li> <p><span class="protocolIsoTP">ISO Transport Protocol Packet Header</span></p> </li> 
-      <li> <p><span class="protocolId">Part of the packet that identifies the type of request</span></p> </li> 
-      <li> <p><span class="protocolParameter">Variable Parts of the ISO Transport Protocol Packet Header</span></p> </li> 
-     </ul> 
-    </div> 
-   </div> 
-   <div class="sect3"> 
-    <h4 id="connection_response_tpdu">Connection Response TPDU</h4> 
-    <div class="paragraph"> 
-     <p>The <code>Connection Response</code> is identical to the <code>Connection Request</code> with the only difference that the <code>TPDU-Code</code> has a code of <code>0xD0</code>.</p> 
-    </div> 
-   </div> 
-   <div class="sect3"> 
-    <h4 id="data_tpdu">Data TPDU</h4> 
-    <div class="imageblock"> 
-     <div class="content"> 
-      <img src="../../img/s7-data.svg" alt="s7 data" width="896" height="200" /> 
-     </div> 
-    </div> 
-    <div class="paragraph"> 
-     <p>Legend:</p> 
-    </div> 
-    <div class="ulist"> 
-     <ul> 
-      <li> <p><span class="protocolIsoOnTcp">ISO on TCP Packet Header</span></p> </li> 
-      <li> <p><span class="protocolIsoTP">ISO Transport Protocol Packet Header</span></p> </li> 
-      <li> <p><span class="protocolId">Part of the packet that identifies the type of request</span></p> </li> 
-     </ul> 
-    </div> 
-   </div> 
-   <div class="sect3"> 
-    <h4 id="disconnect_request_tpdu">Disconnect Request TPDU</h4> 
-    <div class="imageblock"> 
-     <div class="content"> 
-      <img src="../../img/s7-disconnect-request.svg" alt="s7 disconnect request" width="896" height="280" /> 
-     </div> 
-    </div> 
-    <div class="paragraph"> 
-     <p>Legend:</p> 
-    </div> 
-    <div class="ulist"> 
-     <ul> 
-      <li> <p><span class="protocolIsoOnTcp">ISO on TCP Packet Header</span></p> </li> 
-      <li> <p><span class="protocolIsoTP">ISO Transport Protocol Packet Header</span></p> </li> 
-      <li> <p><span class="protocolId">Part of the packet that identifies the type of request</span></p> </li> 
-      <li> <p><span class="protocolParameter">Variable Parts of the ISO Transport Protocol Packet Header</span></p> </li> 
-     </ul> 
-    </div> 
    </div> 
   </div> 
  </div> 
@@ -421,8 +306,8 @@
     <li >
     <a href="../opc-ua/index.html" title="OPC-UA"    >OPC-UA</a>
 </li>
-    <li class="active">
-    <a href="#" title="S7/Profinet"    >S7/Profinet</a>
+    <li >
+    <a href="index.html" title="S7/Profinet"    >S7/Profinet</a>
 </li>
 </ul>
 </div>
