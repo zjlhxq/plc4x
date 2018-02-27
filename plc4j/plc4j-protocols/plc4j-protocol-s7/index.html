@@ -53,7 +53,7 @@
                 <li ><a href="../index.html" title="PLC4J: Protocols"    >PLC4J: Protocols</a></li>
         </ul>
 </li>
-                                                                                        <li class="dropdown active">
+                                                                                                <li class="dropdown active">
     <a href="#" class="dropdown-toggle" data-toggle="dropdown">Reports <b class="caret"></b></a>
     <ul class="dropdown-menu">
                 <li class="dropdown-submenu ">
@@ -77,7 +77,9 @@
             <a href="project-reports.html" title="Project Reports"    >Project Reports</a>
             <ul class="dropdown-menu">
                                 <li ><a href="surefire-report.html" title="Surefire Report"    >Surefire Report</a></li>
+                                <li ><a href="failsafe-report.html" title="Failsafe Report"    >Failsafe Report</a></li>
                                 <li ><a href="jacoco/index.html" title="JaCoCo"    >JaCoCo</a></li>
+                                <li ><a href="jacoco-it/index.html" title="JaCoCo IT"    >JaCoCo IT</a></li>
                                 <li ><a href="xref/index.html" title="Source Xref"    >Source Xref</a></li>
                                 <li ><a href="xref-test/index.html" title="Test Source Xref"    >Test Source Xref</a></li>
                                 <li ><a href="apidocs/index.html" title="Javadoc"    >Javadoc</a></li>
@@ -160,9 +162,24 @@
   <div class="paragraph"> 
    <p>The complete pipeline for the S7 protocol looks like this:</p> 
   </div> 
-  <div class="imageblock"> 
+  <div class="listingblock"> 
    <div class="content"> 
-    <img src="./img/s7-netty-pipeline.png" alt="s7 netty pipeline" width="1600" height="120" /> 
+    <pre>Failed to generate image: Could not find the 'blockdiag', 'blockdiag3' executable in PATH; add it to the PATH or specify its location using the 'blockdiag' document attribute
+{
+    Application -&gt; S7PlcConnection;
+    Socket -&gt; PLC;
+
+    group {
+        label = &quot;PLC4X S7 Driver&quot;
+        color = &quot;#77FF77&quot;;
+
+        S7PlcConnection -&gt; Plc4XS7Protocol -&gt; S7Protocol -&gt; IsoTPProtocol -&gt; IsoOnTcpProtocol -&gt; Socket
+
+        group {
+            Plc4XS7Protocol; S7Protocol; IsoTPProtocol; IsoOnTcpProtocol;
+        }
+    }
+}</pre> 
    </div> 
   </div> 
   <div class="paragraph"> 
@@ -174,9 +191,43 @@
   <div class="paragraph"> 
    <p>In order to implement the S7 Protocol as described in <a href="../../../protocols/s7/index.html">S7 Protocol</a> internally this is what happens inside the driver as soon as a connection is requested:</p> 
   </div> 
-  <div class="imageblock"> 
+  <div class="listingblock"> 
    <div class="content"> 
-    <img src="./img/s7-netty-setup-communication.png" alt="s7 netty setup communication" width="1600" height="1659" /> 
+    <pre>Failed to generate image: Could not find the 'seqdiag', 'seqdiag3' executable in PATH; add it to the PATH or specify its location using the 'seqdiag' document attribute
+{
+    Application; S7PlcConnection; Plc4XS7Protocol; S7Protocol; IsoTPProtocol; IsoOnTcpProtocol; Socket; PLC;
+
+    group Pipeline {
+       &quot;Plc4XS7Protocol&quot;;
+        &quot;S7Protocol&quot;;
+        &quot;IsoTPProtocol&quot;;
+        &quot;IsoOnTcpProtocol&quot;;
+    }
+
+    Application -&gt; S7PlcConnection [label = &quot;Calls 'connect'&quot;]
+    S7PlcConnection --&gt; IsoTPProtocol [label = &quot;Fires S7ConnectionEvent(INITIAL) event to the pipeline&quot;, note = &quot;IsoTPProtocol listens for S7ConnectionEvent(INITIAL) events&quot;]
+    IsoTPProtocol -&gt; IsoOnTcpProtocol [label = &quot;Creates new IsoOnTcp\nconnection request message&quot;]
+    IsoOnTcpProtocol -&gt; Socket [label = &quot;Creates the byte array\ncontaining the TCP on ISO\nmessage&quot;]
+    Socket -&gt; PLC [label = &quot;Sends the raw byte data to\nthe PLC&quot;]
+
+    Socket &lt;- PLC [label = &quot;Sends the response to the\nSocket&quot;]
+    IsoOnTcpProtocol &lt;- Socket [label = &quot;Passes the binary data to\nthe pipeline&quot;]
+    IsoTPProtocol &lt;- IsoOnTcpProtocol [label = &quot;Creates new IsoOnTcp message containing binary user data&quot;]
+
+    IsoTPProtocol --&gt; S7Protocol [label = &quot;Sends S7ConnectionEvent(\nISO_TP_CONNECTION_RESPONSE_\nRECEIVED) event to the\npipeline&quot;, note = &quot;S7Protocol listens for S7ConnectionEvent(ISO_TP_CONNECTION_RESPONSE_RECEIVED) events&quot;]
+
+    IsoTPProtocol &lt;- S7Protocol [label = &quot;Creates new ISO TP Data\nmessage containing an\n S7 SetupCommunictaion\nmessage&quot;]
+    IsoTPProtocol -&gt; IsoOnTcpProtocol [label = &quot;Creates new IsoOnTcp message&quot;]
+    IsoOnTcpProtocol -&gt; Socket [label = &quot;Creates the byte array\ncontaining the TCP on ISO\nmessage&quot;]
+    Socket -&gt; PLC [label = &quot;Sends the raw byte data to\nthe PLC&quot;]
+
+    Socket &lt;-- PLC [label = &quot;Sends the response to the\nSocket&quot;]
+    IsoOnTcpProtocol &lt;- Socket [label = &quot;Passes the binary data to\nthe pipeline&quot;]
+    IsoTPProtocol &lt;- IsoOnTcpProtocol [label = &quot;Creates new IsoOnTcp message containing binary user data&quot;]
+    IsoTPProtocol -&gt; S7Protocol
+    S7PlcConnection &lt;- S7Protocol [label = &quot;Sends S7ConnectionEvent(SETUP_COMPLETE) event to the\npipeline&quot;, note = &quot;S7PlcConnection listens for S7ConnectionEvent(SETUP_COMPLETE) events&quot;]
+
+}</pre> 
    </div> 
   </div> 
   <div class="paragraph"> 
@@ -252,7 +303,7 @@
 </li>
         </ul>
 </li>
-                                    <li >
+                                            <li >
     <a href="project-reports.html" title="Project Reports"    >Project Reports <i class="icon-chevron-right"></i></a>
 </li>
 </ul>
