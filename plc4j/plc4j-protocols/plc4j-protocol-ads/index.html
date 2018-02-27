@@ -160,24 +160,9 @@
   <div class="paragraph"> 
    <p>The complete pipeline for the ADS protocol looks like this:</p> 
   </div> 
-  <div class="listingblock"> 
+  <div class="imageblock"> 
    <div class="content"> 
-    <pre>Failed to generate image: Could not find the 'blockdiag', 'blockdiag3' executable in PATH; add it to the PATH or specify its location using the 'blockdiag' document attribute
-{
-    Application -&gt; ADSPlcConnection;
-    Socket -&gt; PLC;
-
-    group {
-        label = &quot;PLC4X ADS Driver&quot;
-        color = &quot;#77FF77&quot;;
-
-        ADSPlcConnection -&gt; Plc4XADSProtocol -&gt; ADSProtocol -&gt; Socket
-
-        group {
-            Plc4XADSProtocol; ADSProtocol;
-        }
-    }
-}</pre> 
+    <img src="./img/ads-netty-pipeline.png" alt="ads netty pipeline" width="1216" height="120" /> 
    </div> 
   </div> 
   <div class="paragraph"> 
@@ -189,26 +174,9 @@
   <div class="paragraph"> 
    <p>In order to implement the ADS Protocol as described in <a href="../../../protocols/ads/index.html">ADS Protocol</a> internally this is what happens inside the driver as soon as a connection is requested:</p> 
   </div> 
-  <div class="listingblock"> 
+  <div class="imageblock"> 
    <div class="content"> 
-    <pre>Failed to generate image: Could not find the 'seqdiag', 'seqdiag3' executable in PATH; add it to the PATH or specify its location using the 'seqdiag' document attribute
-{
-    Application; ADSPlcConnection; Plc4XADSProtocol; ADSProtocol; Socket; PLC;
-
-    group Pipeline {
-       &quot;Plc4XADSProtocol&quot;;
-        &quot;ADSProtocol&quot;;
-    }
-
-    Application -&gt; ADSPlcConnection [label = &quot;Calls 'connect'&quot;]
-    ADSPlcConnection --&gt;  Socket [label = &quot;Creates the byte array\ncontaining the TCP on ISO\nmessage&quot;]
-    Socket -&gt; PLC [label = &quot;Sends the raw byte data to\nthe PLC&quot;]
-
-    Socket &lt;-- PLC [label = &quot;Sends the response to the\nSocket&quot;]
-    Socket -&gt; ADSProtocol [label = &quot;Passes the binary data to\nthe pipeline&quot;]
-    ADSPlcConnection &lt;- ADSProtocol [label = &quot;Sends ADSConnectionEvent(SETUP_COMPLETE) event to the\npipeline&quot;, note = &quot;ADSPlcConnection listens for ADSConnectionEvent(SETUP_COMPLETE) events&quot;]
-
-}</pre> 
+    <img src="./img/ads-netty-setup-communication.png" alt="ads netty setup communication" width="1216" height="612" /> 
    </div> 
   </div> 
   <div class="paragraph"> 
