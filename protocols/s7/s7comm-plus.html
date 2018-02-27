@@ -177,7 +177,7 @@
                     <div class="nav-collapse collapse" id="toc-nav-collapse">
                         <ul id="toc" class="nav">
                                 <li class="toplevel"><a href="#s7_comm_plus_0x72" title="S7 Comm Plus (0x72)">S7 Comm Plus (0x72)</a></li>
-<li class="toplevel"><a href="#general" title="General">General</a></li>
+<li class="toplevel"><a href="#general_structure_of_a_packet" title="General Structure of a Packet">General Structure of a Packet</a></li>
                         </ul>
                     </div>
                 </div>
@@ -194,8 +194,84 @@
   <h2 id="s7_comm_plus_0x72">S7 Comm Plus (0x72)</h2>
  </div> 
  <div class="sectionbody"> 
-  <div class="sect3"> 
-   <h4 id="general">General</h4> 
+  <div class="paragraph"> 
+   <p>The <code>S7 Comm Plus</code> protocol is a new version of the original <code>S7 Comm</code> protocol. While a <code>S7 Comm</code> packet is identified, by the magic byte <code>0x32</code>, the <code>S7 Comm Plus</code> packet uses the magic byte <code>0x72</code>. The End of a packet is indicated by a frame end sequence of 6 bytes: 00 00 72 01 00 00</p> 
+  </div> 
+  <div class="paragraph"> 
+   <p>The general structure of the protocols content however is completely different and far less documented.</p> 
+  </div> 
+  <div class="paragraph"> 
+   <p>The biggest source for getting started in implementing this protocol was the <a href="https://os-s.de/thesis/MA_Maik_Brueggemann.pdf">Master Thesis of Maik Br&uuml;ggemann</a>. However this only covered the basic structure of a <code>S7 Comm Plus</code> packet.</p> 
+  </div> 
+  <div class="sect2"> 
+   <h3 id="general_structure_of_a_packet">General Structure of a Packet</h3> 
+   <div class="listingblock"> 
+    <div class="content"> 
+     <pre>Failed to generate image: Could not find the 'packetdiag', 'packetdiag3' executable in PATH; add it to the PATH or specify its location using the 'packetdiag' document attribute
+{
+    colwidth = 32
+
+    // ISO on TCP
+    * ISO on TCP Magic Number (0x03) [len = 8, color = &quot;#068D9D&quot;]
+    * Reserved (0x00) [len = 8, color = &quot;#068D9D&quot;]
+    * Packet Length (including ISO on TCP header) [len = 16, color = &quot;#068D9D&quot;]
+
+    // ISO Transport Protocol
+    * ISO TP Header Length\n(excluding length byte) [len = 8, color = &quot;#53599A&quot;]
+    * TPDU-Code\n(Data = 0xF0) [len = 4, color = &quot;#AEECEF&quot;]
+    * Signal CDT\n(0x00) [len = 4, color = &quot;#53599A&quot;]
+    * TPDU-NR/EOT [len = 8, color = &quot;#53599A&quot;]
+
+    // S7 Comm Plus
+    * S7 Comm Plus Protocol Magic Byte\n(0x72) [len = 8, color = &quot;#6D9DC5&quot;]
+    * Version (0x01) [len = 8, color = &quot;#6D9DC5&quot;]
+    * Length\n(including length bytes excluding frame boundary) [len = 16, color = &quot;#6D9DC5&quot;]
+    * Type [len = 8, color = &quot;#6D9DC5&quot;]
+    * Reserved (0x0000) [len = 16, color = &quot;#6D9DC5&quot;]
+    * Sub-Type [len = 16, color = &quot;#6D9DC5&quot;]
+    * Sequence Number [len = 32, color = &quot;#6D9DC5&quot;]
+    // Undocumented constant sequence
+    * 00 00 01 20 [len = 32]
+    * 36 00 00 01 [len = 32]
+    * 1d 00 04 00 [len = 32]
+    * 00 00 00 00 [len = 32]
+    * a1 00 00 00 [len = 32]
+    * d3 82 1f 00 [len = 32]
+    * 00 [len = 8]
+
+    // Parameters
+    * Attribute Block Magic Byte\n(0xA3) [len = 8, color = &quot;#00FF80&quot;]
+    * Attribute Id (Type) [len = 8, color = &quot;#00FF80&quot;]
+    * Format [len = 8, color = &quot;#00FF80&quot;]
+    * Data Type [len = 8, color = &quot;#00FF80&quot;]
+    * Length [len = 8, color = &quot;#00FF80&quot;]
+    * Attribute Value [len = 56, color = &quot;#00FF80&quot;]
+
+    // Parameters
+    * Attribute Block Magic Byte\n(0xA3) [len = 8, color = &quot;#0080FF&quot;]
+    * Attribute Id (Type) [len = 8, color = &quot;#0080FF&quot;]
+    * Format [len = 8, color = &quot;#0080FF&quot;]
+    * Data Type [len = 8, color = &quot;#0080FF&quot;]
+    * Length [len = 8, color = &quot;#0080FF&quot;]
+    * Attribute Value [len = 56, color = &quot;#0080FF&quot;]
+
+    // Parameters
+    * Attribute Block Magic Byte\n(0xA3) [len = 8, color = &quot;#00FF80&quot;]
+    * Attribute Id (Type) [len = 8, color = &quot;#00FF80&quot;]
+    * Format [len = 8, color = &quot;#00FF80&quot;]
+    * Data Type [len = 8, color = &quot;#00FF80&quot;]
+    * Length [len = 8, color = &quot;#00FF80&quot;]
+    * Attribute Value [len = 56, color = &quot;#00FF80&quot;]
+
+    // Frame End
+    * Reserved (0x0000) [len = 16, color = &quot;#FF3399&quot;]
+    * S7 Comm Plus Protocol Magic Byte\n(0x72) [len = 8, color = &quot;#FF3399&quot;]
+    * Version (0x01) [len = 8, color = &quot;#FF3399&quot;]
+    * Reserved (0x0000) [len = 16, color = &quot;#FF3399&quot;]
+
+}</pre> 
+    </div> 
+   </div> 
    <div class="paragraph"> 
     <p>…​</p> 
    </div> 
