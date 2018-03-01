@@ -20,6 +20,7 @@ package org.apache.plc4x.java.api.messages.items;
 
 import org.apache.plc4x.java.api.types.ResponseCode;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -28,13 +29,23 @@ public class ReadResponseItem&lt;T&gt; extends ResponseItem&lt;ReadRequestItem&l
     private final List&lt;T&gt; values;
 
     public ReadResponseItem(ReadRequestItem&lt;T&gt; requestItem, ResponseCode responseCode, List&lt;T&gt; values) {
-<span class="fc" id="L31">        super(requestItem, responseCode);</span>
-<span class="fc" id="L32">        Objects.requireNonNull(values, &quot;Values must not be null&quot;);</span>
-<span class="fc" id="L33">        this.values = values;</span>
-<span class="fc" id="L34">    }</span>
+<span class="fc" id="L32">        super(requestItem, responseCode);</span>
+<span class="fc" id="L33">        Objects.requireNonNull(values, &quot;Values must not be null&quot;);</span>
+<span class="fc bfc" id="L34" title="All 2 branches covered.">        for (T value : values) {</span>
+<span class="fc bfc" id="L35" title="All 2 branches covered.">            if (!requestItem.getDatatype().isAssignableFrom(value.getClass())) {</span>
+<span class="fc" id="L36">                throw new IllegalArgumentException(&quot;Datatype of &quot; + value + &quot; doesn't macht required datatype of &quot; + requestItem.getDatatype());</span>
+            }
+<span class="fc" id="L38">        }</span>
+<span class="fc" id="L39">        this.values = values;</span>
+<span class="fc" id="L40">    }</span>
+
+    @SafeVarargs
+    public ReadResponseItem(ReadRequestItem&lt;T&gt; requestItem, ResponseCode responseCode, T... values) {
+<span class="fc" id="L44">        this(requestItem, responseCode, Arrays.asList(values));</span>
+<span class="fc" id="L45">    }</span>
 
     public List&lt;T&gt; getValues() {
-<span class="fc" id="L37">        return values;</span>
+<span class="fc" id="L48">        return values;</span>
     }
 
 }
