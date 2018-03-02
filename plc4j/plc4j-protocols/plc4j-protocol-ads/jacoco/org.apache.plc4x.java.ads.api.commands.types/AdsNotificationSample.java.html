@@ -22,8 +22,8 @@ import io.netty.buffer.ByteBuf;
 import org.apache.plc4x.java.ads.api.util.ByteReadable;
 import org.apache.plc4x.java.ads.api.util.LengthSupplier;
 
+import static io.netty.buffer.Unpooled.wrappedBuffer;
 import static java.util.Objects.requireNonNull;
-import static org.apache.plc4x.java.ads.api.util.ByteReadableUtils.buildByteBuff;
 
 public class AdsNotificationSample implements ByteReadable {
 
@@ -66,51 +66,55 @@ public class AdsNotificationSample implements ByteReadable {
 
     @Override
     public ByteBuf getByteBuf() {
-<span class="fc" id="L69">        return buildByteBuff(notificationHandle, getSampleSize(), data);</span>
+<span class="fc" id="L69">        return wrappedBuffer(</span>
+<span class="fc" id="L70">            notificationHandle.getByteBuf(),</span>
+<span class="fc" id="L71">            getSampleSize().getByteBuf(),</span>
+<span class="fc" id="L72">            data.getByteBuf()</span>
+        );
     }
 
     public NotificationHandle getNotificationHandle() {
-<span class="nc" id="L73">        return notificationHandle;</span>
+<span class="nc" id="L77">        return notificationHandle;</span>
     }
 
     public SampleSize getSampleSize() {
-<span class="fc bfc" id="L77" title="All 2 branches covered.">        return lengthSupplier == null ? sampleSize : SampleSize.of(lengthSupplier);</span>
+<span class="fc bfc" id="L81" title="All 2 branches covered.">        return lengthSupplier == null ? sampleSize : SampleSize.of(lengthSupplier);</span>
     }
 
     public Data getData() {
-<span class="nc" id="L81">        return data;</span>
+<span class="nc" id="L85">        return data;</span>
     }
 
     @Override
     public boolean equals(Object o) {
-<span class="pc bpc" id="L86" title="1 of 2 branches missed.">        if (this == o)</span>
-<span class="nc" id="L87">            return true;</span>
-<span class="pc bpc" id="L88" title="1 of 2 branches missed.">        if (!(o instanceof AdsNotificationSample))</span>
-<span class="nc" id="L89">            return false;</span>
+<span class="pc bpc" id="L90" title="1 of 2 branches missed.">        if (this == o)</span>
+<span class="nc" id="L91">            return true;</span>
+<span class="pc bpc" id="L92" title="1 of 2 branches missed.">        if (!(o instanceof AdsNotificationSample))</span>
+<span class="nc" id="L93">            return false;</span>
 
-<span class="fc" id="L91">        AdsNotificationSample that = (AdsNotificationSample) o;</span>
+<span class="fc" id="L95">        AdsNotificationSample that = (AdsNotificationSample) o;</span>
 
-<span class="pc bpc" id="L93" title="1 of 2 branches missed.">        if (!notificationHandle.equals(that.notificationHandle))</span>
-<span class="nc" id="L94">            return false;</span>
-<span class="pc bpc" id="L95" title="1 of 2 branches missed.">        if (!data.equals(that.data))</span>
-<span class="nc" id="L96">            return false;</span>
+<span class="pc bpc" id="L97" title="1 of 2 branches missed.">        if (!notificationHandle.equals(that.notificationHandle))</span>
+<span class="nc" id="L98">            return false;</span>
+<span class="pc bpc" id="L99" title="1 of 2 branches missed.">        if (!data.equals(that.data))</span>
+<span class="nc" id="L100">            return false;</span>
 
-<span class="fc" id="L98">        return getSampleSize().equals(that.getSampleSize());</span>
+<span class="fc" id="L102">        return getSampleSize().equals(that.getSampleSize());</span>
     }
 
     @Override
     public int hashCode() {
-<span class="nc" id="L103">        int result = notificationHandle.hashCode();</span>
-<span class="nc" id="L104">        result = 31 * result + data.hashCode();</span>
-<span class="nc" id="L105">        result = 31 * result + getSampleSize().hashCode();</span>
-<span class="nc" id="L106">        return result;</span>
+<span class="nc" id="L107">        int result = notificationHandle.hashCode();</span>
+<span class="nc" id="L108">        result = 31 * result + data.hashCode();</span>
+<span class="nc" id="L109">        result = 31 * result + getSampleSize().hashCode();</span>
+<span class="nc" id="L110">        return result;</span>
     }
 
     @Override
     public String toString() {
-<span class="fc" id="L111">        return &quot;AdsNotificationSample{&quot; +</span>
+<span class="fc" id="L115">        return &quot;AdsNotificationSample{&quot; +</span>
             &quot;notificationHandle=&quot; + notificationHandle +
-<span class="fc" id="L113">            &quot;, sampleSize=&quot; + getSampleSize() +</span>
+<span class="fc" id="L117">            &quot;, sampleSize=&quot; + getSampleSize() +</span>
             &quot;, data=&quot; + data +
             '}';
     }
