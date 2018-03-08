@@ -23,7 +23,6 @@ import org.apache.plc4x.java.ads.api.commands.types.IndexOffset;
 import org.apache.plc4x.java.ads.api.commands.types.Length;
 import org.apache.plc4x.java.ads.api.generic.ADSData;
 import org.apache.plc4x.java.ads.api.generic.AMSHeader;
-import org.apache.plc4x.java.ads.api.generic.AMSTCPHeader;
 import org.apache.plc4x.java.ads.api.generic.types.AMSNetId;
 import org.apache.plc4x.java.ads.api.generic.types.AMSPort;
 import org.apache.plc4x.java.ads.api.generic.types.Command;
@@ -52,91 +51,80 @@ public class ADSReadRequest extends ADSAbstractRequest {
      */
     private final Length length;
 
-    private ADSReadRequest(AMSTCPHeader amstcpHeader, AMSHeader amsHeader, IndexGroup indexGroup, IndexOffset indexOffset, Length length) {
-<span class="fc" id="L56">        super(amstcpHeader, amsHeader);</span>
-<span class="fc" id="L57">        this.indexGroup = requireNonNull(indexGroup);</span>
-<span class="fc" id="L58">        this.indexOffset = requireNonNull(indexOffset);</span>
-<span class="fc" id="L59">        this.length = requireNonNull(length);</span>
-<span class="fc" id="L60">    }</span>
-
     private ADSReadRequest(AMSHeader amsHeader, IndexGroup indexGroup, IndexOffset indexOffset, Length length) {
-<span class="fc" id="L63">        super(amsHeader);</span>
-<span class="fc" id="L64">        this.indexGroup = requireNonNull(indexGroup);</span>
-<span class="fc" id="L65">        this.indexOffset = requireNonNull(indexOffset);</span>
-<span class="fc" id="L66">        this.length = requireNonNull(length);</span>
-<span class="fc" id="L67">    }</span>
+<span class="fc" id="L55">        super(amsHeader);</span>
+<span class="fc" id="L56">        this.indexGroup = requireNonNull(indexGroup);</span>
+<span class="fc" id="L57">        this.indexOffset = requireNonNull(indexOffset);</span>
+<span class="fc" id="L58">        this.length = requireNonNull(length);</span>
+<span class="fc" id="L59">    }</span>
 
     private ADSReadRequest(AMSNetId targetAmsNetId, AMSPort targetAmsPort, AMSNetId sourceAmsNetId, AMSPort sourceAmsPort, Invoke invokeId, IndexGroup indexGroup, IndexOffset indexOffset, Length length) {
-<span class="fc" id="L70">        super(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId);</span>
-<span class="fc" id="L71">        this.indexGroup = requireNonNull(indexGroup);</span>
-<span class="fc" id="L72">        this.indexOffset = requireNonNull(indexOffset);</span>
-<span class="fc" id="L73">        this.length = requireNonNull(length);</span>
-<span class="fc" id="L74">    }</span>
-
-    public static ADSReadRequest of(AMSTCPHeader amstcpHeader, AMSHeader amsHeader, IndexGroup indexGroup, IndexOffset indexOffset, Length length) {
-<span class="fc" id="L77">        return new ADSReadRequest(amstcpHeader, amsHeader, indexGroup, indexOffset, length);</span>
-    }
+<span class="fc" id="L62">        super(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId);</span>
+<span class="fc" id="L63">        this.indexGroup = requireNonNull(indexGroup);</span>
+<span class="fc" id="L64">        this.indexOffset = requireNonNull(indexOffset);</span>
+<span class="fc" id="L65">        this.length = requireNonNull(length);</span>
+<span class="fc" id="L66">    }</span>
 
     public static ADSReadRequest of(AMSHeader amsHeader, IndexGroup indexGroup, IndexOffset indexOffset, Length length) {
-<span class="fc" id="L81">        return new ADSReadRequest(amsHeader, indexGroup, indexOffset, length);</span>
+<span class="fc" id="L69">        return new ADSReadRequest(amsHeader, indexGroup, indexOffset, length);</span>
     }
 
     public static ADSReadRequest of(AMSNetId targetAmsNetId, AMSPort targetAmsPort, AMSNetId sourceAmsNetId, AMSPort sourceAmsPort, Invoke invokeId, IndexGroup indexGroup, IndexOffset indexOffset, Length length) {
-<span class="fc" id="L85">        return new ADSReadRequest(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId, indexGroup, indexOffset, length);</span>
+<span class="fc" id="L73">        return new ADSReadRequest(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId, indexGroup, indexOffset, length);</span>
     }
 
     public IndexGroup getIndexGroup() {
-<span class="fc" id="L89">        return indexGroup;</span>
+<span class="fc" id="L77">        return indexGroup;</span>
     }
 
     public IndexOffset getIndexOffset() {
-<span class="fc" id="L93">        return indexOffset;</span>
+<span class="fc" id="L81">        return indexOffset;</span>
     }
 
     public Length getLength() {
-<span class="fc" id="L97">        return length;</span>
+<span class="fc" id="L85">        return length;</span>
     }
 
     @Override
     public ADSData getAdsData() {
-<span class="fc" id="L102">        return buildADSData(indexGroup, indexOffset, length);</span>
+<span class="fc" id="L90">        return buildADSData(indexGroup, indexOffset, length);</span>
     }
 
     @Override
     public boolean equals(Object o) {
-<span class="pc bpc" id="L107" title="1 of 2 branches missed.">        if (this == o)</span>
-<span class="nc" id="L108">            return true;</span>
-<span class="pc bpc" id="L109" title="1 of 2 branches missed.">        if (!(o instanceof ADSReadRequest))</span>
-<span class="nc" id="L110">            return false;</span>
-<span class="pc bpc" id="L111" title="1 of 2 branches missed.">        if (!super.equals(o))</span>
-<span class="nc" id="L112">            return false;</span>
+<span class="pc bpc" id="L95" title="1 of 2 branches missed.">        if (this == o)</span>
+<span class="nc" id="L96">            return true;</span>
+<span class="pc bpc" id="L97" title="1 of 2 branches missed.">        if (!(o instanceof ADSReadRequest))</span>
+<span class="nc" id="L98">            return false;</span>
+<span class="pc bpc" id="L99" title="1 of 2 branches missed.">        if (!super.equals(o))</span>
+<span class="nc" id="L100">            return false;</span>
 
-<span class="fc" id="L114">        ADSReadRequest that = (ADSReadRequest) o;</span>
+<span class="fc" id="L102">        ADSReadRequest that = (ADSReadRequest) o;</span>
 
-<span class="pc bpc" id="L116" title="1 of 2 branches missed.">        if (!indexGroup.equals(that.indexGroup))</span>
-<span class="nc" id="L117">            return false;</span>
-<span class="pc bpc" id="L118" title="1 of 2 branches missed.">        if (!indexOffset.equals(that.indexOffset))</span>
-<span class="nc" id="L119">            return false;</span>
-        
-<span class="fc" id="L121">        return length.equals(that.length);</span>
+<span class="pc bpc" id="L104" title="1 of 2 branches missed.">        if (!indexGroup.equals(that.indexGroup))</span>
+<span class="nc" id="L105">            return false;</span>
+<span class="pc bpc" id="L106" title="1 of 2 branches missed.">        if (!indexOffset.equals(that.indexOffset))</span>
+<span class="nc" id="L107">            return false;</span>
+
+<span class="fc" id="L109">        return length.equals(that.length);</span>
     }
 
     @Override
     public int hashCode() {
-<span class="nc" id="L126">        int result = super.hashCode();</span>
-<span class="nc" id="L127">        result = 31 * result + indexGroup.hashCode();</span>
-<span class="nc" id="L128">        result = 31 * result + indexOffset.hashCode();</span>
-<span class="nc" id="L129">        result = 31 * result + length.hashCode();</span>
-<span class="nc" id="L130">        return result;</span>
+<span class="nc" id="L114">        int result = super.hashCode();</span>
+<span class="nc" id="L115">        result = 31 * result + indexGroup.hashCode();</span>
+<span class="nc" id="L116">        result = 31 * result + indexOffset.hashCode();</span>
+<span class="nc" id="L117">        result = 31 * result + length.hashCode();</span>
+<span class="nc" id="L118">        return result;</span>
     }
 
     @Override
     public String toString() {
-<span class="fc" id="L135">        return &quot;ADSReadRequest{&quot; +</span>
+<span class="fc" id="L123">        return &quot;ADSReadRequest{&quot; +</span>
             &quot;indexGroup=&quot; + indexGroup +
             &quot;, indexOffset=&quot; + indexOffset +
             &quot;, length=&quot; + length +
-<span class="fc" id="L139">            &quot;} &quot; + super.toString();</span>
+<span class="fc" id="L127">            &quot;} &quot; + super.toString();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

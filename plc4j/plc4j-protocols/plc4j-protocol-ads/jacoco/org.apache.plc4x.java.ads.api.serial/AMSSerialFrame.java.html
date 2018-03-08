@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AMSSerialFrame.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PLC4J: Protocol: ADS</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.java.ads.api.serial</a> &gt; <span class="el_source">AMSSerialFrame.java</span></div><h1>AMSSerialFrame.java</h1><pre class="source lang-java linenums">/*
+ Licensed to the Apache Software Foundation (ASF) under one
+ or more contributor license agreements.  See the NOTICE file
+ distributed with this work for additional information
+ regarding copyright ownership.  The ASF licenses this file
+ to you under the Apache License, Version 2.0 (the
+ &quot;License&quot;); you may not use this file except in compliance
+ with the License.  You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing,
+ software distributed under the License is distributed on an
+ &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ KIND, either express or implied.  See the License for the
+ specific language governing permissions and limitations
+ under the License.
+ */
+package org.apache.plc4x.java.ads.api.serial;
+
+import io.netty.buffer.ByteBuf;
+import org.apache.plc4x.java.ads.api.generic.AMSPacket;
+import org.apache.plc4x.java.ads.api.serial.types.*;
+import org.apache.plc4x.java.ads.api.util.ByteReadable;
+import org.apache.plc4x.java.ads.protocol.util.DigestUtil;
+
+/**
+ * An AMS packet can be transferred via RS232 with the help of an AMS serial frame.
+ * The actual AMS packet is in the user data field of the frame.
+ * The max. length of the AMS packet is limited to 255 bytes.
+ * Therefore the max. size of an AMS serial frame is 263 bytes.
+ * The fragment number is compared with an internal counter by the receiver.
+ * The frame number is simply accepted and not checked when receiving the first AMS frame or in case a timeout is
+ * exceeded. The CRC16 algorithm is used for calculating the checksum.
+ *
+ * @see &lt;a href=&quot;https://infosys.beckhoff.com/content/1033/tcadsamsserialspec/html/tcamssericalspec_amsframe.htm?id=8115637053270715044&quot;&gt;TwinCAT AMS via RS232 Specification&lt;/a&gt;
+ */
+public class AMSSerialFrame implements ByteReadable {
+
+    public static final int ID = 0xA501;
+
+    /**
+     * Id for detecting an AMS serial frame.
+     */
+    private final MagicCookie magicCookie;
+
+    /**
+     * Address of the sending participant. This value can always be set to 0 for an RS232 communication,
+     * since it is a 1 to 1 connection and hence the participants are unique.
+     */
+    private final TransmitterAddress transmitterAddress;
+
+    /**
+     * Receiver’s address. This value can always be set to 0 for an RS232 communication, since it is a 1 to 1
+     * connection and hence the participants are unique.
+     */
+    private final ReceiverAddress receiverAddress;
+
+    /**
+     * Number of the frame sent. Once the number 255 has been sent, it starts again from 0. The receiver checks this
+     * number with an internal counter.
+     */
+    private final FragmentNumber fragmentNumber;
+
+    /**
+     * The max. length of the AMS packet to be sent is 255. If larger AMS packets are to be sent then they have to be
+     * fragmented (not published at the moment).
+     */
+    private final UserDataLength userDataLength;
+
+    /**
+     * The AMS packet to be sent.
+     */
+    private AMSPacket amsPacket;
+    private final UserData userData;
+
+    private final CRC crc;
+
+<span class="nc" id="L79">    private AMSSerialFrame(MagicCookie magicCookie, TransmitterAddress transmitterAddress, ReceiverAddress receiverAddress, FragmentNumber fragmentNumber, UserDataLength userDataLength, UserData userData, CRC crc) {</span>
+<span class="nc" id="L80">        this.magicCookie = magicCookie;</span>
+<span class="nc" id="L81">        this.transmitterAddress = transmitterAddress;</span>
+<span class="nc" id="L82">        this.receiverAddress = receiverAddress;</span>
+<span class="nc" id="L83">        this.fragmentNumber = fragmentNumber;</span>
+<span class="nc" id="L84">        this.userDataLength = userDataLength;</span>
+<span class="nc" id="L85">        this.userData = userData;</span>
+<span class="nc" id="L86">        this.crc = crc;</span>
+<span class="nc" id="L87">    }</span>
+
+<span class="fc" id="L89">    private AMSSerialFrame(FragmentNumber fragmentNumber, AMSPacket amsPacket) {</span>
+<span class="fc" id="L90">        this.magicCookie = MagicCookie.of(ID);</span>
+<span class="fc" id="L91">        this.transmitterAddress = TransmitterAddress.RS232_COMM_ADDRESS;</span>
+<span class="fc" id="L92">        this.receiverAddress = ReceiverAddress.RS232_COMM_ADDRESS;</span>
+<span class="fc" id="L93">        this.fragmentNumber = fragmentNumber;</span>
+<span class="fc" id="L94">        long calculatedLength = amsPacket.getCalculatedLength();</span>
+<span class="pc bpc" id="L95" title="1 of 2 branches missed.">        if (calculatedLength &gt; 255) {</span>
+<span class="nc" id="L96">            throw new IllegalArgumentException(&quot;Paket length must not exceed 255&quot;);</span>
+        }
+<span class="fc" id="L98">        this.userDataLength = UserDataLength.of((byte) calculatedLength);</span>
+<span class="fc" id="L99">        this.amsPacket = amsPacket;</span>
+<span class="fc" id="L100">        byte[] amsPacketBytes = amsPacket.getBytes();</span>
+<span class="fc" id="L101">        this.userData = UserData.of(amsPacketBytes);</span>
+<span class="fc" id="L102">        this.crc = CRC.of(DigestUtil.calculateCrc16(() -&gt; buildByteBuff(magicCookie, transmitterAddress, receiverAddress, fragmentNumber, userDataLength, userData)));</span>
+<span class="fc" id="L103">    }</span>
+
+    public static AMSSerialFrame of(MagicCookie magicCookie, TransmitterAddress transmitterAddress, ReceiverAddress receiverAddress, FragmentNumber fragmentNumber, UserDataLength userDataLength, UserData userData, CRC crc) {
+<span class="nc" id="L106">        return new AMSSerialFrame(magicCookie, transmitterAddress, receiverAddress, fragmentNumber, userDataLength, userData, crc);</span>
+    }
+
+    public static AMSSerialFrame of(FragmentNumber fragmentNumber, AMSPacket amsPacket) {
+<span class="fc" id="L110">        return new AMSSerialFrame(fragmentNumber, amsPacket);</span>
+    }
+
+    public AMSPacket getAmsPacket() {
+<span class="fc" id="L114">        return amsPacket;</span>
+    }
+
+    @Override
+    public ByteBuf getByteBuf() {
+<span class="fc" id="L119">        return buildByteBuff(magicCookie, transmitterAddress, receiverAddress, fragmentNumber, userDataLength, userData, crc);</span>
+    }
+
+    @Override
+    public boolean equals(Object o) {
+<span class="pc bpc" id="L124" title="1 of 2 branches missed.">        if (this == o) return true;</span>
+<span class="pc bpc" id="L125" title="1 of 2 branches missed.">        if (!(o instanceof AMSSerialFrame)) return false;</span>
+
+<span class="fc" id="L127">        AMSSerialFrame that = (AMSSerialFrame) o;</span>
+
+<span class="pc bpc" id="L129" title="1 of 2 branches missed.">        if (!magicCookie.equals(that.magicCookie)) return false;</span>
+<span class="pc bpc" id="L130" title="1 of 2 branches missed.">        if (!transmitterAddress.equals(that.transmitterAddress)) return false;</span>
+<span class="pc bpc" id="L131" title="1 of 2 branches missed.">        if (!receiverAddress.equals(that.receiverAddress)) return false;</span>
+<span class="pc bpc" id="L132" title="1 of 2 branches missed.">        if (!fragmentNumber.equals(that.fragmentNumber)) return false;</span>
+<span class="pc bpc" id="L133" title="1 of 2 branches missed.">        if (!userDataLength.equals(that.userDataLength)) return false;</span>
+<span class="pc bpc" id="L134" title="1 of 2 branches missed.">        if (!amsPacket.equals(that.amsPacket)) return false;</span>
+<span class="pc bpc" id="L135" title="1 of 2 branches missed.">        if (!userData.equals(that.userData)) return false;</span>
+<span class="fc" id="L136">        return crc.equals(that.crc);</span>
+    }
+
+    @Override
+    public int hashCode() {
+<span class="nc" id="L141">        int result = magicCookie.hashCode();</span>
+<span class="nc" id="L142">        result = 31 * result + transmitterAddress.hashCode();</span>
+<span class="nc" id="L143">        result = 31 * result + receiverAddress.hashCode();</span>
+<span class="nc" id="L144">        result = 31 * result + fragmentNumber.hashCode();</span>
+<span class="nc" id="L145">        result = 31 * result + userDataLength.hashCode();</span>
+<span class="nc" id="L146">        result = 31 * result + amsPacket.hashCode();</span>
+<span class="nc" id="L147">        result = 31 * result + userData.hashCode();</span>
+<span class="nc" id="L148">        result = 31 * result + crc.hashCode();</span>
+<span class="nc" id="L149">        return result;</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="fc" id="L154">        return &quot;AMSSerialFrame{&quot; +</span>
+            &quot;magicCookie=&quot; + magicCookie +
+            &quot;, transmitterAddress=&quot; + transmitterAddress +
+            &quot;, receiverAddress=&quot; + receiverAddress +
+            &quot;, fragmentNumber=&quot; + fragmentNumber +
+            &quot;, userDataLength=&quot; + userDataLength +
+            &quot;, amsPacket=&quot; + amsPacket +
+            &quot;, userData=&quot; + userData +
+            &quot;, crc=&quot; + crc +
+            '}';
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

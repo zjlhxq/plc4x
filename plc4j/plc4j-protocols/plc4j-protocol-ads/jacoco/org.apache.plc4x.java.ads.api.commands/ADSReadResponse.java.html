@@ -23,7 +23,6 @@ import org.apache.plc4x.java.ads.api.commands.types.Length;
 import org.apache.plc4x.java.ads.api.commands.types.Result;
 import org.apache.plc4x.java.ads.api.generic.ADSData;
 import org.apache.plc4x.java.ads.api.generic.AMSHeader;
-import org.apache.plc4x.java.ads.api.generic.AMSTCPHeader;
 import org.apache.plc4x.java.ads.api.generic.types.AMSNetId;
 import org.apache.plc4x.java.ads.api.generic.types.AMSPort;
 import org.apache.plc4x.java.ads.api.generic.types.Command;
@@ -53,82 +52,82 @@ public class ADSReadResponse extends ADSAbstractResponse {
 
     private final LengthSupplier lengthSupplier;
 
-    private ADSReadResponse(AMSTCPHeader amstcpHeader, AMSHeader amsHeader, Result result, Length length, Data data) {
-<span class="fc" id="L57">        super(amstcpHeader, amsHeader);</span>
-<span class="fc" id="L58">        this.result = requireNonNull(result);</span>
-<span class="fc" id="L59">        this.length = requireNonNull(length);</span>
-<span class="fc" id="L60">        this.data = requireNonNull(data);</span>
-<span class="fc" id="L61">        this.lengthSupplier = null;</span>
-<span class="fc" id="L62">    }</span>
+    private ADSReadResponse(AMSHeader amsHeader, Result result, Length length, Data data) {
+<span class="fc" id="L56">        super(amsHeader);</span>
+<span class="fc" id="L57">        this.result = requireNonNull(result);</span>
+<span class="fc" id="L58">        this.length = requireNonNull(length);</span>
+<span class="fc" id="L59">        this.data = requireNonNull(data);</span>
+<span class="fc" id="L60">        this.lengthSupplier = null;</span>
+<span class="fc" id="L61">    }</span>
 
     private ADSReadResponse(AMSNetId targetAmsNetId, AMSPort targetAmsPort, AMSNetId sourceAmsNetId, AMSPort sourceAmsPort, Invoke invokeId, Result result, Data data) {
-<span class="fc" id="L65">        super(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId);</span>
-<span class="fc" id="L66">        this.result = requireNonNull(result);</span>
-<span class="fc" id="L67">        this.length = null;</span>
-<span class="fc" id="L68">        this.data = requireNonNull(data);</span>
-<span class="fc" id="L69">        this.lengthSupplier = data;</span>
-<span class="fc" id="L70">    }</span>
+<span class="fc" id="L64">        super(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId);</span>
+<span class="fc" id="L65">        this.result = requireNonNull(result);</span>
+<span class="fc" id="L66">        this.length = null;</span>
+<span class="fc" id="L67">        this.data = requireNonNull(data);</span>
+<span class="fc" id="L68">        this.lengthSupplier = data;</span>
+<span class="fc" id="L69">    }</span>
 
-    public static ADSReadResponse of(AMSTCPHeader amstcpHeader, AMSHeader amsHeader, Result result, Length length, Data data) {
-<span class="fc" id="L73">        return new ADSReadResponse(amstcpHeader, amsHeader, result, length, data);</span>
+    public static ADSReadResponse of(AMSHeader amsHeader, Result result, Length length, Data data) {
+<span class="fc" id="L72">        return new ADSReadResponse(amsHeader, result, length, data);</span>
     }
 
     public static ADSReadResponse of(AMSNetId targetAmsNetId, AMSPort targetAmsPort, AMSNetId sourceAmsNetId, AMSPort sourceAmsPort, Invoke invokeId, Result result, Data data) {
-<span class="fc" id="L77">        return new ADSReadResponse(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId, result, data);</span>
+<span class="fc" id="L76">        return new ADSReadResponse(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId, result, data);</span>
     }
 
     @Override
     public ADSData getAdsData() {
-<span class="fc" id="L82">        return buildADSData(result, getLength(), data);</span>
+<span class="fc" id="L81">        return buildADSData(result, getLength(), data);</span>
     }
 
     public Result getResult() {
-<span class="fc" id="L86">        return result;</span>
+<span class="fc" id="L85">        return result;</span>
     }
 
     public Length getLength() {
-<span class="fc bfc" id="L90" title="All 2 branches covered.">        return lengthSupplier == null ? length : Length.of(lengthSupplier);</span>
+<span class="fc bfc" id="L89" title="All 2 branches covered.">        return lengthSupplier == null ? length : Length.of(lengthSupplier);</span>
     }
 
     public Data getData() {
-<span class="fc" id="L94">        return data;</span>
+<span class="fc" id="L93">        return data;</span>
     }
 
     @Override
     public boolean equals(Object o) {
-<span class="pc bpc" id="L99" title="1 of 2 branches missed.">        if (this == o)</span>
-<span class="nc" id="L100">            return true;</span>
-<span class="pc bpc" id="L101" title="1 of 2 branches missed.">        if (!(o instanceof ADSReadResponse))</span>
-<span class="nc" id="L102">            return false;</span>
-<span class="pc bpc" id="L103" title="1 of 2 branches missed.">        if (!super.equals(o))</span>
-<span class="nc" id="L104">            return false;</span>
+<span class="pc bpc" id="L98" title="1 of 2 branches missed.">        if (this == o)</span>
+<span class="nc" id="L99">            return true;</span>
+<span class="pc bpc" id="L100" title="1 of 2 branches missed.">        if (!(o instanceof ADSReadResponse))</span>
+<span class="nc" id="L101">            return false;</span>
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">        if (!super.equals(o))</span>
+<span class="nc" id="L103">            return false;</span>
 
-<span class="fc" id="L106">        ADSReadResponse that = (ADSReadResponse) o;</span>
+<span class="fc" id="L105">        ADSReadResponse that = (ADSReadResponse) o;</span>
 
-<span class="pc bpc" id="L108" title="1 of 2 branches missed.">        if (!result.equals(that.result))</span>
-<span class="nc" id="L109">            return false;</span>
-<span class="pc bpc" id="L110" title="1 of 2 branches missed.">        if (!getLength().equals(that.getLength()))</span>
-<span class="nc" id="L111">            return false;</span>
-        
-<span class="fc" id="L113">        return data.equals(that.data);</span>
+<span class="pc bpc" id="L107" title="1 of 2 branches missed.">        if (!result.equals(that.result))</span>
+<span class="nc" id="L108">            return false;</span>
+<span class="pc bpc" id="L109" title="1 of 2 branches missed.">        if (!getLength().equals(that.getLength()))</span>
+<span class="nc" id="L110">            return false;</span>
+
+<span class="fc" id="L112">        return data.equals(that.data);</span>
     }
 
     @Override
     public int hashCode() {
-<span class="nc" id="L118">        int result1 = super.hashCode();</span>
-<span class="nc" id="L119">        result1 = 31 * result1 + result.hashCode();</span>
-<span class="nc" id="L120">        result1 = 31 * result1 + getLength().hashCode();</span>
-<span class="nc" id="L121">        result1 = 31 * result1 + data.hashCode();</span>
-<span class="nc" id="L122">        return result1;</span>
+<span class="nc" id="L117">        int result1 = super.hashCode();</span>
+<span class="nc" id="L118">        result1 = 31 * result1 + result.hashCode();</span>
+<span class="nc" id="L119">        result1 = 31 * result1 + getLength().hashCode();</span>
+<span class="nc" id="L120">        result1 = 31 * result1 + data.hashCode();</span>
+<span class="nc" id="L121">        return result1;</span>
     }
 
     @Override
     public String toString() {
-<span class="fc" id="L127">        return &quot;ADSReadResponse{&quot; +</span>
+<span class="fc" id="L126">        return &quot;ADSReadResponse{&quot; +</span>
             &quot;result=&quot; + result +
-<span class="fc" id="L129">            &quot;, length=&quot; + getLength() +</span>
+<span class="fc" id="L128">            &quot;, length=&quot; + getLength() +</span>
             &quot;, data=&quot; + data +
-<span class="fc" id="L131">            &quot;} &quot; + super.toString();</span>
+<span class="fc" id="L130">            &quot;} &quot; + super.toString();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

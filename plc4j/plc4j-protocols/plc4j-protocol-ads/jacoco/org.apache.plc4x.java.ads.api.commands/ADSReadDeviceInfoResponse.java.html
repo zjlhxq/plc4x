@@ -21,7 +21,6 @@ package org.apache.plc4x.java.ads.api.commands;
 import org.apache.plc4x.java.ads.api.commands.types.*;
 import org.apache.plc4x.java.ads.api.generic.ADSData;
 import org.apache.plc4x.java.ads.api.generic.AMSHeader;
-import org.apache.plc4x.java.ads.api.generic.AMSTCPHeader;
 import org.apache.plc4x.java.ads.api.generic.types.AMSNetId;
 import org.apache.plc4x.java.ads.api.generic.types.AMSPort;
 import org.apache.plc4x.java.ads.api.generic.types.Command;
@@ -55,101 +54,100 @@ public class ADSReadDeviceInfoResponse extends ADSAbstractResponse {
      */
     private final Device device;
 
-
-    private ADSReadDeviceInfoResponse(AMSTCPHeader amstcpHeader, AMSHeader amsHeader, Result result, MajorVersion majorVersion, MinorVersion minorVersion, Version version, Device device) {
-<span class="fc" id="L60">        super(amstcpHeader, amsHeader);</span>
-<span class="fc" id="L61">        this.result = requireNonNull(result);</span>
-<span class="fc" id="L62">        this.majorVersion = requireNonNull(majorVersion);</span>
-<span class="fc" id="L63">        this.minorVersion = requireNonNull(minorVersion);</span>
-<span class="fc" id="L64">        this.version = requireNonNull(version);</span>
-<span class="fc" id="L65">        this.device = requireNonNull(device);</span>
-<span class="fc" id="L66">    }</span>
+    private ADSReadDeviceInfoResponse(AMSHeader amsHeader, Result result, MajorVersion majorVersion, MinorVersion minorVersion, Version version, Device device) {
+<span class="fc" id="L58">        super(amsHeader);</span>
+<span class="fc" id="L59">        this.result = requireNonNull(result);</span>
+<span class="fc" id="L60">        this.majorVersion = requireNonNull(majorVersion);</span>
+<span class="fc" id="L61">        this.minorVersion = requireNonNull(minorVersion);</span>
+<span class="fc" id="L62">        this.version = requireNonNull(version);</span>
+<span class="fc" id="L63">        this.device = requireNonNull(device);</span>
+<span class="fc" id="L64">    }</span>
 
     private ADSReadDeviceInfoResponse(AMSNetId targetAmsNetId, AMSPort targetAmsPort, AMSNetId sourceAmsNetId, AMSPort sourceAmsPort, Invoke invokeId, Result result, MajorVersion majorVersion, MinorVersion minorVersion, Version version, Device device) {
-<span class="fc" id="L69">        super(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId);</span>
-<span class="fc" id="L70">        this.result = requireNonNull(result);</span>
-<span class="fc" id="L71">        this.majorVersion = requireNonNull(majorVersion);</span>
-<span class="fc" id="L72">        this.minorVersion = requireNonNull(minorVersion);</span>
-<span class="fc" id="L73">        this.version = requireNonNull(version);</span>
-<span class="fc" id="L74">        this.device = requireNonNull(device);</span>
-<span class="fc" id="L75">    }</span>
+<span class="fc" id="L67">        super(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId);</span>
+<span class="fc" id="L68">        this.result = requireNonNull(result);</span>
+<span class="fc" id="L69">        this.majorVersion = requireNonNull(majorVersion);</span>
+<span class="fc" id="L70">        this.minorVersion = requireNonNull(minorVersion);</span>
+<span class="fc" id="L71">        this.version = requireNonNull(version);</span>
+<span class="fc" id="L72">        this.device = requireNonNull(device);</span>
+<span class="fc" id="L73">    }</span>
 
-    public static ADSReadDeviceInfoResponse of(AMSTCPHeader amstcpHeader, AMSHeader amsHeader, Result result, MajorVersion majorVersion, MinorVersion minorVersion, Version version, Device device) {
-<span class="fc" id="L78">        return new ADSReadDeviceInfoResponse(amstcpHeader, amsHeader, result, majorVersion, minorVersion, version, device);</span>
+    public static ADSReadDeviceInfoResponse of(AMSHeader amsHeader, Result result, MajorVersion majorVersion, MinorVersion minorVersion, Version version, Device device) {
+<span class="fc" id="L76">        return new ADSReadDeviceInfoResponse(amsHeader, result, majorVersion, minorVersion, version, device);</span>
     }
 
     public static ADSReadDeviceInfoResponse of(AMSNetId targetAmsNetId, AMSPort targetAmsPort, AMSNetId sourceAmsNetId, AMSPort sourceAmsPort, Invoke invokeId, Result result, MajorVersion majorVersion, MinorVersion minorVersion, Version version, Device device) {
-<span class="fc" id="L82">        return new ADSReadDeviceInfoResponse(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId, result, majorVersion, minorVersion, version, device);</span>
+<span class="fc" id="L80">        return new ADSReadDeviceInfoResponse(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId, result, majorVersion, minorVersion, version, device);</span>
     }
 
     public Result getResult() {
-<span class="fc" id="L86">        return result;</span>
+<span class="fc" id="L84">        return result;</span>
     }
 
     public MajorVersion getMajorVersion() {
-<span class="fc" id="L90">        return majorVersion;</span>
+<span class="fc" id="L88">        return majorVersion;</span>
     }
 
     public MinorVersion getMinorVersion() {
-<span class="fc" id="L94">        return minorVersion;</span>
+<span class="fc" id="L92">        return minorVersion;</span>
     }
 
     public Version getVersion() {
-<span class="fc" id="L98">        return version;</span>
+<span class="fc" id="L96">        return version;</span>
     }
 
     public Device getDevice() {
-<span class="fc" id="L102">        return device;</span>
+<span class="fc" id="L100">        return device;</span>
     }
 
     @Override
     public ADSData getAdsData() {
-<span class="fc" id="L107">        return buildADSData(result, majorVersion, minorVersion, version, device);</span>
+<span class="fc" id="L105">        return buildADSData(result, majorVersion, minorVersion, version, device);</span>
     }
 
     @Override
     public boolean equals(Object o) {
-<span class="pc bpc" id="L112" title="1 of 2 branches missed.">        if (this == o)</span>
-<span class="nc" id="L113">            return true;</span>
-<span class="pc bpc" id="L114" title="1 of 2 branches missed.">        if (!(o instanceof ADSReadDeviceInfoResponse))</span>
+<span class="pc bpc" id="L110" title="1 of 2 branches missed.">        if (this == o)</span>
+<span class="nc" id="L111">            return true;</span>
+<span class="pc bpc" id="L112" title="1 of 2 branches missed.">        if (!(o instanceof ADSReadDeviceInfoResponse))</span>
+<span class="nc" id="L113">            return false;</span>
+<span class="pc bpc" id="L114" title="1 of 2 branches missed.">        if (!super.equals(o))</span>
 <span class="nc" id="L115">            return false;</span>
-<span class="pc bpc" id="L116" title="1 of 2 branches missed.">        if (!super.equals(o))</span>
-<span class="nc" id="L117">            return false;</span>
 
-<span class="fc" id="L119">        ADSReadDeviceInfoResponse that = (ADSReadDeviceInfoResponse) o;</span>
+<span class="fc" id="L117">        ADSReadDeviceInfoResponse that = (ADSReadDeviceInfoResponse) o;</span>
 
-<span class="pc bpc" id="L121" title="1 of 2 branches missed.">        if (!result.equals(that.result))</span>
+<span class="pc bpc" id="L119" title="1 of 2 branches missed.">        if (!result.equals(that.result))</span>
+<span class="nc" id="L120">            return false;</span>
+<span class="pc bpc" id="L121" title="1 of 2 branches missed.">        if (!majorVersion.equals(that.majorVersion))</span>
 <span class="nc" id="L122">            return false;</span>
-<span class="pc bpc" id="L123" title="1 of 2 branches missed.">        if (!majorVersion.equals(that.majorVersion))</span>
+<span class="pc bpc" id="L123" title="1 of 2 branches missed.">        if (!minorVersion.equals(that.minorVersion))</span>
 <span class="nc" id="L124">            return false;</span>
-<span class="pc bpc" id="L125" title="1 of 2 branches missed.">        if (!minorVersion.equals(that.minorVersion))</span>
+<span class="pc bpc" id="L125" title="1 of 2 branches missed.">        if (!version.equals(that.version))</span>
 <span class="nc" id="L126">            return false;</span>
-<span class="pc bpc" id="L127" title="1 of 2 branches missed.">        if (!version.equals(that.version))</span>
-<span class="nc" id="L128">            return false;</span>
-        
-<span class="fc" id="L130">        return device.equals(that.device);</span>
+
+<span class="fc" id="L128">        return device.equals(that.device);</span>
     }
 
     @Override
     public int hashCode() {
-<span class="nc" id="L135">        int result1 = super.hashCode();</span>
-<span class="nc" id="L136">        result1 = 31 * result1 + result.hashCode();</span>
-<span class="nc" id="L137">        result1 = 31 * result1 + majorVersion.hashCode();</span>
-<span class="nc" id="L138">        result1 = 31 * result1 + minorVersion.hashCode();</span>
-<span class="nc" id="L139">        result1 = 31 * result1 + version.hashCode();</span>
-<span class="nc" id="L140">        result1 = 31 * result1 + device.hashCode();</span>
-<span class="nc" id="L141">        return result1;</span>
+<span class="nc" id="L133">        int result1 = super.hashCode();</span>
+<span class="nc" id="L134">        result1 = 31 * result1 + result.hashCode();</span>
+<span class="nc" id="L135">        result1 = 31 * result1 + majorVersion.hashCode();</span>
+<span class="nc" id="L136">        result1 = 31 * result1 + minorVersion.hashCode();</span>
+<span class="nc" id="L137">        result1 = 31 * result1 + version.hashCode();</span>
+<span class="nc" id="L138">        result1 = 31 * result1 + device.hashCode();</span>
+<span class="nc" id="L139">        return result1;</span>
     }
 
     @Override
     public String toString() {
-<span class="fc" id="L146">        return &quot;ADSReadDeviceInfoResponse{&quot; +</span>
+<span class="fc" id="L144">        return &quot;ADSReadDeviceInfoResponse{&quot; +</span>
             &quot;result=&quot; + result +
             &quot;, majorVersion=&quot; + majorVersion +
             &quot;, minorVersion=&quot; + minorVersion +
             &quot;, version=&quot; + version +
             &quot;, device=&quot; + device +
-<span class="fc" id="L152">            &quot;} &quot; + super.toString();</span>
+<span class="fc" id="L150">            &quot;} &quot; + super.toString();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

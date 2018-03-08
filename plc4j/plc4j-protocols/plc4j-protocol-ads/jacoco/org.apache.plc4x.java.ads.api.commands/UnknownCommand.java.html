@@ -21,8 +21,7 @@ package org.apache.plc4x.java.ads.api.commands;
 import io.netty.buffer.ByteBuf;
 import org.apache.plc4x.java.ads.api.generic.ADSData;
 import org.apache.plc4x.java.ads.api.generic.AMSHeader;
-import org.apache.plc4x.java.ads.api.generic.AMSTCPHeader;
-import org.apache.plc4x.java.ads.api.generic.AMSTCPPacket;
+import org.apache.plc4x.java.ads.api.generic.AMSPacket;
 import org.apache.plc4x.java.ads.api.generic.types.*;
 
 import static java.util.Objects.requireNonNull;
@@ -31,57 +30,57 @@ import static java.util.Objects.requireNonNull;
  * Unknown ADS Package
  */
 @ADSCommandType(Command.UNKNOWN)
-public class UnknownCommand extends AMSTCPPacket {
+public class UnknownCommand extends AMSPacket {
 
     private final ByteBuf remainingBytes;
 
-    private UnknownCommand(AMSTCPHeader amstcpHeader, AMSHeader amsHeader, ByteBuf remainingBytes) {
-<span class="fc" id="L39">        super(amstcpHeader, amsHeader);</span>
-<span class="fc" id="L40">        this.remainingBytes = requireNonNull(remainingBytes);</span>
-<span class="fc" id="L41">    }</span>
+    private UnknownCommand(AMSHeader amsHeader, ByteBuf remainingBytes) {
+<span class="fc" id="L38">        super(amsHeader);</span>
+<span class="fc" id="L39">        this.remainingBytes = requireNonNull(remainingBytes);</span>
+<span class="fc" id="L40">    }</span>
 
     private UnknownCommand(AMSNetId targetAmsNetId, AMSPort targetAmsPort, AMSNetId sourceAmsNetId, AMSPort sourceAmsPort, State stateId, Invoke invokeId, ByteBuf remainingBytes) {
-<span class="fc" id="L44">        super(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, stateId, invokeId);</span>
-<span class="fc" id="L45">        this.remainingBytes = requireNonNull(remainingBytes);</span>
-<span class="fc" id="L46">    }</span>
+<span class="fc" id="L43">        super(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, stateId, invokeId);</span>
+<span class="fc" id="L44">        this.remainingBytes = requireNonNull(remainingBytes);</span>
+<span class="fc" id="L45">    }</span>
 
     @Override
     public ADSData getAdsData() {
-<span class="pc" id="L50">        return () -&gt; remainingBytes;</span>
+<span class="pc" id="L49">        return () -&gt; remainingBytes;</span>
     }
 
-    public static AMSTCPPacket of(AMSTCPHeader amstcpHeader, AMSHeader amsHeader, ByteBuf remainingBytes) {
-<span class="fc" id="L54">        return new UnknownCommand(amstcpHeader, amsHeader, remainingBytes);</span>
+    public static UnknownCommand of(AMSHeader amsHeader, ByteBuf remainingBytes) {
+<span class="fc" id="L53">        return new UnknownCommand(amsHeader, remainingBytes);</span>
     }
 
     public static UnknownCommand of(AMSNetId targetAmsNetId, AMSPort targetAmsPort, AMSNetId sourceAmsNetId, AMSPort sourceAmsPort, State stateId, Invoke invokeId, ByteBuf remainingBytes) {
-<span class="fc" id="L58">        return new UnknownCommand(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, stateId, invokeId, remainingBytes);</span>
+<span class="fc" id="L57">        return new UnknownCommand(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, stateId, invokeId, remainingBytes);</span>
     }
 
     @Override
     public boolean equals(Object o) {
-<span class="nc bnc" id="L63" title="All 2 branches missed.">        if (this == o)</span>
-<span class="nc" id="L64">            return true;</span>
-<span class="nc bnc" id="L65" title="All 2 branches missed.">        if (!(o instanceof UnknownCommand))</span>
-<span class="nc" id="L66">            return false;</span>
-<span class="nc bnc" id="L67" title="All 2 branches missed.">        if (!super.equals(o))</span>
-<span class="nc" id="L68">            return false;</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">        if (this == o)</span>
+<span class="nc" id="L63">            return true;</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">        if (!(o instanceof UnknownCommand))</span>
+<span class="nc" id="L65">            return false;</span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">        if (!super.equals(o))</span>
+<span class="nc" id="L67">            return false;</span>
 
-<span class="nc" id="L70">        UnknownCommand that = (UnknownCommand) o;</span>
+<span class="nc" id="L69">        UnknownCommand that = (UnknownCommand) o;</span>
 
-<span class="nc" id="L72">        return remainingBytes.equals(that.remainingBytes);</span>
+<span class="nc" id="L71">        return remainingBytes.equals(that.remainingBytes);</span>
     }
 
     @Override
     public int hashCode() {
-<span class="nc" id="L77">        int result = super.hashCode();</span>
-<span class="nc" id="L78">        result = 31 * result + remainingBytes.hashCode();</span>
-<span class="nc" id="L79">        return result;</span>
+<span class="nc" id="L76">        int result = super.hashCode();</span>
+<span class="nc" id="L77">        result = 31 * result + remainingBytes.hashCode();</span>
+<span class="nc" id="L78">        return result;</span>
     }
 
     @Override
     public String toString() {
-<span class="fc" id="L84">        return &quot;UnknownCommand&quot;;</span>
+<span class="fc" id="L83">        return &quot;UnknownCommand&quot;;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

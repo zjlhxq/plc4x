@@ -24,7 +24,6 @@ import org.apache.plc4x.java.ads.api.commands.types.DeviceState;
 import org.apache.plc4x.java.ads.api.commands.types.Length;
 import org.apache.plc4x.java.ads.api.generic.ADSData;
 import org.apache.plc4x.java.ads.api.generic.AMSHeader;
-import org.apache.plc4x.java.ads.api.generic.AMSTCPHeader;
 import org.apache.plc4x.java.ads.api.generic.types.AMSNetId;
 import org.apache.plc4x.java.ads.api.generic.types.AMSPort;
 import org.apache.plc4x.java.ads.api.generic.types.Command;
@@ -60,105 +59,92 @@ public class ADSWriteControlRequest extends ADSAbstractRequest {
 
     private final LengthSupplier lengthSupplier;
 
-    private ADSWriteControlRequest(AMSTCPHeader amstcpHeader, AMSHeader amsHeader, ADSState adsState, DeviceState deviceState, Length length, Data data) {
-<span class="fc" id="L64">        super(amstcpHeader, amsHeader);</span>
-<span class="fc" id="L65">        this.adsState = requireNonNull(adsState);</span>
-<span class="fc" id="L66">        this.deviceState = requireNonNull(deviceState);</span>
-<span class="fc" id="L67">        this.length = requireNonNull(length);</span>
-<span class="fc" id="L68">        this.data = requireNonNull(data);</span>
-<span class="fc" id="L69">        this.lengthSupplier = null;</span>
-<span class="fc" id="L70">    }</span>
-
     private ADSWriteControlRequest(AMSHeader amsHeader, ADSState adsState, DeviceState deviceState, Length length, Data data) {
-<span class="fc" id="L73">        super(amsHeader);</span>
-<span class="fc" id="L74">        this.adsState = requireNonNull(adsState);</span>
-<span class="fc" id="L75">        this.deviceState = requireNonNull(deviceState);</span>
-<span class="fc" id="L76">        this.length = requireNonNull(length);</span>
-<span class="fc" id="L77">        this.data = requireNonNull(data);</span>
-<span class="fc" id="L78">        this.lengthSupplier = null;</span>
-<span class="fc" id="L79">    }</span>
+<span class="fc" id="L63">        super(amsHeader);</span>
+<span class="fc" id="L64">        this.adsState = requireNonNull(adsState);</span>
+<span class="fc" id="L65">        this.deviceState = requireNonNull(deviceState);</span>
+<span class="fc" id="L66">        this.length = requireNonNull(length);</span>
+<span class="fc" id="L67">        this.data = requireNonNull(data);</span>
+<span class="fc" id="L68">        this.lengthSupplier = null;</span>
+<span class="fc" id="L69">    }</span>
 
     private ADSWriteControlRequest(AMSNetId targetAmsNetId, AMSPort targetAmsPort, AMSNetId sourceAmsNetId, AMSPort sourceAmsPort, Invoke invokeId, ADSState adsState, DeviceState deviceState, Data data) {
-<span class="fc" id="L82">        super(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId);</span>
-<span class="fc" id="L83">        this.adsState = requireNonNull(adsState);</span>
-<span class="fc" id="L84">        this.deviceState = requireNonNull(deviceState);</span>
-<span class="fc" id="L85">        this.length = null;</span>
-<span class="fc" id="L86">        this.data = requireNonNull(data);</span>
-<span class="fc" id="L87">        this.lengthSupplier = data;</span>
-<span class="fc" id="L88">    }</span>
-
-    public static ADSWriteControlRequest of(AMSTCPHeader amstcpHeader, AMSHeader amsHeader, ADSState adsState, DeviceState deviceState, Length length, Data data) {
-<span class="fc" id="L91">        return new ADSWriteControlRequest(amstcpHeader, amsHeader, adsState, deviceState, length, data);</span>
-    }
+<span class="fc" id="L72">        super(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId);</span>
+<span class="fc" id="L73">        this.adsState = requireNonNull(adsState);</span>
+<span class="fc" id="L74">        this.deviceState = requireNonNull(deviceState);</span>
+<span class="fc" id="L75">        this.length = null;</span>
+<span class="fc" id="L76">        this.data = requireNonNull(data);</span>
+<span class="fc" id="L77">        this.lengthSupplier = data;</span>
+<span class="fc" id="L78">    }</span>
 
     public static ADSWriteControlRequest of(AMSHeader amsHeader, ADSState adsState, DeviceState deviceState, Length length, Data data) {
-<span class="fc" id="L95">        return new ADSWriteControlRequest(amsHeader, adsState, deviceState, length, data);</span>
+<span class="fc" id="L81">        return new ADSWriteControlRequest(amsHeader, adsState, deviceState, length, data);</span>
     }
 
     public static ADSWriteControlRequest of(AMSNetId targetAmsNetId, AMSPort targetAmsPort, AMSNetId sourceAmsNetId, AMSPort sourceAmsPort, Invoke invokeId, ADSState adsState, DeviceState deviceState, Data data) {
-<span class="fc" id="L99">        return new ADSWriteControlRequest(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId, adsState, deviceState, data);</span>
+<span class="fc" id="L85">        return new ADSWriteControlRequest(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId, adsState, deviceState, data);</span>
     }
 
     public ADSState getAdsState() {
-<span class="fc" id="L103">        return adsState;</span>
+<span class="fc" id="L89">        return adsState;</span>
     }
 
     public DeviceState getDeviceState() {
-<span class="fc" id="L107">        return deviceState;</span>
+<span class="fc" id="L93">        return deviceState;</span>
     }
 
     public Length getLength() {
-<span class="fc bfc" id="L111" title="All 2 branches covered.">        return lengthSupplier == null ? length : Length.of(lengthSupplier);</span>
+<span class="fc bfc" id="L97" title="All 2 branches covered.">        return lengthSupplier == null ? length : Length.of(lengthSupplier);</span>
     }
 
     public Data getData() {
-<span class="fc" id="L115">        return data;</span>
+<span class="fc" id="L101">        return data;</span>
     }
 
     @Override
     public ADSData getAdsData() {
-<span class="fc" id="L120">        return buildADSData(adsState, deviceState, getLength(), data);</span>
+<span class="fc" id="L106">        return buildADSData(adsState, deviceState, getLength(), data);</span>
     }
 
     @Override
     public boolean equals(Object o) {
-<span class="pc bpc" id="L125" title="1 of 2 branches missed.">        if (this == o)</span>
-<span class="nc" id="L126">            return true;</span>
-<span class="pc bpc" id="L127" title="1 of 2 branches missed.">        if (!(o instanceof ADSWriteControlRequest))</span>
-<span class="nc" id="L128">            return false;</span>
-<span class="pc bpc" id="L129" title="1 of 2 branches missed.">        if (!super.equals(o))</span>
-<span class="nc" id="L130">            return false;</span>
+<span class="pc bpc" id="L111" title="1 of 2 branches missed.">        if (this == o)</span>
+<span class="nc" id="L112">            return true;</span>
+<span class="pc bpc" id="L113" title="1 of 2 branches missed.">        if (!(o instanceof ADSWriteControlRequest))</span>
+<span class="nc" id="L114">            return false;</span>
+<span class="pc bpc" id="L115" title="1 of 2 branches missed.">        if (!super.equals(o))</span>
+<span class="nc" id="L116">            return false;</span>
 
-<span class="fc" id="L132">        ADSWriteControlRequest that = (ADSWriteControlRequest) o;</span>
+<span class="fc" id="L118">        ADSWriteControlRequest that = (ADSWriteControlRequest) o;</span>
 
-<span class="pc bpc" id="L134" title="1 of 2 branches missed.">        if (!adsState.equals(that.adsState))</span>
-<span class="nc" id="L135">            return false;</span>
-<span class="pc bpc" id="L136" title="1 of 2 branches missed.">        if (!deviceState.equals(that.deviceState))</span>
-<span class="nc" id="L137">            return false;</span>
-<span class="pc bpc" id="L138" title="1 of 2 branches missed.">        if (!getLength().equals(that.getLength()))</span>
-<span class="nc" id="L139">            return false;</span>
-        
-<span class="fc" id="L141">        return data.equals(that.data);</span>
+<span class="pc bpc" id="L120" title="1 of 2 branches missed.">        if (!adsState.equals(that.adsState))</span>
+<span class="nc" id="L121">            return false;</span>
+<span class="pc bpc" id="L122" title="1 of 2 branches missed.">        if (!deviceState.equals(that.deviceState))</span>
+<span class="nc" id="L123">            return false;</span>
+<span class="pc bpc" id="L124" title="1 of 2 branches missed.">        if (!getLength().equals(that.getLength()))</span>
+<span class="nc" id="L125">            return false;</span>
+
+<span class="fc" id="L127">        return data.equals(that.data);</span>
     }
 
     @Override
     public int hashCode() {
-<span class="nc" id="L146">        int result = super.hashCode();</span>
-<span class="nc" id="L147">        result = 31 * result + adsState.hashCode();</span>
-<span class="nc" id="L148">        result = 31 * result + deviceState.hashCode();</span>
-<span class="nc" id="L149">        result = 31 * result + getLength().hashCode();</span>
-<span class="nc" id="L150">        result = 31 * result + data.hashCode();</span>
-<span class="nc" id="L151">        return result;</span>
+<span class="nc" id="L132">        int result = super.hashCode();</span>
+<span class="nc" id="L133">        result = 31 * result + adsState.hashCode();</span>
+<span class="nc" id="L134">        result = 31 * result + deviceState.hashCode();</span>
+<span class="nc" id="L135">        result = 31 * result + getLength().hashCode();</span>
+<span class="nc" id="L136">        result = 31 * result + data.hashCode();</span>
+<span class="nc" id="L137">        return result;</span>
     }
 
     @Override
     public String toString() {
-<span class="fc" id="L156">        return &quot;ADSWriteControlRequest{&quot; +</span>
+<span class="fc" id="L142">        return &quot;ADSWriteControlRequest{&quot; +</span>
             &quot;adsState=&quot; + adsState +
             &quot;, deviceState=&quot; + deviceState +
-<span class="fc" id="L159">            &quot;, length=&quot; + getLength() +</span>
+<span class="fc" id="L145">            &quot;, length=&quot; + getLength() +</span>
             &quot;, data=&quot; + data +
-<span class="fc" id="L161">            &quot;} &quot; + super.toString();</span>
+<span class="fc" id="L147">            &quot;} &quot; + super.toString();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
