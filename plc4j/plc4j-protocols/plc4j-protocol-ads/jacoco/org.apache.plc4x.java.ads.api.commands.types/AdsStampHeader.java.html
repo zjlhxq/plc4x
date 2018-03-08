@@ -23,7 +23,6 @@ import org.apache.plc4x.java.ads.api.util.ByteReadable;
 
 import java.util.List;
 
-import static io.netty.buffer.Unpooled.wrappedBuffer;
 import static java.util.Objects.requireNonNull;
 
 public class AdsStampHeader implements ByteReadable {
@@ -41,75 +40,71 @@ public class AdsStampHeader implements ByteReadable {
      */
     private final List&lt;AdsNotificationSample&gt; adsNotificationSamples;
 
-<span class="fc" id="L44">    private AdsStampHeader(TimeStamp timeStamp, Samples samples, List&lt;AdsNotificationSample&gt; adsNotificationSamples) {</span>
-<span class="fc" id="L45">        this.timeStamp = requireNonNull(timeStamp);</span>
-<span class="fc" id="L46">        this.samples = requireNonNull(samples);</span>
-<span class="fc" id="L47">        this.adsNotificationSamples = requireNonNull(adsNotificationSamples);</span>
-<span class="fc" id="L48">    }</span>
+<span class="fc" id="L43">    private AdsStampHeader(TimeStamp timeStamp, Samples samples, List&lt;AdsNotificationSample&gt; adsNotificationSamples) {</span>
+<span class="fc" id="L44">        this.timeStamp = requireNonNull(timeStamp);</span>
+<span class="fc" id="L45">        this.samples = requireNonNull(samples);</span>
+<span class="fc" id="L46">        this.adsNotificationSamples = requireNonNull(adsNotificationSamples);</span>
+<span class="fc" id="L47">    }</span>
 
-<span class="fc" id="L50">    private AdsStampHeader(TimeStamp timeStamp, List&lt;AdsNotificationSample&gt; adsNotificationSamples) {</span>
-<span class="fc" id="L51">        this.timeStamp = requireNonNull(timeStamp);</span>
-<span class="fc" id="L52">        this.adsNotificationSamples = requireNonNull(adsNotificationSamples);</span>
-<span class="fc" id="L53">        this.samples = Samples.of(adsNotificationSamples.size());</span>
-<span class="fc" id="L54">    }</span>
+<span class="fc" id="L49">    private AdsStampHeader(TimeStamp timeStamp, List&lt;AdsNotificationSample&gt; adsNotificationSamples) {</span>
+<span class="fc" id="L50">        this.timeStamp = requireNonNull(timeStamp);</span>
+<span class="fc" id="L51">        this.adsNotificationSamples = requireNonNull(adsNotificationSamples);</span>
+<span class="fc" id="L52">        this.samples = Samples.of(adsNotificationSamples.size());</span>
+<span class="fc" id="L53">    }</span>
 
     public static AdsStampHeader of(TimeStamp timeStamp, Samples samples, List&lt;AdsNotificationSample&gt; adsNotificationSamples) {
-<span class="fc" id="L57">        return new AdsStampHeader(timeStamp, samples, adsNotificationSamples);</span>
+<span class="fc" id="L56">        return new AdsStampHeader(timeStamp, samples, adsNotificationSamples);</span>
     }
 
     public static AdsStampHeader of(TimeStamp timeStamp, List&lt;AdsNotificationSample&gt; adsNotificationSamples) {
-<span class="fc" id="L61">        return new AdsStampHeader(timeStamp, adsNotificationSamples);</span>
+<span class="fc" id="L60">        return new AdsStampHeader(timeStamp, adsNotificationSamples);</span>
     }
 
     @Override
     public ByteBuf getByteBuf() {
-<span class="fc" id="L66">        return wrappedBuffer(</span>
-<span class="fc" id="L67">            timeStamp.getByteBuf(),</span>
-<span class="fc" id="L68">            samples.getByteBuf(),</span>
-<span class="fc" id="L69">            wrappedBuffer(adsNotificationSamples.stream().map(ByteReadable::getByteBuf).toArray(ByteBuf[]::new))</span>
-        );
+<span class="fc" id="L65">        return buildByteBuff(timeStamp, samples, () -&gt; buildByteBuff(adsNotificationSamples.toArray(new ByteReadable[adsNotificationSamples.size()])));</span>
     }
 
     public TimeStamp getTimeStamp() {
-<span class="nc" id="L74">        return timeStamp;</span>
+<span class="nc" id="L69">        return timeStamp;</span>
     }
 
     public Samples getSamples() {
-<span class="nc" id="L78">        return samples;</span>
+<span class="nc" id="L73">        return samples;</span>
     }
 
     public List&lt;AdsNotificationSample&gt; getAdsNotificationSamples() {
-<span class="nc" id="L82">        return adsNotificationSamples;</span>
+<span class="nc" id="L77">        return adsNotificationSamples;</span>
     }
 
     @Override
     public boolean equals(Object o) {
-<span class="pc bpc" id="L87" title="1 of 2 branches missed.">        if (this == o)</span>
-<span class="nc" id="L88">            return true;</span>
-<span class="pc bpc" id="L89" title="1 of 2 branches missed.">        if (!(o instanceof AdsStampHeader))</span>
+<span class="pc bpc" id="L82" title="1 of 2 branches missed.">        if (this == o)</span>
+<span class="nc" id="L83">            return true;</span>
+<span class="pc bpc" id="L84" title="1 of 2 branches missed.">        if (!(o instanceof AdsStampHeader))</span>
+<span class="nc" id="L85">            return false;</span>
+
+<span class="fc" id="L87">        AdsStampHeader that = (AdsStampHeader) o;</span>
+
+<span class="pc bpc" id="L89" title="1 of 2 branches missed.">        if (!timeStamp.equals(that.timeStamp))</span>
 <span class="nc" id="L90">            return false;</span>
-
-<span class="fc" id="L92">        AdsStampHeader that = (AdsStampHeader) o;</span>
-
-<span class="pc bpc" id="L94" title="1 of 2 branches missed.">        if (!timeStamp.equals(that.timeStamp))</span>
-<span class="nc" id="L95">            return false;</span>
-<span class="pc bpc" id="L96" title="1 of 2 branches missed.">        if (!samples.equals(that.samples))</span>
-<span class="nc" id="L97">            return false;</span>
-
-<span class="fc" id="L99">        return adsNotificationSamples.equals(that.adsNotificationSamples);</span>
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">        if (!samples.equals(that.samples))</span>
+<span class="nc" id="L92">            return false;</span>
+        
+<span class="fc" id="L94">        return adsNotificationSamples.equals(that.adsNotificationSamples);</span>
     }
 
     @Override
     public int hashCode() {
-<span class="nc" id="L104">        int result = timeStamp.hashCode();</span>
-<span class="nc" id="L105">        result = 31 * result + samples.hashCode();</span>
-<span class="nc" id="L106">        result = 31 * result + adsNotificationSamples.hashCode();</span>
-<span class="nc" id="L107">        return result;</span>
+<span class="nc" id="L99">        int result = timeStamp.hashCode();</span>
+<span class="nc" id="L100">        result = 31 * result + samples.hashCode();</span>
+<span class="nc" id="L101">        result = 31 * result + adsNotificationSamples.hashCode();</span>
+<span class="nc" id="L102">        return result;</span>
     }
 
     @Override
     public String toString() {
-<span class="fc" id="L112">        return &quot;AdsStampHeader{&quot; +</span>
+<span class="fc" id="L107">        return &quot;AdsStampHeader{&quot; +</span>
             &quot;timeStamp=&quot; + timeStamp +
             &quot;, samples=&quot; + samples +
             &quot;, adsNotificationSamples=&quot; + adsNotificationSamples +

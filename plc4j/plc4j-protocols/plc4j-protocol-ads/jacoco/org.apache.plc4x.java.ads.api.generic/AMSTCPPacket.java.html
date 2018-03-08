@@ -19,7 +19,6 @@
 package org.apache.plc4x.java.ads.api.generic;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import org.apache.plc4x.java.ads.api.commands.ADSCommandType;
 import org.apache.plc4x.java.ads.api.generic.types.*;
 import org.apache.plc4x.java.ads.api.util.ByteReadable;
@@ -31,78 +30,78 @@ public abstract class AMSTCPPacket implements ByteReadable {
 
     private final AMSHeader amsHeader;
 
-<span class="fc" id="L34">    protected AMSTCPPacket(AMSTCPHeader amsTcpHeader, AMSHeader amsHeader) {</span>
-<span class="fc" id="L35">        this.amsTcpHeader = requireNonNull(amsTcpHeader);</span>
-<span class="fc" id="L36">        this.amsHeader = requireNonNull(amsHeader);</span>
-<span class="fc" id="L37">    }</span>
+<span class="fc" id="L33">    protected AMSTCPPacket(AMSTCPHeader amsTcpHeader, AMSHeader amsHeader) {</span>
+<span class="fc" id="L34">        this.amsTcpHeader = requireNonNull(amsTcpHeader);</span>
+<span class="fc" id="L35">        this.amsHeader = requireNonNull(amsHeader);</span>
+<span class="fc" id="L36">    }</span>
 
-<span class="fc" id="L39">    protected AMSTCPPacket(AMSHeader amsHeader) {</span>
+<span class="fc" id="L38">    protected AMSTCPPacket(AMSHeader amsHeader) {</span>
         // It is important that we wrap the ads data call as this will initialized in the constructor
         // so this value will be null if we call adsData now.
-<span class="fc" id="L42">        this.amsTcpHeader = AMSTCPHeader.of(requireNonNull(amsHeader), () -&gt; getAdsData().getCalculatedLength());</span>
-<span class="fc" id="L43">        this.amsHeader = requireNonNull(amsHeader);</span>
-<span class="fc" id="L44">    }</span>
+<span class="fc" id="L41">        this.amsTcpHeader = AMSTCPHeader.of(requireNonNull(amsHeader), () -&gt; getAdsData().getCalculatedLength());</span>
+<span class="fc" id="L42">        this.amsHeader = requireNonNull(amsHeader);</span>
+<span class="fc" id="L43">    }</span>
 
-<span class="fc" id="L46">    protected AMSTCPPacket(AMSNetId targetAmsNetId, AMSPort targetAmsPort, AMSNetId sourceAmsNetId, AMSPort sourceAmsPort, State stateId, Invoke invokeId) {</span>
-<span class="pc bpc" id="L47" title="1 of 2 branches missed.">        if (!getClass().isAnnotationPresent(ADSCommandType.class)) {</span>
-<span class="nc" id="L48">            throw new IllegalArgumentException(ADSCommandType.class + &quot; need to be present.&quot;);</span>
+<span class="fc" id="L45">    protected AMSTCPPacket(AMSNetId targetAmsNetId, AMSPort targetAmsPort, AMSNetId sourceAmsNetId, AMSPort sourceAmsPort, State stateId, Invoke invokeId) {</span>
+<span class="pc bpc" id="L46" title="1 of 2 branches missed.">        if (!getClass().isAnnotationPresent(ADSCommandType.class)) {</span>
+<span class="nc" id="L47">            throw new IllegalArgumentException(ADSCommandType.class + &quot; need to be present.&quot;);</span>
         }
-<span class="fc" id="L50">        this.amsHeader = AMSHeader.of(</span>
-<span class="fc" id="L51">            requireNonNull(targetAmsNetId),</span>
-<span class="fc" id="L52">            requireNonNull(targetAmsPort),</span>
-<span class="fc" id="L53">            requireNonNull(sourceAmsNetId),</span>
-<span class="fc" id="L54">            requireNonNull(sourceAmsPort),</span>
-<span class="fc" id="L55">            requireNonNull(getClass().getAnnotation(ADSCommandType.class).value()),</span>
-<span class="fc" id="L56">            requireNonNull(stateId),</span>
-<span class="fc" id="L57">            () -&gt; getAdsData().getCalculatedLength(),</span>
-<span class="fc" id="L58">            requireNonNull(AMSError.NONE),</span>
-<span class="fc" id="L59">            requireNonNull(invokeId));</span>
-<span class="fc" id="L60">        this.amsTcpHeader = AMSTCPHeader.of(amsHeader, () -&gt; getAdsData().getCalculatedLength());</span>
-<span class="fc" id="L61">    }</span>
+<span class="fc" id="L49">        this.amsHeader = AMSHeader.of(</span>
+<span class="fc" id="L50">            requireNonNull(targetAmsNetId),</span>
+<span class="fc" id="L51">            requireNonNull(targetAmsPort),</span>
+<span class="fc" id="L52">            requireNonNull(sourceAmsNetId),</span>
+<span class="fc" id="L53">            requireNonNull(sourceAmsPort),</span>
+<span class="fc" id="L54">            requireNonNull(getClass().getAnnotation(ADSCommandType.class).value()),</span>
+<span class="fc" id="L55">            requireNonNull(stateId),</span>
+<span class="fc" id="L56">            () -&gt; getAdsData().getCalculatedLength(),</span>
+<span class="fc" id="L57">            requireNonNull(AMSError.NONE),</span>
+<span class="fc" id="L58">            requireNonNull(invokeId));</span>
+<span class="fc" id="L59">        this.amsTcpHeader = AMSTCPHeader.of(amsHeader, () -&gt; getAdsData().getCalculatedLength());</span>
+<span class="fc" id="L60">    }</span>
 
     public AMSTCPHeader getAmsTcpHeader() {
-<span class="nc" id="L64">        return amsTcpHeader;</span>
+<span class="nc" id="L63">        return amsTcpHeader;</span>
     }
 
     public AMSHeader getAmsHeader() {
-<span class="fc" id="L68">        return amsHeader;</span>
+<span class="fc" id="L67">        return amsHeader;</span>
     }
 
     protected abstract ADSData getAdsData();
 
     @Override
     public ByteBuf getByteBuf() {
-<span class="fc" id="L75">        return Unpooled.wrappedBuffer(amsTcpHeader.getByteBuf(), amsHeader.getByteBuf(), getAdsData().getByteBuf());</span>
+<span class="fc" id="L74">        return buildByteBuff(amsTcpHeader, amsHeader, getAdsData());</span>
     }
 
-    protected ADSData buildADSData(ByteBuf... byteReadables) {
-<span class="fc" id="L79">        return () -&gt; Unpooled.wrappedBuffer(byteReadables);</span>
+    protected ADSData buildADSData(ByteReadable... byteReadables) {
+<span class="fc" id="L78">        return () -&gt; buildByteBuff(byteReadables);</span>
     }
 
     @Override
     public boolean equals(Object o) {
-<span class="pc bpc" id="L84" title="1 of 2 branches missed.">        if (this == o)</span>
-<span class="nc" id="L85">            return true;</span>
-<span class="pc bpc" id="L86" title="1 of 2 branches missed.">        if (!(o instanceof AMSTCPPacket))</span>
-<span class="nc" id="L87">            return false;</span>
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">        if (this == o)</span>
+<span class="nc" id="L84">            return true;</span>
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">        if (!(o instanceof AMSTCPPacket))</span>
+<span class="nc" id="L86">            return false;</span>
 
-<span class="fc" id="L89">        AMSTCPPacket that = (AMSTCPPacket) o;</span>
+<span class="fc" id="L88">        AMSTCPPacket that = (AMSTCPPacket) o;</span>
 
-<span class="pc bpc" id="L91" title="1 of 2 branches missed.">        if (!amsTcpHeader.equals(that.amsTcpHeader))</span>
-<span class="nc" id="L92">            return false;</span>
-<span class="fc" id="L93">        return amsHeader.equals(that.amsHeader);</span>
+<span class="pc bpc" id="L90" title="1 of 2 branches missed.">        if (!amsTcpHeader.equals(that.amsTcpHeader))</span>
+<span class="nc" id="L91">            return false;</span>
+<span class="fc" id="L92">        return amsHeader.equals(that.amsHeader);</span>
     }
 
     @Override
     public int hashCode() {
-<span class="nc" id="L98">        int result = amsTcpHeader.hashCode();</span>
-<span class="nc" id="L99">        result = 31 * result + amsHeader.hashCode();</span>
-<span class="nc" id="L100">        return result;</span>
+<span class="nc" id="L97">        int result = amsTcpHeader.hashCode();</span>
+<span class="nc" id="L98">        result = 31 * result + amsHeader.hashCode();</span>
+<span class="nc" id="L99">        return result;</span>
     }
 
     @Override
     public String toString() {
-<span class="fc" id="L105">        return getClass().getSimpleName() + &quot;{&quot; +</span>
+<span class="fc" id="L104">        return getClass().getSimpleName() + &quot;{&quot; +</span>
             &quot;amsTcpHeader=&quot; + amsTcpHeader +
             &quot;, amsHeader=&quot; + amsHeader +
             '}';
