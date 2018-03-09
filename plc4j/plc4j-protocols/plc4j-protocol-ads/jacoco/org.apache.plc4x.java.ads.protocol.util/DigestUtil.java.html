@@ -21,9 +21,6 @@ package org.apache.plc4x.java.ads.protocol.util;
 import io.netty.buffer.ByteBuf;
 import org.apache.plc4x.java.ads.api.util.ByteReadable;
 
-import static java.util.Arrays.stream;
-import static org.apache.commons.lang3.ArrayUtils.toObject;
-
 /**
  * TODO: temporary due to unclear licence
  * From https://stackoverflow.com/a/18333436/850036
@@ -35,41 +32,25 @@ import static org.apache.commons.lang3.ArrayUtils.toObject;
  */
 public class DigestUtil {
 
-    private static final int PRESET_VALUE = 0xFFFF;
-
-    // CRC-16-IBM reversed
-    private static final int POLYNOMIAL = 0xA001;
-
     private DigestUtil() {
         // Utility class
     }
 
     public static int calculateCrc16(ByteReadable... byteReadables) {
-<span class="fc bfc" id="L48" title="All 2 branches covered.">        if (byteReadables.length == 1) {</span>
-<span class="fc" id="L49">            return calculateCrc16(byteReadables[0].getBytes());</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">        if (byteReadables.length == 1) {</span>
+<span class="fc" id="L41">            return calculateCrc16(byteReadables[0].getBytes());</span>
         }
-<span class="fc" id="L51">        return calculateCrc16(new ByteReadable() {</span>
+<span class="fc" id="L43">        return calculateCrc16(new ByteReadable() {</span>
             @Override
             public ByteBuf getByteBuf() {
-<span class="fc" id="L54">                return buildByteBuff(byteReadables);</span>
+<span class="fc" id="L46">                return buildByteBuff(byteReadables);</span>
             }
-<span class="fc" id="L56">        }.getBytes());</span>
+<span class="fc" id="L48">        }.getBytes());</span>
     }
 
     public static int calculateCrc16(byte[] bytes) {
-<span class="fc" id="L60">        return (~stream(toObject(bytes))</span>
-<span class="fc" id="L61">            .mapToInt(Byte::intValue)</span>
-<span class="fc" id="L62">            .reduce(PRESET_VALUE, (int crcValue, int aByte) -&gt; {</span>
-<span class="fc" id="L63">                crcValue ^= aByte &amp; 0xFF;</span>
-<span class="fc bfc" id="L64" title="All 2 branches covered.">                for (int j = 0; j &lt; 8; j++) {</span>
-<span class="fc bfc" id="L65" title="All 2 branches covered.">                    if ((crcValue &amp; 1) != 0) {</span>
-<span class="fc" id="L66">                        crcValue = (crcValue &gt;&gt;&gt; 1) ^ POLYNOMIAL;</span>
-                    } else {
-<span class="fc" id="L68">                        crcValue = crcValue &gt;&gt;&gt; 1;</span>
-                    }
-                }
-<span class="fc" id="L71">                return crcValue;</span>
-            })) &amp; 0xFFFF;
+        // TODO: implement me
+<span class="fc" id="L53">        return 0;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
