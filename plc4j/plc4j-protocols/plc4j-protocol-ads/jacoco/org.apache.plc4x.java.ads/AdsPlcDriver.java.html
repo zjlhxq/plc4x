@@ -45,9 +45,9 @@ public class AdsPlcDriver implements PlcDriver {
             + &quot;(/&quot;
             + &quot;(?&lt;sourceAmsNetId&gt;&quot; + AmsNetId.AMS_NET_ID_PATTERN + &quot;):(?&lt;sourceAmsPort&gt;&quot; + AmsPort.AMS_PORT_PATTERN + &quot;)&quot;
             + &quot;)?&quot;);
-<span class="fc" id="L48">    public static final Pattern INET_ADDRESS_PATTERN = Pattern.compile(&quot;(?&lt;host&gt;[\\w.]+)(:(?&lt;port&gt;\\d*))?&quot;);</span>
-<span class="fc" id="L49">    public static final Pattern SERIAL_PATTERN = Pattern.compile(&quot;(?&lt;serialDefinition&gt;serial:.*)&quot;);</span>
-<span class="fc" id="L50">    public static final Pattern ADS_URI_PATTERN = Pattern.compile(&quot;^ads:/?/?(&quot; + INET_ADDRESS_PATTERN + &quot;|&quot; + SERIAL_PATTERN + &quot;)/&quot; + ADS_ADDRESS_PATTERN);</span>
+<span class="fc" id="L48">    public static final Pattern INET_ADDRESS_PATTERN = Pattern.compile(&quot;tcp://(?&lt;host&gt;[\\w.]+)(:(?&lt;port&gt;\\d*))?&quot;);</span>
+<span class="fc" id="L49">    public static final Pattern SERIAL_PATTERN = Pattern.compile(&quot;serial://(?&lt;serialDefinition&gt;.*)&quot;);</span>
+<span class="fc" id="L50">    public static final Pattern ADS_URI_PATTERN = Pattern.compile(&quot;^ads:(&quot; + INET_ADDRESS_PATTERN + &quot;|&quot; + SERIAL_PATTERN + &quot;)/&quot; + ADS_ADDRESS_PATTERN);</span>
 
     private AdsConnectionFactory adsConnectionFactory;
 
@@ -88,20 +88,19 @@ public class AdsPlcDriver implements PlcDriver {
 <span class="pc bpc" id="L88" title="1 of 2 branches missed.">        AmsPort sourceAmsPort = StringUtils.isNotBlank(sourceAmsPortString) ? AmsPort.of(sourceAmsPortString) : null;</span>
 
 <span class="fc bfc" id="L90" title="All 2 branches covered.">        if (serialDefinition != null) {</span>
-<span class="fc" id="L91">            String serialPort = serialDefinition.substring(serialDefinition.indexOf(':'));</span>
-<span class="fc" id="L92">            return adsConnectionFactory.adsSerialPlcConnectionOf(serialPort, targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort);</span>
+<span class="fc" id="L91">            return adsConnectionFactory.adsSerialPlcConnectionOf(serialDefinition, targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort);</span>
         } else {
             try {
-<span class="fc" id="L95">                return adsConnectionFactory.adsTcpPlcConnectionOf(InetAddress.getByName(host), port, targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort);</span>
-<span class="fc" id="L96">            } catch (UnknownHostException e) {</span>
-<span class="fc" id="L97">                throw new PlcConnectionException(e);</span>
+<span class="fc" id="L94">                return adsConnectionFactory.adsTcpPlcConnectionOf(InetAddress.getByName(host), port, targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort);</span>
+<span class="fc" id="L95">            } catch (UnknownHostException e) {</span>
+<span class="fc" id="L96">                throw new PlcConnectionException(e);</span>
             }
         }
     }
 
     @Override
     public PlcConnection connect(String url, PlcAuthentication authentication) throws PlcConnectionException {
-<span class="fc" id="L104">        throw new PlcConnectionException(&quot;Basic ADS connections don't support authentication.&quot;);</span>
+<span class="fc" id="L103">        throw new PlcConnectionException(&quot;Basic ADS connections don't support authentication.&quot;);</span>
     }
 
 }
