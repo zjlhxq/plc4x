@@ -180,10 +180,11 @@
                     </a>
                     <div class="nav-collapse collapse" id="toc-nav-collapse">
                         <ul id="toc" class="nav">
-                                            <li class="toplevel"><a href="#s7_comm_0x32" title="S7 Comm (0x32)">S7 Comm (0x32)</a></li>
+                                                <li class="toplevel"><a href="#s7_comm_0x32" title="S7 Comm (0x32)">S7 Comm (0x32)</a></li>
 <li class="toplevel"><a href="#general" title="General">General</a></li>
 <li class="toplevel"><a href="#structure_of_a_setup_communication_request" title="Structure of a Setup Communication Request">Structure of a Setup Communication Request</a></li>
 <li class="toplevel"><a href="#structure_of_a_setup_communication_response" title="Structure of a Setup Communication Response">Structure of a Setup Communication Response</a></li>
+<li class="toplevel"><a href="#sizes_of_requests" title="Sizes of requests">Sizes of requests</a></li>
 <li class="toplevel"><a href="#links" title="Links">Links</a></li>
                         </ul>
                     </div>
@@ -253,6 +254,40 @@
       </tr> 
      </tbody> 
     </table> 
+   </div> 
+  </div> 
+  <div class="sect2"> 
+   <h3 id="sizes_of_requests">Sizes of requests</h3> 
+   <div class="paragraph"> 
+    <p>During the connection to a S7 PLC the client and PLC agree on 3 important parameters:</p> 
+   </div> 
+   <div class="ulist"> 
+    <ul> 
+     <li> <p>PDU Size</p> </li> 
+     <li> <p>Max AMQ Caller</p> </li> 
+     <li> <p>Max AMQ Callee</p> </li> 
+    </ul> 
+   </div> 
+   <div class="paragraph"> 
+    <p>The PDU Size is the size of a data packet the PLC is willing to accept. Here note, that in reality there are two PDU sizes involved: On <code>ISO TP/COTP</code> protocol level and a second time on the <code>S7</code> protocol level. Most implementations treat them as somewhat equal, but this doesn’t have to be the case. A PLC could accept a higher PDU size on <code>ISO TP</code> level than on <code>S7</code> level.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>The <code>Max AMQ</code> parameters define how many unacknowledged requests a PLC (Callee) is able to accept from a client (Caller).</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>If the <code>ISO TP</code> PDU size is bigger than the <code>S7</code> one, then theoretically multiple <code>S7</code> PDUs can be contained in one <code>ISO TP</code> packet. But at max <code>Max AMQ</code> packets. Most drivers don’t utilize this option however.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>When issuing a read request there are other things that have to be taken into consideration:</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>The data retrieved by a read request has to fit into a PDU. So if a block of data requested in a read request, that would read a big block of data that would exceed the agreed upon PDU size, the PLC will respond with an <code>Access Violation</code> and not return any data.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>Another example would be if you read different memory blocks, each smaller than the max PDU size, the read PDU could be quite small, but if these blocks are quite large, the read response could exceed the max PDU size. In this case the item responses that exceed the size will simply be responded with an <code>Access violation</code> by the PLC.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>When communicating with a <code>S7 1200</code> for example the <code>ISO TP</code> PDU size is set to 256 bytes, then the maximum size of the <code>S7</code> is , this limits the maximum amount of separate blocks accessible in the read request to 18. The typical <code>Max AMQ</code> of <code>8</code> further complicates things as we can’t simply split up the one message into multiple ones. If the number of messages exceeds this number, we have to queue these PDUs and wait till the PLC confirmed these and can then continue sending further fragments.</p> 
    </div> 
   </div> 
   <div class="sect2"> 
