@@ -19,7 +19,6 @@
 package org.apache.plc4x.java.ads.api.serial;
 
 import io.netty.buffer.ByteBuf;
-import org.apache.plc4x.java.ads.api.generic.AmsPacket;
 import org.apache.plc4x.java.ads.api.serial.types.*;
 import org.apache.plc4x.java.ads.api.util.ByteReadable;
 import org.apache.plc4x.java.ads.protocol.util.DigestUtil;
@@ -71,93 +70,84 @@ public class AmsSerialFrame implements ByteReadable {
     /**
      * The AMS packet to be sent.
      */
-    private AmsPacket amsPacket;
     private final UserData userData;
 
     private final CRC crc;
 
-<span class="nc" id="L79">    private AmsSerialFrame(MagicCookie magicCookie, TransmitterAddress transmitterAddress, ReceiverAddress receiverAddress, FragmentNumber fragmentNumber, UserDataLength userDataLength, UserData userData, CRC crc) {</span>
-<span class="nc" id="L80">        this.magicCookie = magicCookie;</span>
-<span class="nc" id="L81">        this.transmitterAddress = transmitterAddress;</span>
-<span class="nc" id="L82">        this.receiverAddress = receiverAddress;</span>
-<span class="nc" id="L83">        this.fragmentNumber = fragmentNumber;</span>
-<span class="nc" id="L84">        this.userDataLength = userDataLength;</span>
-<span class="nc" id="L85">        this.userData = userData;</span>
-<span class="nc" id="L86">        this.crc = crc;</span>
-<span class="nc" id="L87">    }</span>
+<span class="fc" id="L77">    private AmsSerialFrame(MagicCookie magicCookie, TransmitterAddress transmitterAddress, ReceiverAddress receiverAddress, FragmentNumber fragmentNumber, UserDataLength userDataLength, UserData userData, CRC crc) {</span>
+<span class="fc" id="L78">        this.magicCookie = magicCookie;</span>
+<span class="fc" id="L79">        this.transmitterAddress = transmitterAddress;</span>
+<span class="fc" id="L80">        this.receiverAddress = receiverAddress;</span>
+<span class="fc" id="L81">        this.fragmentNumber = fragmentNumber;</span>
+<span class="fc" id="L82">        this.userDataLength = userDataLength;</span>
+<span class="fc" id="L83">        this.userData = userData;</span>
+<span class="fc" id="L84">        this.crc = crc;</span>
+<span class="fc" id="L85">    }</span>
 
-<span class="fc" id="L89">    private AmsSerialFrame(FragmentNumber fragmentNumber, AmsPacket amsPacket) {</span>
-<span class="fc" id="L90">        this.magicCookie = MagicCookie.of(ID);</span>
-<span class="fc" id="L91">        this.transmitterAddress = TransmitterAddress.RS232_COMM_ADDRESS;</span>
-<span class="fc" id="L92">        this.receiverAddress = ReceiverAddress.RS232_COMM_ADDRESS;</span>
-<span class="fc" id="L93">        this.fragmentNumber = fragmentNumber;</span>
-<span class="fc" id="L94">        long calculatedLength = amsPacket.getCalculatedLength();</span>
-<span class="pc bpc" id="L95" title="1 of 2 branches missed.">        if (calculatedLength &gt; 255) {</span>
-<span class="nc" id="L96">            throw new IllegalArgumentException(&quot;Paket length must not exceed 255&quot;);</span>
+<span class="fc" id="L87">    private AmsSerialFrame(FragmentNumber fragmentNumber, UserData userData) {</span>
+<span class="fc" id="L88">        this.magicCookie = MagicCookie.of(ID);</span>
+<span class="fc" id="L89">        this.transmitterAddress = TransmitterAddress.RS232_COMM_ADDRESS;</span>
+<span class="fc" id="L90">        this.receiverAddress = ReceiverAddress.RS232_COMM_ADDRESS;</span>
+<span class="fc" id="L91">        this.fragmentNumber = fragmentNumber;</span>
+<span class="fc" id="L92">        long calculatedLength = userData.getCalculatedLength();</span>
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">        if (calculatedLength &gt; 255) {</span>
+<span class="nc" id="L94">            throw new IllegalArgumentException(&quot;Paket length must not exceed 255&quot;);</span>
         }
-<span class="fc" id="L98">        this.userDataLength = UserDataLength.of((byte) calculatedLength);</span>
-<span class="fc" id="L99">        this.amsPacket = amsPacket;</span>
-<span class="fc" id="L100">        byte[] amsPacketBytes = amsPacket.getBytes();</span>
-<span class="fc" id="L101">        this.userData = UserData.of(amsPacketBytes);</span>
-<span class="fc" id="L102">        this.crc = CRC.of(DigestUtil.calculateCrc16(() -&gt; buildByteBuff(magicCookie, transmitterAddress, receiverAddress, fragmentNumber, userDataLength, userData)));</span>
-<span class="fc" id="L103">    }</span>
+<span class="fc" id="L96">        this.userDataLength = UserDataLength.of((byte) calculatedLength);</span>
+<span class="fc" id="L97">        byte[] amsPacketBytes = userData.getBytes();</span>
+<span class="fc" id="L98">        this.userData = UserData.of(amsPacketBytes);</span>
+<span class="fc" id="L99">        this.crc = CRC.of(DigestUtil.calculateCrc16(() -&gt; buildByteBuff(magicCookie, transmitterAddress, receiverAddress, fragmentNumber, userDataLength, userData)));</span>
+<span class="fc" id="L100">    }</span>
 
     public static AmsSerialFrame of(MagicCookie magicCookie, TransmitterAddress transmitterAddress, ReceiverAddress receiverAddress, FragmentNumber fragmentNumber, UserDataLength userDataLength, UserData userData, CRC crc) {
-<span class="nc" id="L106">        return new AmsSerialFrame(magicCookie, transmitterAddress, receiverAddress, fragmentNumber, userDataLength, userData, crc);</span>
+<span class="fc" id="L103">        return new AmsSerialFrame(magicCookie, transmitterAddress, receiverAddress, fragmentNumber, userDataLength, userData, crc);</span>
     }
 
-    public static AmsSerialFrame of(FragmentNumber fragmentNumber, AmsPacket amsPacket) {
-<span class="fc" id="L110">        return new AmsSerialFrame(fragmentNumber, amsPacket);</span>
-    }
-
-    public AmsPacket getAmsPacket() {
-<span class="fc" id="L114">        return amsPacket;</span>
+    public static AmsSerialFrame of(FragmentNumber fragmentNumber, UserData userData) {
+<span class="fc" id="L107">        return new AmsSerialFrame(fragmentNumber, userData);</span>
     }
 
     @Override
     public ByteBuf getByteBuf() {
-<span class="fc" id="L119">        return buildByteBuff(magicCookie, transmitterAddress, receiverAddress, fragmentNumber, userDataLength, userData, crc);</span>
+<span class="fc" id="L112">        return buildByteBuff(magicCookie, transmitterAddress, receiverAddress, fragmentNumber, userDataLength, userData, crc);</span>
     }
 
     @Override
     public boolean equals(Object o) {
-<span class="pc bpc" id="L124" title="1 of 2 branches missed.">        if (this == o) return true;</span>
-<span class="pc bpc" id="L125" title="1 of 2 branches missed.">        if (!(o instanceof AmsSerialFrame)) return false;</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">        if (this == o) return true;</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">        if (!(o instanceof AmsSerialFrame)) return false;</span>
 
-<span class="fc" id="L127">        AmsSerialFrame that = (AmsSerialFrame) o;</span>
+<span class="nc" id="L120">        AmsSerialFrame that = (AmsSerialFrame) o;</span>
 
-<span class="pc bpc" id="L129" title="1 of 2 branches missed.">        if (!magicCookie.equals(that.magicCookie)) return false;</span>
-<span class="pc bpc" id="L130" title="1 of 2 branches missed.">        if (!transmitterAddress.equals(that.transmitterAddress)) return false;</span>
-<span class="pc bpc" id="L131" title="1 of 2 branches missed.">        if (!receiverAddress.equals(that.receiverAddress)) return false;</span>
-<span class="pc bpc" id="L132" title="1 of 2 branches missed.">        if (!fragmentNumber.equals(that.fragmentNumber)) return false;</span>
-<span class="pc bpc" id="L133" title="1 of 2 branches missed.">        if (!userDataLength.equals(that.userDataLength)) return false;</span>
-<span class="pc bpc" id="L134" title="1 of 2 branches missed.">        if (!amsPacket.equals(that.amsPacket)) return false;</span>
-<span class="pc bpc" id="L135" title="1 of 2 branches missed.">        if (!userData.equals(that.userData)) return false;</span>
-<span class="fc" id="L136">        return crc.equals(that.crc);</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">        if (!magicCookie.equals(that.magicCookie)) return false;</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">        if (!transmitterAddress.equals(that.transmitterAddress)) return false;</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">        if (!receiverAddress.equals(that.receiverAddress)) return false;</span>
+<span class="nc bnc" id="L125" title="All 2 branches missed.">        if (!fragmentNumber.equals(that.fragmentNumber)) return false;</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">        if (!userDataLength.equals(that.userDataLength)) return false;</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">        if (!userData.equals(that.userData)) return false;</span>
+<span class="nc" id="L128">        return crc.equals(that.crc);</span>
     }
 
     @Override
     public int hashCode() {
-<span class="nc" id="L141">        int result = magicCookie.hashCode();</span>
-<span class="nc" id="L142">        result = 31 * result + transmitterAddress.hashCode();</span>
-<span class="nc" id="L143">        result = 31 * result + receiverAddress.hashCode();</span>
-<span class="nc" id="L144">        result = 31 * result + fragmentNumber.hashCode();</span>
-<span class="nc" id="L145">        result = 31 * result + userDataLength.hashCode();</span>
-<span class="nc" id="L146">        result = 31 * result + amsPacket.hashCode();</span>
-<span class="nc" id="L147">        result = 31 * result + userData.hashCode();</span>
-<span class="nc" id="L148">        result = 31 * result + crc.hashCode();</span>
-<span class="nc" id="L149">        return result;</span>
+<span class="nc" id="L133">        int result = magicCookie.hashCode();</span>
+<span class="nc" id="L134">        result = 31 * result + transmitterAddress.hashCode();</span>
+<span class="nc" id="L135">        result = 31 * result + receiverAddress.hashCode();</span>
+<span class="nc" id="L136">        result = 31 * result + fragmentNumber.hashCode();</span>
+<span class="nc" id="L137">        result = 31 * result + userDataLength.hashCode();</span>
+<span class="nc" id="L138">        result = 31 * result + userData.hashCode();</span>
+<span class="nc" id="L139">        result = 31 * result + crc.hashCode();</span>
+<span class="nc" id="L140">        return result;</span>
     }
 
     @Override
     public String toString() {
-<span class="fc" id="L154">        return &quot;AmsSerialFrame{&quot; +</span>
+<span class="fc" id="L145">        return &quot;AmsSerialFrame{&quot; +</span>
             &quot;magicCookie=&quot; + magicCookie +
             &quot;, transmitterAddress=&quot; + transmitterAddress +
             &quot;, receiverAddress=&quot; + receiverAddress +
             &quot;, fragmentNumber=&quot; + fragmentNumber +
             &quot;, userDataLength=&quot; + userDataLength +
-            &quot;, amsPacket=&quot; + amsPacket +
             &quot;, userData=&quot; + userData +
             &quot;, crc=&quot; + crc +
             '}';

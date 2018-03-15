@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Payload2SerialProtocol.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PLC4J: Protocol: ADS</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.java.ads.protocol</a> &gt; <span class="el_source">Payload2SerialProtocol.java</span></div><h1>Payload2SerialProtocol.java</h1><pre class="source lang-java linenums">/*
+ Licensed to the Apache Software Foundation (ASF) under one
+ or more contributor license agreements.  See the NOTICE file
+ distributed with this work for additional information
+ regarding copyright ownership.  The ASF licenses this file
+ to you under the Apache License, Version 2.0 (the
+ &quot;License&quot;); you may not use this file except in compliance
+ with the License.  You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing,
+ software distributed under the License is distributed on an
+ &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ KIND, either express or implied.  See the License for the
+ specific language governing permissions and limitations
+ under the License.
+ */
+package org.apache.plc4x.java.ads.protocol;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.MessageToMessageCodec;
+import org.apache.plc4x.java.ads.api.serial.AmsSerialAcknowledgeFrame;
+import org.apache.plc4x.java.ads.api.serial.AmsSerialFrame;
+import org.apache.plc4x.java.ads.api.serial.AmsSerialResetFrame;
+import org.apache.plc4x.java.ads.api.serial.types.*;
+import org.apache.plc4x.java.ads.protocol.util.DigestUtil;
+import org.apache.plc4x.java.api.exceptions.PlcProtocolException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
+
+<span class="fc" id="L35">public class Payload2SerialProtocol extends MessageToMessageCodec&lt;ByteBuf, ByteBuf&gt; {</span>
+
+<span class="fc" id="L37">    private static final Logger LOGGER = LoggerFactory.getLogger(Payload2TcpProtocol.class);</span>
+
+    @Override
+    protected void encode(ChannelHandlerContext channelHandlerContext, ByteBuf amsPacket, List&lt;Object&gt; out) throws Exception {
+<span class="fc" id="L41">        out.add(AmsSerialFrame.of(FragmentNumber.of((byte) 0), UserData.of(amsPacket)).getByteBuf());</span>
+        // TODO: we need to remember the fragment and maybe even need to spilt up the package
+        // TODO: if we exceed 255 byte
+<span class="fc" id="L44">    }</span>
+
+    @Override
+    protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf, List&lt;Object&gt; out) throws Exception {
+<span class="fc" id="L48">        MagicCookie magicCookie = MagicCookie.of(byteBuf);</span>
+<span class="fc" id="L49">        TransmitterAddress transmitterAddress = TransmitterAddress.of(byteBuf);</span>
+<span class="fc" id="L50">        ReceiverAddress receiverAddress = ReceiverAddress.of(byteBuf);</span>
+<span class="fc" id="L51">        FragmentNumber fragmentNumber = FragmentNumber.of(byteBuf);</span>
+<span class="fc" id="L52">        UserDataLength userDataLength = UserDataLength.of(byteBuf);</span>
+        UserData userData;
+<span class="fc" id="L54">        byte userDataLengthAsByte = userDataLength.getAsByte();</span>
+<span class="fc bfc" id="L55" title="All 2 branches covered.">        if (userDataLengthAsByte &gt; 0) {</span>
+<span class="fc" id="L56">            byte[] userDataByteArray = new byte[userDataLengthAsByte];</span>
+<span class="fc" id="L57">            byteBuf.readBytes(userDataByteArray);</span>
+<span class="fc" id="L58">            userData = UserData.of(userDataByteArray);</span>
+<span class="fc" id="L59">        } else {</span>
+<span class="fc" id="L60">            userData = UserData.EMPTY;</span>
+        }
+<span class="fc" id="L62">        CRC crc = CRC.of(byteBuf);</span>
+
+<span class="pc bpc" id="L64" title="3 of 4 branches missed.">        switch (magicCookie.getAsInt()) {</span>
+            case AmsSerialFrame.ID:
+                // This is a lazy implementation. we just reuse the tcp implementation
+<span class="fc" id="L67">                AmsSerialFrame amsSerialFrame = AmsSerialFrame.of(magicCookie, transmitterAddress, receiverAddress, fragmentNumber, userDataLength, userData, crc);</span>
+<span class="fc" id="L68">                LOGGER.debug(&quot;Ams Serial Frame received {}&quot;, amsSerialFrame);</span>
+<span class="fc" id="L69">                out.add(userData.getByteBuf());</span>
+<span class="fc" id="L70">                break;</span>
+            case AmsSerialAcknowledgeFrame.ID:
+<span class="nc" id="L72">                AmsSerialAcknowledgeFrame amsSerialAcknowledgeFrame = AmsSerialAcknowledgeFrame.of(magicCookie, transmitterAddress, receiverAddress, fragmentNumber, userDataLength, crc);</span>
+<span class="nc" id="L73">                LOGGER.debug(&quot;Ams Serial ACK Frame received {}&quot;, amsSerialAcknowledgeFrame);</span>
+<span class="nc" id="L74">                break;</span>
+            case AmsSerialResetFrame.ID:
+<span class="nc" id="L76">                AmsSerialResetFrame amsSerialResetFrame = AmsSerialResetFrame.of(magicCookie, transmitterAddress, receiverAddress, fragmentNumber, userDataLength, crc);</span>
+<span class="nc" id="L77">                LOGGER.debug(&quot;Ams Serial Reset Frame received {}&quot;, amsSerialResetFrame);</span>
+                break;
+        }
+<span class="fc" id="L80">        int calculatedCrc16 = DigestUtil.calculateCrc16(magicCookie, transmitterAddress, receiverAddress, fragmentNumber, userDataLength, userData);</span>
+<span class="pc bpc" id="L81" title="1 of 2 branches missed.">        if (!crc.equals(CRC.of(calculatedCrc16))) {</span>
+<span class="nc" id="L82">            throw new PlcProtocolException(&quot;CRC checksum wrong&quot;);</span>
+        }
+
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">        if (byteBuf.readableBytes() &gt; 0) {</span>
+<span class="nc" id="L86">            byteBuf.release();</span>
+<span class="nc" id="L87">            throw new IllegalStateException(&quot;Unread bytes left: &quot; + byteBuf.readableBytes());</span>
+        }
+
+<span class="fc" id="L90">        byteBuf.release();</span>
+<span class="fc" id="L91">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

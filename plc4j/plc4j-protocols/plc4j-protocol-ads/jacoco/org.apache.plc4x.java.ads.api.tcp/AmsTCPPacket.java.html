@@ -19,82 +19,70 @@
 package org.apache.plc4x.java.ads.api.tcp;
 
 import io.netty.buffer.ByteBuf;
-import org.apache.plc4x.java.ads.api.generic.AdsData;
-import org.apache.plc4x.java.ads.api.generic.AmsHeader;
-import org.apache.plc4x.java.ads.api.generic.AmsPacket;
+import org.apache.plc4x.java.ads.api.serial.types.UserData;
 import org.apache.plc4x.java.ads.api.util.ByteReadable;
 
 import static java.util.Objects.requireNonNull;
 
 public class AmsTCPPacket implements ByteReadable {
+    /**
+     * The ams - tcp to be sent.
+     */
     private final AmsTcpHeader amsTcpHeader;
 
-    private final AmsPacket amsPacket;
+    /**
+     * The AMS packet to be sent.
+     */
+    private final UserData userData;
 
-<span class="fc" id="L34">    private AmsTCPPacket(AmsTcpHeader amsTcpHeader, AmsPacket amsPacket) {</span>
-<span class="fc" id="L35">        this.amsTcpHeader = requireNonNull(amsTcpHeader);</span>
-<span class="fc" id="L36">        this.amsPacket = amsPacket;</span>
-<span class="fc" id="L37">    }</span>
+<span class="nc" id="L38">    private AmsTCPPacket(AmsTcpHeader amsTcpHeader, UserData userData) {</span>
+<span class="nc" id="L39">        this.amsTcpHeader = requireNonNull(amsTcpHeader);</span>
+<span class="nc" id="L40">        this.userData = requireNonNull(userData);</span>
+<span class="nc" id="L41">    }</span>
 
-<span class="fc" id="L39">    private AmsTCPPacket(AmsPacket amsPacket) {</span>
-<span class="fc" id="L40">        this.amsPacket = amsPacket;</span>
+<span class="fc" id="L43">    private AmsTCPPacket(UserData userData) {</span>
+<span class="fc" id="L44">        this.userData = requireNonNull(userData);</span>
         // It is important that we wrap the ads data call as this will initialized in the constructor
         // so this value will be null if we call adsData now.
-<span class="fc" id="L43">        this.amsTcpHeader = AmsTcpHeader.of(requireNonNull(amsPacket.getAmsHeader()), () -&gt; getAdsData().getCalculatedLength());</span>
-<span class="fc" id="L44">    }</span>
+<span class="fc" id="L47">        this.amsTcpHeader = AmsTcpHeader.of(requireNonNull(userData));</span>
+<span class="fc" id="L48">    }</span>
 
     public AmsTcpHeader getAmsTcpHeader() {
-<span class="fc" id="L47">        return amsTcpHeader;</span>
-    }
-
-    public AmsPacket getAmsPacket() {
-<span class="fc" id="L51">        return amsPacket;</span>
-    }
-
-    public AmsHeader getAmsHeader() {
-<span class="fc" id="L55">        return amsPacket.getAmsHeader();</span>
-    }
-
-    public AdsData getAdsData() {
-<span class="fc" id="L59">        return amsPacket.getAdsData();</span>
+<span class="fc" id="L51">        return amsTcpHeader;</span>
     }
 
     @Override
     public ByteBuf getByteBuf() {
-<span class="fc" id="L64">        return buildByteBuff(amsTcpHeader, amsPacket);</span>
+<span class="fc" id="L56">        return buildByteBuff(amsTcpHeader, userData);</span>
     }
 
-    public static AmsTCPPacket of(AmsTcpHeader amsTcpHeader, AmsPacket amsPacket) {
-<span class="fc" id="L68">        return new AmsTCPPacket(amsTcpHeader, amsPacket);</span>
-    }
-
-    public static AmsTCPPacket of(AmsPacket amsPacket) {
-<span class="fc" id="L72">        return new AmsTCPPacket(amsPacket);</span>
+    public static AmsTCPPacket of(UserData userData) {
+<span class="fc" id="L60">        return new AmsTCPPacket(userData);</span>
     }
 
     @Override
     public boolean equals(Object o) {
-<span class="pc bpc" id="L77" title="1 of 2 branches missed.">        if (this == o) return true;</span>
-<span class="pc bpc" id="L78" title="1 of 2 branches missed.">        if (!(o instanceof AmsTCPPacket)) return false;</span>
+<span class="nc bnc" id="L65" title="All 2 branches missed.">        if (this == o) return true;</span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">        if (!(o instanceof AmsTCPPacket)) return false;</span>
 
-<span class="fc" id="L80">        AmsTCPPacket that = (AmsTCPPacket) o;</span>
+<span class="nc" id="L68">        AmsTCPPacket that = (AmsTCPPacket) o;</span>
 
-<span class="pc bpc" id="L82" title="1 of 2 branches missed.">        if (!amsTcpHeader.equals(that.amsTcpHeader)) return false;</span>
-<span class="fc" id="L83">        return amsPacket.equals(that.amsPacket);</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">        if (!amsTcpHeader.equals(that.amsTcpHeader)) return false;</span>
+<span class="nc" id="L71">        return userData.equals(that.userData);</span>
     }
 
     @Override
     public int hashCode() {
-<span class="nc" id="L88">        int result = amsTcpHeader.hashCode();</span>
-<span class="nc" id="L89">        result = 31 * result + amsPacket.hashCode();</span>
-<span class="nc" id="L90">        return result;</span>
+<span class="nc" id="L76">        int result = amsTcpHeader.hashCode();</span>
+<span class="nc" id="L77">        result = 31 * result + userData.hashCode();</span>
+<span class="nc" id="L78">        return result;</span>
     }
 
     @Override
     public String toString() {
-<span class="fc" id="L95">        return &quot;AmsTCPPacket{&quot; +</span>
+<span class="fc" id="L83">        return &quot;AmsTCPPacket{&quot; +</span>
             &quot;amsTcpHeader=&quot; + amsTcpHeader +
-            &quot;, amsPacket=&quot; + amsPacket +
+            &quot;, amsPacket=&quot; + userData +
             '}';
     }
 }

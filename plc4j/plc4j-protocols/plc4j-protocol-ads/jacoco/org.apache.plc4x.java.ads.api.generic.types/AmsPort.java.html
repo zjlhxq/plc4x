@@ -29,44 +29,45 @@ import java.util.regex.Pattern;
  *
  * @see &lt;a href=&quot;https://infosys.beckhoff.com/content/1033/tcadscommon/html/tcadscommon_identadsdevice.htm?id=3991659524769593444&quot;&gt;ADS device identification&lt;/a&gt;
  */
+@SuppressWarnings(&quot;unused&quot;) // Due to predefined ports
 public class AmsPort extends ByteValue {
 
-<span class="fc" id="L34">    public static final Pattern AMS_PORT_PATTERN = Pattern.compile(&quot;\\d+&quot;);</span>
+<span class="fc" id="L35">    public static final Pattern AMS_PORT_PATTERN = Pattern.compile(&quot;\\d+&quot;);</span>
 
     public static final int NUM_BYTES = 2;
 
     private AmsPort(byte... value) {
-<span class="fc" id="L39">        super(value);</span>
-<span class="fc" id="L40">        assertLength(NUM_BYTES);</span>
-<span class="fc" id="L41">    }</span>
+<span class="fc" id="L40">        super(value);</span>
+<span class="fc" id="L41">        assertLength(NUM_BYTES);</span>
+<span class="fc" id="L42">    }</span>
 
     public static AmsPort of(byte... values) {
-<span class="fc" id="L44">        return new AmsPort(values);</span>
+<span class="fc" id="L45">        return new AmsPort(values);</span>
     }
 
     public static AmsPort of(int port) {
-<span class="fc" id="L48">        checkUnsignedBounds(port, NUM_BYTES);</span>
-<span class="fc" id="L49">        return new AmsPort(ByteBuffer.allocate(NUM_BYTES)</span>
+<span class="fc" id="L49">        checkUnsignedBounds(port, NUM_BYTES);</span>
+<span class="fc" id="L50">        return new AmsPort(ByteBuffer.allocate(NUM_BYTES)</span>
             // LE
-<span class="fc" id="L51">            .put((byte) (port &amp; 0xff))</span>
-<span class="fc" id="L52">            .put((byte) (port &gt;&gt; 8 &amp; 0xff))</span>
-<span class="fc" id="L53">            .array());</span>
+<span class="fc" id="L52">            .put((byte) (port &amp; 0xff))</span>
+<span class="fc" id="L53">            .put((byte) (port &gt;&gt; 8 &amp; 0xff))</span>
+<span class="fc" id="L54">            .array());</span>
     }
 
     public static AmsPort of(String port) {
-<span class="fc bfc" id="L57" title="All 2 branches covered.">        if (!AMS_PORT_PATTERN.matcher(port).matches()) {</span>
-<span class="fc" id="L58">            throw new IllegalArgumentException(port + &quot; must match &quot; + AMS_PORT_PATTERN);</span>
+<span class="fc bfc" id="L58" title="All 2 branches covered.">        if (!AMS_PORT_PATTERN.matcher(port).matches()) {</span>
+<span class="fc" id="L59">            throw new IllegalArgumentException(port + &quot; must match &quot; + AMS_PORT_PATTERN);</span>
         }
-<span class="fc" id="L60">        return of(Integer.parseInt(port));</span>
+<span class="fc" id="L61">        return of(Integer.parseInt(port));</span>
     }
 
     public static AmsPort of(ByteBuf byteBuf) {
-<span class="fc" id="L64">        return of(byteBuf.readUnsignedShortLE());</span>
+<span class="fc" id="L65">        return of(byteBuf.readUnsignedShortLE());</span>
     }
 
     @Override
     public String toString() {
-<span class="fc" id="L69">        return Integer.toString(getBytes()[1] &lt;&lt; 8 | getBytes()[0] &amp; 0xff);</span>
+<span class="fc" id="L70">        return Integer.toString(getBytes()[1] &lt;&lt; 8 | getBytes()[0] &amp; 0xff);</span>
     }
 
     public static class ReservedPorts {
@@ -78,58 +79,58 @@ public class AmsPort extends ByteValue {
         /**
          * Logger (only NT-Log)
          */
-<span class="nc" id="L81">        public static final AmsPort logger = AmsPort.of(100);</span>
+<span class="nc" id="L82">        public static final AmsPort logger = AmsPort.of(100);</span>
         /**
          * Eventlogger
          */
-<span class="nc" id="L85">        public static final AmsPort eventLogger = AmsPort.of(110);</span>
+<span class="nc" id="L86">        public static final AmsPort eventLogger = AmsPort.of(110);</span>
         /**
          * IO
          */
-<span class="nc" id="L89">        public static final AmsPort io = AmsPort.of(300);</span>
+<span class="nc" id="L90">        public static final AmsPort io = AmsPort.of(300);</span>
         /**
          * additional Task 1
          */
-<span class="nc" id="L93">        public static final AmsPort additionalTask1 = AmsPort.of(301);</span>
+<span class="nc" id="L94">        public static final AmsPort additionalTask1 = AmsPort.of(301);</span>
         /**
          * additional Task 2
          */
-<span class="nc" id="L97">        public static final AmsPort additionalTask2 = AmsPort.of(302);</span>
+<span class="nc" id="L98">        public static final AmsPort additionalTask2 = AmsPort.of(302);</span>
 
         /**
          * NC
          */
-<span class="nc" id="L102">        public static final AmsPort nc = AmsPort.of(500);</span>
+<span class="nc" id="L103">        public static final AmsPort nc = AmsPort.of(500);</span>
         /**
          * PLC RuntimeSystem 1
          */
-<span class="nc" id="L106">        public static final AmsPort plcRuntimeSystem1 = AmsPort.of(801);</span>
+<span class="nc" id="L107">        public static final AmsPort plcRuntimeSystem1 = AmsPort.of(801);</span>
         /**
          * PLC RuntimeSystem 2
          */
-<span class="nc" id="L110">        public static final AmsPort plcRuntimeSystem2 = AmsPort.of(811);</span>
+<span class="nc" id="L111">        public static final AmsPort plcRuntimeSystem2 = AmsPort.of(811);</span>
         /**
          * PLC RuntimeSystem 3
          */
-<span class="nc" id="L114">        public static final AmsPort plcRuntimeSystem3 = AmsPort.of(821);</span>
+<span class="nc" id="L115">        public static final AmsPort plcRuntimeSystem3 = AmsPort.of(821);</span>
         /**
          * PLC RuntimeSystem 4
          */
-<span class="nc" id="L118">        public static final AmsPort plcRuntimeSystem4 = AmsPort.of(831);</span>
+<span class="nc" id="L119">        public static final AmsPort plcRuntimeSystem4 = AmsPort.of(831);</span>
 
         /**
          * Camshaft controller
          */
-<span class="nc" id="L123">        public static final AmsPort camShaftController = AmsPort.of(900);</span>
+<span class="nc" id="L124">        public static final AmsPort camShaftController = AmsPort.of(900);</span>
 
         /**
          * System Service
          */
-<span class="nc" id="L128">        public static final AmsPort systemService = AmsPort.of(900);</span>
+<span class="nc" id="L129">        public static final AmsPort systemService = AmsPort.of(900);</span>
         /**
          * Scope
          */
-<span class="nc" id="L132">        public static final AmsPort scope = AmsPort.of(900);</span>
+<span class="nc" id="L133">        public static final AmsPort scope = AmsPort.of(900);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
