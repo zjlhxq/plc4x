@@ -41,29 +41,29 @@ import java.util.List;
 <span class="fc" id="L41">        out.add(AmsSerialFrame.of(FragmentNumber.of((byte) 0), UserData.of(amsPacket)).getByteBuf());</span>
         // TODO: we need to remember the fragment and maybe even need to spilt up the package
         // TODO: if we exceed 255 byte
-<span class="fc" id="L44">    }</span>
+<span class="fc" id="L44">        amsPacket.release();</span>
+<span class="fc" id="L45">    }</span>
 
     @Override
     protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf, List&lt;Object&gt; out) throws Exception {
-<span class="fc" id="L48">        MagicCookie magicCookie = MagicCookie.of(byteBuf);</span>
-<span class="fc" id="L49">        TransmitterAddress transmitterAddress = TransmitterAddress.of(byteBuf);</span>
-<span class="fc" id="L50">        ReceiverAddress receiverAddress = ReceiverAddress.of(byteBuf);</span>
-<span class="fc" id="L51">        FragmentNumber fragmentNumber = FragmentNumber.of(byteBuf);</span>
-<span class="fc" id="L52">        UserDataLength userDataLength = UserDataLength.of(byteBuf);</span>
+<span class="fc" id="L49">        MagicCookie magicCookie = MagicCookie.of(byteBuf);</span>
+<span class="fc" id="L50">        TransmitterAddress transmitterAddress = TransmitterAddress.of(byteBuf);</span>
+<span class="fc" id="L51">        ReceiverAddress receiverAddress = ReceiverAddress.of(byteBuf);</span>
+<span class="fc" id="L52">        FragmentNumber fragmentNumber = FragmentNumber.of(byteBuf);</span>
+<span class="fc" id="L53">        UserDataLength userDataLength = UserDataLength.of(byteBuf);</span>
         UserData userData;
-<span class="fc" id="L54">        byte userDataLengthAsByte = userDataLength.getAsByte();</span>
-<span class="fc bfc" id="L55" title="All 2 branches covered.">        if (userDataLengthAsByte &gt; 0) {</span>
-<span class="fc" id="L56">            byte[] userDataByteArray = new byte[userDataLengthAsByte];</span>
-<span class="fc" id="L57">            byteBuf.readBytes(userDataByteArray);</span>
-<span class="fc" id="L58">            userData = UserData.of(userDataByteArray);</span>
-<span class="fc" id="L59">        } else {</span>
-<span class="fc" id="L60">            userData = UserData.EMPTY;</span>
+<span class="fc" id="L55">        byte userDataLengthAsByte = userDataLength.getAsByte();</span>
+<span class="pc bpc" id="L56" title="1 of 2 branches missed.">        if (userDataLengthAsByte &gt; 0) {</span>
+<span class="fc" id="L57">            byte[] userDataByteArray = new byte[userDataLengthAsByte];</span>
+<span class="fc" id="L58">            byteBuf.readBytes(userDataByteArray);</span>
+<span class="fc" id="L59">            userData = UserData.of(userDataByteArray);</span>
+<span class="fc" id="L60">        } else {</span>
+<span class="nc" id="L61">            userData = UserData.EMPTY;</span>
         }
-<span class="fc" id="L62">        CRC crc = CRC.of(byteBuf);</span>
+<span class="fc" id="L63">        CRC crc = CRC.of(byteBuf);</span>
 
-<span class="pc bpc" id="L64" title="3 of 4 branches missed.">        switch (magicCookie.getAsInt()) {</span>
+<span class="pc bpc" id="L65" title="3 of 4 branches missed.">        switch (magicCookie.getAsInt()) {</span>
             case AmsSerialFrame.ID:
-                // This is a lazy implementation. we just reuse the tcp implementation
 <span class="fc" id="L67">                AmsSerialFrame amsSerialFrame = AmsSerialFrame.of(magicCookie, transmitterAddress, receiverAddress, fragmentNumber, userDataLength, userData, crc);</span>
 <span class="fc" id="L68">                LOGGER.debug(&quot;Ams Serial Frame received {}&quot;, amsSerialFrame);</span>
 <span class="fc" id="L69">                out.add(userData.getByteBuf());</span>

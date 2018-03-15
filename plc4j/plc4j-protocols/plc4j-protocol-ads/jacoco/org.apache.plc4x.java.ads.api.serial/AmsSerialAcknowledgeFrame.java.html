@@ -21,10 +21,7 @@ package org.apache.plc4x.java.ads.api.serial;
 import io.netty.buffer.ByteBuf;
 import org.apache.plc4x.java.ads.api.serial.types.*;
 import org.apache.plc4x.java.ads.api.util.ByteReadable;
-import org.apache.plc4x.java.api.exceptions.PlcRuntimeException;
-
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import org.apache.plc4x.java.ads.protocol.util.DigestUtil;
 
 /**
  * If an AMS serial frame has been received and the frame is OK (magic cookie OK, CRC OK, correct fragment number etc.),
@@ -67,80 +64,66 @@ public class AmsSerialAcknowledgeFrame implements ByteReadable {
 
     private final CRC crc;
 
-<span class="nc" id="L70">    private AmsSerialAcknowledgeFrame(MagicCookie magicCookie, TransmitterAddress transmitterAddress, ReceiverAddress receiverAddress, FragmentNumber fragmentNumber, UserDataLength userDataLength, CRC crc) {</span>
-<span class="nc" id="L71">        this.magicCookie = magicCookie;</span>
-<span class="nc" id="L72">        this.transmitterAddress = transmitterAddress;</span>
-<span class="nc" id="L73">        this.receiverAddress = receiverAddress;</span>
-<span class="nc" id="L74">        this.fragmentNumber = fragmentNumber;</span>
-<span class="nc" id="L75">        this.userDataLength = userDataLength;</span>
-<span class="nc" id="L76">        this.crc = crc;</span>
-<span class="nc" id="L77">    }</span>
+<span class="nc" id="L67">    private AmsSerialAcknowledgeFrame(MagicCookie magicCookie, TransmitterAddress transmitterAddress, ReceiverAddress receiverAddress, FragmentNumber fragmentNumber, UserDataLength userDataLength, CRC crc) {</span>
+<span class="nc" id="L68">        this.magicCookie = magicCookie;</span>
+<span class="nc" id="L69">        this.transmitterAddress = transmitterAddress;</span>
+<span class="nc" id="L70">        this.receiverAddress = receiverAddress;</span>
+<span class="nc" id="L71">        this.fragmentNumber = fragmentNumber;</span>
+<span class="nc" id="L72">        this.userDataLength = userDataLength;</span>
+<span class="nc" id="L73">        this.crc = crc;</span>
+<span class="nc" id="L74">    }</span>
 
-<span class="nc" id="L79">    private AmsSerialAcknowledgeFrame(TransmitterAddress transmitterAddress, ReceiverAddress receiverAddress, FragmentNumber fragmentNumber) {</span>
-<span class="nc" id="L80">        this.magicCookie = MagicCookie.of(ID);</span>
-<span class="nc" id="L81">        this.transmitterAddress = transmitterAddress;</span>
-<span class="nc" id="L82">        this.receiverAddress = receiverAddress;</span>
-<span class="nc" id="L83">        this.fragmentNumber = fragmentNumber;</span>
-<span class="nc" id="L84">        this.userDataLength = UserDataLength.of((byte) 0);</span>
-        MessageDigest messageDigest;
-        try {
-<span class="nc" id="L87">            messageDigest = MessageDigest.getInstance(&quot;CRC-16&quot;);</span>
-<span class="nc" id="L88">        } catch (NoSuchAlgorithmException e) {</span>
-<span class="nc" id="L89">            throw new PlcRuntimeException(e);</span>
-<span class="nc" id="L90">        }</span>
-<span class="nc" id="L91">        messageDigest.update(magicCookie.getBytes());</span>
-<span class="nc" id="L92">        messageDigest.update(transmitterAddress.getBytes());</span>
-<span class="nc" id="L93">        messageDigest.update(receiverAddress.getBytes());</span>
-<span class="nc" id="L94">        messageDigest.update(fragmentNumber.getBytes());</span>
-<span class="nc" id="L95">        byte[] digest = messageDigest.digest(userDataLength.getBytes());</span>
-<span class="nc bnc" id="L96" title="All 2 branches missed.">        if (digest.length &gt; 2) {</span>
-<span class="nc" id="L97">            throw new PlcRuntimeException(&quot;Digest length too great &quot; + digest.length);</span>
-        }
-<span class="nc" id="L99">        this.crc = CRC.of(digest[0], digest[1]);</span>
-<span class="nc" id="L100">    }</span>
+<span class="nc" id="L76">    private AmsSerialAcknowledgeFrame(TransmitterAddress transmitterAddress, ReceiverAddress receiverAddress, FragmentNumber fragmentNumber) {</span>
+<span class="nc" id="L77">        this.magicCookie = MagicCookie.of(ID);</span>
+<span class="nc" id="L78">        this.transmitterAddress = transmitterAddress;</span>
+<span class="nc" id="L79">        this.receiverAddress = receiverAddress;</span>
+<span class="nc" id="L80">        this.fragmentNumber = fragmentNumber;</span>
+<span class="nc" id="L81">        this.userDataLength = UserDataLength.of((byte) 0);</span>
+<span class="nc" id="L82">        this.crc = CRC.of(DigestUtil.calculateCrc16(() -&gt; buildByteBuff(magicCookie, transmitterAddress, receiverAddress, fragmentNumber, userDataLength)));</span>
+<span class="nc" id="L83">    }</span>
 
     public static AmsSerialAcknowledgeFrame of(MagicCookie magicCookie, TransmitterAddress transmitterAddress, ReceiverAddress receiverAddress, FragmentNumber fragmentNumber, UserDataLength userDataLength, CRC crc) {
-<span class="nc" id="L103">        return new AmsSerialAcknowledgeFrame(magicCookie, transmitterAddress, receiverAddress, fragmentNumber, userDataLength, crc);</span>
+<span class="nc" id="L86">        return new AmsSerialAcknowledgeFrame(magicCookie, transmitterAddress, receiverAddress, fragmentNumber, userDataLength, crc);</span>
     }
 
     public static AmsSerialAcknowledgeFrame of(TransmitterAddress transmitterAddress, ReceiverAddress receiverAddress, FragmentNumber fragmentNumber) {
-<span class="nc" id="L107">        return new AmsSerialAcknowledgeFrame(transmitterAddress, receiverAddress, fragmentNumber);</span>
+<span class="nc" id="L90">        return new AmsSerialAcknowledgeFrame(transmitterAddress, receiverAddress, fragmentNumber);</span>
     }
 
     @Override
     public ByteBuf getByteBuf() {
-<span class="nc" id="L112">        return buildByteBuff(magicCookie, transmitterAddress, receiverAddress, fragmentNumber, userDataLength, crc);</span>
+<span class="nc" id="L95">        return buildByteBuff(magicCookie, transmitterAddress, receiverAddress, fragmentNumber, userDataLength, crc);</span>
     }
 
     @Override
     public boolean equals(Object o) {
-<span class="nc bnc" id="L117" title="All 2 branches missed.">        if (this == o) return true;</span>
-<span class="nc bnc" id="L118" title="All 2 branches missed.">        if (!(o instanceof AmsSerialAcknowledgeFrame)) return false;</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">        if (this == o) return true;</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">        if (!(o instanceof AmsSerialAcknowledgeFrame)) return false;</span>
 
-<span class="nc" id="L120">        AmsSerialAcknowledgeFrame that = (AmsSerialAcknowledgeFrame) o;</span>
+<span class="nc" id="L103">        AmsSerialAcknowledgeFrame that = (AmsSerialAcknowledgeFrame) o;</span>
 
-<span class="nc bnc" id="L122" title="All 2 branches missed.">        if (!magicCookie.equals(that.magicCookie)) return false;</span>
-<span class="nc bnc" id="L123" title="All 2 branches missed.">        if (!transmitterAddress.equals(that.transmitterAddress)) return false;</span>
-<span class="nc bnc" id="L124" title="All 2 branches missed.">        if (!receiverAddress.equals(that.receiverAddress)) return false;</span>
-<span class="nc bnc" id="L125" title="All 2 branches missed.">        if (!fragmentNumber.equals(that.fragmentNumber)) return false;</span>
-<span class="nc bnc" id="L126" title="All 2 branches missed.">        if (!userDataLength.equals(that.userDataLength)) return false;</span>
-<span class="nc" id="L127">        return crc.equals(that.crc);</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">        if (!magicCookie.equals(that.magicCookie)) return false;</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">        if (!transmitterAddress.equals(that.transmitterAddress)) return false;</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">        if (!receiverAddress.equals(that.receiverAddress)) return false;</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">        if (!fragmentNumber.equals(that.fragmentNumber)) return false;</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">        if (!userDataLength.equals(that.userDataLength)) return false;</span>
+<span class="nc" id="L110">        return crc.equals(that.crc);</span>
     }
 
     @Override
     public int hashCode() {
-<span class="nc" id="L132">        int result = magicCookie.hashCode();</span>
-<span class="nc" id="L133">        result = 31 * result + transmitterAddress.hashCode();</span>
-<span class="nc" id="L134">        result = 31 * result + receiverAddress.hashCode();</span>
-<span class="nc" id="L135">        result = 31 * result + fragmentNumber.hashCode();</span>
-<span class="nc" id="L136">        result = 31 * result + userDataLength.hashCode();</span>
-<span class="nc" id="L137">        result = 31 * result + crc.hashCode();</span>
-<span class="nc" id="L138">        return result;</span>
+<span class="nc" id="L115">        int result = magicCookie.hashCode();</span>
+<span class="nc" id="L116">        result = 31 * result + transmitterAddress.hashCode();</span>
+<span class="nc" id="L117">        result = 31 * result + receiverAddress.hashCode();</span>
+<span class="nc" id="L118">        result = 31 * result + fragmentNumber.hashCode();</span>
+<span class="nc" id="L119">        result = 31 * result + userDataLength.hashCode();</span>
+<span class="nc" id="L120">        result = 31 * result + crc.hashCode();</span>
+<span class="nc" id="L121">        return result;</span>
     }
 
     @Override
     public String toString() {
-<span class="nc" id="L143">        return &quot;AmsSerialAcknowledgeFrame{&quot; +</span>
+<span class="nc" id="L126">        return &quot;AmsSerialAcknowledgeFrame{&quot; +</span>
             &quot;magicCookie=&quot; + magicCookie +
             &quot;, transmitterAddress=&quot; + transmitterAddress +
             &quot;, receiverAddress=&quot; + receiverAddress +
