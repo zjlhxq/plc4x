@@ -116,7 +116,12 @@ public class Ads2SerialProtocol extends MessageToMessageCodec&lt;ByteBuf, AmsPac
 <span class="nc" id="L116">            throw new PlcProtocolException(&quot;CRC checksum wrong&quot;);</span>
         }
 
-<span class="fc" id="L119">        byteBuf.release();</span>
-<span class="fc" id="L120">    }</span>
+<span class="pc bpc" id="L119" title="1 of 2 branches missed.">        if (byteBuf.readableBytes() &gt; 0) {</span>
+<span class="nc" id="L120">            byteBuf.release();</span>
+<span class="nc" id="L121">            throw new IllegalStateException(&quot;Unread bytes left: &quot; + byteBuf.readableBytes());</span>
+        }
+
+<span class="fc" id="L124">        byteBuf.release();</span>
+<span class="fc" id="L125">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

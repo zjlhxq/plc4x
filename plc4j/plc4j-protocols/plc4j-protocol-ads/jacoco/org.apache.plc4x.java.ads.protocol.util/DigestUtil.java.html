@@ -18,39 +18,31 @@
  */
 package org.apache.plc4x.java.ads.protocol.util;
 
-import io.netty.buffer.ByteBuf;
+import com.github.snksoft.crc.CRC;
 import org.apache.plc4x.java.ads.api.util.ByteReadable;
 
-/**
- * TODO: temporary due to unclear licence
- * From https://stackoverflow.com/a/18333436/850036
- * // TODO: replace this with a better implementation. Maybe:
- * http://www.source-code.biz/snippets/java/crc16/
- * https://en.wikipedia.org/wiki/Cyclic_redundancy_check#Standards_and_common_use
- * or even better a netty supplied crc-16
- * https://github.com/openhab/jamod/blob/64cdbd16fbb7febd39470f873a00be986b052e39/src/main/java/net/wimpi/modbus/util/ModbusUtil.java
- */
 public class DigestUtil {
+
+<span class="fc" id="L26">    private static CRC crc16 = new CRC(CRC.Parameters.CRC16);</span>
 
     private DigestUtil() {
         // Utility class
     }
 
     public static int calculateCrc16(ByteReadable... byteReadables) {
-<span class="fc bfc" id="L40" title="All 2 branches covered.">        if (byteReadables.length == 1) {</span>
-<span class="fc" id="L41">            return calculateCrc16(byteReadables[0].getBytes());</span>
+<span class="fc bfc" id="L33" title="All 2 branches covered.">        if (byteReadables.length == 1) {</span>
+<span class="fc" id="L34">            return calculateCrc16(byteReadables[0].getBytes());</span>
         }
-<span class="fc" id="L43">        return calculateCrc16(new ByteReadable() {</span>
-            @Override
-            public ByteBuf getByteBuf() {
-<span class="fc" id="L46">                return buildByteBuff(byteReadables);</span>
-            }
-<span class="fc" id="L48">        }.getBytes());</span>
+<span class="fc" id="L36">        long currentCrcValue = crc16.init();</span>
+<span class="fc bfc" id="L37" title="All 2 branches covered.">        for (ByteReadable byteReadable : byteReadables) {</span>
+<span class="fc" id="L38">            currentCrcValue = crc16.update(currentCrcValue, byteReadable.getBytes());</span>
+        }
+<span class="fc" id="L40">        return crc16.finalCRC16(currentCrcValue) &amp; 0x0000FFFF;</span>
     }
 
     public static int calculateCrc16(byte[] bytes) {
-        // TODO: implement me
-<span class="fc" id="L53">        return 0;</span>
+<span class="fc" id="L44">        return (int) crc16.calculateCRC(bytes) &amp; 0x0000FFFF;</span>
     }
+
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
