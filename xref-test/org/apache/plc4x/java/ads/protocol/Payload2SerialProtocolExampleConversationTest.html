@@ -48,7 +48,7 @@
 <a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> java.util.ArrayList;
 <a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">import</strong> java.util.Arrays;
 <a class="jxr_linenumber" name="L42" href="#L42">42</a>  
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.hamcrest.Matchers.equalTo;
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.apache.plc4x.java.ads.util.Assert.byteArrayEqualsTo;
 <a class="jxr_linenumber" name="L44" href="#L44">44</a>  
 <a class="jxr_linenumber" name="L45" href="#L45">45</a>  <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L46" href="#L46">46</a>  <em class="jxr_javadoccomment"> * @see &lt;a href="https://infosys.beckhoff.com/content/1033/tcadsamsserialspec/html/tcamssericalspec,0xsample.htm?id=60692407917020132"&gt;example&lt;/a&gt;</em>
@@ -106,7 +106,7 @@
 <a class="jxr_linenumber" name="L98" href="#L98">98</a>          AmsSerialFrame amsSerialFrame = AmsSerialFrame.of(FragmentNumber.of((byte) 0x06), UserData.of(amsPacket.getBytes()));
 <a class="jxr_linenumber" name="L99" href="#L99">99</a>          System.out.println(amsSerialFrame.dump());
 <a class="jxr_linenumber" name="L100" href="#L100">100</a>         System.err.println(ByteValue.of(exampleRequest).dump());
-<a class="jxr_linenumber" name="L101" href="#L101">101</a>         errorCollector.checkThat(exampleRequest, equalTo(amsSerialFrame.getBytes()));
+<a class="jxr_linenumber" name="L101" href="#L101">101</a>         errorCollector.checkThat(amsSerialFrame.getBytes(), byteArrayEqualsTo(exampleRequest));
 <a class="jxr_linenumber" name="L102" href="#L102">102</a>         SUT.encode(<strong class="jxr_keyword">null</strong>, amsPacket.getByteBuf(), <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;());
 <a class="jxr_linenumber" name="L103" href="#L103">103</a> 
 <a class="jxr_linenumber" name="L104" href="#L104">104</a>         <em class="jxr_comment">// PLC --&gt; Terminal : Acknowledge:</em>
@@ -126,7 +126,7 @@
 <a class="jxr_linenumber" name="L118" href="#L118">118</a>         AmsSerialAcknowledgeFrame amsSerialAcknowledgeFrame = AmsSerialAcknowledgeFrame.of(amsSerialFrame.getTransmitterAddress(), amsSerialFrame.getReceiverAddress(), amsSerialFrame.getFragmentNumber());
 <a class="jxr_linenumber" name="L119" href="#L119">119</a>         System.out.println(amsSerialAcknowledgeFrame.dump());
 <a class="jxr_linenumber" name="L120" href="#L120">120</a>         System.err.println(ByteValue.of(exampleAckResponse).dump());
-<a class="jxr_linenumber" name="L121" href="#L121">121</a>         errorCollector.checkThat(exampleAckResponse, equalTo(amsSerialAcknowledgeFrame.getBytes()));
+<a class="jxr_linenumber" name="L121" href="#L121">121</a>         errorCollector.checkThat(amsSerialAcknowledgeFrame.getBytes(), byteArrayEqualsTo(exampleAckResponse));
 <a class="jxr_linenumber" name="L122" href="#L122">122</a>         SUT.decode(<strong class="jxr_keyword">null</strong>, amsSerialAcknowledgeFrame.getByteBuf(), <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;());
 <a class="jxr_linenumber" name="L123" href="#L123">123</a> 
 <a class="jxr_linenumber" name="L124" href="#L124">124</a>         <em class="jxr_comment">// PLC sends data:</em>
@@ -160,13 +160,13 @@
 <a class="jxr_linenumber" name="L152" href="#L152">152</a>             AmsNetId.of(Arrays.copyOfRange(exampleResponse, 14, 20)),
 <a class="jxr_linenumber" name="L153" href="#L153">153</a>             AmsPort.of(Arrays.copyOfRange(exampleResponse, 20, 22)),
 <a class="jxr_linenumber" name="L154" href="#L154">154</a>             Invoke.of(0x07),
-<a class="jxr_linenumber" name="L155" href="#L155">155</a>             Result.of(0x02),
+<a class="jxr_linenumber" name="L155" href="#L155">155</a>             Result.of(0x00),
 <a class="jxr_linenumber" name="L156" href="#L156">156</a>             Data.of((byte) 0xAF, (byte) 0x27)
 <a class="jxr_linenumber" name="L157" href="#L157">157</a>         );
 <a class="jxr_linenumber" name="L158" href="#L158">158</a>         AmsSerialFrame amsResponseSerialFrame = AmsSerialFrame.of(FragmentNumber.of((byte) 0xEC), UserData.of(amsResponsePacket.getBytes()));
 <a class="jxr_linenumber" name="L159" href="#L159">159</a>         System.out.println(amsResponseSerialFrame.dump());
 <a class="jxr_linenumber" name="L160" href="#L160">160</a>         System.err.println(ByteValue.of(exampleResponse).dump());
-<a class="jxr_linenumber" name="L161" href="#L161">161</a>         errorCollector.checkThat(exampleResponse, equalTo(amsResponseSerialFrame.getBytes()));
+<a class="jxr_linenumber" name="L161" href="#L161">161</a>         errorCollector.checkThat(amsResponseSerialFrame.getBytes(), byteArrayEqualsTo(exampleResponse));
 <a class="jxr_linenumber" name="L162" href="#L162">162</a>     }
 <a class="jxr_linenumber" name="L163" href="#L163">163</a> }
 </pre>
