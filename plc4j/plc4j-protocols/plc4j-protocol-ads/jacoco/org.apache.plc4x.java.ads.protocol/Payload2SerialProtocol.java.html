@@ -56,25 +56,25 @@ import static org.apache.commons.lang3.StringUtils.leftPad;
 <span class="fc" id="L56">        UserDataLength userDataLength = UserDataLength.of(byteBuf);</span>
         UserData userData;
 <span class="fc" id="L58">        byte userDataLengthAsByte = userDataLength.getAsByte();</span>
-<span class="pc bpc" id="L59" title="1 of 2 branches missed.">        if (userDataLengthAsByte &gt; 0) {</span>
+<span class="fc bfc" id="L59" title="All 2 branches covered.">        if (userDataLengthAsByte &gt; 0) {</span>
 <span class="fc" id="L60">            byte[] userDataByteArray = new byte[userDataLengthAsByte];</span>
 <span class="fc" id="L61">            byteBuf.readBytes(userDataByteArray);</span>
 <span class="fc" id="L62">            userData = UserData.of(userDataByteArray);</span>
 <span class="fc" id="L63">        } else {</span>
-<span class="nc" id="L64">            userData = UserData.EMPTY;</span>
+<span class="fc" id="L64">            userData = UserData.EMPTY;</span>
         }
 <span class="fc" id="L66">        CRC crc = CRC.of(byteBuf);</span>
 
-<span class="pc bpc" id="L68" title="3 of 4 branches missed.">        switch (magicCookie.getAsInt()) {</span>
+<span class="pc bpc" id="L68" title="2 of 4 branches missed.">        switch (magicCookie.getAsInt()) {</span>
             case AmsSerialFrame.ID:
 <span class="fc" id="L70">                AmsSerialFrame amsSerialFrame = AmsSerialFrame.of(magicCookie, transmitterAddress, receiverAddress, fragmentNumber, userDataLength, userData, crc);</span>
 <span class="fc" id="L71">                LOGGER.debug(&quot;Ams Serial Frame received {}&quot;, amsSerialFrame);</span>
 <span class="fc" id="L72">                out.add(userData.getByteBuf());</span>
 <span class="fc" id="L73">                break;</span>
             case AmsSerialAcknowledgeFrame.ID:
-<span class="nc" id="L75">                AmsSerialAcknowledgeFrame amsSerialAcknowledgeFrame = AmsSerialAcknowledgeFrame.of(magicCookie, transmitterAddress, receiverAddress, fragmentNumber, userDataLength, crc);</span>
-<span class="nc" id="L76">                LOGGER.debug(&quot;Ams Serial ACK Frame received {}&quot;, amsSerialAcknowledgeFrame);</span>
-<span class="nc" id="L77">                break;</span>
+<span class="fc" id="L75">                AmsSerialAcknowledgeFrame amsSerialAcknowledgeFrame = AmsSerialAcknowledgeFrame.of(magicCookie, transmitterAddress, receiverAddress, fragmentNumber, userDataLength, crc);</span>
+<span class="fc" id="L76">                LOGGER.debug(&quot;Ams Serial ACK Frame received {}&quot;, amsSerialAcknowledgeFrame);</span>
+<span class="fc" id="L77">                break;</span>
             case AmsSerialResetFrame.ID:
 <span class="nc" id="L79">                AmsSerialResetFrame amsSerialResetFrame = AmsSerialResetFrame.of(magicCookie, transmitterAddress, receiverAddress, fragmentNumber, userDataLength, crc);</span>
 <span class="nc" id="L80">                LOGGER.debug(&quot;Ams Serial Reset Frame received {}&quot;, amsSerialResetFrame);</span>
