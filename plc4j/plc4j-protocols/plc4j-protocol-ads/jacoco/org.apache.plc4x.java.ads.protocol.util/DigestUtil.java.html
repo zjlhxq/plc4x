@@ -23,25 +23,37 @@ import org.apache.plc4x.java.ads.api.util.ByteReadable;
 
 public class DigestUtil {
 
-<span class="fc" id="L26">    private static CRC crc16 = new CRC(CRC.Parameters.CRC16);</span>
+<span class="fc" id="L26">    public static final CRC.Parameters CRC16 = CRC.Parameters.CRC16;</span>
+
+<span class="fc" id="L28">    public static final CRC.Parameters CRC16_ADS = new CRC.Parameters(</span>
+<span class="fc" id="L29">        CRC16.getWidth(),</span>
+<span class="fc" id="L30">        CRC16.getPolynomial(),</span>
+        0xFFFF,
+<span class="fc" id="L32">        CRC16.isReflectIn(),</span>
+<span class="fc" id="L33">        CRC16.isReflectOut(),</span>
+<span class="fc" id="L34">        CRC16.getFinalXor());</span>
+
+<span class="fc" id="L36">    private static CRC crc16 = new CRC(CRC16_ADS);</span>
 
     private DigestUtil() {
         // Utility class
     }
 
     public static int calculateCrc16(ByteReadable... byteReadables) {
-<span class="pc bpc" id="L33" title="1 of 2 branches missed.">        if (byteReadables.length == 1) {</span>
-<span class="nc" id="L34">            return calculateCrc16(byteReadables[0].getBytes());</span>
+<span class="pc bpc" id="L43" title="1 of 2 branches missed.">        if (byteReadables.length == 1) {</span>
+<span class="nc" id="L44">            return calculateCrc16(byteReadables[0].getBytes());</span>
         }
-<span class="fc" id="L36">        long currentCrcValue = crc16.init();</span>
-<span class="fc bfc" id="L37" title="All 2 branches covered.">        for (ByteReadable byteReadable : byteReadables) {</span>
-<span class="fc" id="L38">            currentCrcValue = crc16.update(currentCrcValue, byteReadable.getBytes());</span>
+<span class="fc" id="L46">        long currentCrcValue = crc16.init();</span>
+<span class="fc bfc" id="L47" title="All 2 branches covered.">        for (ByteReadable byteReadable : byteReadables) {</span>
+<span class="fc" id="L48">            currentCrcValue = crc16.update(currentCrcValue, byteReadable.getBytes());</span>
         }
-<span class="fc" id="L40">        return crc16.finalCRC16(currentCrcValue) &amp; 0x0000FFFF;</span>
+<span class="fc" id="L50">        short finalCrc = crc16.finalCRC16(currentCrcValue);</span>
+<span class="fc" id="L51">        return Short.toUnsignedInt(finalCrc);</span>
     }
 
     public static int calculateCrc16(byte[] bytes) {
-<span class="fc" id="L44">        return (int) crc16.calculateCRC(bytes) &amp; 0x0000FFFF;</span>
+<span class="fc" id="L55">        short crc = (short) crc16.calculateCRC(bytes);</span>
+<span class="fc" id="L56">        return Short.toUnsignedInt(crc);</span>
     }
 
 }
