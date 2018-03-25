@@ -19,6 +19,8 @@
 package org.apache.plc4x.java.ads.protocol;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
 import org.apache.plc4x.java.ads.api.serial.AmsSerialAcknowledgeFrame;
@@ -32,69 +34,69 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-import static java.lang.Integer.toHexString;
-import static org.apache.commons.lang3.StringUtils.leftPad;
+<span class="fc" id="L37">public class Payload2SerialProtocol extends MessageToMessageCodec&lt;ByteBuf, ByteBuf&gt; {</span>
 
-<span class="fc" id="L38">public class Payload2SerialProtocol extends MessageToMessageCodec&lt;ByteBuf, ByteBuf&gt; {</span>
-
-<span class="fc" id="L40">    private static final Logger LOGGER = LoggerFactory.getLogger(Payload2TcpProtocol.class);</span>
+<span class="fc" id="L39">    private static final Logger LOGGER = LoggerFactory.getLogger(Payload2TcpProtocol.class);</span>
 
     @Override
     protected void encode(ChannelHandlerContext channelHandlerContext, ByteBuf amsPacket, List&lt;Object&gt; out) throws Exception {
-<span class="fc" id="L44">        out.add(AmsSerialFrame.of(FragmentNumber.of((byte) 0), UserData.of(amsPacket)).getByteBuf());</span>
+<span class="fc" id="L43">        out.add(AmsSerialFrame.of(FragmentNumber.of((byte) 0), UserData.of(amsPacket)).getByteBuf());</span>
         // TODO: we need to remember the fragment and maybe even need to spilt up the package
         // TODO: if we exceed 255 byte
-<span class="fc" id="L47">        amsPacket.release();</span>
-<span class="fc" id="L48">    }</span>
+<span class="fc" id="L46">        amsPacket.release();</span>
+<span class="fc" id="L47">    }</span>
 
     @Override
     protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf, List&lt;Object&gt; out) throws Exception {
-<span class="fc" id="L52">        MagicCookie magicCookie = MagicCookie.of(byteBuf);</span>
-<span class="fc" id="L53">        TransmitterAddress transmitterAddress = TransmitterAddress.of(byteBuf);</span>
-<span class="fc" id="L54">        ReceiverAddress receiverAddress = ReceiverAddress.of(byteBuf);</span>
-<span class="fc" id="L55">        FragmentNumber fragmentNumber = FragmentNumber.of(byteBuf);</span>
-<span class="fc" id="L56">        UserDataLength userDataLength = UserDataLength.of(byteBuf);</span>
+<span class="fc" id="L51">        MagicCookie magicCookie = MagicCookie.of(byteBuf);</span>
+<span class="fc" id="L52">        TransmitterAddress transmitterAddress = TransmitterAddress.of(byteBuf);</span>
+<span class="fc" id="L53">        ReceiverAddress receiverAddress = ReceiverAddress.of(byteBuf);</span>
+<span class="fc" id="L54">        FragmentNumber fragmentNumber = FragmentNumber.of(byteBuf);</span>
+<span class="fc" id="L55">        UserDataLength userDataLength = UserDataLength.of(byteBuf);</span>
         UserData userData;
-<span class="fc" id="L58">        byte userDataLengthAsByte = userDataLength.getAsByte();</span>
-<span class="fc bfc" id="L59" title="All 2 branches covered.">        if (userDataLengthAsByte &gt; 0) {</span>
-<span class="fc" id="L60">            byte[] userDataByteArray = new byte[userDataLengthAsByte];</span>
-<span class="fc" id="L61">            byteBuf.readBytes(userDataByteArray);</span>
-<span class="fc" id="L62">            userData = UserData.of(userDataByteArray);</span>
-<span class="fc" id="L63">        } else {</span>
-<span class="fc" id="L64">            userData = UserData.EMPTY;</span>
+<span class="fc" id="L57">        byte userDataLengthAsByte = userDataLength.getAsByte();</span>
+<span class="fc bfc" id="L58" title="All 2 branches covered.">        if (userDataLengthAsByte &gt; 0) {</span>
+<span class="fc" id="L59">            byte[] userDataByteArray = new byte[userDataLengthAsByte];</span>
+<span class="fc" id="L60">            byteBuf.readBytes(userDataByteArray);</span>
+<span class="fc" id="L61">            userData = UserData.of(userDataByteArray);</span>
+<span class="fc" id="L62">        } else {</span>
+<span class="fc" id="L63">            userData = UserData.EMPTY;</span>
         }
-<span class="fc" id="L66">        CRC crc = CRC.of(byteBuf);</span>
+<span class="fc" id="L65">        CRC crc = CRC.of(byteBuf);</span>
 
-<span class="pc bpc" id="L68" title="2 of 4 branches missed.">        switch (magicCookie.getAsInt()) {</span>
+<span class="pc bpc" id="L67" title="2 of 4 branches missed.">        switch (magicCookie.getAsInt()) {</span>
             case AmsSerialFrame.ID:
-<span class="fc" id="L70">                AmsSerialFrame amsSerialFrame = AmsSerialFrame.of(magicCookie, transmitterAddress, receiverAddress, fragmentNumber, userDataLength, userData, crc);</span>
-<span class="fc" id="L71">                LOGGER.debug(&quot;Ams Serial Frame received {}&quot;, amsSerialFrame);</span>
-<span class="fc" id="L72">                out.add(userData.getByteBuf());</span>
-<span class="fc" id="L73">                break;</span>
+<span class="fc" id="L69">                AmsSerialFrame amsSerialFrame = AmsSerialFrame.of(magicCookie, transmitterAddress, receiverAddress, fragmentNumber, userDataLength, userData, crc);</span>
+<span class="fc" id="L70">                LOGGER.debug(&quot;Ams Serial Frame received {}&quot;, amsSerialFrame);</span>
+                // TODO: check if this is the right way to ack a package.
+<span class="fc" id="L72">                ChannelFuture channelFuture = channelHandlerContext.writeAndFlush(AmsSerialAcknowledgeFrame.of(transmitterAddress, receiverAddress, fragmentNumber));</span>
+<span class="fc" id="L73">                channelFuture.addListener((ChannelFutureListener) future -&gt; {</span>
+                    // TODO: we might wait for the ack-frame to be transmitted before we forward the package
+<span class="nc" id="L75">                });</span>
+                // TODO: check if this await is right as this might be against the concept of netty
+<span class="fc" id="L77">                channelFuture.await();</span>
+<span class="fc" id="L78">                out.add(userData.getByteBuf());</span>
+<span class="fc" id="L79">                break;</span>
             case AmsSerialAcknowledgeFrame.ID:
-<span class="fc" id="L75">                AmsSerialAcknowledgeFrame amsSerialAcknowledgeFrame = AmsSerialAcknowledgeFrame.of(magicCookie, transmitterAddress, receiverAddress, fragmentNumber, userDataLength, crc);</span>
-<span class="fc" id="L76">                LOGGER.debug(&quot;Ams Serial ACK Frame received {}&quot;, amsSerialAcknowledgeFrame);</span>
-<span class="fc" id="L77">                break;</span>
+<span class="fc" id="L81">                AmsSerialAcknowledgeFrame amsSerialAcknowledgeFrame = AmsSerialAcknowledgeFrame.of(magicCookie, transmitterAddress, receiverAddress, fragmentNumber, userDataLength, crc);</span>
+<span class="fc" id="L82">                LOGGER.debug(&quot;Ams Serial ACK Frame received {}&quot;, amsSerialAcknowledgeFrame);</span>
+<span class="fc" id="L83">                break;</span>
             case AmsSerialResetFrame.ID:
-<span class="nc" id="L79">                AmsSerialResetFrame amsSerialResetFrame = AmsSerialResetFrame.of(magicCookie, transmitterAddress, receiverAddress, fragmentNumber, userDataLength, crc);</span>
-<span class="nc" id="L80">                LOGGER.debug(&quot;Ams Serial Reset Frame received {}&quot;, amsSerialResetFrame);</span>
+<span class="nc" id="L85">                AmsSerialResetFrame amsSerialResetFrame = AmsSerialResetFrame.of(magicCookie, transmitterAddress, receiverAddress, fragmentNumber, userDataLength, crc);</span>
+<span class="nc" id="L86">                LOGGER.debug(&quot;Ams Serial Reset Frame received {}&quot;, amsSerialResetFrame);</span>
                 break;
         }
-<span class="fc" id="L83">        int calculatedCrc16 = DigestUtil.calculateCrc16(magicCookie, transmitterAddress, receiverAddress, fragmentNumber, userDataLength, userData);</span>
-<span class="pc bpc" id="L84" title="1 of 2 branches missed.">        if (!crc.equals(CRC.of(calculatedCrc16))) {</span>
-<span class="nc" id="L85">            throw new PlcProtocolException(&quot;CRC checksum wrong. Got &quot;</span>
-<span class="nc" id="L86">                + &quot;0x&quot; + leftPad(toHexString(crc.getAsInt()), 4, &quot;0&quot;)</span>
-                + &quot; expected &quot;
-<span class="nc" id="L88">                + &quot;0x&quot; + leftPad(toHexString(calculatedCrc16), 4, &quot;0&quot;)</span>
-            );
+<span class="fc" id="L89">        CRC calculatedCrc = CRC.of(DigestUtil.calculateCrc16(magicCookie, transmitterAddress, receiverAddress, fragmentNumber, userDataLength, userData));</span>
+<span class="fc bfc" id="L90" title="All 2 branches covered.">        if (!crc.equals(calculatedCrc)) {</span>
+<span class="fc" id="L91">            throw new PlcProtocolException(&quot;CRC checksum wrong. Got &quot; + crc + &quot; expected &quot; + calculatedCrc);</span>
         }
 
-<span class="pc bpc" id="L92" title="1 of 2 branches missed.">        if (byteBuf.readableBytes() &gt; 0) {</span>
-<span class="nc" id="L93">            byteBuf.release();</span>
-<span class="nc" id="L94">            throw new IllegalStateException(&quot;Unread bytes left: &quot; + byteBuf.readableBytes());</span>
+<span class="pc bpc" id="L94" title="1 of 2 branches missed.">        if (byteBuf.readableBytes() &gt; 0) {</span>
+<span class="nc" id="L95">            byteBuf.release();</span>
+<span class="nc" id="L96">            throw new IllegalStateException(&quot;Unread bytes left: &quot; + byteBuf.readableBytes());</span>
         }
 
-<span class="fc" id="L97">        byteBuf.release();</span>
-<span class="fc" id="L98">    }</span>
+<span class="fc" id="L99">        byteBuf.release();</span>
+<span class="fc" id="L100">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
