@@ -79,55 +79,53 @@
 <a class="jxr_linenumber" name="L71" href="#L71">71</a>          DirectProvider dp = <strong class="jxr_keyword">new</strong> DirectProvider();
 <a class="jxr_linenumber" name="L72" href="#L72">72</a>          Topology top = dp.newTopology(<span class="jxr_string">"kafka-bridge"</span>);
 <a class="jxr_linenumber" name="L73" href="#L73">73</a>  
-<a class="jxr_linenumber" name="L74" href="#L74">74</a>          <em class="jxr_comment">// Create the Kafka Producer broker connector</em>
-<a class="jxr_linenumber" name="L75" href="#L75">75</a>          Map&lt;String,Object&gt; kafkaConfig = createKafkaConfig();
-<a class="jxr_linenumber" name="L76" href="#L76">76</a>          KafkaProducer kafka = <strong class="jxr_keyword">new</strong> KafkaProducer(top, () -&gt; kafkaConfig);
-<a class="jxr_linenumber" name="L77" href="#L77">77</a>  
-<a class="jxr_linenumber" name="L78" href="#L78">78</a>          Map&lt;String, ReadRequestItem&gt; readRequestItems = <strong class="jxr_keyword">new</strong> HashMap&lt;&gt;();
-<a class="jxr_linenumber" name="L79" href="#L79">79</a>  
-<a class="jxr_linenumber" name="L80" href="#L80">80</a>          <strong class="jxr_keyword">for</strong>(<a href="../../../../../../org/apache/plc4x/java/examples/kafkabridge/model/Address.html">Address</a> address : config.getPlcConfig().getAddresses()) {
-<a class="jxr_linenumber" name="L81" href="#L81">81</a>              <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L82" href="#L82">82</a>                  org.apache.plc4x.java.api.model.Address plcAddress = plcAdapter.parseAddress(address.getAddress());
-<a class="jxr_linenumber" name="L83" href="#L83">83</a>                  <a href="../../../../../../org/apache/plc4x/java/api/messages/items/ReadRequestItem.html">ReadRequestItem</a> readItem = <strong class="jxr_keyword">new</strong> ReadRequestItem&lt;&gt;(address.getType(), plcAddress, address.getSize());
-<a class="jxr_linenumber" name="L84" href="#L84">84</a>                  readRequestItems.put(address.getName(), readItem);
-<a class="jxr_linenumber" name="L85" href="#L85">85</a>              } <strong class="jxr_keyword">catch</strong> (PlcException e) {
-<a class="jxr_linenumber" name="L86" href="#L86">86</a>                  logger.error(<span class="jxr_string">"Error parsing address {}"</span>, address.getAddress(), e);
-<a class="jxr_linenumber" name="L87" href="#L87">87</a>              }
-<a class="jxr_linenumber" name="L88" href="#L88">88</a>          }
-<a class="jxr_linenumber" name="L89" href="#L89">89</a>          <em class="jxr_comment">// TODO: Here we somehow have to create an Edgent supplier, that can cope with batch reads ...</em>
-<a class="jxr_linenumber" name="L90" href="#L90">90</a>          <em class="jxr_comment">// WARN: This example doesn't work at the moment ...</em>
-<a class="jxr_linenumber" name="L91" href="#L91">91</a>          Supplier&lt;Byte&gt; plcSupplier = PlcFunctions.byteSupplier(plcAdapter, <span class="jxr_string">"INPUTS/0"</span>);
-<a class="jxr_linenumber" name="L92" href="#L92">92</a>  
-<a class="jxr_linenumber" name="L93" href="#L93">93</a>          <em class="jxr_comment">// Start polling our plc source in the given interval.</em>
-<a class="jxr_linenumber" name="L94" href="#L94">94</a>          TStream&lt;Byte&gt; source = top.poll(plcSupplier, config.getPollingInterval(), TimeUnit.MILLISECONDS);
-<a class="jxr_linenumber" name="L95" href="#L95">95</a>  
-<a class="jxr_linenumber" name="L96" href="#L96">96</a>          <em class="jxr_comment">// Convert the byte into a string.</em>
-<a class="jxr_linenumber" name="L97" href="#L97">97</a>          TStream&lt;String&gt; stringSource = source.map(value -&gt; Byte.toString(value));
-<a class="jxr_linenumber" name="L98" href="#L98">98</a>  
-<a class="jxr_linenumber" name="L99" href="#L99">99</a>          <em class="jxr_comment">// Publish the stream to the topic.  The String tuple is the message value.</em>
-<a class="jxr_linenumber" name="L100" href="#L100">100</a>         kafka.publish(stringSource, config.getKafkaConfig().getTopicName());
-<a class="jxr_linenumber" name="L101" href="#L101">101</a> 
-<a class="jxr_linenumber" name="L102" href="#L102">102</a>         dp.submit(top);
-<a class="jxr_linenumber" name="L103" href="#L103">103</a>     }
-<a class="jxr_linenumber" name="L104" href="#L104">104</a> 
-<a class="jxr_linenumber" name="L105" href="#L105">105</a>     <strong class="jxr_keyword">private</strong> Map&lt;String,Object&gt; createKafkaConfig() {
-<a class="jxr_linenumber" name="L106" href="#L106">106</a>         Map&lt;String,Object&gt; kafkaConfig = <strong class="jxr_keyword">new</strong> HashMap&lt;&gt;();
-<a class="jxr_linenumber" name="L107" href="#L107">107</a>         kafkaConfig.put(<span class="jxr_string">"bootstrap.servers"</span>, config.getKafkaConfig().getBootstrapServers());
-<a class="jxr_linenumber" name="L108" href="#L108">108</a>         <strong class="jxr_keyword">if</strong>(config.getKafkaConfig().getProperties() != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L109" href="#L109">109</a>             kafkaConfig.putAll(config.getKafkaConfig().getProperties());
-<a class="jxr_linenumber" name="L110" href="#L110">110</a>         }
-<a class="jxr_linenumber" name="L111" href="#L111">111</a>         <strong class="jxr_keyword">return</strong> kafkaConfig;
-<a class="jxr_linenumber" name="L112" href="#L112">112</a>     }
-<a class="jxr_linenumber" name="L113" href="#L113">113</a> 
-<a class="jxr_linenumber" name="L114" href="#L114">114</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> main(String[] args) {
-<a class="jxr_linenumber" name="L115" href="#L115">115</a>         <strong class="jxr_keyword">if</strong>(args.length != 1) {
-<a class="jxr_linenumber" name="L116" href="#L116">116</a>             System.out.println(<span class="jxr_string">"Usage: KafkaBridge {path-to-kafkabridge-yml}"</span>);
-<a class="jxr_linenumber" name="L117" href="#L117">117</a>         }
-<a class="jxr_linenumber" name="L118" href="#L118">118</a>         <a href="../../../../../../org/apache/plc4x/java/examples/kafkabridge/KafkaBridge.html">KafkaBridge</a> kafkaBridge = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/examples/kafkabridge/KafkaBridge.html">KafkaBridge</a>(args[0]);
-<a class="jxr_linenumber" name="L119" href="#L119">119</a>         kafkaBridge.run();
-<a class="jxr_linenumber" name="L120" href="#L120">120</a>     }
-<a class="jxr_linenumber" name="L121" href="#L121">121</a> 
-<a class="jxr_linenumber" name="L122" href="#L122">122</a> }
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>          Map&lt;String, ReadRequestItem&gt; readRequestItems = <strong class="jxr_keyword">new</strong> HashMap&lt;&gt;();
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>          <strong class="jxr_keyword">for</strong>(<a href="../../../../../../org/apache/plc4x/java/examples/kafkabridge/model/Address.html">Address</a> address : config.getPlcConfig().getAddresses()) {
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>              <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>                  org.apache.plc4x.java.api.model.Address plcAddress = plcAdapter.parseAddress(address.getAddress());
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>                  <a href="../../../../../../org/apache/plc4x/java/api/messages/items/ReadRequestItem.html">ReadRequestItem</a> readItem = <strong class="jxr_keyword">new</strong> ReadRequestItem&lt;&gt;(address.getType(), plcAddress, address.getSize());
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>                  readRequestItems.put(address.getName(), readItem);
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>              } <strong class="jxr_keyword">catch</strong> (PlcException e) {
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>                  logger.error(<span class="jxr_string">"Error parsing address {}"</span>, address.getAddress(), e);
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>              }
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>          }
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>          <em class="jxr_comment">// TODO: Here we somehow have to create an Edgent supplier, that can cope with batch reads ...</em>
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>          <em class="jxr_comment">// WARN: This example doesn't work at the moment ...</em>
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>          Supplier&lt;Byte&gt; plcSupplier = PlcFunctions.byteSupplier(plcAdapter, <span class="jxr_string">"INPUTS/0"</span>);
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>  
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>          <em class="jxr_comment">// Start polling our plc source in the given interval.</em>
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>          TStream&lt;Byte&gt; source = top.poll(plcSupplier, config.getPollingInterval(), TimeUnit.MILLISECONDS);
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>  
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>          <em class="jxr_comment">// Convert the byte into a string.</em>
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>          TStream&lt;String&gt; stringSource = source.map(value -&gt; Byte.toString(value));
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>  
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>          <em class="jxr_comment">// Publish the stream to the topic.  The String tuple is the message value.</em>
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>          <em class="jxr_comment">// Create the Kafka Producer broker connector</em>
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>          Map&lt;String,Object&gt; kafkaConfig = createKafkaConfig();
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>          KafkaProducer kafka = <strong class="jxr_keyword">new</strong> KafkaProducer(top, () -&gt; kafkaConfig);
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>          kafka.publish(stringSource, config.getKafkaConfig().getTopicName());
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>  
+<a class="jxr_linenumber" name="L100" href="#L100">100</a>         dp.submit(top);
+<a class="jxr_linenumber" name="L101" href="#L101">101</a>     }
+<a class="jxr_linenumber" name="L102" href="#L102">102</a> 
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>     <strong class="jxr_keyword">private</strong> Map&lt;String,Object&gt; createKafkaConfig() {
+<a class="jxr_linenumber" name="L104" href="#L104">104</a>         Map&lt;String,Object&gt; kafkaConfig = <strong class="jxr_keyword">new</strong> HashMap&lt;&gt;();
+<a class="jxr_linenumber" name="L105" href="#L105">105</a>         kafkaConfig.put(<span class="jxr_string">"bootstrap.servers"</span>, config.getKafkaConfig().getBootstrapServers());
+<a class="jxr_linenumber" name="L106" href="#L106">106</a>         <strong class="jxr_keyword">if</strong>(config.getKafkaConfig().getProperties() != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L107" href="#L107">107</a>             kafkaConfig.putAll(config.getKafkaConfig().getProperties());
+<a class="jxr_linenumber" name="L108" href="#L108">108</a>         }
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>         <strong class="jxr_keyword">return</strong> kafkaConfig;
+<a class="jxr_linenumber" name="L110" href="#L110">110</a>     }
+<a class="jxr_linenumber" name="L111" href="#L111">111</a> 
+<a class="jxr_linenumber" name="L112" href="#L112">112</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> main(String[] args) {
+<a class="jxr_linenumber" name="L113" href="#L113">113</a>         <strong class="jxr_keyword">if</strong>(args.length != 1) {
+<a class="jxr_linenumber" name="L114" href="#L114">114</a>             System.out.println(<span class="jxr_string">"Usage: KafkaBridge {path-to-kafkabridge-yml}"</span>);
+<a class="jxr_linenumber" name="L115" href="#L115">115</a>         }
+<a class="jxr_linenumber" name="L116" href="#L116">116</a>         <a href="../../../../../../org/apache/plc4x/java/examples/kafkabridge/KafkaBridge.html">KafkaBridge</a> kafkaBridge = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/examples/kafkabridge/KafkaBridge.html">KafkaBridge</a>(args[0]);
+<a class="jxr_linenumber" name="L117" href="#L117">117</a>         kafkaBridge.run();
+<a class="jxr_linenumber" name="L118" href="#L118">118</a>     }
+<a class="jxr_linenumber" name="L119" href="#L119">119</a> 
+<a class="jxr_linenumber" name="L120" href="#L120">120</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2017&#x2013;2018 <a href="https://www.apache.org/">The Apache Software Foundation</a>. All rights reserved.</div>
