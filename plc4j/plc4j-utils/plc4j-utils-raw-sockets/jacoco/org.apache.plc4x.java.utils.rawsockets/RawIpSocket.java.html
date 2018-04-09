@@ -97,7 +97,7 @@ public class RawIpSocket {
 <span class="nc" id="L97">                        throw new RawSocketException(&quot;Unable to connect to &quot; + remoteAddress);</span>
                     }
                 } else {
-<span class="nc" id="L100">                    throw new RawSocketException(&quot;Unable to connect to &quot; + remoteAddress);</span>
+<span class="nc" id="L100">                    throw new RawSocketException(&quot;Unable to connect to &quot; + remoteAddress + &quot; no default gateway&quot;);</span>
                 }
             }
 
@@ -279,7 +279,8 @@ public class RawIpSocket {
                 }
             }
 <span class="nc" id="L281">        } catch (PcapNativeException | InterruptedException | ExecutionException | NotOpenException e) {</span>
-<span class="nc" id="L282">            throw new RawSocketException(&quot;Error looking up mac address.&quot;, e);</span>
+<span class="nc" id="L282">            throw new RawSocketException(&quot;Error looking up MAC address for ip address &quot; +</span>
+<span class="nc" id="L283">                remoteIpAddress.getHostAddress() + &quot; on device &quot; + dev.getName(), e);</span>
         }
     }
 
@@ -291,39 +292,44 @@ public class RawIpSocket {
      * @throws RawSocketException something went wrong.
      */
     private FirstHop getFirstHop(InetAddress remoteAddress) throws RawSocketException {
-<span class="nc" id="L294">        byte[] remoteIp = remoteAddress.getAddress();</span>
+<span class="nc" id="L295">        byte[] remoteIp = remoteAddress.getAddress();</span>
         // Iterate over all network interfaces.
         try {
             // First try if we can connect to the remote device directly.
-<span class="nc bnc" id="L298" title="All 2 branches missed.">            for (PcapNetworkInterface dev : Pcaps.findAllDevs()) {</span>
+<span class="nc bnc" id="L299" title="All 2 branches missed.">            for (PcapNetworkInterface dev : Pcaps.findAllDevs()) {</span>
                 // Iterate over all addresses configured for this interface.
-<span class="nc bnc" id="L300" title="All 2 branches missed.">                for (PcapAddress localAddress : dev.getAddresses()) {</span>
+<span class="nc bnc" id="L301" title="All 2 branches missed.">                for (PcapAddress localAddress : dev.getAddresses()) {</span>
+<span class="nc bnc" id="L302" title="All 2 branches missed.">                    if(&quot;255.255.255.255&quot;.equals(localAddress.getNetmask().getHostAddress())) {</span>
+<span class="nc" id="L303">                        return new FirstHop(dev, localAddress.getAddress(),</span>
+<span class="nc" id="L304">                            dev.getLinkLayerAddresses().iterator().next(),</span>
+<span class="nc" id="L305">                            getMacAddress(dev, localAddress.getAddress(), remoteAddress));</span>
+                    }
                     // Only check addresses matching the IP-version of the remote address.
-<span class="nc bnc" id="L302" title="All 2 branches missed.">                    if (remoteAddress.getClass().equals(localAddress.getAddress().getClass())) {</span>
-<span class="nc" id="L303">                        byte[] localIp = localAddress.getAddress().getAddress();</span>
-<span class="nc" id="L304">                        byte[] netMask = localAddress.getNetmask().getAddress();</span>
-<span class="nc" id="L305">                        boolean matches = true;</span>
+<span class="nc bnc" id="L308" title="All 2 branches missed.">                    if (remoteAddress.getClass().equals(localAddress.getAddress().getClass())) {</span>
+<span class="nc" id="L309">                        byte[] localIp = localAddress.getAddress().getAddress();</span>
+<span class="nc" id="L310">                        byte[] netMask = localAddress.getNetmask().getAddress();</span>
+<span class="nc" id="L311">                        boolean matches = true;</span>
                         // Iterate over all bytes of the address and see if they match
                         // after applying the net mask filter.
-<span class="nc bnc" id="L308" title="All 2 branches missed.">                        for (int i = 0; i &lt; localIp.length; i++) {</span>
-<span class="nc bnc" id="L309" title="All 2 branches missed.">                            if ((localIp[i] &amp; netMask[i]) != (remoteIp[i] &amp; netMask[i])) {</span>
-<span class="nc" id="L310">                                matches = false;</span>
-<span class="nc" id="L311">                                break;</span>
+<span class="nc bnc" id="L314" title="All 2 branches missed.">                        for (int i = 0; i &lt; localIp.length; i++) {</span>
+<span class="nc bnc" id="L315" title="All 2 branches missed.">                            if ((localIp[i] &amp; netMask[i]) != (remoteIp[i] &amp; netMask[i])) {</span>
+<span class="nc" id="L316">                                matches = false;</span>
+<span class="nc" id="L317">                                break;</span>
                             }
                         }
                         // If the current address would be able to connect to the remote
                         // address, return this device.
-<span class="nc bnc" id="L316" title="All 2 branches missed.">                        if (matches) {</span>
-<span class="nc" id="L317">                            return new FirstHop(dev, localAddress.getAddress(),</span>
-<span class="nc" id="L318">                                dev.getLinkLayerAddresses().iterator().next(),</span>
-<span class="nc" id="L319">                                getMacAddress(dev, localAddress.getAddress(), remoteAddress));</span>
+<span class="nc bnc" id="L322" title="All 2 branches missed.">                        if (matches) {</span>
+<span class="nc" id="L323">                            return new FirstHop(dev, localAddress.getAddress(),</span>
+<span class="nc" id="L324">                                dev.getLinkLayerAddresses().iterator().next(),</span>
+<span class="nc" id="L325">                                getMacAddress(dev, localAddress.getAddress(), remoteAddress));</span>
                         }
                     }
-<span class="nc" id="L322">                }</span>
-<span class="nc" id="L323">            }</span>
-<span class="nc" id="L324">            return null;</span>
-<span class="nc" id="L325">        } catch (PcapNativeException e) {</span>
-<span class="nc" id="L326">            throw new RawSocketException(&quot;Error finding a device to communicate with remote address.&quot;, e);</span>
+<span class="nc" id="L328">                }</span>
+<span class="nc" id="L329">            }</span>
+<span class="nc" id="L330">            return null;</span>
+<span class="nc" id="L331">        } catch (PcapNativeException e) {</span>
+<span class="nc" id="L332">            throw new RawSocketException(&quot;Error finding a device to communicate with remote address.&quot;, e);</span>
         }
     }
 
@@ -339,38 +345,38 @@ public class RawIpSocket {
     @SuppressWarnings(&quot;squid:S1313&quot;)
     private InetAddress getDefaultGatewayAddress() {
         try {
-<span class="nc" id="L342">            Runtime rt = Runtime.getRuntime();</span>
-<span class="nc" id="L343">            String[] commands = {&quot;netstat&quot;, &quot;-rn&quot;};</span>
-<span class="nc" id="L344">            Process proc = rt.exec(commands);</span>
+<span class="nc" id="L348">            Runtime rt = Runtime.getRuntime();</span>
+<span class="nc" id="L349">            String[] commands = {&quot;netstat&quot;, &quot;-rn&quot;};</span>
+<span class="nc" id="L350">            Process proc = rt.exec(commands);</span>
 
-<span class="nc" id="L346">            BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));</span>
+<span class="nc" id="L352">            BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));</span>
 
             String linePrefix;
             int gatewayColumn;
-<span class="nc bnc" id="L350" title="All 2 branches missed.">            if (SystemUtils.IS_OS_WINDOWS) {</span>
-<span class="nc" id="L351">                linePrefix = &quot;0.0.0.0&quot;;</span>
-<span class="nc" id="L352">                gatewayColumn = 2;</span>
-<span class="nc bnc" id="L353" title="All 2 branches missed.">            } else if (SystemUtils.IS_OS_MAC_OSX) {</span>
-<span class="nc" id="L354">                linePrefix = &quot;default&quot;;</span>
-<span class="nc" id="L355">                gatewayColumn = 1;</span>
-<span class="nc bnc" id="L356" title="All 2 branches missed.">            } else if (SystemUtils.IS_OS_LINUX) {</span>
+<span class="nc bnc" id="L356" title="All 2 branches missed.">            if (SystemUtils.IS_OS_WINDOWS) {</span>
 <span class="nc" id="L357">                linePrefix = &quot;0.0.0.0&quot;;</span>
-<span class="nc" id="L358">                gatewayColumn = 1;</span>
+<span class="nc" id="L358">                gatewayColumn = 2;</span>
+<span class="nc bnc" id="L359" title="All 2 branches missed.">            } else if (SystemUtils.IS_OS_MAC_OSX) {</span>
+<span class="nc" id="L360">                linePrefix = &quot;default&quot;;</span>
+<span class="nc" id="L361">                gatewayColumn = 1;</span>
+<span class="nc bnc" id="L362" title="All 2 branches missed.">            } else if (SystemUtils.IS_OS_LINUX) {</span>
+<span class="nc" id="L363">                linePrefix = &quot;0.0.0.0&quot;;</span>
+<span class="nc" id="L364">                gatewayColumn = 1;</span>
             } else {
-<span class="nc" id="L360">                return null;</span>
+<span class="nc" id="L366">                return null;</span>
             }
 
             String s;
-<span class="nc bnc" id="L364" title="All 2 branches missed.">            while ((s = stdInput.readLine()) != null) {</span>
-<span class="nc bnc" id="L365" title="All 2 branches missed.">                if (s.trim().startsWith(linePrefix)) {</span>
-<span class="nc" id="L366">                    String[] columns = s.trim().split(&quot;\\s+&quot;);</span>
-<span class="nc" id="L367">                    return InetAddress.getByName(columns[gatewayColumn]);</span>
+<span class="nc bnc" id="L370" title="All 2 branches missed.">            while ((s = stdInput.readLine()) != null) {</span>
+<span class="nc bnc" id="L371" title="All 2 branches missed.">                if (s.trim().startsWith(linePrefix)) {</span>
+<span class="nc" id="L372">                    String[] columns = s.trim().split(&quot;\\s+&quot;);</span>
+<span class="nc" id="L373">                    return InetAddress.getByName(columns[gatewayColumn]);</span>
                 }
             }
-<span class="nc" id="L370">        } catch (IOException e) {</span>
-<span class="nc" id="L371">            logger.debug(&quot;error caught&quot;, e);</span>
-<span class="nc" id="L372">            return null;</span>
-<span class="nc" id="L373">        }</span>
+<span class="nc" id="L376">        } catch (IOException e) {</span>
+<span class="nc" id="L377">            logger.debug(&quot;error caught&quot;, e);</span>
+<span class="nc" id="L378">            return null;</span>
+<span class="nc" id="L379">        }</span>
 
         // Command on all platforms: &quot;netstat -rn&quot;
 
@@ -593,7 +599,7 @@ ff02::%en8/32                           link#20                         UmCI    
 
 
          */
-<span class="nc" id="L596">        return null;</span>
+<span class="nc" id="L602">        return null;</span>
     }
 
     private static class FirstHop {
@@ -603,12 +609,12 @@ ff02::%en8/32                           link#20                         UmCI    
         private final LinkLayerAddress remoteMacAddress;
 
         private FirstHop(PcapNetworkInterface networkInterface, InetAddress localInetAddress, LinkLayerAddress localMacAddress,
-<span class="nc" id="L606">                         LinkLayerAddress remoteMacAddress) {</span>
-<span class="nc" id="L607">            this.networkInterface = networkInterface;</span>
-<span class="nc" id="L608">            this.localInetAddress = localInetAddress;</span>
-<span class="nc" id="L609">            this.localMacAddress = localMacAddress;</span>
-<span class="nc" id="L610">            this.remoteMacAddress = remoteMacAddress;</span>
-<span class="nc" id="L611">        }</span>
+<span class="nc" id="L612">                         LinkLayerAddress remoteMacAddress) {</span>
+<span class="nc" id="L613">            this.networkInterface = networkInterface;</span>
+<span class="nc" id="L614">            this.localInetAddress = localInetAddress;</span>
+<span class="nc" id="L615">            this.localMacAddress = localMacAddress;</span>
+<span class="nc" id="L616">            this.remoteMacAddress = remoteMacAddress;</span>
+<span class="nc" id="L617">        }</span>
     }
 
 }
