@@ -64,45 +64,354 @@ public class S7Protocol extends PlcMessageToMessageCodec&lt;IsoTPMessage, S7Mess
 <span class="fc" id="L64">        this.pduSize = requestedPduSize;</span>
 <span class="fc" id="L65">    }</span>
 
+    /**
+     * If the S7 protocol layer is used over Iso TP, then after receiving a {@link IsoTPConnectedEvent} the
+     * corresponding S7 setup communication message has to be sent in order to negotiate the S7 protocol layer.
+     *
+     * @param ctx the current protocol layers context
+     * @param evt the event
+     * @throws Exception throws an exception if something goes wrong internally
+     */
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-<span class="nc" id="L69">        ChannelHandler prevHandler = getPrevChannelHandler(ctx);</span>
+<span class="nc" id="L77">        ChannelHandler prevHandler = getPrevChannelHandler(ctx);</span>
 
         // If we are using S7 inside of IsoTP, then we need to intercept IsoTPs connected events.
-<span class="nc bnc" id="L72" title="All 4 branches missed.">        if ((prevHandler instanceof IsoTPProtocol) &amp;&amp; (evt instanceof IsoTPConnectedEvent)) {</span>
+<span class="nc bnc" id="L80" title="All 4 branches missed.">        if ((prevHandler instanceof IsoTPProtocol) &amp;&amp; (evt instanceof IsoTPConnectedEvent)) {</span>
             // Setup Communication
-<span class="nc" id="L74">            SetupCommunicationRequestMessage setupCommunicationRequest =</span>
+<span class="nc" id="L82">            SetupCommunicationRequestMessage setupCommunicationRequest =</span>
                 new SetupCommunicationRequestMessage((short) 7, maxAmqCaller, maxAmqCallee, pduSize, null);
 
-<span class="nc" id="L77">            ctx.channel().writeAndFlush(setupCommunicationRequest);</span>
-<span class="nc" id="L78">        }</span>
+<span class="nc" id="L85">            ctx.channel().writeAndFlush(setupCommunicationRequest);</span>
+<span class="nc" id="L86">        }</span>
 
         else {
-<span class="nc" id="L81">            super.userEventTriggered(ctx, evt);</span>
+<span class="nc" id="L89">            super.userEventTriggered(ctx, evt);</span>
         }
-<span class="nc" id="L83">    }</span>
+<span class="nc" id="L91">    }</span>
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Encoding
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override
     protected void encode(ChannelHandlerContext ctx, S7Message in, List&lt;Object&gt; out) {
-<span class="fc" id="L87">        logger.debug(&quot;S7 RawMessage sent&quot;);</span>
+<span class="fc" id="L99">        logger.debug(&quot;S7 RawMessage sent&quot;);</span>
 
-<span class="fc" id="L89">        List&lt;S7Message&gt; messages = optimizeMessage(in);</span>
+<span class="fc" id="L101">        List&lt;S7Message&gt; messages = optimizeMessage(in);</span>
 
-<span class="fc bfc" id="L91" title="All 2 branches covered.">        for (S7Message message : messages) {</span>
-<span class="fc" id="L92">            ByteBuf buf = Unpooled.buffer();</span>
+<span class="fc bfc" id="L103" title="All 2 branches covered.">        for (S7Message message : messages) {</span>
+<span class="fc" id="L104">            ByteBuf buf = Unpooled.buffer();</span>
 
-<span class="fc" id="L94">            encodeHeader(message, buf);</span>
-<span class="fc" id="L95">            encodeParameters(message, buf);</span>
-<span class="fc" id="L96">            encodePayloads(message, buf);</span>
+<span class="fc" id="L106">            encodeHeader(message, buf);</span>
+<span class="fc" id="L107">            encodeParameters(message, buf);</span>
+<span class="fc" id="L108">            encodePayloads(message, buf);</span>
 
             // Check if the message doesn't exceed the negotiated maximum size.
-<span class="pc bpc" id="L99" title="1 of 2 branches missed.">            if(buf.writerIndex() &gt; pduSize) {</span>
-<span class="nc" id="L100">                ctx.fireExceptionCaught(new PlcProtocolPayloadTooBigException(&quot;s7&quot;, pduSize, buf.writerIndex(), in));</span>
+<span class="pc bpc" id="L111" title="1 of 2 branches missed.">            if(buf.writerIndex() &gt; pduSize) {</span>
+<span class="nc" id="L112">                ctx.fireExceptionCaught(new PlcProtocolPayloadTooBigException(&quot;s7&quot;, pduSize, buf.writerIndex(), in));</span>
             } else {
-<span class="fc" id="L102">                out.add(new DataTpdu(true, (byte) 1, Collections.emptyList(), buf, in));</span>
+<span class="fc" id="L114">                out.add(new DataTpdu(true, (byte) 1, Collections.emptyList(), buf, in));</span>
             }
-<span class="fc" id="L104">        }</span>
-<span class="fc" id="L105">    }</span>
+<span class="fc" id="L116">        }</span>
+<span class="fc" id="L117">    }</span>
+
+    private void encodePayloads(S7Message in, ByteBuf buf) {
+<span class="fc bfc" id="L120" title="All 2 branches covered.">        for (S7Payload payload : in.getPayloads()) {</span>
+<span class="fc" id="L121">            ParameterType parameterType = payload.getType();</span>
+<span class="pc bpc" id="L122" title="2 of 4 branches missed.">            if (parameterType == ParameterType.READ_VAR || parameterType == ParameterType.WRITE_VAR) {</span>
+<span class="fc" id="L123">                VarPayload varPayload = (VarPayload) payload;</span>
+<span class="fc bfc" id="L124" title="All 2 branches covered.">                for (VarPayloadItem payloadItem : varPayload.getPayloadItems()) {</span>
+<span class="fc" id="L125">                    buf.writeByte(payloadItem.getReturnCode().getCode());</span>
+<span class="fc" id="L126">                    buf.writeByte(payloadItem.getDataTransportSize().getCode());</span>
+<span class="fc" id="L127">                    buf.writeShort(payloadItem.getData().length);</span>
+<span class="fc" id="L128">                    buf.writeBytes(payloadItem.getData());</span>
+<span class="fc" id="L129">                }</span>
+            }
+<span class="fc" id="L131">        }</span>
+<span class="fc" id="L132">    }</span>
+
+    private void encodeParameters(S7Message in, ByteBuf buf) {
+<span class="fc bfc" id="L135" title="All 2 branches covered.">        for (S7Parameter s7Parameter : in.getParameters()) {</span>
+<span class="fc" id="L136">            buf.writeByte(s7Parameter.getType().getCode());</span>
+<span class="pc bpc" id="L137" title="2 of 3 branches missed.">            switch (s7Parameter.getType()) {</span>
+                case READ_VAR:
+                case WRITE_VAR:
+<span class="fc" id="L140">                    encodeReadWriteVar(buf, (VarParameter) s7Parameter);</span>
+<span class="fc" id="L141">                    break;</span>
+                case SETUP_COMMUNICATION:
+<span class="nc" id="L143">                    encodeSetupCommunication(buf, (SetupCommunicationParameter) s7Parameter);</span>
+<span class="nc" id="L144">                    break;</span>
+                default:
+<span class="nc" id="L146">                    logger.error(&quot;writing this parameter type not implemented&quot;);</span>
+            }
+<span class="fc" id="L148">        }</span>
+<span class="fc" id="L149">    }</span>
+
+    private void encodeHeader(S7Message in, ByteBuf buf) {
+<span class="fc" id="L152">        buf.writeByte(S7_PROTOCOL_MAGIC_NUMBER);</span>
+<span class="fc" id="L153">        buf.writeByte(in.getMessageType().getCode());</span>
+        // Reserved (is always constant 0x0000)
+<span class="fc" id="L155">        buf.writeShort((short) 0x0000);</span>
+        // PDU Reference (Request Id, generated by the initiating node)
+<span class="fc" id="L157">        buf.writeShort(in.getTpduReference());</span>
+        // S7 message parameters length
+<span class="fc" id="L159">        buf.writeShort(getParametersLength(in.getParameters()));</span>
+        // Data field length
+<span class="fc" id="L161">        buf.writeShort(getPayloadsLength(in.getPayloads()));</span>
+<span class="pc bpc" id="L162" title="1 of 2 branches missed.">        if (in instanceof S7ResponseMessage) {</span>
+<span class="nc" id="L163">            S7ResponseMessage s7ResponseMessage = (S7ResponseMessage) in;</span>
+<span class="nc" id="L164">            buf.writeByte(s7ResponseMessage.getErrorClass());</span>
+<span class="nc" id="L165">            buf.writeByte(s7ResponseMessage.getErrorCode());</span>
+        }
+<span class="fc" id="L167">    }</span>
+
+    private void encodeSetupCommunication(ByteBuf buf, SetupCommunicationParameter s7Parameter) {
+        // Reserved (is always constant 0x00)
+<span class="nc" id="L171">        buf.writeByte((byte) 0x00);</span>
+<span class="nc" id="L172">        buf.writeShort(s7Parameter.getMaxAmqCaller());</span>
+<span class="nc" id="L173">        buf.writeShort(s7Parameter.getMaxAmqCallee());</span>
+<span class="nc" id="L174">        buf.writeShort(s7Parameter.getPduLength());</span>
+<span class="nc" id="L175">    }</span>
+
+    private void encodeReadWriteVar(ByteBuf buf, VarParameter s7Parameter) {
+<span class="fc" id="L178">        List&lt;VarParameterItem&gt; items = s7Parameter.getItems();</span>
+        // ReadRequestItem count (Read one variable at a time)
+<span class="fc" id="L180">        buf.writeByte((byte) items.size());</span>
+<span class="fc bfc" id="L181" title="All 2 branches covered.">        for (VarParameterItem item : items) {</span>
+<span class="fc" id="L182">            VariableAddressingMode addressMode = item.getAddressingMode();</span>
+<span class="pc bpc" id="L183" title="1 of 2 branches missed.">            if (addressMode == VariableAddressingMode.S7ANY) {</span>
+<span class="fc" id="L184">                encodeS7AnyParameterItem(buf, (S7AnyVarParameterItem) item);</span>
+            } else {
+<span class="nc" id="L186">                logger.error(&quot;writing this item type not implemented&quot;);</span>
+            }
+<span class="fc" id="L188">        }</span>
+<span class="fc" id="L189">    }</span>
+
+    private void encodeS7AnyParameterItem(ByteBuf buf, S7AnyVarParameterItem s7AnyRequestItem) {
+<span class="fc" id="L192">        buf.writeByte(s7AnyRequestItem.getSpecificationType().getCode());</span>
+        // Length of this item (excluding spec type and length)
+<span class="fc" id="L194">        buf.writeByte((byte) 0x0a);</span>
+<span class="fc" id="L195">        buf.writeByte(s7AnyRequestItem.getAddressingMode().getCode());</span>
+<span class="fc" id="L196">        buf.writeByte(s7AnyRequestItem.getTransportSize().getCode());</span>
+<span class="fc" id="L197">        buf.writeShort(s7AnyRequestItem.getNumElements());</span>
+<span class="fc" id="L198">        buf.writeShort(s7AnyRequestItem.getDataBlockNumber());</span>
+<span class="fc" id="L199">        buf.writeByte(s7AnyRequestItem.getMemoryArea().getCode());</span>
+        // A S7 address is 3 bytes long. Unfortunately the byte-offset is NOT located in
+        // byte 1 and byte 2 and the bit offset in byte 3. Siemens used the last 3 bits of
+        // byte 3 for the bit-offset and the remaining 5 bits of byte 3 to contain the lowest
+        // 5 bits of the byte-offset. The highest 5 bits of byte 1 are probably left unused
+        // for future extensions.
+<span class="fc" id="L205">        buf.writeShort((short) (s7AnyRequestItem.getByteOffset() &gt;&gt; 5));</span>
+<span class="fc" id="L206">        buf.writeByte((byte) ((</span>
+<span class="fc" id="L207">                (s7AnyRequestItem.getByteOffset() &amp; 0x1F) &lt;&lt; 3)</span>
+<span class="fc" id="L208">                | (s7AnyRequestItem.getBitOffset() &amp; 0x07)));</span>
+<span class="fc" id="L209">    }</span>
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Decoding
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    @Override
+    protected void decode(ChannelHandlerContext ctx, IsoTPMessage in, List&lt;Object&gt; out) {
+<span class="pc bpc" id="L217" title="1 of 2 branches missed.">        if (logger.isTraceEnabled()) {</span>
+<span class="nc" id="L218">            logger.trace(&quot;Got Data: {}&quot;, ByteBufUtil.hexDump(in.getUserData()));</span>
+        }
+<span class="fc" id="L220">        ByteBuf userData = in.getUserData();</span>
+<span class="pc bpc" id="L221" title="1 of 2 branches missed.">        if (userData.readableBytes() == 0) {</span>
+<span class="nc" id="L222">            return;</span>
+        }
+<span class="fc" id="L224">        logger.debug(&quot;S7 RawMessage received&quot;);</span>
+
+<span class="pc bpc" id="L226" title="1 of 2 branches missed.">        if (userData.readByte() != S7_PROTOCOL_MAGIC_NUMBER) {</span>
+<span class="nc" id="L227">            logger.warn(&quot;Expecting S7 protocol magic number.&quot;);</span>
+<span class="nc bnc" id="L228" title="All 2 branches missed.">            if (logger.isDebugEnabled()) {</span>
+<span class="nc" id="L229">                logger.debug(&quot;Got Data: {}&quot;, ByteBufUtil.hexDump(userData));</span>
+            }
+<span class="nc" id="L231">            return;</span>
+        }
+
+<span class="fc" id="L234">        MessageType messageType = MessageType.valueOf(userData.readByte());</span>
+<span class="pc bpc" id="L235" title="1 of 2 branches missed.">        boolean isResponse = messageType == MessageType.ACK_DATA;</span>
+<span class="fc" id="L236">        userData.readShort();  // Reserved (is always constant 0x0000)</span>
+<span class="fc" id="L237">        short tpduReference = userData.readShort();</span>
+<span class="fc" id="L238">        short headerParametersLength = userData.readShort();</span>
+<span class="fc" id="L239">        short userDataLength = userData.readShort();</span>
+<span class="fc" id="L240">        byte errorClass = 0;</span>
+<span class="fc" id="L241">        byte errorCode = 0;</span>
+<span class="pc bpc" id="L242" title="1 of 2 branches missed.">        if (isResponse) {</span>
+<span class="nc" id="L243">            errorClass = userData.readByte();</span>
+<span class="nc" id="L244">            errorCode = userData.readByte();</span>
+        }
+
+<span class="fc" id="L247">        List&lt;S7Parameter&gt; s7Parameters = new LinkedList&lt;&gt;();</span>
+<span class="fc" id="L248">        SetupCommunicationParameter setupCommunicationParameter = null;</span>
+<span class="fc" id="L249">        VarParameter readWriteVarParameter = null;</span>
+<span class="fc" id="L250">        int i = 0;</span>
+
+<span class="pc bpc" id="L252" title="1 of 2 branches missed.">        while (i &lt; headerParametersLength) {</span>
+<span class="nc" id="L253">            S7Parameter parameter = decodeParameter(userData, isResponse, headerParametersLength - i);</span>
+<span class="nc" id="L254">            s7Parameters.add(parameter);</span>
+<span class="nc bnc" id="L255" title="All 2 branches missed.">            if (parameter instanceof SetupCommunicationParameter) {</span>
+<span class="nc" id="L256">                setupCommunicationParameter = (SetupCommunicationParameter) parameter;</span>
+            }
+<span class="nc bnc" id="L258" title="All 2 branches missed.">            if (readWriteVarParameter == null)  {</span>
+<span class="nc" id="L259">                readWriteVarParameter = decodeReadWriteParameter(parameter);</span>
+            }
+<span class="nc" id="L261">            i += getParameterLength(parameter);</span>
+<span class="nc" id="L262">        }</span>
+
+<span class="fc" id="L264">        List&lt;S7Payload&gt; s7Payloads = decodePayloads(userData, isResponse, userDataLength, readWriteVarParameter);</span>
+
+<span class="pc bpc" id="L266" title="1 of 2 branches missed.">        if (isResponse) {</span>
+<span class="nc" id="L267">            decodeSetupCommunications(ctx, setupCommunicationParameter);</span>
+<span class="nc" id="L268">            out.add(new S7ResponseMessage(messageType, tpduReference, s7Parameters, s7Payloads, errorClass, errorCode));</span>
+        } else {
+            // TODO: Find out if there is any situation in which a request is sent from the PLC
+<span class="fc" id="L271">            out.add(new S7RequestMessage(messageType, tpduReference, s7Parameters, s7Payloads, null));</span>
+        }
+<span class="fc" id="L273">    }</span>
+
+    private void decodeSetupCommunications(ChannelHandlerContext ctx, SetupCommunicationParameter setupCommunicationParameter) {
+        // If we got a SetupCommunicationParameter as part of the response
+        // we are currently in the process of establishing a connection with
+        // the PLC, so save some of the information in the session and tell
+        // the next layer to negotiate the connection parameters.
+<span class="nc bnc" id="L280" title="All 2 branches missed.">        if (setupCommunicationParameter != null) {</span>
+<span class="nc" id="L281">            maxAmqCaller = setupCommunicationParameter.getMaxAmqCaller();</span>
+<span class="nc" id="L282">            maxAmqCallee = setupCommunicationParameter.getMaxAmqCallee();</span>
+<span class="nc" id="L283">            pduSize = setupCommunicationParameter.getPduLength();</span>
+
+            // Send an event that setup is complete.
+<span class="nc" id="L286">            ctx.channel().pipeline().fireUserEventTriggered(new S7ConnectedEvent());</span>
+        }
+<span class="nc" id="L288">    }</span>
+
+    private VarParameter decodeReadWriteParameter(S7Parameter parameter) {
+<span class="nc" id="L291">        VarParameter readWriteVarParameter = null;</span>
+
+<span class="nc bnc" id="L293" title="All 2 branches missed.">        if (parameter instanceof VarParameter) {</span>
+<span class="nc" id="L294">            ParameterType paramType = parameter.getType();</span>
+<span class="nc bnc" id="L295" title="All 4 branches missed.">            if (paramType == ParameterType.READ_VAR || paramType == ParameterType.WRITE_VAR) {</span>
+<span class="nc" id="L296">                readWriteVarParameter = (VarParameter) parameter;</span>
+            }
+        }
+<span class="nc" id="L299">        return readWriteVarParameter;</span>
+    }
+
+    private List&lt;S7Payload&gt; decodePayloads(ByteBuf userData, boolean isResponse, short userDataLength, VarParameter readWriteVarParameter) {
+<span class="fc" id="L303">        int i = 0;</span>
+<span class="fc" id="L304">        List&lt;S7Payload&gt; s7Payloads = new LinkedList&lt;&gt;();</span>
+<span class="pc bpc" id="L305" title="1 of 2 branches missed.">        if (readWriteVarParameter != null) {</span>
+<span class="nc" id="L306">            List&lt;VarPayloadItem&gt; payloadItems = new LinkedList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L308" title="All 2 branches missed.">            while (i &lt; userDataLength) {</span>
+<span class="nc" id="L309">                DataTransportErrorCode dataTransportErrorCode = DataTransportErrorCode.valueOf(userData.readByte());</span>
+                // This is a response to a WRITE_VAR request (It only contains the return code for every sent item.
+<span class="nc bnc" id="L311" title="All 4 branches missed.">                if ((readWriteVarParameter.getType() == ParameterType.WRITE_VAR) &amp;&amp; isResponse) {</span>
+                    // Initialize a rudimentary payload (This is updated in the Plc4XS7Protocol class
+<span class="nc" id="L313">                    VarPayloadItem payload = new VarPayloadItem(dataTransportErrorCode, null, null);</span>
+<span class="nc" id="L314">                    payloadItems.add(payload);</span>
+<span class="nc" id="L315">                    i += 1;</span>
+<span class="nc" id="L316">                }</span>
+                // This is a response to a READ_VAR request.
+<span class="nc bnc" id="L318" title="All 4 branches missed.">                else if ((readWriteVarParameter.getType() == ParameterType.READ_VAR) &amp;&amp; isResponse) {</span>
+<span class="nc" id="L319">                    DataTransportSize dataTransportSize = DataTransportSize.valueOf(userData.readByte());</span>
+<span class="nc bnc" id="L320" title="All 2 branches missed.">                    short length = (dataTransportSize.isSizeInBits()) ?</span>
+<span class="nc" id="L321">                        (short) Math.ceil(userData.readShort() / 8.0) : userData.readShort();</span>
+<span class="nc" id="L322">                    byte[] data = new byte[length];</span>
+<span class="nc" id="L323">                    userData.readBytes(data);</span>
+                    // Initialize a rudimentary payload (This is updated in the Plc4XS7Protocol class
+<span class="nc" id="L325">                    VarPayloadItem payload = new VarPayloadItem(dataTransportErrorCode, dataTransportSize, data);</span>
+<span class="nc" id="L326">                    payloadItems.add(payload);</span>
+<span class="nc" id="L327">                    i += getPayloadLength(payload);</span>
+                }
+<span class="nc" id="L329">            }</span>
+
+<span class="nc" id="L331">            VarPayload varPayload = new VarPayload(readWriteVarParameter.getType(), payloadItems);</span>
+<span class="nc" id="L332">            s7Payloads.add(varPayload);</span>
+        }
+<span class="fc" id="L334">        return s7Payloads;</span>
+    }
+
+    private S7Parameter decodeParameter(ByteBuf in, boolean isResponse, int restLength) {
+<span class="nc" id="L338">        ParameterType parameterType = ParameterType.valueOf(in.readByte());</span>
+<span class="nc bnc" id="L339" title="All 2 branches missed.">        if (parameterType == null) {</span>
+<span class="nc" id="L340">            logger.error(&quot;Could not find parameter type&quot;);</span>
+<span class="nc" id="L341">            return null;</span>
+        }
+<span class="nc bnc" id="L343" title="All 4 branches missed.">        switch (parameterType) {</span>
+            case CPU_SERVICES:
+                // Just read in the rest of the header as content of this parameter.
+                // Will have to do a lot more investigation on how this parameter is
+                // constructed.
+<span class="nc" id="L348">                byte[] cpuServices = new byte[restLength - 1];</span>
+<span class="nc" id="L349">                in.readBytes(cpuServices);</span>
+<span class="nc" id="L350">                return null;</span>
+            case READ_VAR:
+            case WRITE_VAR:
+                List&lt;VarParameterItem&gt; varParamameter;
+<span class="nc" id="L354">                byte numItems = in.readByte();</span>
+<span class="nc bnc" id="L355" title="All 2 branches missed.">                if (!isResponse) {</span>
+<span class="nc" id="L356">                    varParamameter = decodeReadWriteVarParameter(in, numItems);</span>
+                } else {
+<span class="nc" id="L358">                    varParamameter = Collections.emptyList();</span>
+                }
+<span class="nc" id="L360">                return new VarParameter(parameterType, varParamameter);</span>
+            case SETUP_COMMUNICATION:
+                // Reserved (is always constant 0x00)
+<span class="nc" id="L363">                in.readByte();</span>
+<span class="nc" id="L364">                short callingMaxAmq = in.readShort();</span>
+<span class="nc" id="L365">                short calledMaxAmq = in.readShort();</span>
+<span class="nc" id="L366">                short pduLength = in.readShort();</span>
+<span class="nc" id="L367">                return new SetupCommunicationParameter(callingMaxAmq, calledMaxAmq, pduLength);</span>
+            default:
+<span class="nc bnc" id="L369" title="All 2 branches missed.">                if (logger.isErrorEnabled()) {</span>
+<span class="nc" id="L370">                    logger.error(&quot;Unimplemented parameter type: {}&quot;, parameterType.name());</span>
+                }
+        }
+<span class="nc" id="L373">        return null;</span>
+    }
+
+    private List&lt;VarParameterItem&gt; decodeReadWriteVarParameter(ByteBuf in, byte numItems) {
+<span class="nc" id="L377">        List&lt;VarParameterItem&gt; items = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L378" title="All 2 branches missed.">        for (int i = 0; i &lt; numItems; i++) {</span>
+<span class="nc" id="L379">            SpecificationType specificationType = SpecificationType.valueOf(in.readByte());</span>
+            // Length of the rest of this item.
+<span class="nc" id="L381">            byte itemLength = in.readByte();</span>
+<span class="nc bnc" id="L382" title="All 2 branches missed.">            if (itemLength != 0x0a) {</span>
+<span class="nc" id="L383">                logger.warn(&quot;Expecting a length of 10 here.&quot;);</span>
+<span class="nc" id="L384">                return items;</span>
+            }
+<span class="nc" id="L386">            VariableAddressingMode variableAddressingMode = VariableAddressingMode.valueOf(in.readByte());</span>
+<span class="nc bnc" id="L387" title="All 2 branches missed.">            if (variableAddressingMode == VariableAddressingMode.S7ANY) {</span>
+<span class="nc" id="L388">                TransportSize transportSize = TransportSize.valueOf(in.readByte());</span>
+<span class="nc" id="L389">                short length = in.readShort();</span>
+<span class="nc" id="L390">                short dbNumber = in.readShort();</span>
+<span class="nc" id="L391">                MemoryArea memoryArea = MemoryArea.valueOf(in.readByte());</span>
+<span class="nc" id="L392">                short byteAddress = (short) (in.readShort() &lt;&lt; 5);</span>
+<span class="nc" id="L393">                byte tmp = in.readByte();</span>
+                // Only the least 3 bits are the bit address, the
+<span class="nc" id="L395">                byte bitAddress = (byte) (tmp &amp; 0x07);</span>
+                // Bits 4-8 belong to the byte address
+<span class="nc" id="L397">                byteAddress = (short) (byteAddress | (tmp &gt;&gt; 3));</span>
+<span class="nc" id="L398">                S7AnyVarParameterItem item = new S7AnyVarParameterItem(</span>
+                        specificationType, memoryArea, transportSize,
+                        length, dbNumber, byteAddress, bitAddress);
+<span class="nc" id="L401">                items.add(item);</span>
+<span class="nc" id="L402">            } else {</span>
+<span class="nc" id="L403">                logger.error(&quot;Error parsing item type&quot;);</span>
+<span class="nc" id="L404">                return items;</span>
+            }
+        }
+
+<span class="nc" id="L408">        return items;</span>
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Helpers
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
     /**
      * While a SetupCommunication message is no problem, when reading or writing data,
@@ -136,360 +445,72 @@ public class S7Protocol extends PlcMessageToMessageCodec&lt;IsoTPMessage, S7Mess
         //  have to send back 400 bytes of String data, which would exceed the PDU size. In this case the first String
         //  is correctly returned, but for the second item the PLC will return a code of 0x03 = Access Denied
 
-<span class="fc" id="L139">        return Collections.singletonList(message);</span>
-    }
-
-    private void encodePayloads(S7Message in, ByteBuf buf) {
-<span class="fc bfc" id="L143" title="All 2 branches covered.">        for (S7Payload payload : in.getPayloads()) {</span>
-<span class="fc" id="L144">            ParameterType parameterType = payload.getType();</span>
-<span class="pc bpc" id="L145" title="2 of 4 branches missed.">            if (parameterType == ParameterType.READ_VAR || parameterType == ParameterType.WRITE_VAR) {</span>
-<span class="fc" id="L146">                VarPayload varPayload = (VarPayload) payload;</span>
-<span class="fc bfc" id="L147" title="All 2 branches covered.">                for (VarPayloadItem payloadItem : varPayload.getPayloadItems()) {</span>
-<span class="fc" id="L148">                    buf.writeByte(payloadItem.getReturnCode().getCode());</span>
-<span class="fc" id="L149">                    buf.writeByte(payloadItem.getDataTransportSize().getCode());</span>
-<span class="fc" id="L150">                    buf.writeShort(payloadItem.getData().length);</span>
-<span class="fc" id="L151">                    buf.writeBytes(payloadItem.getData());</span>
-<span class="fc" id="L152">                }</span>
-            }
-<span class="fc" id="L154">        }</span>
-<span class="fc" id="L155">    }</span>
-
-    private void encodeParameters(S7Message in, ByteBuf buf) {
-<span class="fc bfc" id="L158" title="All 2 branches covered.">        for (S7Parameter s7Parameter : in.getParameters()) {</span>
-<span class="fc" id="L159">            buf.writeByte(s7Parameter.getType().getCode());</span>
-<span class="pc bpc" id="L160" title="2 of 3 branches missed.">            switch (s7Parameter.getType()) {</span>
-                case READ_VAR:
-                case WRITE_VAR:
-<span class="fc" id="L163">                    encodeReadWriteVar(buf, (VarParameter) s7Parameter);</span>
-<span class="fc" id="L164">                    break;</span>
-                case SETUP_COMMUNICATION:
-<span class="nc" id="L166">                    encodeSetupCommunication(buf, (SetupCommunicationParameter) s7Parameter);</span>
-<span class="nc" id="L167">                    break;</span>
-                default:
-<span class="nc" id="L169">                    logger.error(&quot;writing this parameter type not implemented&quot;);</span>
-            }
-<span class="fc" id="L171">        }</span>
-<span class="fc" id="L172">    }</span>
-
-    private void encodeHeader(S7Message in, ByteBuf buf) {
-<span class="fc" id="L175">        buf.writeByte(S7_PROTOCOL_MAGIC_NUMBER);</span>
-<span class="fc" id="L176">        buf.writeByte(in.getMessageType().getCode());</span>
-        // Reserved (is always constant 0x0000)
-<span class="fc" id="L178">        buf.writeShort((short) 0x0000);</span>
-        // PDU Reference (Request Id, generated by the initiating node)
-<span class="fc" id="L180">        buf.writeShort(in.getTpduReference());</span>
-        // S7 message parameters length
-<span class="fc" id="L182">        buf.writeShort(getParametersLength(in.getParameters()));</span>
-        // Data field length
-<span class="fc" id="L184">        buf.writeShort(getPayloadsLength(in.getPayloads()));</span>
-<span class="pc bpc" id="L185" title="1 of 2 branches missed.">        if (in instanceof S7ResponseMessage) {</span>
-<span class="nc" id="L186">            S7ResponseMessage s7ResponseMessage = (S7ResponseMessage) in;</span>
-<span class="nc" id="L187">            buf.writeByte(s7ResponseMessage.getErrorClass());</span>
-<span class="nc" id="L188">            buf.writeByte(s7ResponseMessage.getErrorCode());</span>
-        }
-<span class="fc" id="L190">    }</span>
-
-    private void encodeSetupCommunication(ByteBuf buf, SetupCommunicationParameter s7Parameter) {
-        // Reserved (is always constant 0x00)
-<span class="nc" id="L194">        buf.writeByte((byte) 0x00);</span>
-<span class="nc" id="L195">        buf.writeShort(s7Parameter.getMaxAmqCaller());</span>
-<span class="nc" id="L196">        buf.writeShort(s7Parameter.getMaxAmqCallee());</span>
-<span class="nc" id="L197">        buf.writeShort(s7Parameter.getPduLength());</span>
-<span class="nc" id="L198">    }</span>
-
-    private void encodeReadWriteVar(ByteBuf buf, VarParameter s7Parameter) {
-<span class="fc" id="L201">        List&lt;VarParameterItem&gt; items = s7Parameter.getItems();</span>
-        // ReadRequestItem count (Read one variable at a time)
-<span class="fc" id="L203">        buf.writeByte((byte) items.size());</span>
-<span class="fc bfc" id="L204" title="All 2 branches covered.">        for (VarParameterItem item : items) {</span>
-<span class="fc" id="L205">            VariableAddressingMode addressMode = item.getAddressingMode();</span>
-<span class="pc bpc" id="L206" title="1 of 2 branches missed.">            if (addressMode == VariableAddressingMode.S7ANY) {</span>
-<span class="fc" id="L207">                encodeS7AnyParameterItem(buf, (S7AnyVarParameterItem) item);</span>
-            } else {
-<span class="nc" id="L209">                logger.error(&quot;writing this item type not implemented&quot;);</span>
-            }
-<span class="fc" id="L211">        }</span>
-<span class="fc" id="L212">    }</span>
-
-    private void encodeS7AnyParameterItem(ByteBuf buf, S7AnyVarParameterItem s7AnyRequestItem) {
-<span class="fc" id="L215">        buf.writeByte(s7AnyRequestItem.getSpecificationType().getCode());</span>
-        // Length of this item (excluding spec type and length)
-<span class="fc" id="L217">        buf.writeByte((byte) 0x0a);</span>
-<span class="fc" id="L218">        buf.writeByte(s7AnyRequestItem.getAddressingMode().getCode());</span>
-<span class="fc" id="L219">        buf.writeByte(s7AnyRequestItem.getTransportSize().getCode());</span>
-<span class="fc" id="L220">        buf.writeShort(s7AnyRequestItem.getNumElements());</span>
-<span class="fc" id="L221">        buf.writeShort(s7AnyRequestItem.getDataBlockNumber());</span>
-<span class="fc" id="L222">        buf.writeByte(s7AnyRequestItem.getMemoryArea().getCode());</span>
-        // A S7 address is 3 bytes long. Unfortunately the byte-offset is NOT located in
-        // byte 1 and byte 2 and the bit offset in byte 3. Siemens used the last 3 bits of
-        // byte 3 for the bit-offset and the remaining 5 bits of byte 3 to contain the lowest
-        // 5 bits of the byte-offset. The highest 5 bits of byte 1 are probably left unused
-        // for future extensions.
-<span class="fc" id="L228">        buf.writeShort((short) (s7AnyRequestItem.getByteOffset() &gt;&gt; 5));</span>
-<span class="fc" id="L229">        buf.writeByte((byte) ((</span>
-<span class="fc" id="L230">                (s7AnyRequestItem.getByteOffset() &amp; 0x1F) &lt;&lt; 3)</span>
-<span class="fc" id="L231">                | (s7AnyRequestItem.getBitOffset() &amp; 0x07)));</span>
-<span class="fc" id="L232">    }</span>
-
-    @Override
-    protected void decode(ChannelHandlerContext ctx, IsoTPMessage in, List&lt;Object&gt; out) {
-<span class="pc bpc" id="L236" title="1 of 2 branches missed.">        if (logger.isTraceEnabled()) {</span>
-<span class="nc" id="L237">            logger.trace(&quot;Got Data: {}&quot;, ByteBufUtil.hexDump(in.getUserData()));</span>
-        }
-<span class="fc" id="L239">        ByteBuf userData = in.getUserData();</span>
-<span class="pc bpc" id="L240" title="1 of 2 branches missed.">        if (userData.readableBytes() == 0) {</span>
-<span class="nc" id="L241">            return;</span>
-        }
-<span class="fc" id="L243">        logger.debug(&quot;S7 RawMessage received&quot;);</span>
-
-<span class="pc bpc" id="L245" title="1 of 2 branches missed.">        if (userData.readByte() != S7_PROTOCOL_MAGIC_NUMBER) {</span>
-<span class="nc" id="L246">            logger.warn(&quot;Expecting S7 protocol magic number.&quot;);</span>
-<span class="nc bnc" id="L247" title="All 2 branches missed.">            if (logger.isDebugEnabled()) {</span>
-<span class="nc" id="L248">                logger.debug(&quot;Got Data: {}&quot;, ByteBufUtil.hexDump(userData));</span>
-            }
-<span class="nc" id="L250">            return;</span>
-        }
-
-<span class="fc" id="L253">        MessageType messageType = MessageType.valueOf(userData.readByte());</span>
-<span class="pc bpc" id="L254" title="1 of 2 branches missed.">        boolean isResponse = messageType == MessageType.ACK_DATA;</span>
-<span class="fc" id="L255">        userData.readShort();  // Reserved (is always constant 0x0000)</span>
-<span class="fc" id="L256">        short tpduReference = userData.readShort();</span>
-<span class="fc" id="L257">        short headerParametersLength = userData.readShort();</span>
-<span class="fc" id="L258">        short userDataLength = userData.readShort();</span>
-<span class="fc" id="L259">        byte errorClass = 0;</span>
-<span class="fc" id="L260">        byte errorCode = 0;</span>
-<span class="pc bpc" id="L261" title="1 of 2 branches missed.">        if (isResponse) {</span>
-<span class="nc" id="L262">            errorClass = userData.readByte();</span>
-<span class="nc" id="L263">            errorCode = userData.readByte();</span>
-        }
-
-<span class="fc" id="L266">        List&lt;S7Parameter&gt; s7Parameters = new LinkedList&lt;&gt;();</span>
-<span class="fc" id="L267">        SetupCommunicationParameter setupCommunicationParameter = null;</span>
-<span class="fc" id="L268">        VarParameter readWriteVarParameter = null;</span>
-<span class="fc" id="L269">        int i = 0;</span>
-
-<span class="pc bpc" id="L271" title="1 of 2 branches missed.">        while (i &lt; headerParametersLength) {</span>
-<span class="nc" id="L272">            S7Parameter parameter = parseParameter(userData, isResponse, headerParametersLength - i);</span>
-<span class="nc" id="L273">            s7Parameters.add(parameter);</span>
-<span class="nc bnc" id="L274" title="All 2 branches missed.">            if (parameter instanceof SetupCommunicationParameter) {</span>
-<span class="nc" id="L275">                setupCommunicationParameter = (SetupCommunicationParameter) parameter;</span>
-            }
-<span class="nc bnc" id="L277" title="All 2 branches missed.">            if (readWriteVarParameter == null)  {</span>
-<span class="nc" id="L278">                readWriteVarParameter = decodeReadWriteParameter(parameter);</span>
-            }
-<span class="nc" id="L280">            i += getParameterLength(parameter);</span>
-<span class="nc" id="L281">        }</span>
-
-<span class="fc" id="L283">        List&lt;S7Payload&gt; s7Payloads = decodePayloads(userData, isResponse, userDataLength, readWriteVarParameter);</span>
-
-<span class="pc bpc" id="L285" title="1 of 2 branches missed.">        if (isResponse) {</span>
-<span class="nc" id="L286">            setupCommunications(ctx, setupCommunicationParameter);</span>
-<span class="nc" id="L287">            out.add(new S7ResponseMessage(messageType, tpduReference, s7Parameters, s7Payloads, errorClass, errorCode));</span>
-        } else {
-            // TODO: Find out if there is any situation in which a request is sent from the PLC
-<span class="fc" id="L290">            out.add(new S7RequestMessage(messageType, tpduReference, s7Parameters, s7Payloads, null));</span>
-        }
-<span class="fc" id="L292">    }</span>
-
-    private void setupCommunications(ChannelHandlerContext ctx, SetupCommunicationParameter setupCommunicationParameter) {
-        // If we got a SetupCommunicationParameter as part of the response
-        // we are currently in the process of establishing a connection with
-        // the PLC, so save some of the information in the session and tell
-        // the next layer to negotiate the connection parameters.
-<span class="nc bnc" id="L299" title="All 2 branches missed.">        if (setupCommunicationParameter != null) {</span>
-<span class="nc" id="L300">            maxAmqCaller = setupCommunicationParameter.getMaxAmqCaller();</span>
-<span class="nc" id="L301">            maxAmqCallee = setupCommunicationParameter.getMaxAmqCallee();</span>
-<span class="nc" id="L302">            pduSize = setupCommunicationParameter.getPduLength();</span>
-
-            // Send an event that setup is complete.
-<span class="nc" id="L305">            ctx.channel().pipeline().fireUserEventTriggered(new S7ConnectedEvent());</span>
-        }
-<span class="nc" id="L307">    }</span>
-
-    private VarParameter decodeReadWriteParameter(S7Parameter parameter) {
-<span class="nc" id="L310">        VarParameter readWriteVarParameter = null;</span>
-
-<span class="nc bnc" id="L312" title="All 2 branches missed.">        if (parameter instanceof VarParameter) {</span>
-<span class="nc" id="L313">            ParameterType paramType = parameter.getType();</span>
-<span class="nc bnc" id="L314" title="All 4 branches missed.">            if (paramType == ParameterType.READ_VAR || paramType == ParameterType.WRITE_VAR) {</span>
-<span class="nc" id="L315">                readWriteVarParameter = (VarParameter) parameter;</span>
-            }
-        }
-<span class="nc" id="L318">        return readWriteVarParameter;</span>
-    }
-
-    private List&lt;S7Payload&gt; decodePayloads(ByteBuf userData, boolean isResponse, short userDataLength, VarParameter readWriteVarParameter) {
-<span class="fc" id="L322">        int i = 0;</span>
-<span class="fc" id="L323">        List&lt;S7Payload&gt; s7Payloads = new LinkedList&lt;&gt;();</span>
-<span class="pc bpc" id="L324" title="1 of 2 branches missed.">        if (readWriteVarParameter != null) {</span>
-<span class="nc" id="L325">            List&lt;VarPayloadItem&gt; payloadItems = new LinkedList&lt;&gt;();</span>
-
-<span class="nc bnc" id="L327" title="All 2 branches missed.">            while (i &lt; userDataLength) {</span>
-<span class="nc" id="L328">                DataTransportErrorCode dataTransportErrorCode = DataTransportErrorCode.valueOf(userData.readByte());</span>
-                // This is a response to a WRITE_VAR request (It only contains the return code for every sent item.
-<span class="nc bnc" id="L330" title="All 4 branches missed.">                if ((readWriteVarParameter.getType() == ParameterType.WRITE_VAR) &amp;&amp; isResponse) {</span>
-                    // Initialize a rudimentary payload (This is updated in the Plc4XS7Protocol class
-<span class="nc" id="L332">                    VarPayloadItem payload = new VarPayloadItem(dataTransportErrorCode, null, null);</span>
-<span class="nc" id="L333">                    payloadItems.add(payload);</span>
-<span class="nc" id="L334">                    i += 1;</span>
-<span class="nc" id="L335">                }</span>
-                // This is a response to a READ_VAR request.
-<span class="nc bnc" id="L337" title="All 4 branches missed.">                else if ((readWriteVarParameter.getType() == ParameterType.READ_VAR) &amp;&amp; isResponse) {</span>
-<span class="nc" id="L338">                    DataTransportSize dataTransportSize = DataTransportSize.valueOf(userData.readByte());</span>
-<span class="nc bnc" id="L339" title="All 2 branches missed.">                    short length = (dataTransportSize.isSizeInBits()) ?</span>
-<span class="nc" id="L340">                        (short) Math.ceil(userData.readShort() / 8.0) : userData.readShort();</span>
-<span class="nc" id="L341">                    byte[] data = new byte[length];</span>
-<span class="nc" id="L342">                    userData.readBytes(data);</span>
-                    // Initialize a rudimentary payload (This is updated in the Plc4XS7Protocol class
-<span class="nc" id="L344">                    VarPayloadItem payload = new VarPayloadItem(dataTransportErrorCode, dataTransportSize, data);</span>
-<span class="nc" id="L345">                    payloadItems.add(payload);</span>
-<span class="nc" id="L346">                    i += getPayloadLength(payload);</span>
-                }
-<span class="nc" id="L348">            }</span>
-
-<span class="nc" id="L350">            VarPayload varPayload = new VarPayload(readWriteVarParameter.getType(), payloadItems);</span>
-<span class="nc" id="L351">            s7Payloads.add(varPayload);</span>
-        }
-<span class="fc" id="L353">        return s7Payloads;</span>
-    }
-
-    private S7Parameter parseParameter(ByteBuf in, boolean isResponse, int restLength) {
-<span class="nc" id="L357">        ParameterType parameterType = ParameterType.valueOf(in.readByte());</span>
-<span class="nc bnc" id="L358" title="All 2 branches missed.">        if (parameterType == null) {</span>
-<span class="nc" id="L359">            logger.error(&quot;Could not find parameter type&quot;);</span>
-<span class="nc" id="L360">            return null;</span>
-        }
-<span class="nc bnc" id="L362" title="All 4 branches missed.">        switch (parameterType) {</span>
-            case CPU_SERVICES:
-                // Just read in the rest of the header as content of this parameter.
-                // Will have to do a lot more investigation on how this parameter is
-                // constructed.
-<span class="nc" id="L367">                byte[] cpuServices = new byte[restLength - 1];</span>
-<span class="nc" id="L368">                in.readBytes(cpuServices);</span>
-<span class="nc" id="L369">                return null;</span>
-            case READ_VAR:
-            case WRITE_VAR:
-                List&lt;VarParameterItem&gt; varParamameter;
-<span class="nc" id="L373">                byte numItems = in.readByte();</span>
-<span class="nc bnc" id="L374" title="All 2 branches missed.">                if (!isResponse) {</span>
-<span class="nc" id="L375">                    varParamameter = parseReadWriteVarParameter(in, numItems);</span>
-                } else {
-<span class="nc" id="L377">                    varParamameter = Collections.emptyList();</span>
-                }
-<span class="nc" id="L379">                return new VarParameter(parameterType, varParamameter);</span>
-            case SETUP_COMMUNICATION:
-                // Reserved (is always constant 0x00)
-<span class="nc" id="L382">                in.readByte();</span>
-<span class="nc" id="L383">                short callingMaxAmq = in.readShort();</span>
-<span class="nc" id="L384">                short calledMaxAmq = in.readShort();</span>
-<span class="nc" id="L385">                short pduLength = in.readShort();</span>
-<span class="nc" id="L386">                return new SetupCommunicationParameter(callingMaxAmq, calledMaxAmq, pduLength);</span>
-            default:
-<span class="nc bnc" id="L388" title="All 2 branches missed.">                if (logger.isErrorEnabled()) {</span>
-<span class="nc" id="L389">                    logger.error(&quot;Unimplemented parameter type: {}&quot;, parameterType.name());</span>
-                }
-        }
-<span class="nc" id="L392">        return null;</span>
-    }
-
-    private List&lt;VarParameterItem&gt; parseReadWriteVarParameter(ByteBuf in, byte numItems) {
-<span class="nc" id="L396">        List&lt;VarParameterItem&gt; items = new LinkedList&lt;&gt;();</span>
-<span class="nc bnc" id="L397" title="All 2 branches missed.">        for (int i = 0; i &lt; numItems; i++) {</span>
-<span class="nc" id="L398">            SpecificationType specificationType = SpecificationType.valueOf(in.readByte());</span>
-            // Length of the rest of this item.
-<span class="nc" id="L400">            byte itemLength = in.readByte();</span>
-<span class="nc bnc" id="L401" title="All 2 branches missed.">            if (itemLength != 0x0a) {</span>
-<span class="nc" id="L402">                logger.warn(&quot;Expecting a length of 10 here.&quot;);</span>
-<span class="nc" id="L403">                return items;</span>
-            }
-<span class="nc" id="L405">            VariableAddressingMode variableAddressingMode = VariableAddressingMode.valueOf(in.readByte());</span>
-<span class="nc bnc" id="L406" title="All 2 branches missed.">            if (variableAddressingMode == VariableAddressingMode.S7ANY) {</span>
-<span class="nc" id="L407">                TransportSize transportSize = TransportSize.valueOf(in.readByte());</span>
-<span class="nc" id="L408">                short length = in.readShort();</span>
-<span class="nc" id="L409">                short dbNumber = in.readShort();</span>
-<span class="nc" id="L410">                MemoryArea memoryArea = MemoryArea.valueOf(in.readByte());</span>
-<span class="nc" id="L411">                short byteAddress = (short) (in.readShort() &lt;&lt; 5);</span>
-<span class="nc" id="L412">                byte tmp = in.readByte();</span>
-                // Only the least 3 bits are the bit address, the
-<span class="nc" id="L414">                byte bitAddress = (byte) (tmp &amp; 0x07);</span>
-                // Bits 4-8 belong to the byte address
-<span class="nc" id="L416">                byteAddress = (short) (byteAddress | (tmp &gt;&gt; 3));</span>
-<span class="nc" id="L417">                S7AnyVarParameterItem item = new S7AnyVarParameterItem(</span>
-                        specificationType, memoryArea, transportSize,
-                        length, dbNumber, byteAddress, bitAddress);
-<span class="nc" id="L420">                items.add(item);</span>
-<span class="nc" id="L421">            } else {</span>
-<span class="nc" id="L422">                logger.error(&quot;Error parsing item type&quot;);</span>
-<span class="nc" id="L423">                return items;</span>
-            }
-        }
-
-<span class="nc" id="L427">        return items;</span>
+<span class="fc" id="L448">        return Collections.singletonList(message);</span>
     }
 
     private short getParametersLength(List&lt;S7Parameter&gt; parameters) {
-<span class="fc" id="L431">        short l = 0;</span>
-<span class="pc bpc" id="L432" title="1 of 2 branches missed.">        if (parameters != null) {</span>
-<span class="fc bfc" id="L433" title="All 2 branches covered.">            for (S7Parameter parameter : parameters) {</span>
-<span class="fc" id="L434">                l += getParameterLength(parameter);</span>
-<span class="fc" id="L435">            }</span>
+<span class="fc" id="L452">        short l = 0;</span>
+<span class="pc bpc" id="L453" title="1 of 2 branches missed.">        if (parameters != null) {</span>
+<span class="fc bfc" id="L454" title="All 2 branches covered.">            for (S7Parameter parameter : parameters) {</span>
+<span class="fc" id="L455">                l += getParameterLength(parameter);</span>
+<span class="fc" id="L456">            }</span>
         }
-<span class="fc" id="L437">        return l;</span>
+<span class="fc" id="L458">        return l;</span>
     }
 
     private short getPayloadsLength(List&lt;S7Payload&gt; payloads) {
-<span class="fc" id="L441">        short l = 0;</span>
-<span class="pc bpc" id="L442" title="1 of 2 branches missed.">        if (payloads == null) {</span>
-<span class="nc" id="L443">            return 0;</span>
+<span class="fc" id="L462">        short l = 0;</span>
+<span class="pc bpc" id="L463" title="1 of 2 branches missed.">        if (payloads == null) {</span>
+<span class="nc" id="L464">            return 0;</span>
         }
 
-<span class="fc bfc" id="L446" title="All 2 branches covered.">        for (S7Payload payload : payloads) {</span>
-<span class="pc bpc" id="L447" title="1 of 2 branches missed.">            if(payload instanceof VarPayload) {</span>
-<span class="fc" id="L448">                VarPayload varPayload = (VarPayload) payload;</span>
-<span class="fc bfc" id="L449" title="All 2 branches covered.">                for (VarPayloadItem payloadItem : varPayload.getPayloadItems()) {</span>
-<span class="fc" id="L450">                    l += getPayloadLength(payloadItem);</span>
-<span class="fc" id="L451">                }</span>
+<span class="fc bfc" id="L467" title="All 2 branches covered.">        for (S7Payload payload : payloads) {</span>
+<span class="pc bpc" id="L468" title="1 of 2 branches missed.">            if(payload instanceof VarPayload) {</span>
+<span class="fc" id="L469">                VarPayload varPayload = (VarPayload) payload;</span>
+<span class="fc bfc" id="L470" title="All 2 branches covered.">                for (VarPayloadItem payloadItem : varPayload.getPayloadItems()) {</span>
+<span class="fc" id="L471">                    l += getPayloadLength(payloadItem);</span>
+<span class="fc" id="L472">                }</span>
             }
-<span class="fc" id="L453">        }</span>
-<span class="fc" id="L454">        return l;</span>
+<span class="fc" id="L474">        }</span>
+<span class="fc" id="L475">        return l;</span>
     }
 
     private short getParameterLength(S7Parameter parameter) {
-<span class="pc bpc" id="L458" title="1 of 2 branches missed.">        if (parameter == null) {</span>
-<span class="nc" id="L459">            return 0;</span>
+<span class="pc bpc" id="L479" title="1 of 2 branches missed.">        if (parameter == null) {</span>
+<span class="nc" id="L480">            return 0;</span>
         }
 
-<span class="pc bpc" id="L462" title="2 of 3 branches missed.">        switch (parameter.getType()) {</span>
+<span class="pc bpc" id="L483" title="2 of 3 branches missed.">        switch (parameter.getType()) {</span>
             case READ_VAR:
             case WRITE_VAR:
-<span class="fc" id="L465">                return getReadWriteVarParameterLength((VarParameter) parameter);</span>
+<span class="fc" id="L486">                return getReadWriteVarParameterLength((VarParameter) parameter);</span>
             case SETUP_COMMUNICATION:
-<span class="nc" id="L467">                return 8;</span>
+<span class="nc" id="L488">                return 8;</span>
             default:
-<span class="nc" id="L469">                logger.error(&quot;Not implemented&quot;);</span>
-<span class="nc" id="L470">                return 0;</span>
+<span class="nc" id="L490">                logger.error(&quot;Not implemented&quot;);</span>
+<span class="nc" id="L491">                return 0;</span>
         }
     }
 
     private short getReadWriteVarParameterLength(VarParameter parameter) {
-<span class="fc" id="L475">        short length = 2;</span>
-<span class="fc bfc" id="L476" title="All 2 branches covered.">        for (VarParameterItem varParameterItem : parameter.getItems()) {</span>
-<span class="fc" id="L477">            VariableAddressingMode addressMode = varParameterItem.getAddressingMode();</span>
+<span class="fc" id="L496">        short length = 2;</span>
+<span class="fc bfc" id="L497" title="All 2 branches covered.">        for (VarParameterItem varParameterItem : parameter.getItems()) {</span>
+<span class="fc" id="L498">            VariableAddressingMode addressMode = varParameterItem.getAddressingMode();</span>
 
-<span class="pc bpc" id="L479" title="1 of 2 branches missed.">            if (addressMode == VariableAddressingMode.S7ANY) {</span>
-<span class="fc" id="L480">                length += 12;</span>
+<span class="pc bpc" id="L500" title="1 of 2 branches missed.">            if (addressMode == VariableAddressingMode.S7ANY) {</span>
+<span class="fc" id="L501">                length += 12;</span>
             } else {
-<span class="nc" id="L482">                logger.error(&quot;Not implemented&quot;);</span>
+<span class="nc" id="L503">                logger.error(&quot;Not implemented&quot;);</span>
             }
-<span class="fc" id="L484">        }</span>
-<span class="fc" id="L485">        return length;</span>
+<span class="fc" id="L505">        }</span>
+<span class="fc" id="L506">        return length;</span>
     }
 
     private short getPayloadLength(VarPayloadItem payloadItem) {
-<span class="pc bpc" id="L489" title="1 of 2 branches missed.">        if (payloadItem == null) {</span>
-<span class="nc" id="L490">            return 0;</span>
+<span class="pc bpc" id="L510" title="1 of 2 branches missed.">        if (payloadItem == null) {</span>
+<span class="nc" id="L511">            return 0;</span>
         }
-<span class="fc" id="L492">        return (short) (4 + payloadItem.getData().length);</span>
+<span class="fc" id="L513">        return (short) (4 + payloadItem.getData().length);</span>
     }
 
 }

@@ -205,12 +205,18 @@ extends <a href="https://plc4x.apache.org/plc4j/plc4j-protocols/plc4j-protocols-
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../org/apache/plc4x/java/s7/netty/Plc4XS7Protocol.html#exceptionCaught-io.netty.channel.ChannelHandlerContext-java.lang.Throwable-">exceptionCaught</a></span>(io.netty.channel.ChannelHandlerContext&nbsp;ctx,
-               <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Throwable.html?is-external=true" title="class or interface in java.lang">Throwable</a>&nbsp;cause)</code>&nbsp;</td>
+               <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Throwable.html?is-external=true" title="class or interface in java.lang">Throwable</a>&nbsp;cause)</code>
+<div class="block">When receiving an error inside the pipeline, we have to find out which <a href="https://plc4x.apache.org/plc4j/plc4j-api/apidocs/org/apache/plc4x/java/api/messages/PlcRequestContainer.html?is-external=true" title="class or interface in org.apache.plc4x.java.api.messages"><code>PlcRequestContainer</code></a>
+ correlates needs to be notified about the problem.</div>
+</td>
 </tr>
 <tr id="i3" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../org/apache/plc4x/java/s7/netty/Plc4XS7Protocol.html#userEventTriggered-io.netty.channel.ChannelHandlerContext-java.lang.Object-">userEventTriggered</a></span>(io.netty.channel.ChannelHandlerContext&nbsp;ctx,
-                  <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang">Object</a>&nbsp;evt)</code>&nbsp;</td>
+                  <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang">Object</a>&nbsp;evt)</code>
+<div class="block">If this protocol layer catches an <a href="../../../../../../org/apache/plc4x/java/s7/netty/events/S7ConnectedEvent.html" title="class in org.apache.plc4x.java.s7.netty.events"><code>S7ConnectedEvent</code></a> from the protocol layer beneath,
+ the connection establishment is finished.</div>
+</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -302,13 +308,45 @@ extends <a href="https://plc4x.apache.org/plc4j/plc4j-protocols/plc4j-protocols-
 <pre>public&nbsp;void&nbsp;userEventTriggered(io.netty.channel.ChannelHandlerContext&nbsp;ctx,
                                <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang">Object</a>&nbsp;evt)
                         throws <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Exception.html?is-external=true" title="class or interface in java.lang">Exception</a></pre>
+<div class="block">If this protocol layer catches an <a href="../../../../../../org/apache/plc4x/java/s7/netty/events/S7ConnectedEvent.html" title="class in org.apache.plc4x.java.s7.netty.events"><code>S7ConnectedEvent</code></a> from the protocol layer beneath,
+ the connection establishment is finished.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code>userEventTriggered</code>&nbsp;in interface&nbsp;<code>io.netty.channel.ChannelInboundHandler</code></dd>
 <dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
 <dd><code>userEventTriggered</code>&nbsp;in class&nbsp;<code>io.netty.channel.ChannelInboundHandlerAdapter</code></dd>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>ctx</code> - the current protocol layers context</dd>
+<dd><code>evt</code> - the event</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Exception.html?is-external=true" title="class or interface in java.lang">Exception</a></code></dd>
+<dd><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Exception.html?is-external=true" title="class or interface in java.lang">Exception</a></code> - throws an exception if something goes wrong internally</dd>
+</dl>
+</li>
+</ul>
+<a name="exceptionCaught-io.netty.channel.ChannelHandlerContext-java.lang.Throwable-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>exceptionCaught</h4>
+<pre>public&nbsp;void&nbsp;exceptionCaught(io.netty.channel.ChannelHandlerContext&nbsp;ctx,
+                            <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Throwable.html?is-external=true" title="class or interface in java.lang">Throwable</a>&nbsp;cause)
+                     throws <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Exception.html?is-external=true" title="class or interface in java.lang">Exception</a></pre>
+<div class="block">When receiving an error inside the pipeline, we have to find out which <a href="https://plc4x.apache.org/plc4j/plc4j-api/apidocs/org/apache/plc4x/java/api/messages/PlcRequestContainer.html?is-external=true" title="class or interface in org.apache.plc4x.java.api.messages"><code>PlcRequestContainer</code></a>
+ correlates needs to be notified about the problem. If a container is found, we can relay the
+ exception to that by calling completeExceptionally and passing in the exception.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code>exceptionCaught</code>&nbsp;in interface&nbsp;<code>io.netty.channel.ChannelHandler</code></dd>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code>exceptionCaught</code>&nbsp;in interface&nbsp;<code>io.netty.channel.ChannelInboundHandler</code></dd>
+<dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
+<dd><code>exceptionCaught</code>&nbsp;in class&nbsp;<code>io.netty.channel.ChannelInboundHandlerAdapter</code></dd>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>ctx</code> - the current protocol layers context</dd>
+<dd><code>cause</code> - the exception that was caught</dd>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Exception.html?is-external=true" title="class or interface in java.lang">Exception</a></code> - throws an exception if something goes wrong internally</dd>
 </dl>
 </li>
 </ul>
@@ -333,7 +371,7 @@ extends <a href="https://plc4x.apache.org/plc4j/plc4j-protocols/plc4j-protocols-
 <a name="decode-io.netty.channel.ChannelHandlerContext-org.apache.plc4x.java.s7.netty.model.messages.S7Message-java.util.List-">
 <!--   -->
 </a>
-<ul class="blockList">
+<ul class="blockListLast">
 <li class="blockList">
 <h4>decode</h4>
 <pre>protected&nbsp;void&nbsp;decode(io.netty.channel.ChannelHandlerContext&nbsp;ctx,
@@ -343,27 +381,6 @@ extends <a href="https://plc4x.apache.org/plc4j/plc4j-protocols/plc4j-protocols-
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code>decode</code>&nbsp;in class&nbsp;<code>io.netty.handler.codec.MessageToMessageCodec&lt;<a href="../../../../../../org/apache/plc4x/java/s7/netty/model/messages/S7Message.html" title="class in org.apache.plc4x.java.s7.netty.model.messages">S7Message</a>,<a href="https://plc4x.apache.org/plc4j/plc4j-api/apidocs/org/apache/plc4x/java/api/messages/PlcRequestContainer.html?is-external=true" title="class or interface in org.apache.plc4x.java.api.messages">PlcRequestContainer</a>&gt;</code></dd>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Exception.html?is-external=true" title="class or interface in java.lang">Exception</a></code></dd>
-</dl>
-</li>
-</ul>
-<a name="exceptionCaught-io.netty.channel.ChannelHandlerContext-java.lang.Throwable-">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>exceptionCaught</h4>
-<pre>public&nbsp;void&nbsp;exceptionCaught(io.netty.channel.ChannelHandlerContext&nbsp;ctx,
-                            <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Throwable.html?is-external=true" title="class or interface in java.lang">Throwable</a>&nbsp;cause)
-                     throws <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Exception.html?is-external=true" title="class or interface in java.lang">Exception</a></pre>
-<dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code>exceptionCaught</code>&nbsp;in interface&nbsp;<code>io.netty.channel.ChannelHandler</code></dd>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code>exceptionCaught</code>&nbsp;in interface&nbsp;<code>io.netty.channel.ChannelInboundHandler</code></dd>
-<dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
-<dd><code>exceptionCaught</code>&nbsp;in class&nbsp;<code>io.netty.channel.ChannelInboundHandlerAdapter</code></dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Exception.html?is-external=true" title="class or interface in java.lang">Exception</a></code></dd>
 </dl>
