@@ -18,7 +18,8 @@ under the License.
 */
 package org.apache.plc4x.java.s7.netty.model.messages;
 
-import org.apache.plc4x.java.netty.Message;
+import org.apache.plc4x.java.api.messages.ProtocolMessage;
+import org.apache.plc4x.java.base.messages.RawMessage;
 import org.apache.plc4x.java.s7.netty.model.params.S7Parameter;
 import org.apache.plc4x.java.s7.netty.model.payloads.S7Payload;
 import org.apache.plc4x.java.s7.netty.model.types.MessageType;
@@ -26,57 +27,63 @@ import org.apache.plc4x.java.s7.netty.model.types.MessageType;
 import java.util.List;
 import java.util.Optional;
 
-public abstract class S7Message extends Message {
+public abstract class S7Message extends RawMessage {
 
     private final MessageType messageType;
     private final short tpduReference;
     private final List&lt;S7Parameter&gt; parameters;
     private final List&lt;S7Payload&gt; payloads;
 
-    protected S7Message(MessageType messageType, short tpduReference, List&lt;S7Parameter&gt; parameters, List&lt;S7Payload&gt; payloads) {
-<span class="fc" id="L37">        super(null);</span>
-<span class="fc" id="L38">        this.messageType = messageType;</span>
-<span class="fc" id="L39">        this.tpduReference = tpduReference;</span>
-<span class="fc" id="L40">        this.parameters = parameters;</span>
-<span class="fc" id="L41">        this.payloads = payloads;</span>
-<span class="fc" id="L42">    }</span>
+    protected S7Message(MessageType messageType, short tpduReference, List&lt;S7Parameter&gt; parameters,
+                        List&lt;S7Payload&gt; payloads) {
+<span class="fc" id="L39">        this(messageType, tpduReference, parameters, payloads, null);</span>
+<span class="fc" id="L40">    }</span>
+
+    protected S7Message(MessageType messageType, short tpduReference, List&lt;S7Parameter&gt; parameters,
+                        List&lt;S7Payload&gt; payloads, ProtocolMessage parent) {
+<span class="fc" id="L44">        super(null, parent);</span>
+<span class="fc" id="L45">        this.messageType = messageType;</span>
+<span class="fc" id="L46">        this.tpduReference = tpduReference;</span>
+<span class="fc" id="L47">        this.parameters = parameters;</span>
+<span class="fc" id="L48">        this.payloads = payloads;</span>
+<span class="fc" id="L49">    }</span>
 
     public MessageType getMessageType() {
-<span class="fc" id="L45">        return messageType;</span>
+<span class="fc" id="L52">        return messageType;</span>
     }
 
     public short getTpduReference() {
-<span class="fc" id="L49">        return tpduReference;</span>
+<span class="fc" id="L56">        return tpduReference;</span>
     }
 
     public List&lt;S7Parameter&gt; getParameters() {
-<span class="fc" id="L53">        return parameters;</span>
+<span class="fc" id="L60">        return parameters;</span>
     }
 
     public &lt;T&gt; Optional&lt;T&gt; getParameter(Class&lt;T&gt; parameterType) {
-<span class="pc bpc" id="L57" title="1 of 2 branches missed.">        if (parameters != null) {</span>
-<span class="fc bfc" id="L58" title="All 2 branches covered.">            for (S7Parameter s7Parameter : parameters) {</span>
-<span class="fc bfc" id="L59" title="All 2 branches covered.">                if (s7Parameter.getClass() == parameterType) {</span>
-<span class="fc" id="L60">                    return Optional.of(parameterType.cast(s7Parameter));</span>
+<span class="pc bpc" id="L64" title="1 of 2 branches missed.">        if (parameters != null) {</span>
+<span class="fc bfc" id="L65" title="All 2 branches covered.">            for (S7Parameter s7Parameter : parameters) {</span>
+<span class="fc bfc" id="L66" title="All 2 branches covered.">                if (s7Parameter.getClass() == parameterType) {</span>
+<span class="fc" id="L67">                    return Optional.of(parameterType.cast(s7Parameter));</span>
                 }
-<span class="fc" id="L62">            }</span>
+<span class="fc" id="L69">            }</span>
         }
-<span class="fc" id="L64">        return Optional.empty();</span>
+<span class="fc" id="L71">        return Optional.empty();</span>
     }
 
     public List&lt;S7Payload&gt; getPayloads() {
-<span class="fc" id="L68">        return payloads;</span>
+<span class="fc" id="L75">        return payloads;</span>
     }
 
     public &lt;T&gt; Optional&lt;T&gt; getPayload(Class&lt;T&gt; payloadType) {
-<span class="pc bpc" id="L72" title="1 of 2 branches missed.">        if (payloads != null) {</span>
-<span class="fc bfc" id="L73" title="All 2 branches covered.">            for (S7Payload s7Payload : payloads) {</span>
-<span class="fc bfc" id="L74" title="All 2 branches covered.">                if (s7Payload.getClass() == payloadType) {</span>
-<span class="fc" id="L75">                    return Optional.of(payloadType.cast(s7Payload));</span>
+<span class="pc bpc" id="L79" title="1 of 2 branches missed.">        if (payloads != null) {</span>
+<span class="fc bfc" id="L80" title="All 2 branches covered.">            for (S7Payload s7Payload : payloads) {</span>
+<span class="fc bfc" id="L81" title="All 2 branches covered.">                if (s7Payload.getClass() == payloadType) {</span>
+<span class="fc" id="L82">                    return Optional.of(payloadType.cast(s7Payload));</span>
                 }
-<span class="fc" id="L77">            }</span>
+<span class="fc" id="L84">            }</span>
         }
-<span class="fc" id="L79">        return Optional.empty();</span>
+<span class="fc" id="L86">        return Optional.empty();</span>
     }
 
 }

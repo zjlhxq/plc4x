@@ -30,15 +30,15 @@
 <a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> io.netty.buffer.ByteBufUtil;
 <a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> io.netty.buffer.Unpooled;
 <a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> io.netty.channel.ChannelHandlerContext;
-<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> io.netty.handler.codec.MessageToMessageCodec;
-<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.exceptions.PlcProtocolException;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.exceptions.PlcProtocolException;
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.base.PlcMessageToMessageCodec;
 <a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.isoontcp.netty.model.IsoOnTcpMessage;
 <a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> org.slf4j.Logger;
 <a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> org.slf4j.LoggerFactory;
 <a class="jxr_linenumber" name="L30" href="#L30">30</a>  
 <a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> java.util.List;
 <a class="jxr_linenumber" name="L32" href="#L32">32</a>  
-<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../../org/apache/plc4x/java/isoontcp/netty/IsoOnTcpProtocol.html">IsoOnTcpProtocol</a> <strong class="jxr_keyword">extends</strong> MessageToMessageCodec&lt;ByteBuf, IsoOnTcpMessage&gt; {
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../../org/apache/plc4x/java/isoontcp/netty/IsoOnTcpProtocol.html">IsoOnTcpProtocol</a> <strong class="jxr_keyword">extends</strong> PlcMessageToMessageCodec&lt;ByteBuf, IsoOnTcpMessage&gt; {
 <a class="jxr_linenumber" name="L34" href="#L34">34</a>  
 <a class="jxr_linenumber" name="L35" href="#L35">35</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> byte ISO_ON_TCP_MAGIC_NUMBER = 0x03;
 <a class="jxr_linenumber" name="L36" href="#L36">36</a>  
@@ -46,7 +46,7 @@
 <a class="jxr_linenumber" name="L38" href="#L38">38</a>  
 <a class="jxr_linenumber" name="L39" href="#L39">39</a>      @Override
 <a class="jxr_linenumber" name="L40" href="#L40">40</a>      <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> encode(ChannelHandlerContext ctx, <a href="../../../../../../org/apache/plc4x/java/isoontcp/netty/model/IsoOnTcpMessage.html">IsoOnTcpMessage</a> in, List&lt;Object&gt; out) <strong class="jxr_keyword">throws</strong> Exception {
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>          logger.debug(<span class="jxr_string">"ISO on TCP Message sent"</span>);
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>          logger.debug(<span class="jxr_string">"ISO on TCP RawMessage sent"</span>);
 <a class="jxr_linenumber" name="L42" href="#L42">42</a>          <em class="jxr_comment">// At this point of processing all higher levels have already serialized their payload.</em>
 <a class="jxr_linenumber" name="L43" href="#L43">43</a>          <em class="jxr_comment">// This data is passed to the lower levels in form of an IoBuffer.</em>
 <a class="jxr_linenumber" name="L44" href="#L44">44</a>          <strong class="jxr_keyword">final</strong> ByteBuf userData = in.getUserData();
@@ -80,7 +80,7 @@
 <a class="jxr_linenumber" name="L72" href="#L72">72</a>          <em class="jxr_comment">// and get the packet length. Only if the available amount of readable bytes is larger or</em>
 <a class="jxr_linenumber" name="L73" href="#L73">73</a>          <em class="jxr_comment">// equal to this, continue processing the rest.</em>
 <a class="jxr_linenumber" name="L74" href="#L74">74</a>          <strong class="jxr_keyword">if</strong>(in.readableBytes() &gt;= 4) {
-<a class="jxr_linenumber" name="L75" href="#L75">75</a>              logger.debug(<span class="jxr_string">"ISO on TCP Message received"</span>);
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>              logger.debug(<span class="jxr_string">"ISO on TCP RawMessage received"</span>);
 <a class="jxr_linenumber" name="L76" href="#L76">76</a>              <em class="jxr_comment">// The ISO on TCP protocol is really simple and in this case the buffer length</em>
 <a class="jxr_linenumber" name="L77" href="#L77">77</a>              <em class="jxr_comment">// will take care of the higher levels not reading more than is in the packet.</em>
 <a class="jxr_linenumber" name="L78" href="#L78">78</a>              <em class="jxr_comment">// So we just gobble up the header and continue reading in higher levels.</em>
