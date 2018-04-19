@@ -189,48 +189,46 @@
 <a class="jxr_linenumber" name="L181" href="#L181">181</a>         ArrayList&lt;Object&gt; out = <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;();
 <a class="jxr_linenumber" name="L182" href="#L182">182</a>         LOGGER.info(<span class="jxr_string">"{}\nHexDump:\n{}"</span>, amsPacket, amsPacket.dump());
 <a class="jxr_linenumber" name="L183" href="#L183">183</a>         SUT.decode(<strong class="jxr_keyword">null</strong>, amsPacket, out);
-<a class="jxr_linenumber" name="L184" href="#L184">184</a>         assertThat(out, hasSize(1));
-<a class="jxr_linenumber" name="L185" href="#L185">185</a>         assertThat(out.get(0), instanceOf(PlcRequestContainer.<strong class="jxr_keyword">class</strong>));
-<a class="jxr_linenumber" name="L186" href="#L186">186</a>         PlcRequestContainer&lt;?, ?&gt; plcRequestContainer = (PlcRequestContainer) out.get(0);
-<a class="jxr_linenumber" name="L187" href="#L187">187</a>         LOGGER.info(<span class="jxr_string">"PlcRequestContainer {}"</span>, plcRequestContainer);
-<a class="jxr_linenumber" name="L188" href="#L188">188</a>         PlcResponse plcResponse = plcRequestContainer.getResponseFuture().get();
-<a class="jxr_linenumber" name="L189" href="#L189">189</a>         ResponseItem responseItem = (ResponseItem) plcResponse.getResponseItem().get();
-<a class="jxr_linenumber" name="L190" href="#L190">190</a>         LOGGER.info(<span class="jxr_string">"ResponseItem {}"</span>, responseItem);
-<a class="jxr_linenumber" name="L191" href="#L191">191</a>         <strong class="jxr_keyword">if</strong> (amsPacket instanceof AdsReadResponse) {
-<a class="jxr_linenumber" name="L192" href="#L192">192</a>             ReadResponseItem readResponseItem = (ReadResponseItem) responseItem;
-<a class="jxr_linenumber" name="L193" href="#L193">193</a>             Object value = readResponseItem.getValues().get(0);
-<a class="jxr_linenumber" name="L194" href="#L194">194</a>             <strong class="jxr_keyword">if</strong> (payloadClazzName.equals(Boolean.<strong class="jxr_keyword">class</strong>.getSimpleName())) {
-<a class="jxr_linenumber" name="L195" href="#L195">195</a>                 assertThat(value, equalTo(Boolean.TRUE));
-<a class="jxr_linenumber" name="L196" href="#L196">196</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (payloadClazzName.equals(Byte.<strong class="jxr_keyword">class</strong>.getSimpleName())) {
-<a class="jxr_linenumber" name="L197" href="#L197">197</a>                 assertThat(value, equalTo(Byte.valueOf(<span class="jxr_string">"1"</span>)));
-<a class="jxr_linenumber" name="L198" href="#L198">198</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (payloadClazzName.equals(Short.<strong class="jxr_keyword">class</strong>.getSimpleName())) {
-<a class="jxr_linenumber" name="L199" href="#L199">199</a>                 assertThat(value, equalTo(Short.valueOf(<span class="jxr_string">"1"</span>)));
-<a class="jxr_linenumber" name="L200" href="#L200">200</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (payloadClazzName.equals(Calendar.<strong class="jxr_keyword">class</strong>.getSimpleName())) {
-<a class="jxr_linenumber" name="L201" href="#L201">201</a>                 assertThat(value, equalTo(calenderInstance));
-<a class="jxr_linenumber" name="L202" href="#L202">202</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (payloadClazzName.equals(Float.<strong class="jxr_keyword">class</strong>.getSimpleName())) {
-<a class="jxr_linenumber" name="L203" href="#L203">203</a>                 assertThat(value, equalTo(Float.valueOf(<span class="jxr_string">"1"</span>)));
-<a class="jxr_linenumber" name="L204" href="#L204">204</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (payloadClazzName.equals(Integer.<strong class="jxr_keyword">class</strong>.getSimpleName())) {
-<a class="jxr_linenumber" name="L205" href="#L205">205</a>                 assertThat(value, equalTo(Integer.valueOf(<span class="jxr_string">"1"</span>)));
-<a class="jxr_linenumber" name="L206" href="#L206">206</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (payloadClazzName.equals(String.<strong class="jxr_keyword">class</strong>.getSimpleName())) {
-<a class="jxr_linenumber" name="L207" href="#L207">207</a>                 assertThat(value, equalTo(String.valueOf(<span class="jxr_string">"Hello World!"</span>)));
-<a class="jxr_linenumber" name="L208" href="#L208">208</a>             }
-<a class="jxr_linenumber" name="L209" href="#L209">209</a>         }
-<a class="jxr_linenumber" name="L210" href="#L210">210</a>     }
-<a class="jxr_linenumber" name="L211" href="#L211">211</a> 
-<a class="jxr_linenumber" name="L212" href="#L212">212</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> syncInvoiceId() <strong class="jxr_keyword">throws</strong> Exception {
-<a class="jxr_linenumber" name="L213" href="#L213">213</a>         Field correlationBuilderField = SUT.getClass().getDeclaredField(<span class="jxr_string">"correlationBuilder"</span>);
-<a class="jxr_linenumber" name="L214" href="#L214">214</a>         correlationBuilderField.setAccessible(<strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="L215" href="#L215">215</a>         AtomicLong correlationBuilder = (AtomicLong) correlationBuilderField.get(SUT);
-<a class="jxr_linenumber" name="L216" href="#L216">216</a> 
-<a class="jxr_linenumber" name="L217" href="#L217">217</a>         AmsHeader amsHeader = amsPacket.getAmsHeader();
-<a class="jxr_linenumber" name="L218" href="#L218">218</a>         Field invokeIdField = amsHeader.getClass().getDeclaredField(<span class="jxr_string">"invokeId"</span>);
-<a class="jxr_linenumber" name="L219" href="#L219">219</a>         Field modifiersField = Field.<strong class="jxr_keyword">class</strong>.getDeclaredField(<span class="jxr_string">"modifiers"</span>);
-<a class="jxr_linenumber" name="L220" href="#L220">220</a>         modifiersField.setAccessible(<strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="L221" href="#L221">221</a>         modifiersField.setInt(invokeIdField, invokeIdField.getModifiers() &amp; ~Modifier.FINAL);
-<a class="jxr_linenumber" name="L222" href="#L222">222</a>         invokeIdField.setAccessible(<strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="L223" href="#L223">223</a>         invokeIdField.set(amsHeader, Invoke.of(correlationBuilder.get()));
-<a class="jxr_linenumber" name="L224" href="#L224">224</a>     }
-<a class="jxr_linenumber" name="L225" href="#L225">225</a> }
+<a class="jxr_linenumber" name="L184" href="#L184">184</a>         assertThat(out, hasSize(0));
+<a class="jxr_linenumber" name="L185" href="#L185">185</a>         LOGGER.info(<span class="jxr_string">"PlcRequestContainer {}"</span>, plcRequestContainer);
+<a class="jxr_linenumber" name="L186" href="#L186">186</a>         PlcResponse plcResponse = plcRequestContainer.getResponseFuture().get();
+<a class="jxr_linenumber" name="L187" href="#L187">187</a>         ResponseItem responseItem = (ResponseItem) plcResponse.getResponseItem().get();
+<a class="jxr_linenumber" name="L188" href="#L188">188</a>         LOGGER.info(<span class="jxr_string">"ResponseItem {}"</span>, responseItem);
+<a class="jxr_linenumber" name="L189" href="#L189">189</a>         <strong class="jxr_keyword">if</strong> (amsPacket instanceof AdsReadResponse) {
+<a class="jxr_linenumber" name="L190" href="#L190">190</a>             ReadResponseItem readResponseItem = (ReadResponseItem) responseItem;
+<a class="jxr_linenumber" name="L191" href="#L191">191</a>             Object value = readResponseItem.getValues().get(0);
+<a class="jxr_linenumber" name="L192" href="#L192">192</a>             <strong class="jxr_keyword">if</strong> (payloadClazzName.equals(Boolean.<strong class="jxr_keyword">class</strong>.getSimpleName())) {
+<a class="jxr_linenumber" name="L193" href="#L193">193</a>                 assertThat(value, equalTo(Boolean.TRUE));
+<a class="jxr_linenumber" name="L194" href="#L194">194</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (payloadClazzName.equals(Byte.<strong class="jxr_keyword">class</strong>.getSimpleName())) {
+<a class="jxr_linenumber" name="L195" href="#L195">195</a>                 assertThat(value, equalTo(Byte.valueOf(<span class="jxr_string">"1"</span>)));
+<a class="jxr_linenumber" name="L196" href="#L196">196</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (payloadClazzName.equals(Short.<strong class="jxr_keyword">class</strong>.getSimpleName())) {
+<a class="jxr_linenumber" name="L197" href="#L197">197</a>                 assertThat(value, equalTo(Short.valueOf(<span class="jxr_string">"1"</span>)));
+<a class="jxr_linenumber" name="L198" href="#L198">198</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (payloadClazzName.equals(Calendar.<strong class="jxr_keyword">class</strong>.getSimpleName())) {
+<a class="jxr_linenumber" name="L199" href="#L199">199</a>                 assertThat(value, equalTo(calenderInstance));
+<a class="jxr_linenumber" name="L200" href="#L200">200</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (payloadClazzName.equals(Float.<strong class="jxr_keyword">class</strong>.getSimpleName())) {
+<a class="jxr_linenumber" name="L201" href="#L201">201</a>                 assertThat(value, equalTo(Float.valueOf(<span class="jxr_string">"1"</span>)));
+<a class="jxr_linenumber" name="L202" href="#L202">202</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (payloadClazzName.equals(Integer.<strong class="jxr_keyword">class</strong>.getSimpleName())) {
+<a class="jxr_linenumber" name="L203" href="#L203">203</a>                 assertThat(value, equalTo(Integer.valueOf(<span class="jxr_string">"1"</span>)));
+<a class="jxr_linenumber" name="L204" href="#L204">204</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (payloadClazzName.equals(String.<strong class="jxr_keyword">class</strong>.getSimpleName())) {
+<a class="jxr_linenumber" name="L205" href="#L205">205</a>                 assertThat(value, equalTo(String.valueOf(<span class="jxr_string">"Hello World!"</span>)));
+<a class="jxr_linenumber" name="L206" href="#L206">206</a>             }
+<a class="jxr_linenumber" name="L207" href="#L207">207</a>         }
+<a class="jxr_linenumber" name="L208" href="#L208">208</a>     }
+<a class="jxr_linenumber" name="L209" href="#L209">209</a> 
+<a class="jxr_linenumber" name="L210" href="#L210">210</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> syncInvoiceId() <strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="L211" href="#L211">211</a>         Field correlationBuilderField = SUT.getClass().getDeclaredField(<span class="jxr_string">"correlationBuilder"</span>);
+<a class="jxr_linenumber" name="L212" href="#L212">212</a>         correlationBuilderField.setAccessible(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L213" href="#L213">213</a>         AtomicLong correlationBuilder = (AtomicLong) correlationBuilderField.get(SUT);
+<a class="jxr_linenumber" name="L214" href="#L214">214</a> 
+<a class="jxr_linenumber" name="L215" href="#L215">215</a>         AmsHeader amsHeader = amsPacket.getAmsHeader();
+<a class="jxr_linenumber" name="L216" href="#L216">216</a>         Field invokeIdField = amsHeader.getClass().getDeclaredField(<span class="jxr_string">"invokeId"</span>);
+<a class="jxr_linenumber" name="L217" href="#L217">217</a>         Field modifiersField = Field.<strong class="jxr_keyword">class</strong>.getDeclaredField(<span class="jxr_string">"modifiers"</span>);
+<a class="jxr_linenumber" name="L218" href="#L218">218</a>         modifiersField.setAccessible(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L219" href="#L219">219</a>         modifiersField.setInt(invokeIdField, invokeIdField.getModifiers() &amp; ~Modifier.FINAL);
+<a class="jxr_linenumber" name="L220" href="#L220">220</a>         invokeIdField.setAccessible(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L221" href="#L221">221</a>         invokeIdField.set(amsHeader, Invoke.of(correlationBuilder.get()));
+<a class="jxr_linenumber" name="L222" href="#L222">222</a>     }
+<a class="jxr_linenumber" name="L223" href="#L223">223</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2017&#x2013;2018 <a href="https://www.apache.org/">The Apache Software Foundation</a>. All rights reserved.</div>
