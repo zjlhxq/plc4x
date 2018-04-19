@@ -18,6 +18,8 @@
  */
 package org.apache.plc4x.java.ads.api.commands;
 
+import org.apache.plc4x.java.ads.api.commands.types.AdsState;
+import org.apache.plc4x.java.ads.api.commands.types.DeviceState;
 import org.apache.plc4x.java.ads.api.commands.types.Result;
 import org.apache.plc4x.java.ads.api.generic.AdsData;
 import org.apache.plc4x.java.ads.api.generic.AmsHeader;
@@ -39,59 +41,84 @@ public class AdsReadStateResponse extends AdsAbstractResponse {
      */
     private final Result result;
 
-    private AdsReadStateResponse(AmsHeader amsHeader, Result result) {
-<span class="fc" id="L43">        super(amsHeader);</span>
-<span class="fc" id="L44">        this.result = requireNonNull(result);</span>
-<span class="fc" id="L45">    }</span>
+    /**
+     * 2 bytes	New ADS status (see data type ADSSTATE of the ADS-DLL).
+     */
+    private final AdsState adsState;
 
-    private AdsReadStateResponse(AmsNetId targetAmsNetId, AmsPort targetAmsPort, AmsNetId sourceAmsNetId, AmsPort sourceAmsPort, Invoke invokeId, Result result) {
-<span class="fc" id="L48">        super(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId);</span>
-<span class="fc" id="L49">        this.result = requireNonNull(result);</span>
-<span class="fc" id="L50">    }</span>
+    /**
+     * 2 bytes	New device status.
+     */
+    private final DeviceState deviceState;
 
-    public static AdsReadStateResponse of(AmsHeader amsHeader, Result result) {
-<span class="fc" id="L53">        return new AdsReadStateResponse(amsHeader, result);</span>
+    private AdsReadStateResponse(AmsHeader amsHeader, Result result, AdsState adsState, DeviceState deviceState) {
+<span class="fc" id="L55">        super(amsHeader);</span>
+<span class="fc" id="L56">        this.result = requireNonNull(result);</span>
+<span class="fc" id="L57">        this.adsState = requireNonNull(adsState);</span>
+<span class="fc" id="L58">        this.deviceState = requireNonNull(deviceState);</span>
+<span class="fc" id="L59">    }</span>
+
+    private AdsReadStateResponse(AmsNetId targetAmsNetId, AmsPort targetAmsPort, AmsNetId sourceAmsNetId, AmsPort sourceAmsPort, Invoke invokeId, Result result, AdsState adsState, DeviceState deviceState) {
+<span class="fc" id="L62">        super(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId);</span>
+<span class="fc" id="L63">        this.result = requireNonNull(result);</span>
+<span class="fc" id="L64">        this.adsState = requireNonNull(adsState);</span>
+<span class="fc" id="L65">        this.deviceState = requireNonNull(deviceState);</span>
+<span class="fc" id="L66">    }</span>
+
+    public static AdsReadStateResponse of(AmsHeader amsHeader, Result result, AdsState adsState, DeviceState deviceState) {
+<span class="fc" id="L69">        return new AdsReadStateResponse(amsHeader, result, adsState, deviceState);</span>
     }
 
-    public static AdsReadStateResponse of(AmsNetId targetAmsNetId, AmsPort targetAmsPort, AmsNetId sourceAmsNetId, AmsPort sourceAmsPort, Invoke invokeId, Result result) {
-<span class="fc" id="L57">        return new AdsReadStateResponse(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId, result);</span>
+    public static AdsReadStateResponse of(AmsNetId targetAmsNetId, AmsPort targetAmsPort, AmsNetId sourceAmsNetId, AmsPort sourceAmsPort, Invoke invokeId, Result result, AdsState adsState, DeviceState deviceState) {
+<span class="fc" id="L73">        return new AdsReadStateResponse(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId, result, adsState, deviceState);</span>
     }
 
     public Result getResult() {
-<span class="fc" id="L61">        return result;</span>
+<span class="fc" id="L77">        return result;</span>
+    }
+
+    public AdsState getAdsState() {
+<span class="fc" id="L81">        return adsState;</span>
+    }
+
+    public DeviceState getDeviceState() {
+<span class="fc" id="L85">        return deviceState;</span>
     }
 
     @Override
     public AdsData getAdsData() {
-<span class="fc" id="L66">        return buildADSData(result);</span>
+<span class="fc" id="L90">        return buildADSData(result, adsState, deviceState);</span>
     }
 
     @Override
     public boolean equals(Object o) {
-<span class="pc bpc" id="L71" title="1 of 2 branches missed.">        if (this == o)</span>
-<span class="nc" id="L72">            return true;</span>
-<span class="pc bpc" id="L73" title="1 of 2 branches missed.">        if (!(o instanceof AdsReadStateResponse))</span>
-<span class="nc" id="L74">            return false;</span>
-<span class="pc bpc" id="L75" title="1 of 2 branches missed.">        if (!super.equals(o))</span>
-<span class="nc" id="L76">            return false;</span>
+<span class="pc bpc" id="L95" title="1 of 2 branches missed.">        if (this == o) return true;</span>
+<span class="pc bpc" id="L96" title="1 of 2 branches missed.">        if (!(o instanceof AdsReadStateResponse)) return false;</span>
+<span class="pc bpc" id="L97" title="1 of 2 branches missed.">        if (!super.equals(o)) return false;</span>
 
-<span class="fc" id="L78">        AdsReadStateResponse that = (AdsReadStateResponse) o;</span>
+<span class="fc" id="L99">        AdsReadStateResponse that = (AdsReadStateResponse) o;</span>
 
-<span class="fc" id="L80">        return result.equals(that.result);</span>
+<span class="pc bpc" id="L101" title="1 of 2 branches missed.">        if (!result.equals(that.result)) return false;</span>
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">        if (!adsState.equals(that.adsState)) return false;</span>
+<span class="fc" id="L103">        return deviceState.equals(that.deviceState);</span>
     }
 
     @Override
     public int hashCode() {
-<span class="nc" id="L85">        int result1 = super.hashCode();</span>
-<span class="nc" id="L86">        result1 = 31 * result1 + result.hashCode();</span>
-<span class="nc" id="L87">        return result1;</span>
+<span class="nc" id="L108">        int result1 = super.hashCode();</span>
+<span class="nc" id="L109">        result1 = 31 * result1 + result.hashCode();</span>
+<span class="nc" id="L110">        result1 = 31 * result1 + adsState.hashCode();</span>
+<span class="nc" id="L111">        result1 = 31 * result1 + deviceState.hashCode();</span>
+<span class="nc" id="L112">        return result1;</span>
     }
 
     @Override
     public String toString() {
-<span class="fc" id="L92">        return &quot;AdsReadStateResponse{&quot; +</span>
+<span class="fc" id="L117">        return &quot;AdsReadStateResponse{&quot; +</span>
             &quot;result=&quot; + result +
-<span class="fc" id="L94">            &quot;} &quot; + super.toString();</span>
+            &quot;, adsState=&quot; + adsState +
+            &quot;, deviceState=&quot; + deviceState +
+<span class="fc" id="L121">            &quot;} &quot; + super.toString();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
