@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DefaultS7MessageProcessor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PLC4J: Protocol: S7</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.java.s7.netty.strategies</a> &gt; <span class="el_source">DefaultS7MessageProcessor.java</span></div><h1>DefaultS7MessageProcessor.java</h1><pre class="source lang-java linenums">package org.apache.plc4x.java.s7.netty.strategies;/*
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+&quot;License&quot;); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+&quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+*/
+
+import org.apache.plc4x.java.s7.netty.model.messages.S7CompositeRequestMessage;
+import org.apache.plc4x.java.s7.netty.model.messages.S7Message;
+import org.apache.plc4x.java.s7.netty.model.messages.S7RequestMessage;
+import org.apache.plc4x.java.s7.netty.model.params.S7Parameter;
+import org.apache.plc4x.java.s7.netty.model.params.VarParameter;
+import org.apache.plc4x.java.s7.netty.model.params.items.VarParameterItem;
+import org.apache.plc4x.java.s7.netty.util.S7SizeHelper;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+
+/**
+ * While a SetupCommunication message is no problem, when reading or writing data,
+ * situations could arise that have to be handled. The following situations have to
+ * be handled:
+ * - The number of request items is so big, that the resulting PDU would exceed the
+ *   agreed upon PDU size: The request has to be split up into multiple requests.
+ * - If large blocks of data are requested by request items the result of a request
+ *   could exceed the PDU size: The requests has to be split up into multiple requests
+ *   where each requests response doesn't exceed the PDU size.
+ *
+ * The following optimizations should be implemented:
+ * - If blocks are read which are in near proximity to each other it could be better
+ *   to replace multiple requests by one that includes multiple blocks.
+ * - Rearranging the order of request items could reduce the number of needed PDUs.
+ */
+public class DefaultS7MessageProcessor implements S7MessageProcessor {
+
+    private final int pduSize;
+    private AtomicInteger tpduRefGen;
+
+<span class="nc" id="L53">    public DefaultS7MessageProcessor(int pduSize) {</span>
+<span class="nc" id="L54">        this.pduSize = pduSize;</span>
+<span class="nc" id="L55">        this.tpduRefGen = new AtomicInteger(1);</span>
+<span class="nc" id="L56">    }</span>
+
+    @Override
+    public Collection&lt;? extends S7Message&gt; process(S7Message s7Message) {
+        // The following considerations have to be taken into account:
+        // - The size of all parameters and payloads of a message cannot exceed the negotiated PDU size
+        // - When reading data, the size of the returned data cannot exceed the negotiated PDU size
+        //
+        // Examples:
+        // - Size of the request exceeds the maximum
+        //  When having a negotiated max PDU size of 256, the maximum size of individual addresses can be at most 18
+        //  If more are sent, the S7 will respond with a frame error.
+        // - Size of the response exceeds the maximum
+        //  When reading two Strings of each 200 bytes length, the size of the request is ok, however the PLC would
+        //  have to send back 400 bytes of String data, which would exceed the PDU size. In this case the first String
+        //  is correctly returned, but for the second item the PLC will return a code of 0x03 = Access Denied
+
+<span class="nc bnc" id="L73" title="All 2 branches missed.">        if(s7Message instanceof S7RequestMessage) {</span>
+<span class="nc" id="L74">            S7RequestMessage originalRequestMessage = (S7RequestMessage) s7Message;</span>
+<span class="nc" id="L75">            Optional&lt;VarParameter&gt; varParameterOptional = originalRequestMessage.getParameter(VarParameter.class);</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">            if (varParameterOptional.isPresent()) {</span>
+<span class="nc" id="L77">                VarParameter varParameter = varParameterOptional.get();</span>
+
+                // TODO: This is a work inprogress ...
+<span class="nc" id="L80">                S7CompositeRequestMessage compositeRequestMessage = new S7CompositeRequestMessage(originalRequestMessage);</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">                for (VarParameterItem varParameterItem : varParameter.getItems()) {</span>
+<span class="nc" id="L82">                    S7Parameter parameter = new VarParameter(varParameter.getType(), Collections.singletonList(varParameterItem));</span>
+<span class="nc" id="L83">                    S7RequestMessage subMessage = new S7RequestMessage(</span>
+<span class="nc" id="L84">                        s7Message.getMessageType(), (short) tpduRefGen.getAndIncrement(),</span>
+<span class="nc" id="L85">                        Collections.singletonList(parameter), Collections.emptyList(), compositeRequestMessage);</span>
+<span class="nc" id="L86">                    compositeRequestMessage.addRequestMessage(subMessage);</span>
+<span class="nc" id="L87">                }</span>
+<span class="nc" id="L88">                return compositeRequestMessage.getRequestMessages();</span>
+            }
+        }
+
+<span class="nc" id="L92">        return Collections.singletonList(s7Message);</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

@@ -90,7 +90,7 @@ public class IsoTPProtocol extends PlcMessageToMessageCodec&lt;IsoOnTcpMessage, 
 
     @Override
     protected void encode(ChannelHandlerContext ctx, Tpdu in, List&lt;Object&gt; out) {
-<span class="fc" id="L93">        logger.debug(&quot;ISO Transport Protocol RawMessage sent&quot;);</span>
+<span class="fc" id="L93">        logger.debug(&quot;ISO Transport Protocol Message sent&quot;);</span>
 
 <span class="fc bfc" id="L95" title="All 2 branches covered.">        if (in == null) {</span>
 <span class="fc" id="L96">            return;</span>
@@ -212,7 +212,7 @@ public class IsoTPProtocol extends PlcMessageToMessageCodec&lt;IsoOnTcpMessage, 
 <span class="pc bpc" id="L212" title="1 of 2 branches missed.">        if (logger.isTraceEnabled()) {</span>
 <span class="nc" id="L213">            logger.trace(&quot;Got Data: {}&quot;, ByteBufUtil.hexDump(in.getUserData()));</span>
         }
-<span class="fc" id="L215">        logger.debug(&quot;ISO TP RawMessage received&quot;);</span>
+<span class="fc" id="L215">        logger.debug(&quot;ISO TP Message received&quot;);</span>
 
 <span class="fc bfc" id="L217" title="All 2 branches covered.">        if (in == null) {</span>
 <span class="fc" id="L218">            return;</span>
@@ -301,69 +301,71 @@ public class IsoTPProtocol extends PlcMessageToMessageCodec&lt;IsoOnTcpMessage, 
     private Tpdu decodeDataTpdu(ByteBuf userData, List&lt;Parameter&gt; parameters) {
         Tpdu tpdu;
 <span class="fc" id="L303">        byte tmp = userData.readByte();</span>
-<span class="fc bfc" id="L304" title="All 2 branches covered.">        boolean eot = (tmp &amp; 0x80) == 0x80;</span>
-<span class="fc" id="L305">        byte tpduRef = (byte) (tmp &amp; 0x7F);</span>
-<span class="fc" id="L306">        tpdu = new DataTpdu(eot, tpduRef, parameters, userData);</span>
-<span class="fc" id="L307">        return tpdu;</span>
+        // Bit 8 is the EOT indicator (1 = last TPDU)
+<span class="fc bfc" id="L305" title="All 2 branches covered.">        boolean eot = (tmp &amp; 0x80) == 0x80;</span>
+        // The rest is simply a 7 bit number identifying the current request.
+<span class="fc" id="L307">        byte tpduRef = (byte) (tmp &amp; 0x7F);</span>
+<span class="fc" id="L308">        tpdu = new DataTpdu(eot, tpduRef, parameters, userData);</span>
+<span class="fc" id="L309">        return tpdu;</span>
     }
 
     private Tpdu decodeConnectTpdu(ChannelHandlerContext ctx, ByteBuf userData, TpduCode tpduCode, List&lt;Parameter&gt; parameters) {
         Tpdu tpdu;
-<span class="fc" id="L312">        short destinationReference = userData.readShort();</span>
-<span class="fc" id="L313">        short sourceReference = userData.readShort();</span>
-<span class="fc" id="L314">        ProtocolClass protocolClass = ProtocolClass.valueOf(userData.readByte());</span>
+<span class="fc" id="L314">        short destinationReference = userData.readShort();</span>
+<span class="fc" id="L315">        short sourceReference = userData.readShort();</span>
+<span class="fc" id="L316">        ProtocolClass protocolClass = ProtocolClass.valueOf(userData.readByte());</span>
 
-<span class="fc bfc" id="L316" title="All 2 branches covered.">        if (tpduCode == TpduCode.CONNECTION_REQUEST) {</span>
-<span class="fc" id="L317">            tpdu = new ConnectionRequestTpdu(destinationReference, sourceReference, protocolClass, parameters, userData);</span>
+<span class="fc bfc" id="L318" title="All 2 branches covered.">        if (tpduCode == TpduCode.CONNECTION_REQUEST) {</span>
+<span class="fc" id="L319">            tpdu = new ConnectionRequestTpdu(destinationReference, sourceReference, protocolClass, parameters, userData);</span>
 
         } else { // TpduCode.CONNECTION_CONFIRM
-<span class="fc" id="L320">            tpdu = new ConnectionConfirmTpdu(destinationReference, sourceReference, protocolClass, parameters, userData);</span>
-<span class="fc" id="L321">            ctx.channel().pipeline().fireUserEventTriggered(new IsoTPConnectedEvent());</span>
+<span class="fc" id="L322">            tpdu = new ConnectionConfirmTpdu(destinationReference, sourceReference, protocolClass, parameters, userData);</span>
+<span class="fc" id="L323">            ctx.channel().pipeline().fireUserEventTriggered(new IsoTPConnectedEvent());</span>
         }
-<span class="fc" id="L323">        return tpdu;</span>
+<span class="fc" id="L325">        return tpdu;</span>
     }
 
     private Parameter decodeParameter(ByteBuf out) {
-<span class="fc" id="L327">        ParameterCode parameterCode = ParameterCode.valueOf(out.readByte());</span>
-<span class="fc bfc" id="L328" title="All 2 branches covered.">        if (parameterCode == null) {</span>
-<span class="fc" id="L329">            logger.error(&quot;Could not find parameter code&quot;);</span>
-<span class="fc" id="L330">            return null;</span>
+<span class="fc" id="L329">        ParameterCode parameterCode = ParameterCode.valueOf(out.readByte());</span>
+<span class="fc bfc" id="L330" title="All 2 branches covered.">        if (parameterCode == null) {</span>
+<span class="fc" id="L331">            logger.error(&quot;Could not find parameter code&quot;);</span>
+<span class="fc" id="L332">            return null;</span>
         }
-<span class="fc" id="L332">        byte length = out.readByte();</span>
-<span class="pc bpc" id="L333" title="1 of 5 branches missed.">        switch (parameterCode) {</span>
+<span class="fc" id="L334">        byte length = out.readByte();</span>
+<span class="pc bpc" id="L335" title="1 of 5 branches missed.">        switch (parameterCode) {</span>
             case CALLING_TSAP:
             case CALLED_TSAP:
-<span class="fc" id="L336">                return decodeTsapParameter(out, parameterCode);</span>
+<span class="fc" id="L338">                return decodeTsapParameter(out, parameterCode);</span>
             case CHECKSUM:
-<span class="fc" id="L338">                byte checksum = out.readByte();</span>
-<span class="fc" id="L339">                return new ChecksumParameter(checksum);</span>
+<span class="fc" id="L340">                byte checksum = out.readByte();</span>
+<span class="fc" id="L341">                return new ChecksumParameter(checksum);</span>
             case DISCONNECT_ADDITIONAL_INFORMATION:
-<span class="fc" id="L341">                byte[] data = new byte[length];</span>
-<span class="fc" id="L342">                out.readBytes(data);</span>
-<span class="fc" id="L343">                return new DisconnectAdditionalInformationParameter(data);</span>
+<span class="fc" id="L343">                byte[] data = new byte[length];</span>
+<span class="fc" id="L344">                out.readBytes(data);</span>
+<span class="fc" id="L345">                return new DisconnectAdditionalInformationParameter(data);</span>
             case TPDU_SIZE:
-<span class="fc" id="L345">                TpduSize size = TpduSize.valueOf(out.readByte());</span>
-<span class="fc" id="L346">                return new TpduSizeParameter(size);</span>
+<span class="fc" id="L347">                TpduSize size = TpduSize.valueOf(out.readByte());</span>
+<span class="fc" id="L348">                return new TpduSizeParameter(size);</span>
             default:
-<span class="nc bnc" id="L348" title="All 2 branches missed.">                if (logger.isErrorEnabled()) {</span>
-<span class="nc" id="L349">                    logger.error(&quot;Parameter not implemented yet {}&quot;, parameterCode.name());</span>
+<span class="nc bnc" id="L350" title="All 2 branches missed.">                if (logger.isErrorEnabled()) {</span>
+<span class="nc" id="L351">                    logger.error(&quot;Parameter not implemented yet {}&quot;, parameterCode.name());</span>
                 }
-<span class="nc" id="L351">                return null;</span>
+<span class="nc" id="L353">                return null;</span>
         }
     }
 
     private Parameter decodeTsapParameter(ByteBuf out, ParameterCode parameterCode) {
-<span class="fc" id="L356">        short tsapId = out.readShort();</span>
-<span class="pc bpc" id="L357" title="1 of 3 branches missed.">        switch (parameterCode) {</span>
+<span class="fc" id="L358">        short tsapId = out.readShort();</span>
+<span class="pc bpc" id="L359" title="1 of 3 branches missed.">        switch (parameterCode) {</span>
             case CALLING_TSAP:
-<span class="fc" id="L359">                return new CallingTsapParameter(tsapId);</span>
+<span class="fc" id="L361">                return new CallingTsapParameter(tsapId);</span>
             case CALLED_TSAP:
-<span class="fc" id="L361">                return new CalledTsapParameter(tsapId);</span>
+<span class="fc" id="L363">                return new CalledTsapParameter(tsapId);</span>
             default:
-<span class="nc bnc" id="L363" title="All 2 branches missed.">                if (logger.isErrorEnabled()) {</span>
-<span class="nc" id="L364">                    logger.error(&quot;Parameter not implemented yet {}&quot;, parameterCode.name());</span>
+<span class="nc bnc" id="L365" title="All 2 branches missed.">                if (logger.isErrorEnabled()) {</span>
+<span class="nc" id="L366">                    logger.error(&quot;Parameter not implemented yet {}&quot;, parameterCode.name());</span>
                 }
-<span class="nc" id="L366">                return null;</span>
+<span class="nc" id="L368">                return null;</span>
         }
     }
 
@@ -380,64 +382,64 @@ public class IsoTPProtocol extends PlcMessageToMessageCodec&lt;IsoOnTcpMessage, 
      * @return length of the iso tp header
      */
     private short getHeaderLength(Tpdu tpdu) {
-<span class="pc bpc" id="L383" title="1 of 2 branches missed.">        if (tpdu == null) {</span>
-<span class="nc" id="L384">            return 0;</span>
+<span class="pc bpc" id="L385" title="1 of 2 branches missed.">        if (tpdu == null) {</span>
+<span class="nc" id="L386">            return 0;</span>
         }
 
         short headerLength;
-<span class="fc bfc" id="L388" title="All 6 branches covered.">        switch (tpdu.getTpduCode()) {</span>
+<span class="fc bfc" id="L390" title="All 6 branches covered.">        switch (tpdu.getTpduCode()) {</span>
             case CONNECTION_REQUEST:
             case CONNECTION_CONFIRM:
-<span class="fc" id="L391">                headerLength = 7;</span>
-<span class="fc" id="L392">                break;</span>
+<span class="fc" id="L393">                headerLength = 7;</span>
+<span class="fc" id="L394">                break;</span>
             case DATA:
-<span class="fc" id="L394">                headerLength = 3;</span>
-<span class="fc" id="L395">                break;</span>
+<span class="fc" id="L396">                headerLength = 3;</span>
+<span class="fc" id="L397">                break;</span>
             case DISCONNECT_REQUEST:
-<span class="fc" id="L397">                headerLength = 7;</span>
-<span class="fc" id="L398">                break;</span>
+<span class="fc" id="L399">                headerLength = 7;</span>
+<span class="fc" id="L400">                break;</span>
             case DISCONNECT_CONFIRM:
-<span class="fc" id="L400">                headerLength = 6;</span>
-<span class="fc" id="L401">                break;</span>
+<span class="fc" id="L402">                headerLength = 6;</span>
+<span class="fc" id="L403">                break;</span>
             case TPDU_ERROR:
-<span class="fc" id="L403">                headerLength = 5;</span>
-<span class="fc" id="L404">                break;</span>
+<span class="fc" id="L405">                headerLength = 5;</span>
+<span class="fc" id="L406">                break;</span>
             default:
-<span class="fc" id="L406">                headerLength = 0;</span>
+<span class="fc" id="L408">                headerLength = 0;</span>
                 break;
         }
-<span class="fc" id="L409">        return (short) (headerLength + getParametersLength(tpdu.getParameters()));</span>
+<span class="fc" id="L411">        return (short) (headerLength + getParametersLength(tpdu.getParameters()));</span>
     }
 
     private short getParametersLength(List&lt;Parameter&gt; parameters) {
-<span class="fc" id="L413">        short length = 0;</span>
-<span class="pc bpc" id="L414" title="1 of 2 branches missed.">        if (parameters != null) {</span>
-<span class="fc bfc" id="L415" title="All 2 branches covered.">            for (Parameter parameter : parameters) {</span>
-<span class="fc" id="L416">                length += getParameterLength(parameter);</span>
-<span class="fc" id="L417">            }</span>
+<span class="fc" id="L415">        short length = 0;</span>
+<span class="pc bpc" id="L416" title="1 of 2 branches missed.">        if (parameters != null) {</span>
+<span class="fc bfc" id="L417" title="All 2 branches covered.">            for (Parameter parameter : parameters) {</span>
+<span class="fc" id="L418">                length += getParameterLength(parameter);</span>
+<span class="fc" id="L419">            }</span>
         }
-<span class="fc" id="L419">        return length;</span>
+<span class="fc" id="L421">        return length;</span>
     }
 
     private short getParameterLength(Parameter parameter) {
-<span class="pc bpc" id="L423" title="1 of 2 branches missed.">        if (parameter == null) {</span>
-<span class="nc" id="L424">            return 0;</span>
+<span class="pc bpc" id="L425" title="1 of 2 branches missed.">        if (parameter == null) {</span>
+<span class="nc" id="L426">            return 0;</span>
         }
-<span class="pc bpc" id="L426" title="1 of 5 branches missed.">        switch (parameter.getType()) {</span>
+<span class="pc bpc" id="L428" title="1 of 5 branches missed.">        switch (parameter.getType()) {</span>
             case CALLED_TSAP:
             case CALLING_TSAP:
-<span class="fc" id="L429">                return 4;</span>
+<span class="fc" id="L431">                return 4;</span>
             case CHECKSUM:
-<span class="fc" id="L431">                return 3;</span>
+<span class="fc" id="L433">                return 3;</span>
             case DISCONNECT_ADDITIONAL_INFORMATION:
-<span class="fc" id="L433">                DisconnectAdditionalInformationParameter disconnectAdditionalInformationParameter =</span>
+<span class="fc" id="L435">                DisconnectAdditionalInformationParameter disconnectAdditionalInformationParameter =</span>
                     (DisconnectAdditionalInformationParameter) parameter;
-<span class="pc bpc" id="L435" title="1 of 2 branches missed.">                return (short) (2 + ((disconnectAdditionalInformationParameter.getData() != null) ?</span>
-<span class="pc" id="L436">                    disconnectAdditionalInformationParameter.getData().length : 0));</span>
+<span class="pc bpc" id="L437" title="1 of 2 branches missed.">                return (short) (2 + ((disconnectAdditionalInformationParameter.getData() != null) ?</span>
+<span class="pc" id="L438">                    disconnectAdditionalInformationParameter.getData().length : 0));</span>
             case TPDU_SIZE:
-<span class="fc" id="L438">                return 3;</span>
+<span class="fc" id="L440">                return 3;</span>
             default:
-<span class="nc" id="L440">                return 0;</span>
+<span class="nc" id="L442">                return 0;</span>
         }
     }
 

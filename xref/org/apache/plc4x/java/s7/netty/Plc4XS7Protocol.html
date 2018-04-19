@@ -324,99 +324,101 @@
 <a class="jxr_linenumber" name="L316" href="#L316">316</a>         List&lt;ReadResponseItem&lt;?&gt;&gt; responseItems = <strong class="jxr_keyword">new</strong> LinkedList&lt;&gt;();
 <a class="jxr_linenumber" name="L317" href="#L317">317</a>         <a href="../../../../../../org/apache/plc4x/java/s7/netty/model/payloads/VarPayload.html">VarPayload</a> payload = responseMessage.getPayload(VarPayload.<strong class="jxr_keyword">class</strong>)
 <a class="jxr_linenumber" name="L318" href="#L318">318</a>             .orElseThrow(() -&gt; <strong class="jxr_keyword">new</strong> PlcProtocolException(<span class="jxr_string">"No VarPayload supplied"</span>));
-<a class="jxr_linenumber" name="L319" href="#L319">319</a>         <em class="jxr_comment">// If the numbers of items don't match, we're in big trouble as the only</em>
-<a class="jxr_linenumber" name="L320" href="#L320">320</a>         <em class="jxr_comment">// way to know how to interpret the responses is by aligning them with the</em>
-<a class="jxr_linenumber" name="L321" href="#L321">321</a>         <em class="jxr_comment">// items from the request as this information is not returned by the PLC.</em>
-<a class="jxr_linenumber" name="L322" href="#L322">322</a>         <strong class="jxr_keyword">if</strong> (plcReadRequest.getRequestItems().size() != payload.getPayloadItems().size()) {
-<a class="jxr_linenumber" name="L323" href="#L323">323</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/api/exceptions/PlcProtocolException.html">PlcProtocolException</a>(
-<a class="jxr_linenumber" name="L324" href="#L324">324</a>                 <span class="jxr_string">"The number of requested items doesn't match the number of returned items"</span>);
-<a class="jxr_linenumber" name="L325" href="#L325">325</a>         }
-<a class="jxr_linenumber" name="L326" href="#L326">326</a>         List&lt;VarPayloadItem&gt; payloadItems = payload.getPayloadItems();
-<a class="jxr_linenumber" name="L327" href="#L327">327</a>         <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> noPayLoadItems = payloadItems.size();
-<a class="jxr_linenumber" name="L328" href="#L328">328</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; noPayLoadItems; i++) {
-<a class="jxr_linenumber" name="L329" href="#L329">329</a>             <a href="../../../../../../org/apache/plc4x/java/s7/netty/model/payloads/items/VarPayloadItem.html">VarPayloadItem</a> payloadItem = payloadItems.get(i);
-<a class="jxr_linenumber" name="L330" href="#L330">330</a> 
-<a class="jxr_linenumber" name="L331" href="#L331">331</a>             <em class="jxr_comment">// Get the request item for this payload item</em>
-<a class="jxr_linenumber" name="L332" href="#L332">332</a>             <a href="../../../../../../org/apache/plc4x/java/api/messages/items/ReadRequestItem.html">ReadRequestItem</a> requestItem = plcReadRequest.getRequestItems().get(i);
-<a class="jxr_linenumber" name="L333" href="#L333">333</a> 
-<a class="jxr_linenumber" name="L334" href="#L334">334</a>             <a href="../../../../../../org/apache/plc4x/java/api/types/ResponseCode.html">ResponseCode</a> responseCode = decodeResponseCode(payloadItem.getReturnCode());
+<a class="jxr_linenumber" name="L319" href="#L319">319</a> 
+<a class="jxr_linenumber" name="L320" href="#L320">320</a>         <em class="jxr_comment">// If the numbers of items don't match, we're in big trouble as the only</em>
+<a class="jxr_linenumber" name="L321" href="#L321">321</a>         <em class="jxr_comment">// way to know how to interpret the responses is by aligning them with the</em>
+<a class="jxr_linenumber" name="L322" href="#L322">322</a>         <em class="jxr_comment">// items from the request as this information is not returned by the PLC.</em>
+<a class="jxr_linenumber" name="L323" href="#L323">323</a>         <strong class="jxr_keyword">if</strong> (plcReadRequest.getRequestItems().size() != payload.getPayloadItems().size()) {
+<a class="jxr_linenumber" name="L324" href="#L324">324</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/api/exceptions/PlcProtocolException.html">PlcProtocolException</a>(
+<a class="jxr_linenumber" name="L325" href="#L325">325</a>                 <span class="jxr_string">"The number of requested items doesn't match the number of returned items"</span>);
+<a class="jxr_linenumber" name="L326" href="#L326">326</a>         }
+<a class="jxr_linenumber" name="L327" href="#L327">327</a> 
+<a class="jxr_linenumber" name="L328" href="#L328">328</a>         List&lt;VarPayloadItem&gt; payloadItems = payload.getPayloadItems();
+<a class="jxr_linenumber" name="L329" href="#L329">329</a>         <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> noPayLoadItems = payloadItems.size();
+<a class="jxr_linenumber" name="L330" href="#L330">330</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; noPayLoadItems; i++) {
+<a class="jxr_linenumber" name="L331" href="#L331">331</a>             <a href="../../../../../../org/apache/plc4x/java/s7/netty/model/payloads/items/VarPayloadItem.html">VarPayloadItem</a> payloadItem = payloadItems.get(i);
+<a class="jxr_linenumber" name="L332" href="#L332">332</a> 
+<a class="jxr_linenumber" name="L333" href="#L333">333</a>             <em class="jxr_comment">// Get the request item for this payload item</em>
+<a class="jxr_linenumber" name="L334" href="#L334">334</a>             <a href="../../../../../../org/apache/plc4x/java/api/messages/items/ReadRequestItem.html">ReadRequestItem</a> requestItem = plcReadRequest.getRequestItems().get(i);
 <a class="jxr_linenumber" name="L335" href="#L335">335</a> 
-<a class="jxr_linenumber" name="L336" href="#L336">336</a>             <a href="../../../../../../org/apache/plc4x/java/api/messages/items/ReadResponseItem.html">ReadResponseItem</a> responseItem;
-<a class="jxr_linenumber" name="L337" href="#L337">337</a>             <em class="jxr_comment">// Something went wrong.</em>
-<a class="jxr_linenumber" name="L338" href="#L338">338</a>             <strong class="jxr_keyword">if</strong> (responseCode != ResponseCode.OK) {
-<a class="jxr_linenumber" name="L339" href="#L339">339</a>                 responseItem = <strong class="jxr_keyword">new</strong> ReadResponseItem&lt;&gt;(requestItem, responseCode);
-<a class="jxr_linenumber" name="L340" href="#L340">340</a>             }
-<a class="jxr_linenumber" name="L341" href="#L341">341</a>             <em class="jxr_comment">// All Ok.</em>
-<a class="jxr_linenumber" name="L342" href="#L342">342</a>             <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L343" href="#L343">343</a>                 byte[] data = payloadItem.getData();
-<a class="jxr_linenumber" name="L344" href="#L344">344</a>                 Class&lt;?&gt; datatype = requestItem.getDatatype();
-<a class="jxr_linenumber" name="L345" href="#L345">345</a>                 List&lt;?&gt; value = decodeData(datatype, data);
-<a class="jxr_linenumber" name="L346" href="#L346">346</a>                 responseItem = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/api/messages/items/ReadResponseItem.html">ReadResponseItem</a>(requestItem, responseCode, value);
-<a class="jxr_linenumber" name="L347" href="#L347">347</a>             }
-<a class="jxr_linenumber" name="L348" href="#L348">348</a>             responseItems.add(responseItem);
-<a class="jxr_linenumber" name="L349" href="#L349">349</a>         }
-<a class="jxr_linenumber" name="L350" href="#L350">350</a>         <strong class="jxr_keyword">if</strong> (plcReadRequest instanceof TypeSafePlcReadRequest) {
-<a class="jxr_linenumber" name="L351" href="#L351">351</a>             response = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/api/messages/specific/TypeSafePlcReadResponse.html">TypeSafePlcReadResponse</a>((TypeSafePlcReadRequest) plcReadRequest, responseItems);
-<a class="jxr_linenumber" name="L352" href="#L352">352</a>         } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L353" href="#L353">353</a>             response = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/api/messages/PlcReadResponse.html">PlcReadResponse</a>(plcReadRequest, responseItems);
-<a class="jxr_linenumber" name="L354" href="#L354">354</a>         }
-<a class="jxr_linenumber" name="L355" href="#L355">355</a>         <strong class="jxr_keyword">return</strong> response;
-<a class="jxr_linenumber" name="L356" href="#L356">356</a>     }
-<a class="jxr_linenumber" name="L357" href="#L357">357</a> 
-<a class="jxr_linenumber" name="L358" href="#L358">358</a>     @SuppressWarnings(<span class="jxr_string">"unchecked"</span>)
-<a class="jxr_linenumber" name="L359" href="#L359">359</a>     <strong class="jxr_keyword">private</strong> <a href="../../../../../../org/apache/plc4x/java/api/messages/PlcResponse.html">PlcResponse</a> decodeWriteResponse(<a href="../../../../../../org/apache/plc4x/java/s7/netty/model/messages/S7ResponseMessage.html">S7ResponseMessage</a> responseMessage, <a href="../../../../../../org/apache/plc4x/java/api/messages/PlcRequestContainer.html">PlcRequestContainer</a> requestContainer) <strong class="jxr_keyword">throws</strong> PlcProtocolException {
-<a class="jxr_linenumber" name="L360" href="#L360">360</a>         <a href="../../../../../../org/apache/plc4x/java/api/messages/PlcResponse.html">PlcResponse</a> response;
-<a class="jxr_linenumber" name="L361" href="#L361">361</a>         <a href="../../../../../../org/apache/plc4x/java/api/messages/PlcWriteRequest.html">PlcWriteRequest</a> plcWriteRequest = (PlcWriteRequest) requestContainer.getRequest();
-<a class="jxr_linenumber" name="L362" href="#L362">362</a>         List&lt;WriteResponseItem&lt;?&gt;&gt; responseItems = <strong class="jxr_keyword">new</strong> LinkedList&lt;&gt;();
-<a class="jxr_linenumber" name="L363" href="#L363">363</a>         <a href="../../../../../../org/apache/plc4x/java/s7/netty/model/payloads/VarPayload.html">VarPayload</a> payload = responseMessage.getPayload(VarPayload.<strong class="jxr_keyword">class</strong>)
-<a class="jxr_linenumber" name="L364" href="#L364">364</a>             .orElseThrow(() -&gt; <strong class="jxr_keyword">new</strong> PlcProtocolException(<span class="jxr_string">"No VarPayload supplied"</span>));
-<a class="jxr_linenumber" name="L365" href="#L365">365</a>         <em class="jxr_comment">// If the numbers of items don't match, we're in big trouble as the only</em>
-<a class="jxr_linenumber" name="L366" href="#L366">366</a>         <em class="jxr_comment">// way to know how to interpret the responses is by aligning them with the</em>
-<a class="jxr_linenumber" name="L367" href="#L367">367</a>         <em class="jxr_comment">// items from the request as this information is not returned by the PLC.</em>
-<a class="jxr_linenumber" name="L368" href="#L368">368</a>         <strong class="jxr_keyword">if</strong> (plcWriteRequest.getRequestItems().size() != payload.getPayloadItems().size()) {
-<a class="jxr_linenumber" name="L369" href="#L369">369</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/api/exceptions/PlcProtocolException.html">PlcProtocolException</a>(
-<a class="jxr_linenumber" name="L370" href="#L370">370</a>                 <span class="jxr_string">"The number of requested items doesn't match the number of returned items"</span>);
-<a class="jxr_linenumber" name="L371" href="#L371">371</a>         }
-<a class="jxr_linenumber" name="L372" href="#L372">372</a>         List&lt;VarPayloadItem&gt; payloadItems = payload.getPayloadItems();
-<a class="jxr_linenumber" name="L373" href="#L373">373</a>         <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> noPayLoadItems = payloadItems.size();
-<a class="jxr_linenumber" name="L374" href="#L374">374</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; noPayLoadItems; i++) {
-<a class="jxr_linenumber" name="L375" href="#L375">375</a>             <a href="../../../../../../org/apache/plc4x/java/s7/netty/model/payloads/items/VarPayloadItem.html">VarPayloadItem</a> payloadItem = payloadItems.get(i);
-<a class="jxr_linenumber" name="L376" href="#L376">376</a> 
-<a class="jxr_linenumber" name="L377" href="#L377">377</a>             <em class="jxr_comment">// Get the request item for this payload item</em>
-<a class="jxr_linenumber" name="L378" href="#L378">378</a>             <a href="../../../../../../org/apache/plc4x/java/api/messages/items/WriteRequestItem.html">WriteRequestItem</a> requestItem = plcWriteRequest.getRequestItems().get(i);
-<a class="jxr_linenumber" name="L379" href="#L379">379</a> 
-<a class="jxr_linenumber" name="L380" href="#L380">380</a>             <em class="jxr_comment">// A write response contains only the return code for every item.</em>
-<a class="jxr_linenumber" name="L381" href="#L381">381</a>             <a href="../../../../../../org/apache/plc4x/java/api/types/ResponseCode.html">ResponseCode</a> responseCode = decodeResponseCode(payloadItem.getReturnCode());
-<a class="jxr_linenumber" name="L382" href="#L382">382</a> 
-<a class="jxr_linenumber" name="L383" href="#L383">383</a>             <a href="../../../../../../org/apache/plc4x/java/api/messages/items/WriteResponseItem.html">WriteResponseItem</a> responseItem = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/api/messages/items/WriteResponseItem.html">WriteResponseItem</a>(requestItem, responseCode);
-<a class="jxr_linenumber" name="L384" href="#L384">384</a>             responseItems.add(responseItem);
-<a class="jxr_linenumber" name="L385" href="#L385">385</a>         }
-<a class="jxr_linenumber" name="L386" href="#L386">386</a> 
-<a class="jxr_linenumber" name="L387" href="#L387">387</a>         <strong class="jxr_keyword">if</strong> (plcWriteRequest instanceof TypeSafePlcWriteRequest) {
-<a class="jxr_linenumber" name="L388" href="#L388">388</a>             response = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/api/messages/specific/TypeSafePlcWriteResponse.html">TypeSafePlcWriteResponse</a>((TypeSafePlcWriteRequest) plcWriteRequest, responseItems);
-<a class="jxr_linenumber" name="L389" href="#L389">389</a>         } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L390" href="#L390">390</a>             response = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/api/messages/PlcWriteResponse.html">PlcWriteResponse</a>(plcWriteRequest, responseItems);
-<a class="jxr_linenumber" name="L391" href="#L391">391</a>         }
-<a class="jxr_linenumber" name="L392" href="#L392">392</a>         <strong class="jxr_keyword">return</strong> response;
-<a class="jxr_linenumber" name="L393" href="#L393">393</a>     }
-<a class="jxr_linenumber" name="L394" href="#L394">394</a> 
-<a class="jxr_linenumber" name="L395" href="#L395">395</a>     <strong class="jxr_keyword">private</strong> <a href="../../../../../../org/apache/plc4x/java/api/types/ResponseCode.html">ResponseCode</a> decodeResponseCode(<a href="../../../../../../org/apache/plc4x/java/s7/netty/model/types/DataTransportErrorCode.html">DataTransportErrorCode</a> dataTransportErrorCode) {
-<a class="jxr_linenumber" name="L396" href="#L396">396</a>         <strong class="jxr_keyword">if</strong> (dataTransportErrorCode == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L397" href="#L397">397</a>             <strong class="jxr_keyword">return</strong> ResponseCode.INTERNAL_ERROR;
-<a class="jxr_linenumber" name="L398" href="#L398">398</a>         }
-<a class="jxr_linenumber" name="L399" href="#L399">399</a>         <strong class="jxr_keyword">switch</strong> (dataTransportErrorCode) {
-<a class="jxr_linenumber" name="L400" href="#L400">400</a>             <strong class="jxr_keyword">case</strong> OK:
-<a class="jxr_linenumber" name="L401" href="#L401">401</a>                 <strong class="jxr_keyword">return</strong> ResponseCode.OK;
-<a class="jxr_linenumber" name="L402" href="#L402">402</a>             <strong class="jxr_keyword">case</strong> NOT_FOUND:
-<a class="jxr_linenumber" name="L403" href="#L403">403</a>                 <strong class="jxr_keyword">return</strong> ResponseCode.NOT_FOUND;
-<a class="jxr_linenumber" name="L404" href="#L404">404</a>             <strong class="jxr_keyword">case</strong> INVALID_ADDRESS:
-<a class="jxr_linenumber" name="L405" href="#L405">405</a>                 <strong class="jxr_keyword">return</strong> ResponseCode.INVALID_ADDRESS;
-<a class="jxr_linenumber" name="L406" href="#L406">406</a>             <strong class="jxr_keyword">default</strong>:
-<a class="jxr_linenumber" name="L407" href="#L407">407</a>                 <strong class="jxr_keyword">return</strong> ResponseCode.INTERNAL_ERROR;
-<a class="jxr_linenumber" name="L408" href="#L408">408</a>         }
-<a class="jxr_linenumber" name="L409" href="#L409">409</a>     }
-<a class="jxr_linenumber" name="L410" href="#L410">410</a> 
-<a class="jxr_linenumber" name="L411" href="#L411">411</a> }
+<a class="jxr_linenumber" name="L336" href="#L336">336</a>             <a href="../../../../../../org/apache/plc4x/java/api/types/ResponseCode.html">ResponseCode</a> responseCode = decodeResponseCode(payloadItem.getReturnCode());
+<a class="jxr_linenumber" name="L337" href="#L337">337</a> 
+<a class="jxr_linenumber" name="L338" href="#L338">338</a>             <a href="../../../../../../org/apache/plc4x/java/api/messages/items/ReadResponseItem.html">ReadResponseItem</a> responseItem;
+<a class="jxr_linenumber" name="L339" href="#L339">339</a>             <em class="jxr_comment">// Something went wrong.</em>
+<a class="jxr_linenumber" name="L340" href="#L340">340</a>             <strong class="jxr_keyword">if</strong> (responseCode != ResponseCode.OK) {
+<a class="jxr_linenumber" name="L341" href="#L341">341</a>                 responseItem = <strong class="jxr_keyword">new</strong> ReadResponseItem&lt;&gt;(requestItem, responseCode);
+<a class="jxr_linenumber" name="L342" href="#L342">342</a>             }
+<a class="jxr_linenumber" name="L343" href="#L343">343</a>             <em class="jxr_comment">// All Ok.</em>
+<a class="jxr_linenumber" name="L344" href="#L344">344</a>             <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L345" href="#L345">345</a>                 byte[] data = payloadItem.getData();
+<a class="jxr_linenumber" name="L346" href="#L346">346</a>                 Class&lt;?&gt; datatype = requestItem.getDatatype();
+<a class="jxr_linenumber" name="L347" href="#L347">347</a>                 List&lt;?&gt; value = decodeData(datatype, data);
+<a class="jxr_linenumber" name="L348" href="#L348">348</a>                 responseItem = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/api/messages/items/ReadResponseItem.html">ReadResponseItem</a>(requestItem, responseCode, value);
+<a class="jxr_linenumber" name="L349" href="#L349">349</a>             }
+<a class="jxr_linenumber" name="L350" href="#L350">350</a>             responseItems.add(responseItem);
+<a class="jxr_linenumber" name="L351" href="#L351">351</a>         }
+<a class="jxr_linenumber" name="L352" href="#L352">352</a>         <strong class="jxr_keyword">if</strong> (plcReadRequest instanceof TypeSafePlcReadRequest) {
+<a class="jxr_linenumber" name="L353" href="#L353">353</a>             response = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/api/messages/specific/TypeSafePlcReadResponse.html">TypeSafePlcReadResponse</a>((TypeSafePlcReadRequest) plcReadRequest, responseItems);
+<a class="jxr_linenumber" name="L354" href="#L354">354</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L355" href="#L355">355</a>             response = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/api/messages/PlcReadResponse.html">PlcReadResponse</a>(plcReadRequest, responseItems);
+<a class="jxr_linenumber" name="L356" href="#L356">356</a>         }
+<a class="jxr_linenumber" name="L357" href="#L357">357</a>         <strong class="jxr_keyword">return</strong> response;
+<a class="jxr_linenumber" name="L358" href="#L358">358</a>     }
+<a class="jxr_linenumber" name="L359" href="#L359">359</a> 
+<a class="jxr_linenumber" name="L360" href="#L360">360</a>     @SuppressWarnings(<span class="jxr_string">"unchecked"</span>)
+<a class="jxr_linenumber" name="L361" href="#L361">361</a>     <strong class="jxr_keyword">private</strong> <a href="../../../../../../org/apache/plc4x/java/api/messages/PlcResponse.html">PlcResponse</a> decodeWriteResponse(<a href="../../../../../../org/apache/plc4x/java/s7/netty/model/messages/S7ResponseMessage.html">S7ResponseMessage</a> responseMessage, <a href="../../../../../../org/apache/plc4x/java/api/messages/PlcRequestContainer.html">PlcRequestContainer</a> requestContainer) <strong class="jxr_keyword">throws</strong> PlcProtocolException {
+<a class="jxr_linenumber" name="L362" href="#L362">362</a>         <a href="../../../../../../org/apache/plc4x/java/api/messages/PlcResponse.html">PlcResponse</a> response;
+<a class="jxr_linenumber" name="L363" href="#L363">363</a>         <a href="../../../../../../org/apache/plc4x/java/api/messages/PlcWriteRequest.html">PlcWriteRequest</a> plcWriteRequest = (PlcWriteRequest) requestContainer.getRequest();
+<a class="jxr_linenumber" name="L364" href="#L364">364</a>         List&lt;WriteResponseItem&lt;?&gt;&gt; responseItems = <strong class="jxr_keyword">new</strong> LinkedList&lt;&gt;();
+<a class="jxr_linenumber" name="L365" href="#L365">365</a>         <a href="../../../../../../org/apache/plc4x/java/s7/netty/model/payloads/VarPayload.html">VarPayload</a> payload = responseMessage.getPayload(VarPayload.<strong class="jxr_keyword">class</strong>)
+<a class="jxr_linenumber" name="L366" href="#L366">366</a>             .orElseThrow(() -&gt; <strong class="jxr_keyword">new</strong> PlcProtocolException(<span class="jxr_string">"No VarPayload supplied"</span>));
+<a class="jxr_linenumber" name="L367" href="#L367">367</a>         <em class="jxr_comment">// If the numbers of items don't match, we're in big trouble as the only</em>
+<a class="jxr_linenumber" name="L368" href="#L368">368</a>         <em class="jxr_comment">// way to know how to interpret the responses is by aligning them with the</em>
+<a class="jxr_linenumber" name="L369" href="#L369">369</a>         <em class="jxr_comment">// items from the request as this information is not returned by the PLC.</em>
+<a class="jxr_linenumber" name="L370" href="#L370">370</a>         <strong class="jxr_keyword">if</strong> (plcWriteRequest.getRequestItems().size() != payload.getPayloadItems().size()) {
+<a class="jxr_linenumber" name="L371" href="#L371">371</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/api/exceptions/PlcProtocolException.html">PlcProtocolException</a>(
+<a class="jxr_linenumber" name="L372" href="#L372">372</a>                 <span class="jxr_string">"The number of requested items doesn't match the number of returned items"</span>);
+<a class="jxr_linenumber" name="L373" href="#L373">373</a>         }
+<a class="jxr_linenumber" name="L374" href="#L374">374</a>         List&lt;VarPayloadItem&gt; payloadItems = payload.getPayloadItems();
+<a class="jxr_linenumber" name="L375" href="#L375">375</a>         <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> noPayLoadItems = payloadItems.size();
+<a class="jxr_linenumber" name="L376" href="#L376">376</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; noPayLoadItems; i++) {
+<a class="jxr_linenumber" name="L377" href="#L377">377</a>             <a href="../../../../../../org/apache/plc4x/java/s7/netty/model/payloads/items/VarPayloadItem.html">VarPayloadItem</a> payloadItem = payloadItems.get(i);
+<a class="jxr_linenumber" name="L378" href="#L378">378</a> 
+<a class="jxr_linenumber" name="L379" href="#L379">379</a>             <em class="jxr_comment">// Get the request item for this payload item</em>
+<a class="jxr_linenumber" name="L380" href="#L380">380</a>             <a href="../../../../../../org/apache/plc4x/java/api/messages/items/WriteRequestItem.html">WriteRequestItem</a> requestItem = plcWriteRequest.getRequestItems().get(i);
+<a class="jxr_linenumber" name="L381" href="#L381">381</a> 
+<a class="jxr_linenumber" name="L382" href="#L382">382</a>             <em class="jxr_comment">// A write response contains only the return code for every item.</em>
+<a class="jxr_linenumber" name="L383" href="#L383">383</a>             <a href="../../../../../../org/apache/plc4x/java/api/types/ResponseCode.html">ResponseCode</a> responseCode = decodeResponseCode(payloadItem.getReturnCode());
+<a class="jxr_linenumber" name="L384" href="#L384">384</a> 
+<a class="jxr_linenumber" name="L385" href="#L385">385</a>             <a href="../../../../../../org/apache/plc4x/java/api/messages/items/WriteResponseItem.html">WriteResponseItem</a> responseItem = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/api/messages/items/WriteResponseItem.html">WriteResponseItem</a>(requestItem, responseCode);
+<a class="jxr_linenumber" name="L386" href="#L386">386</a>             responseItems.add(responseItem);
+<a class="jxr_linenumber" name="L387" href="#L387">387</a>         }
+<a class="jxr_linenumber" name="L388" href="#L388">388</a> 
+<a class="jxr_linenumber" name="L389" href="#L389">389</a>         <strong class="jxr_keyword">if</strong> (plcWriteRequest instanceof TypeSafePlcWriteRequest) {
+<a class="jxr_linenumber" name="L390" href="#L390">390</a>             response = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/api/messages/specific/TypeSafePlcWriteResponse.html">TypeSafePlcWriteResponse</a>((TypeSafePlcWriteRequest) plcWriteRequest, responseItems);
+<a class="jxr_linenumber" name="L391" href="#L391">391</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L392" href="#L392">392</a>             response = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/api/messages/PlcWriteResponse.html">PlcWriteResponse</a>(plcWriteRequest, responseItems);
+<a class="jxr_linenumber" name="L393" href="#L393">393</a>         }
+<a class="jxr_linenumber" name="L394" href="#L394">394</a>         <strong class="jxr_keyword">return</strong> response;
+<a class="jxr_linenumber" name="L395" href="#L395">395</a>     }
+<a class="jxr_linenumber" name="L396" href="#L396">396</a> 
+<a class="jxr_linenumber" name="L397" href="#L397">397</a>     <strong class="jxr_keyword">private</strong> <a href="../../../../../../org/apache/plc4x/java/api/types/ResponseCode.html">ResponseCode</a> decodeResponseCode(<a href="../../../../../../org/apache/plc4x/java/s7/netty/model/types/DataTransportErrorCode.html">DataTransportErrorCode</a> dataTransportErrorCode) {
+<a class="jxr_linenumber" name="L398" href="#L398">398</a>         <strong class="jxr_keyword">if</strong> (dataTransportErrorCode == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L399" href="#L399">399</a>             <strong class="jxr_keyword">return</strong> ResponseCode.INTERNAL_ERROR;
+<a class="jxr_linenumber" name="L400" href="#L400">400</a>         }
+<a class="jxr_linenumber" name="L401" href="#L401">401</a>         <strong class="jxr_keyword">switch</strong> (dataTransportErrorCode) {
+<a class="jxr_linenumber" name="L402" href="#L402">402</a>             <strong class="jxr_keyword">case</strong> OK:
+<a class="jxr_linenumber" name="L403" href="#L403">403</a>                 <strong class="jxr_keyword">return</strong> ResponseCode.OK;
+<a class="jxr_linenumber" name="L404" href="#L404">404</a>             <strong class="jxr_keyword">case</strong> NOT_FOUND:
+<a class="jxr_linenumber" name="L405" href="#L405">405</a>                 <strong class="jxr_keyword">return</strong> ResponseCode.NOT_FOUND;
+<a class="jxr_linenumber" name="L406" href="#L406">406</a>             <strong class="jxr_keyword">case</strong> INVALID_ADDRESS:
+<a class="jxr_linenumber" name="L407" href="#L407">407</a>                 <strong class="jxr_keyword">return</strong> ResponseCode.INVALID_ADDRESS;
+<a class="jxr_linenumber" name="L408" href="#L408">408</a>             <strong class="jxr_keyword">default</strong>:
+<a class="jxr_linenumber" name="L409" href="#L409">409</a>                 <strong class="jxr_keyword">return</strong> ResponseCode.INTERNAL_ERROR;
+<a class="jxr_linenumber" name="L410" href="#L410">410</a>         }
+<a class="jxr_linenumber" name="L411" href="#L411">411</a>     }
+<a class="jxr_linenumber" name="L412" href="#L412">412</a> 
+<a class="jxr_linenumber" name="L413" href="#L413">413</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2017&#x2013;2018 <a href="https://www.apache.org/">The Apache Software Foundation</a>. All rights reserved.</div>
