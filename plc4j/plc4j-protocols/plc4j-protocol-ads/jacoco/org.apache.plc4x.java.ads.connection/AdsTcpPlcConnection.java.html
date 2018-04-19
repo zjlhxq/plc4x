@@ -27,9 +27,12 @@ import org.apache.plc4x.java.ads.api.generic.types.AmsPort;
 import org.apache.plc4x.java.ads.protocol.Ads2PayloadProtocol;
 import org.apache.plc4x.java.ads.protocol.Payload2TcpProtocol;
 import org.apache.plc4x.java.ads.protocol.Plc4x2AdsProtocol;
+import org.apache.plc4x.java.api.exceptions.PlcRuntimeException;
 import org.apache.plc4x.java.base.connection.TcpSocketChannelFactory;
 
+import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.concurrent.CompletableFuture;
 
 public class AdsTcpPlcConnection extends AdsAbstractPlcConnection {
@@ -37,53 +40,61 @@ public class AdsTcpPlcConnection extends AdsAbstractPlcConnection {
     private static final int TCP_PORT = 48898;
 
     private AdsTcpPlcConnection(InetAddress address, AmsNetId targetAmsNetId, AmsPort targetAmsPort) {
-<span class="fc" id="L40">        this(address, targetAmsNetId, targetAmsPort, generateAMSNetId(), generateAMSPort());</span>
-<span class="fc" id="L41">    }</span>
+<span class="fc" id="L43">        this(address, targetAmsNetId, targetAmsPort, generateAMSNetId(), generateAMSPort());</span>
+<span class="fc" id="L44">    }</span>
 
     private AdsTcpPlcConnection(InetAddress address, Integer port, AmsNetId targetAmsNetId, AmsPort targetAmsPort) {
-<span class="fc" id="L44">        this(address, port, targetAmsNetId, targetAmsPort, generateAMSNetId(), generateAMSPort());</span>
-<span class="fc" id="L45">    }</span>
+<span class="fc" id="L47">        this(address, port, targetAmsNetId, targetAmsPort, generateAMSNetId(), generateAMSPort());</span>
+<span class="fc" id="L48">    }</span>
 
     private AdsTcpPlcConnection(InetAddress address, AmsNetId targetAmsNetId, AmsPort targetAmsPort, AmsNetId sourceAmsNetId, AmsPort sourceAmsPort) {
-<span class="fc" id="L48">        this(address, null, targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort);</span>
-<span class="fc" id="L49">    }</span>
+<span class="fc" id="L51">        this(address, null, targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort);</span>
+<span class="fc" id="L52">    }</span>
 
     private AdsTcpPlcConnection(InetAddress address, Integer port, AmsNetId targetAmsNetId, AmsPort targetAmsPort, AmsNetId sourceAmsNetId, AmsPort sourceAmsPort) {
-<span class="fc bfc" id="L52" title="All 2 branches covered.">        super(new TcpSocketChannelFactory(address, port != null ? port : TCP_PORT), targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort);</span>
-<span class="fc" id="L53">    }</span>
+<span class="fc bfc" id="L55" title="All 2 branches covered.">        super(new TcpSocketChannelFactory(address, port != null ? port : TCP_PORT), targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort);</span>
+<span class="fc" id="L56">    }</span>
 
     public static AdsTcpPlcConnection of(InetAddress address, AmsNetId targetAmsNetId, AmsPort targetAmsPort) {
-<span class="fc" id="L56">        return new AdsTcpPlcConnection(address, targetAmsNetId, targetAmsPort);</span>
+<span class="fc" id="L59">        return new AdsTcpPlcConnection(address, targetAmsNetId, targetAmsPort);</span>
     }
 
     public static AdsTcpPlcConnection of(InetAddress address, Integer port, AmsNetId targetAmsNetId, AmsPort targetAmsPort) {
-<span class="fc" id="L60">        return new AdsTcpPlcConnection(address, port, targetAmsNetId, targetAmsPort);</span>
+<span class="fc" id="L63">        return new AdsTcpPlcConnection(address, port, targetAmsNetId, targetAmsPort);</span>
     }
 
     public static AdsTcpPlcConnection of(InetAddress address, AmsNetId targetAmsNetId, AmsPort targetAmsPort, AmsNetId sourceAmsNetId, AmsPort sourceAmsPort) {
-<span class="nc" id="L64">        return new AdsTcpPlcConnection(address, null, targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort);</span>
+<span class="nc" id="L67">        return new AdsTcpPlcConnection(address, null, targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort);</span>
     }
 
     public static AdsTcpPlcConnection of(InetAddress address, Integer port, AmsNetId targetAmsNetId, AmsPort targetAmsPort, AmsNetId sourceAmsNetId, AmsPort sourceAmsPort) {
-<span class="nc" id="L68">        return new AdsTcpPlcConnection(address, port, targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort);</span>
+<span class="nc" id="L71">        return new AdsTcpPlcConnection(address, port, targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort);</span>
     }
 
     @Override
     protected ChannelHandler getChannelHandler(CompletableFuture&lt;Void&gt; sessionSetupCompleteFuture) {
-<span class="fc" id="L73">        return new ChannelInitializer() {</span>
+<span class="fc" id="L76">        return new ChannelInitializer() {</span>
             @Override
             protected void initChannel(Channel channel) {
                 // Build the protocol stack for communicating with the ads protocol.
-<span class="fc" id="L77">                ChannelPipeline pipeline = channel.pipeline();</span>
-<span class="fc" id="L78">                pipeline.addLast(new Payload2TcpProtocol());</span>
-<span class="fc" id="L79">                pipeline.addLast(new Ads2PayloadProtocol());</span>
-<span class="fc" id="L80">                pipeline.addLast(new Plc4x2AdsProtocol(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort));</span>
-<span class="fc" id="L81">            }</span>
+<span class="fc" id="L80">                ChannelPipeline pipeline = channel.pipeline();</span>
+<span class="fc" id="L81">                pipeline.addLast(new Payload2TcpProtocol());</span>
+<span class="fc" id="L82">                pipeline.addLast(new Ads2PayloadProtocol());</span>
+<span class="fc" id="L83">                pipeline.addLast(new Plc4x2AdsProtocol(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort));</span>
+<span class="fc" id="L84">            }</span>
         };
     }
 
+    protected static AmsNetId generateAMSNetId() {
+        try {
+<span class="fc" id="L90">            return AmsNetId.of(Inet4Address.getLocalHost().getHostAddress() + &quot;.1.1&quot;);</span>
+<span class="nc" id="L91">        } catch (UnknownHostException e) {</span>
+<span class="nc" id="L92">            throw new PlcRuntimeException(e);</span>
+        }
+    }
+
     protected static AmsPort generateAMSPort() {
-<span class="fc" id="L86">        return AmsPort.of(TCP_PORT);</span>
+<span class="fc" id="L97">        return AmsPort.of(TCP_PORT);</span>
     }
 
 }

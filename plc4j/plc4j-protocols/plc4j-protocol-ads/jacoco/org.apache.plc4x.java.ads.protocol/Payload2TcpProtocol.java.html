@@ -21,10 +21,10 @@ package org.apache.plc4x.java.ads.protocol;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
-import org.apache.plc4x.java.ads.api.serial.types.UserData;
 import org.apache.plc4x.java.ads.api.tcp.AmsTCPPacket;
 import org.apache.plc4x.java.ads.api.tcp.AmsTcpHeader;
 import org.apache.plc4x.java.ads.api.tcp.types.TcpLength;
+import org.apache.plc4x.java.ads.api.tcp.types.UserData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,24 +37,23 @@ import java.util.List;
     @Override
     protected void encode(ChannelHandlerContext channelHandlerContext, ByteBuf amsPacket, List&lt;Object&gt; out) throws Exception {
 <span class="fc" id="L39">        out.add(AmsTCPPacket.of(UserData.of(amsPacket)).getByteBuf());</span>
-<span class="fc" id="L40">        amsPacket.release();</span>
-<span class="fc" id="L41">    }</span>
+<span class="fc" id="L40">    }</span>
 
     @SuppressWarnings(&quot;unchecked&quot;)
     @Override
     protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf, List&lt;Object&gt; out) throws Exception {
         // Reserved
-<span class="fc" id="L47">        byteBuf.skipBytes(AmsTcpHeader.Reserved.NUM_BYTES);</span>
-<span class="fc" id="L48">        TcpLength packetLength = TcpLength.of(byteBuf);</span>
-<span class="fc" id="L49">        AmsTcpHeader amsTcpHeader = AmsTcpHeader.of(packetLength);</span>
-<span class="fc" id="L50">        LOGGER.debug(&quot;AMS TCP Header {}&quot;, amsTcpHeader);</span>
+<span class="fc" id="L46">        byteBuf.skipBytes(AmsTcpHeader.Reserved.NUM_BYTES);</span>
+<span class="fc" id="L47">        TcpLength packetLength = TcpLength.of(byteBuf);</span>
+<span class="fc" id="L48">        AmsTcpHeader amsTcpHeader = AmsTcpHeader.of(packetLength);</span>
+<span class="fc" id="L49">        LOGGER.debug(&quot;AMS TCP Header {}&quot;, amsTcpHeader);</span>
 
-<span class="fc" id="L52">        int readableBytes = byteBuf.readableBytes();</span>
-<span class="pc bpc" id="L53" title="1 of 2 branches missed.">        if (readableBytes != packetLength.getAsLong()) {</span>
-<span class="nc" id="L54">            throw new IllegalStateException(&quot;To many bytes to read: &quot; + readableBytes + &quot; bytes. Expected &quot; + packetLength.getAsLong() + &quot; bytes.&quot;);</span>
+<span class="fc" id="L51">        int readableBytes = byteBuf.readableBytes();</span>
+<span class="pc bpc" id="L52" title="1 of 2 branches missed.">        if (readableBytes != packetLength.getAsLong()) {</span>
+<span class="nc" id="L53">            throw new IllegalStateException(&quot;To many bytes to read: &quot; + readableBytes + &quot; bytes. Expected &quot; + packetLength.getAsLong() + &quot; bytes.&quot;);</span>
         }
-<span class="fc" id="L56">        out.add(byteBuf.readBytes(readableBytes));</span>
-<span class="fc" id="L57">    }</span>
+<span class="fc" id="L55">        out.add(byteBuf.readBytes(readableBytes));</span>
+<span class="fc" id="L56">    }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
