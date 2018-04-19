@@ -18,6 +18,7 @@
  */
 package org.apache.plc4x.java.ads.connection;
 
+import io.netty.channel.ChannelFuture;
 import org.apache.plc4x.java.ads.api.generic.types.AmsNetId;
 import org.apache.plc4x.java.ads.api.generic.types.AmsPort;
 import org.apache.plc4x.java.ads.model.AdsAddress;
@@ -42,59 +43,69 @@ public abstract class AdsAbstractPlcConnection extends AbstractPlcConnection imp
     protected final AmsPort sourceAmsPort;
 
     protected AdsAbstractPlcConnection(ChannelFactory channelFactory, AmsNetId targetAmsNetId, AmsPort targetAmsPort) {
-<span class="nc" id="L45">        this(channelFactory, targetAmsNetId, targetAmsPort, generateAMSNetId(), generateAMSPort());</span>
-<span class="nc" id="L46">    }</span>
+<span class="nc" id="L46">        this(channelFactory, targetAmsNetId, targetAmsPort, generateAMSNetId(), generateAMSPort());</span>
+<span class="nc" id="L47">    }</span>
 
     protected AdsAbstractPlcConnection(ChannelFactory channelFactory, AmsNetId targetAmsNetId, AmsPort targetAmsPort, AmsNetId sourceAmsNetId, AmsPort sourceAmsPort) {
-<span class="fc" id="L49">        super(channelFactory);</span>
-<span class="fc" id="L50">        this.targetAmsNetId = targetAmsNetId;</span>
-<span class="fc" id="L51">        this.targetAmsPort = targetAmsPort;</span>
-<span class="fc" id="L52">        this.sourceAmsNetId = sourceAmsNetId;</span>
-<span class="fc" id="L53">        this.sourceAmsPort = sourceAmsPort;</span>
-<span class="fc" id="L54">    }</span>
+<span class="fc" id="L50">        super(channelFactory);</span>
+<span class="fc" id="L51">        this.targetAmsNetId = targetAmsNetId;</span>
+<span class="fc" id="L52">        this.targetAmsPort = targetAmsPort;</span>
+<span class="fc" id="L53">        this.sourceAmsNetId = sourceAmsNetId;</span>
+<span class="fc" id="L54">        this.sourceAmsPort = sourceAmsPort;</span>
+<span class="fc" id="L55">    }</span>
 
     public AmsNetId getTargetAmsNetId() {
-<span class="fc" id="L57">        return targetAmsNetId;</span>
+<span class="fc" id="L58">        return targetAmsNetId;</span>
     }
 
     public AmsPort getTargetAmsPort() {
-<span class="fc" id="L61">        return targetAmsPort;</span>
+<span class="fc" id="L62">        return targetAmsPort;</span>
     }
 
     public AmsNetId getSourceAmsNetId() {
-<span class="nc" id="L65">        return sourceAmsNetId;</span>
+<span class="nc" id="L66">        return sourceAmsNetId;</span>
     }
 
     public AmsPort getSourceAmsPort() {
-<span class="nc" id="L69">        return sourceAmsPort;</span>
+<span class="nc" id="L70">        return sourceAmsPort;</span>
     }
 
 
     @Override
     public Address parseAddress(String addressString) throws PlcException {
-<span class="fc" id="L75">        return AdsAddress.of(addressString);</span>
+<span class="fc" id="L76">        return AdsAddress.of(addressString);</span>
     }
 
     @Override
     public CompletableFuture&lt;PlcReadResponse&gt; read(PlcReadRequest readRequest) {
-<span class="nc" id="L80">        CompletableFuture&lt;PlcReadResponse&gt; readFuture = new CompletableFuture&lt;&gt;();</span>
-<span class="nc" id="L81">        channel.writeAndFlush(new PlcRequestContainer&lt;&gt;(readRequest, readFuture));</span>
-<span class="nc" id="L82">        return readFuture;</span>
+<span class="nc" id="L81">        CompletableFuture&lt;PlcReadResponse&gt; readFuture = new CompletableFuture&lt;&gt;();</span>
+<span class="nc" id="L82">        ChannelFuture channelFuture = channel.writeAndFlush(new PlcRequestContainer&lt;&gt;(readRequest, readFuture));</span>
+<span class="nc" id="L83">        channelFuture.addListener(future -&gt; {</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">            if (!future.isSuccess()) {</span>
+<span class="nc" id="L85">                readFuture.completeExceptionally(future.cause());</span>
+            }
+<span class="nc" id="L87">        });</span>
+<span class="nc" id="L88">        return readFuture;</span>
     }
 
     @Override
     public CompletableFuture&lt;PlcWriteResponse&gt; write(PlcWriteRequest writeRequest) {
-<span class="nc" id="L87">        CompletableFuture&lt;PlcWriteResponse&gt; writeFuture = new CompletableFuture&lt;&gt;();</span>
-<span class="nc" id="L88">        channel.writeAndFlush(new PlcRequestContainer&lt;&gt;(writeRequest, writeFuture));</span>
-<span class="nc" id="L89">        return writeFuture;</span>
+<span class="nc" id="L93">        CompletableFuture&lt;PlcWriteResponse&gt; writeFuture = new CompletableFuture&lt;&gt;();</span>
+<span class="nc" id="L94">        ChannelFuture channelFuture = channel.writeAndFlush(new PlcRequestContainer&lt;&gt;(writeRequest, writeFuture));</span>
+<span class="nc" id="L95">        channelFuture.addListener(future -&gt; {</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">            if (!future.isSuccess()) {</span>
+<span class="nc" id="L97">                writeFuture.completeExceptionally(future.cause());</span>
+            }
+<span class="nc" id="L99">        });</span>
+<span class="nc" id="L100">        return writeFuture;</span>
     }
 
     protected static AmsNetId generateAMSNetId() {
-<span class="fc" id="L93">        return AmsNetId.of(&quot;0.0.0.0.0.0&quot;);</span>
+<span class="fc" id="L104">        return AmsNetId.of(&quot;0.0.0.0.0.0&quot;);</span>
     }
 
     protected static AmsPort generateAMSPort() {
-<span class="fc" id="L97">        return AmsPort.of(0);</span>
+<span class="fc" id="L108">        return AmsPort.of(0);</span>
     }
 
 }
