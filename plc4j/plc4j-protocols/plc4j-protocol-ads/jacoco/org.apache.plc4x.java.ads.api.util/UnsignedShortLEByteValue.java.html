@@ -21,6 +21,7 @@ package org.apache.plc4x.java.ads.api.util;
 import io.netty.buffer.ByteBuf;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 import static java.lang.Integer.toHexString;
 import static org.apache.commons.lang3.StringUtils.leftPad;
@@ -32,68 +33,69 @@ public abstract class UnsignedShortLEByteValue extends ByteValue {
     private final int intValue;
 
     protected UnsignedShortLEByteValue(byte... value) {
-<span class="fc" id="L35">        super(value);</span>
-<span class="fc" id="L36">        assertLength(UNSIGNED_SHORT_LE_NUM_BYTES);</span>
-<span class="fc" id="L37">        intValue = getBytes()[1] &lt;&lt; 8 | getBytes()[0] &amp; 0xff;</span>
-<span class="fc" id="L38">    }</span>
+<span class="fc" id="L36">        super(value);</span>
+<span class="fc" id="L37">        assertLength(UNSIGNED_SHORT_LE_NUM_BYTES);</span>
+<span class="fc" id="L38">        intValue = ByteBuffer.wrap(value)</span>
+<span class="fc" id="L39">            .order(ByteOrder.LITTLE_ENDIAN)</span>
+<span class="fc" id="L40">            .getShort();</span>
+<span class="fc" id="L41">    }</span>
 
     protected UnsignedShortLEByteValue(int value) {
-<span class="fc" id="L41">        super(ofInt(value));</span>
-<span class="fc" id="L42">        checkUnsignedBounds(value, UNSIGNED_SHORT_LE_NUM_BYTES);</span>
-<span class="fc" id="L43">        intValue = value;</span>
-<span class="fc" id="L44">    }</span>
+<span class="fc" id="L44">        super(ofInt(value));</span>
+<span class="fc" id="L45">        intValue = value;</span>
+<span class="fc" id="L46">    }</span>
 
     protected UnsignedShortLEByteValue(String value) {
-<span class="fc" id="L47">        this(Integer.parseInt(value));</span>
-<span class="fc" id="L48">    }</span>
+<span class="fc" id="L49">        this(Integer.parseInt(value));</span>
+<span class="fc" id="L50">    }</span>
 
     protected UnsignedShortLEByteValue(ByteBuf byteBuf) {
-<span class="fc" id="L51">        this(byteBuf.readUnsignedShortLE());</span>
-<span class="fc" id="L52">    }</span>
+<span class="fc" id="L53">        this(byteBuf.readUnsignedShortLE());</span>
+<span class="fc" id="L54">    }</span>
 
-    private static byte[] ofInt(long value) {
-<span class="fc" id="L55">        return ByteBuffer.allocate(UNSIGNED_SHORT_LE_NUM_BYTES)</span>
-            // LE
-<span class="fc" id="L57">            .put((byte) (value &amp; 0xff))</span>
-<span class="fc" id="L58">            .put((byte) (value &gt;&gt; 8 &amp; 0xff))</span>
-<span class="fc" id="L59">            .array();</span>
+    private static byte[] ofInt(int value) {
+<span class="fc" id="L57">        checkUnsignedBounds(value, UNSIGNED_SHORT_LE_NUM_BYTES);</span>
+<span class="fc" id="L58">        return ByteBuffer.allocate(UNSIGNED_SHORT_LE_NUM_BYTES)</span>
+<span class="fc" id="L59">            .order(ByteOrder.LITTLE_ENDIAN)</span>
+<span class="fc" id="L60">            .putShort((short) (value &amp; 0xffff))</span>
+<span class="fc" id="L61">            .array();</span>
     }
 
     public int getAsInt() {
-<span class="fc" id="L63">        return intValue;</span>
+<span class="fc" id="L65">        return intValue;</span>
     }
 
     @Override
     public long getCalculatedLength() {
-<span class="nc" id="L68">        return UNSIGNED_SHORT_LE_NUM_BYTES;</span>
+<span class="nc" id="L70">        return UNSIGNED_SHORT_LE_NUM_BYTES;</span>
     }
 
     @Override
     public boolean equals(Object o) {
-<span class="fc bfc" id="L73" title="All 2 branches covered.">        if (this == o)</span>
-<span class="fc" id="L74">            return true;</span>
-<span class="fc bfc" id="L75" title="All 2 branches covered.">        if (!(o instanceof UnsignedShortLEByteValue))</span>
-<span class="fc" id="L76">            return false;</span>
-<span class="fc bfc" id="L77" title="All 2 branches covered.">        if (!super.equals(o))</span>
+<span class="fc bfc" id="L75" title="All 2 branches covered.">        if (this == o)</span>
+<span class="fc" id="L76">            return true;</span>
+<span class="fc bfc" id="L77" title="All 2 branches covered.">        if (!(o instanceof UnsignedShortLEByteValue))</span>
 <span class="fc" id="L78">            return false;</span>
+<span class="fc bfc" id="L79" title="All 2 branches covered.">        if (!super.equals(o))</span>
+<span class="fc" id="L80">            return false;</span>
 
-<span class="fc" id="L80">        UnsignedShortLEByteValue that = (UnsignedShortLEByteValue) o;</span>
+<span class="fc" id="L82">        UnsignedShortLEByteValue that = (UnsignedShortLEByteValue) o;</span>
 
-<span class="pc bpc" id="L82" title="1 of 2 branches missed.">        return intValue == that.intValue;</span>
+<span class="pc bpc" id="L84" title="1 of 2 branches missed.">        return intValue == that.intValue;</span>
     }
 
     @Override
     public int hashCode() {
-<span class="fc" id="L87">        int result = super.hashCode();</span>
-<span class="fc" id="L88">        result = 31 * result + intValue;</span>
-<span class="fc" id="L89">        return result;</span>
+<span class="fc" id="L89">        int result = super.hashCode();</span>
+<span class="fc" id="L90">        result = 31 * result + intValue;</span>
+<span class="fc" id="L91">        return result;</span>
     }
 
     @Override
     public String toString() {
-<span class="fc" id="L94">        return super.toString() + &quot;{&quot; +</span>
-<span class="fc" id="L95">            &quot;intValue=&quot; + getAsInt() +</span>
-<span class="fc" id="L96">            &quot;,hexValue=0x&quot; + leftPad(toHexString(getAsInt()), UNSIGNED_SHORT_LE_NUM_BYTES, &quot;0&quot;) +</span>
+<span class="fc" id="L96">        return super.toString() + &quot;{&quot; +</span>
+<span class="fc" id="L97">            &quot;intValue=&quot; + getAsInt() +</span>
+<span class="fc" id="L98">            &quot;,hexValue=0x&quot; + leftPad(toHexString(getAsInt()), UNSIGNED_SHORT_LE_NUM_BYTES, &quot;0&quot;) +</span>
             &quot;}&quot;;
     }
 }

@@ -269,83 +269,84 @@
 <a class="jxr_linenumber" name="L261" href="#L261">261</a>             <strong class="jxr_keyword">if</strong> (stamps.getAsLong() &gt; Integer.MAX_VALUE) {
 <a class="jxr_linenumber" name="L262" href="#L262">262</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalStateException(<span class="jxr_string">"Overflow in datalength: "</span> + stamps.getAsLong());
 <a class="jxr_linenumber" name="L263" href="#L263">263</a>             }
-<a class="jxr_linenumber" name="L264" href="#L264">264</a>             ByteBuf adsDeviceNotificationBuffer = commandBuffer.readBytes((<strong class="jxr_keyword">int</strong>) length.getAsLong());
-<a class="jxr_linenumber" name="L265" href="#L265">265</a>             List&lt;AdsStampHeader&gt; adsStampHeaders = <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;((<strong class="jxr_keyword">int</strong>) stamps.getAsLong());
-<a class="jxr_linenumber" name="L266" href="#L266">266</a>             <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 1; i &lt;= stamps.getAsLong(); i++) {
-<a class="jxr_linenumber" name="L267" href="#L267">267</a>                 <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/AdsStampHeader.html">AdsStampHeader</a> adsStampHeader = handleStampHeader(adsDeviceNotificationBuffer);
-<a class="jxr_linenumber" name="L268" href="#L268">268</a>                 adsStampHeaders.add(adsStampHeader);
-<a class="jxr_linenumber" name="L269" href="#L269">269</a>             }
-<a class="jxr_linenumber" name="L270" href="#L270">270</a>             amsPacket = AdsDeviceNotificationRequest.of(amsHeader, length, stamps, adsStampHeaders);
-<a class="jxr_linenumber" name="L271" href="#L271">271</a>         } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L272" href="#L272">272</a>             amsPacket = UnknownCommand.of(amsHeader, commandBuffer);
-<a class="jxr_linenumber" name="L273" href="#L273">273</a>         }
-<a class="jxr_linenumber" name="L274" href="#L274">274</a>         <strong class="jxr_keyword">return</strong> amsPacket;
-<a class="jxr_linenumber" name="L275" href="#L275">275</a>     }
-<a class="jxr_linenumber" name="L276" href="#L276">276</a> 
-<a class="jxr_linenumber" name="L277" href="#L277">277</a>     <strong class="jxr_keyword">private</strong> <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/AdsStampHeader.html">AdsStampHeader</a> handleStampHeader(ByteBuf adsDeviceNotificationBuffer) {
-<a class="jxr_linenumber" name="L278" href="#L278">278</a>         <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/TimeStamp.html">TimeStamp</a> timeStamp = TimeStamp.of(adsDeviceNotificationBuffer);
-<a class="jxr_linenumber" name="L279" href="#L279">279</a>         <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/Samples.html">Samples</a> samples = Samples.of(adsDeviceNotificationBuffer);
-<a class="jxr_linenumber" name="L280" href="#L280">280</a> 
-<a class="jxr_linenumber" name="L281" href="#L281">281</a>         List&lt;AdsNotificationSample&gt; adsNotificationSamples = <strong class="jxr_keyword">new</strong> LinkedList&lt;&gt;();
-<a class="jxr_linenumber" name="L282" href="#L282">282</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 1; i &lt;= samples.getAsLong(); i++) {
-<a class="jxr_linenumber" name="L283" href="#L283">283</a>             <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/AdsNotificationSample.html">AdsNotificationSample</a> adsNotificationSample = handleAdsNotificartionSample(adsDeviceNotificationBuffer);
-<a class="jxr_linenumber" name="L284" href="#L284">284</a>             adsNotificationSamples.add(adsNotificationSample);
-<a class="jxr_linenumber" name="L285" href="#L285">285</a> 
-<a class="jxr_linenumber" name="L286" href="#L286">286</a>         }
-<a class="jxr_linenumber" name="L287" href="#L287">287</a>         <strong class="jxr_keyword">return</strong> AdsStampHeader.of(timeStamp, samples, adsNotificationSamples);
-<a class="jxr_linenumber" name="L288" href="#L288">288</a>     }
-<a class="jxr_linenumber" name="L289" href="#L289">289</a> 
-<a class="jxr_linenumber" name="L290" href="#L290">290</a>     <strong class="jxr_keyword">private</strong> <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/AdsNotificationSample.html">AdsNotificationSample</a> handleAdsNotificartionSample(ByteBuf adsDeviceNotificationBuffer) {
-<a class="jxr_linenumber" name="L291" href="#L291">291</a>         <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/NotificationHandle.html">NotificationHandle</a> notificationHandle = NotificationHandle.of(adsDeviceNotificationBuffer);
-<a class="jxr_linenumber" name="L292" href="#L292">292</a>         <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/SampleSize.html">SampleSize</a> sampleSize = SampleSize.of(adsDeviceNotificationBuffer);
-<a class="jxr_linenumber" name="L293" href="#L293">293</a>         <strong class="jxr_keyword">if</strong> (sampleSize.getAsLong() &gt; Integer.MAX_VALUE) {
-<a class="jxr_linenumber" name="L294" href="#L294">294</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalStateException(<span class="jxr_string">"Overflow in datalength: "</span> + sampleSize.getAsLong());
-<a class="jxr_linenumber" name="L295" href="#L295">295</a>         }
-<a class="jxr_linenumber" name="L296" href="#L296">296</a>         <em class="jxr_comment">// TODO: do we need a special marker class for: Notice: If your handle becomes invalid, one notification without data will be send once as advice.</em>
-<a class="jxr_linenumber" name="L297" href="#L297">297</a>         byte[] dataToRead = <strong class="jxr_keyword">new</strong> byte[(<strong class="jxr_keyword">int</strong>) sampleSize.getAsLong()];
-<a class="jxr_linenumber" name="L298" href="#L298">298</a>         adsDeviceNotificationBuffer.readBytes(dataToRead);
-<a class="jxr_linenumber" name="L299" href="#L299">299</a>         <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/Data.html">Data</a> data = Data.of(dataToRead);
-<a class="jxr_linenumber" name="L300" href="#L300">300</a>         <strong class="jxr_keyword">return</strong> AdsNotificationSample.of(notificationHandle, sampleSize, data);
-<a class="jxr_linenumber" name="L301" href="#L301">301</a>     }
-<a class="jxr_linenumber" name="L302" href="#L302">302</a> 
-<a class="jxr_linenumber" name="L303" href="#L303">303</a>     <strong class="jxr_keyword">private</strong> <a href="../../../../../../org/apache/plc4x/java/ads/api/generic/AmsPacket.html">AmsPacket</a> handleADSReadWriteCommand(<a href="../../../../../../org/apache/plc4x/java/ads/api/generic/types/State.html">State</a> stateId, ByteBuf commandBuffer, <a href="../../../../../../org/apache/plc4x/java/ads/api/generic/AmsHeader.html">AmsHeader</a> amsHeader) {
-<a class="jxr_linenumber" name="L304" href="#L304">304</a>         <a href="../../../../../../org/apache/plc4x/java/ads/api/generic/AmsPacket.html">AmsPacket</a> amsPacket;
-<a class="jxr_linenumber" name="L305" href="#L305">305</a>         <strong class="jxr_keyword">if</strong> (stateId.isRequest()) {
-<a class="jxr_linenumber" name="L306" href="#L306">306</a>             <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/IndexGroup.html">IndexGroup</a> indexGroup = IndexGroup.of(commandBuffer);
-<a class="jxr_linenumber" name="L307" href="#L307">307</a>             <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/IndexOffset.html">IndexOffset</a> indexOffset = IndexOffset.of(commandBuffer);
-<a class="jxr_linenumber" name="L308" href="#L308">308</a>             <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/ReadLength.html">ReadLength</a> readLength = ReadLength.of(commandBuffer);
-<a class="jxr_linenumber" name="L309" href="#L309">309</a>             <strong class="jxr_keyword">if</strong> (readLength.getAsLong() &gt; Integer.MAX_VALUE) {
-<a class="jxr_linenumber" name="L310" href="#L310">310</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalStateException(<span class="jxr_string">"Overflow in datalength: "</span> + readLength.getAsLong());
-<a class="jxr_linenumber" name="L311" href="#L311">311</a>             }
-<a class="jxr_linenumber" name="L312" href="#L312">312</a>             <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/WriteLength.html">WriteLength</a> writeLength = WriteLength.of(commandBuffer);
-<a class="jxr_linenumber" name="L313" href="#L313">313</a>             <strong class="jxr_keyword">if</strong> (writeLength.getAsLong() &gt; Integer.MAX_VALUE) {
-<a class="jxr_linenumber" name="L314" href="#L314">314</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalStateException(<span class="jxr_string">"Overflow in datalength: "</span> + writeLength.getAsLong());
-<a class="jxr_linenumber" name="L315" href="#L315">315</a>             }
-<a class="jxr_linenumber" name="L316" href="#L316">316</a>             <strong class="jxr_keyword">if</strong> (readLength.getAsLong() + writeLength.getAsLong() &gt; Integer.MAX_VALUE) {
-<a class="jxr_linenumber" name="L317" href="#L317">317</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalStateException(<span class="jxr_string">"Overflow in datalength: "</span> + readLength.getAsLong() + writeLength.getAsLong());
-<a class="jxr_linenumber" name="L318" href="#L318">318</a>             }
-<a class="jxr_linenumber" name="L319" href="#L319">319</a>             byte[] dataToRead = <strong class="jxr_keyword">new</strong> byte[(<strong class="jxr_keyword">int</strong>) readLength.getAsLong()];
-<a class="jxr_linenumber" name="L320" href="#L320">320</a>             commandBuffer.readBytes(dataToRead);
-<a class="jxr_linenumber" name="L321" href="#L321">321</a>             <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/Data.html">Data</a> data = Data.of(dataToRead);
-<a class="jxr_linenumber" name="L322" href="#L322">322</a>             amsPacket = AdsReadWriteRequest.of(amsHeader, indexGroup, indexOffset, readLength, writeLength, data);
-<a class="jxr_linenumber" name="L323" href="#L323">323</a>         } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L324" href="#L324">324</a>             <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/Result.html">Result</a> result = Result.of(commandBuffer);
-<a class="jxr_linenumber" name="L325" href="#L325">325</a>             <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/Length.html">Length</a> length = Length.of(commandBuffer);
-<a class="jxr_linenumber" name="L326" href="#L326">326</a>             <strong class="jxr_keyword">if</strong> (length.getAsLong() &gt; Integer.MAX_VALUE) {
-<a class="jxr_linenumber" name="L327" href="#L327">327</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalStateException(<span class="jxr_string">"Overflow in datalength: "</span> + length.getAsLong());
-<a class="jxr_linenumber" name="L328" href="#L328">328</a>             }
-<a class="jxr_linenumber" name="L329" href="#L329">329</a>             byte[] dataToRead = <strong class="jxr_keyword">new</strong> byte[(<strong class="jxr_keyword">int</strong>) length.getAsLong()];
-<a class="jxr_linenumber" name="L330" href="#L330">330</a>             commandBuffer.readBytes(dataToRead);
-<a class="jxr_linenumber" name="L331" href="#L331">331</a>             <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/Data.html">Data</a> data = Data.of(dataToRead);
-<a class="jxr_linenumber" name="L332" href="#L332">332</a>             amsPacket = AdsReadWriteResponse.of(amsHeader, result, length, data);
-<a class="jxr_linenumber" name="L333" href="#L333">333</a>         }
-<a class="jxr_linenumber" name="L334" href="#L334">334</a>         <strong class="jxr_keyword">return</strong> amsPacket;
-<a class="jxr_linenumber" name="L335" href="#L335">335</a>     }
-<a class="jxr_linenumber" name="L336" href="#L336">336</a> 
-<a class="jxr_linenumber" name="L337" href="#L337">337</a>     <strong class="jxr_keyword">private</strong> <a href="../../../../../../org/apache/plc4x/java/ads/api/generic/AmsPacket.html">AmsPacket</a> handleUnknownCommand(ByteBuf commandBuffer, <a href="../../../../../../org/apache/plc4x/java/ads/api/generic/AmsHeader.html">AmsHeader</a> amsHeader) {
-<a class="jxr_linenumber" name="L338" href="#L338">338</a>         <strong class="jxr_keyword">return</strong> UnknownCommand.of(amsHeader, commandBuffer);
-<a class="jxr_linenumber" name="L339" href="#L339">339</a>     }
-<a class="jxr_linenumber" name="L340" href="#L340">340</a> }
+<a class="jxr_linenumber" name="L264" href="#L264">264</a>             <em class="jxr_comment">// Note: the length includes the 4 Bytes of stamps which we read already so we substract.</em>
+<a class="jxr_linenumber" name="L265" href="#L265">265</a>             ByteBuf adsDeviceNotificationBuffer = commandBuffer.readBytes((<strong class="jxr_keyword">int</strong>) length.getAsLong() - Stamps.NUM_BYTES);
+<a class="jxr_linenumber" name="L266" href="#L266">266</a>             List&lt;AdsStampHeader&gt; adsStampHeaders = <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;((<strong class="jxr_keyword">int</strong>) stamps.getAsLong());
+<a class="jxr_linenumber" name="L267" href="#L267">267</a>             <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 1; i &lt;= stamps.getAsLong(); i++) {
+<a class="jxr_linenumber" name="L268" href="#L268">268</a>                 <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/AdsStampHeader.html">AdsStampHeader</a> adsStampHeader = handleStampHeader(adsDeviceNotificationBuffer);
+<a class="jxr_linenumber" name="L269" href="#L269">269</a>                 adsStampHeaders.add(adsStampHeader);
+<a class="jxr_linenumber" name="L270" href="#L270">270</a>             }
+<a class="jxr_linenumber" name="L271" href="#L271">271</a>             amsPacket = AdsDeviceNotificationRequest.of(amsHeader, length, stamps, adsStampHeaders);
+<a class="jxr_linenumber" name="L272" href="#L272">272</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L273" href="#L273">273</a>             amsPacket = UnknownCommand.of(amsHeader, commandBuffer);
+<a class="jxr_linenumber" name="L274" href="#L274">274</a>         }
+<a class="jxr_linenumber" name="L275" href="#L275">275</a>         <strong class="jxr_keyword">return</strong> amsPacket;
+<a class="jxr_linenumber" name="L276" href="#L276">276</a>     }
+<a class="jxr_linenumber" name="L277" href="#L277">277</a> 
+<a class="jxr_linenumber" name="L278" href="#L278">278</a>     <strong class="jxr_keyword">private</strong> <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/AdsStampHeader.html">AdsStampHeader</a> handleStampHeader(ByteBuf adsDeviceNotificationBuffer) {
+<a class="jxr_linenumber" name="L279" href="#L279">279</a>         <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/TimeStamp.html">TimeStamp</a> timeStamp = TimeStamp.of(adsDeviceNotificationBuffer);
+<a class="jxr_linenumber" name="L280" href="#L280">280</a>         <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/Samples.html">Samples</a> samples = Samples.of(adsDeviceNotificationBuffer);
+<a class="jxr_linenumber" name="L281" href="#L281">281</a> 
+<a class="jxr_linenumber" name="L282" href="#L282">282</a>         List&lt;AdsNotificationSample&gt; adsNotificationSamples = <strong class="jxr_keyword">new</strong> LinkedList&lt;&gt;();
+<a class="jxr_linenumber" name="L283" href="#L283">283</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 1; i &lt;= samples.getAsLong(); i++) {
+<a class="jxr_linenumber" name="L284" href="#L284">284</a>             <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/AdsNotificationSample.html">AdsNotificationSample</a> adsNotificationSample = handleAdsNotificartionSample(adsDeviceNotificationBuffer);
+<a class="jxr_linenumber" name="L285" href="#L285">285</a>             adsNotificationSamples.add(adsNotificationSample);
+<a class="jxr_linenumber" name="L286" href="#L286">286</a> 
+<a class="jxr_linenumber" name="L287" href="#L287">287</a>         }
+<a class="jxr_linenumber" name="L288" href="#L288">288</a>         <strong class="jxr_keyword">return</strong> AdsStampHeader.of(timeStamp, samples, adsNotificationSamples);
+<a class="jxr_linenumber" name="L289" href="#L289">289</a>     }
+<a class="jxr_linenumber" name="L290" href="#L290">290</a> 
+<a class="jxr_linenumber" name="L291" href="#L291">291</a>     <strong class="jxr_keyword">private</strong> <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/AdsNotificationSample.html">AdsNotificationSample</a> handleAdsNotificartionSample(ByteBuf adsDeviceNotificationBuffer) {
+<a class="jxr_linenumber" name="L292" href="#L292">292</a>         <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/NotificationHandle.html">NotificationHandle</a> notificationHandle = NotificationHandle.of(adsDeviceNotificationBuffer);
+<a class="jxr_linenumber" name="L293" href="#L293">293</a>         <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/SampleSize.html">SampleSize</a> sampleSize = SampleSize.of(adsDeviceNotificationBuffer);
+<a class="jxr_linenumber" name="L294" href="#L294">294</a>         <strong class="jxr_keyword">if</strong> (sampleSize.getAsLong() &gt; Integer.MAX_VALUE) {
+<a class="jxr_linenumber" name="L295" href="#L295">295</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalStateException(<span class="jxr_string">"Overflow in datalength: "</span> + sampleSize.getAsLong());
+<a class="jxr_linenumber" name="L296" href="#L296">296</a>         }
+<a class="jxr_linenumber" name="L297" href="#L297">297</a>         <em class="jxr_comment">// TODO: do we need a special marker class for: Notice: If your handle becomes invalid, one notification without data will be send once as advice.</em>
+<a class="jxr_linenumber" name="L298" href="#L298">298</a>         byte[] dataToRead = <strong class="jxr_keyword">new</strong> byte[(<strong class="jxr_keyword">int</strong>) sampleSize.getAsLong()];
+<a class="jxr_linenumber" name="L299" href="#L299">299</a>         adsDeviceNotificationBuffer.readBytes(dataToRead);
+<a class="jxr_linenumber" name="L300" href="#L300">300</a>         <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/Data.html">Data</a> data = Data.of(dataToRead);
+<a class="jxr_linenumber" name="L301" href="#L301">301</a>         <strong class="jxr_keyword">return</strong> AdsNotificationSample.of(notificationHandle, sampleSize, data);
+<a class="jxr_linenumber" name="L302" href="#L302">302</a>     }
+<a class="jxr_linenumber" name="L303" href="#L303">303</a> 
+<a class="jxr_linenumber" name="L304" href="#L304">304</a>     <strong class="jxr_keyword">private</strong> <a href="../../../../../../org/apache/plc4x/java/ads/api/generic/AmsPacket.html">AmsPacket</a> handleADSReadWriteCommand(<a href="../../../../../../org/apache/plc4x/java/ads/api/generic/types/State.html">State</a> stateId, ByteBuf commandBuffer, <a href="../../../../../../org/apache/plc4x/java/ads/api/generic/AmsHeader.html">AmsHeader</a> amsHeader) {
+<a class="jxr_linenumber" name="L305" href="#L305">305</a>         <a href="../../../../../../org/apache/plc4x/java/ads/api/generic/AmsPacket.html">AmsPacket</a> amsPacket;
+<a class="jxr_linenumber" name="L306" href="#L306">306</a>         <strong class="jxr_keyword">if</strong> (stateId.isRequest()) {
+<a class="jxr_linenumber" name="L307" href="#L307">307</a>             <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/IndexGroup.html">IndexGroup</a> indexGroup = IndexGroup.of(commandBuffer);
+<a class="jxr_linenumber" name="L308" href="#L308">308</a>             <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/IndexOffset.html">IndexOffset</a> indexOffset = IndexOffset.of(commandBuffer);
+<a class="jxr_linenumber" name="L309" href="#L309">309</a>             <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/ReadLength.html">ReadLength</a> readLength = ReadLength.of(commandBuffer);
+<a class="jxr_linenumber" name="L310" href="#L310">310</a>             <strong class="jxr_keyword">if</strong> (readLength.getAsLong() &gt; Integer.MAX_VALUE) {
+<a class="jxr_linenumber" name="L311" href="#L311">311</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalStateException(<span class="jxr_string">"Overflow in datalength: "</span> + readLength.getAsLong());
+<a class="jxr_linenumber" name="L312" href="#L312">312</a>             }
+<a class="jxr_linenumber" name="L313" href="#L313">313</a>             <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/WriteLength.html">WriteLength</a> writeLength = WriteLength.of(commandBuffer);
+<a class="jxr_linenumber" name="L314" href="#L314">314</a>             <strong class="jxr_keyword">if</strong> (writeLength.getAsLong() &gt; Integer.MAX_VALUE) {
+<a class="jxr_linenumber" name="L315" href="#L315">315</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalStateException(<span class="jxr_string">"Overflow in datalength: "</span> + writeLength.getAsLong());
+<a class="jxr_linenumber" name="L316" href="#L316">316</a>             }
+<a class="jxr_linenumber" name="L317" href="#L317">317</a>             <strong class="jxr_keyword">if</strong> (readLength.getAsLong() + writeLength.getAsLong() &gt; Integer.MAX_VALUE) {
+<a class="jxr_linenumber" name="L318" href="#L318">318</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalStateException(<span class="jxr_string">"Overflow in datalength: "</span> + readLength.getAsLong() + writeLength.getAsLong());
+<a class="jxr_linenumber" name="L319" href="#L319">319</a>             }
+<a class="jxr_linenumber" name="L320" href="#L320">320</a>             byte[] dataToRead = <strong class="jxr_keyword">new</strong> byte[(<strong class="jxr_keyword">int</strong>) readLength.getAsLong()];
+<a class="jxr_linenumber" name="L321" href="#L321">321</a>             commandBuffer.readBytes(dataToRead);
+<a class="jxr_linenumber" name="L322" href="#L322">322</a>             <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/Data.html">Data</a> data = Data.of(dataToRead);
+<a class="jxr_linenumber" name="L323" href="#L323">323</a>             amsPacket = AdsReadWriteRequest.of(amsHeader, indexGroup, indexOffset, readLength, writeLength, data);
+<a class="jxr_linenumber" name="L324" href="#L324">324</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L325" href="#L325">325</a>             <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/Result.html">Result</a> result = Result.of(commandBuffer);
+<a class="jxr_linenumber" name="L326" href="#L326">326</a>             <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/Length.html">Length</a> length = Length.of(commandBuffer);
+<a class="jxr_linenumber" name="L327" href="#L327">327</a>             <strong class="jxr_keyword">if</strong> (length.getAsLong() &gt; Integer.MAX_VALUE) {
+<a class="jxr_linenumber" name="L328" href="#L328">328</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalStateException(<span class="jxr_string">"Overflow in datalength: "</span> + length.getAsLong());
+<a class="jxr_linenumber" name="L329" href="#L329">329</a>             }
+<a class="jxr_linenumber" name="L330" href="#L330">330</a>             byte[] dataToRead = <strong class="jxr_keyword">new</strong> byte[(<strong class="jxr_keyword">int</strong>) length.getAsLong()];
+<a class="jxr_linenumber" name="L331" href="#L331">331</a>             commandBuffer.readBytes(dataToRead);
+<a class="jxr_linenumber" name="L332" href="#L332">332</a>             <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/Data.html">Data</a> data = Data.of(dataToRead);
+<a class="jxr_linenumber" name="L333" href="#L333">333</a>             amsPacket = AdsReadWriteResponse.of(amsHeader, result, length, data);
+<a class="jxr_linenumber" name="L334" href="#L334">334</a>         }
+<a class="jxr_linenumber" name="L335" href="#L335">335</a>         <strong class="jxr_keyword">return</strong> amsPacket;
+<a class="jxr_linenumber" name="L336" href="#L336">336</a>     }
+<a class="jxr_linenumber" name="L337" href="#L337">337</a> 
+<a class="jxr_linenumber" name="L338" href="#L338">338</a>     <strong class="jxr_keyword">private</strong> <a href="../../../../../../org/apache/plc4x/java/ads/api/generic/AmsPacket.html">AmsPacket</a> handleUnknownCommand(ByteBuf commandBuffer, <a href="../../../../../../org/apache/plc4x/java/ads/api/generic/AmsHeader.html">AmsHeader</a> amsHeader) {
+<a class="jxr_linenumber" name="L339" href="#L339">339</a>         <strong class="jxr_keyword">return</strong> UnknownCommand.of(amsHeader, commandBuffer);
+<a class="jxr_linenumber" name="L340" href="#L340">340</a>     }
+<a class="jxr_linenumber" name="L341" href="#L341">341</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2017&#x2013;2018 <a href="https://www.apache.org/">The Apache Software Foundation</a>. All rights reserved.</div>

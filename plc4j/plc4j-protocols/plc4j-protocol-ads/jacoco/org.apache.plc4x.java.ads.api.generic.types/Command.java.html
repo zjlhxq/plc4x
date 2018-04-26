@@ -24,25 +24,26 @@ import org.apache.plc4x.java.ads.api.util.ByteReadable;
 import org.apache.plc4x.java.ads.api.util.ByteValue;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Arrays;
 
 import static java.lang.Integer.toHexString;
 
-<span class="fc" id="L31">public enum Command implements ByteReadable {</span>
-<span class="fc" id="L32">    INVALID(0x00),</span>
-<span class="fc" id="L33">    ADS_READ_DEVICE_INFO(0x01),</span>
-<span class="fc" id="L34">    ADS_READ(0x02),</span>
-<span class="fc" id="L35">    ADS_WRITE(0x03),</span>
-<span class="fc" id="L36">    ADS_READ_STATE(0x04),</span>
-<span class="fc" id="L37">    ADS_WRITE_CONTROL(0x05),</span>
-<span class="fc" id="L38">    ADS_ADD_DEVICE_NOTIFICATION(0x06),</span>
-<span class="fc" id="L39">    ADS_DELETE_DEVICE_NOTIFICATION(0x07),</span>
-<span class="fc" id="L40">    ADS_DEVICE_NOTIFICATION(0x08),</span>
-<span class="fc" id="L41">    ADS_READ_WRITE(0x09),</span>
+<span class="fc" id="L32">public enum Command implements ByteReadable {</span>
+<span class="fc" id="L33">    INVALID(0x00),</span>
+<span class="fc" id="L34">    ADS_READ_DEVICE_INFO(0x01),</span>
+<span class="fc" id="L35">    ADS_READ(0x02),</span>
+<span class="fc" id="L36">    ADS_WRITE(0x03),</span>
+<span class="fc" id="L37">    ADS_READ_STATE(0x04),</span>
+<span class="fc" id="L38">    ADS_WRITE_CONTROL(0x05),</span>
+<span class="fc" id="L39">    ADS_ADD_DEVICE_NOTIFICATION(0x06),</span>
+<span class="fc" id="L40">    ADS_DELETE_DEVICE_NOTIFICATION(0x07),</span>
+<span class="fc" id="L41">    ADS_DEVICE_NOTIFICATION(0x08),</span>
+<span class="fc" id="L42">    ADS_READ_WRITE(0x09),</span>
     /**
      * Other commands are not defined or are used internally. Therefore the Command Id  is only allowed to contain the above enumerated values!
      */
-<span class="fc" id="L45">    UNKNOWN();</span>
+<span class="fc" id="L46">    UNKNOWN();</span>
 
     public static final int NUM_BYTES = 2;
 
@@ -50,19 +51,18 @@ import static java.lang.Integer.toHexString;
 
     final int intValue;
 
-<span class="fc" id="L53">    Command() {</span>
+<span class="fc" id="L54">    Command() {</span>
         // Only used for unknown enum
-<span class="fc" id="L55">        value = new byte[0];</span>
-<span class="fc" id="L56">        intValue = 0;</span>
-<span class="fc" id="L57">    }</span>
+<span class="fc" id="L56">        value = new byte[0];</span>
+<span class="fc" id="L57">        intValue = 0;</span>
+<span class="fc" id="L58">    }</span>
 
-<span class="fc" id="L59">    Command(int value) {</span>
-<span class="fc" id="L60">        ByteValue.checkUnsignedBounds(value, NUM_BYTES);</span>
-<span class="fc" id="L61">        this.intValue = value;</span>
-<span class="fc" id="L62">        this.value = ByteBuffer.allocate(NUM_BYTES)</span>
-            // LE
-<span class="fc" id="L64">            .put((byte) (value &amp; 0xff))</span>
-<span class="fc" id="L65">            .put((byte) (value &gt;&gt; 8 &amp; 0xff))</span>
+<span class="fc" id="L60">    Command(int value) {</span>
+<span class="fc" id="L61">        ByteValue.checkUnsignedBounds(value, NUM_BYTES);</span>
+<span class="fc" id="L62">        this.intValue = value;</span>
+<span class="fc" id="L63">        this.value = ByteBuffer.allocate(NUM_BYTES)</span>
+<span class="fc" id="L64">            .order(ByteOrder.LITTLE_ENDIAN)</span>
+<span class="fc" id="L65">            .putShort((short) (value &amp; 0xffff))</span>
 <span class="fc" id="L66">            .array();</span>
 <span class="fc" id="L67">    }</span>
 
