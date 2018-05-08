@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>S7ResponseSizeEstimator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PLC4J: Protocol: S7</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.java.s7.netty.util</a> &gt; <span class="el_source">S7ResponseSizeEstimator.java</span></div><h1>S7ResponseSizeEstimator.java</h1><pre class="source lang-java linenums">package org.apache.plc4x.java.s7.netty.util;/*
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+&quot;License&quot;); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+&quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+*/
+
+import org.apache.commons.lang3.NotImplementedException;
+import org.apache.plc4x.java.s7.netty.model.messages.S7RequestMessage;
+import org.apache.plc4x.java.s7.netty.model.params.S7Parameter;
+import org.apache.plc4x.java.s7.netty.model.params.VarParameter;
+import org.apache.plc4x.java.s7.netty.model.params.items.S7AnyVarParameterItem;
+import org.apache.plc4x.java.s7.netty.model.params.items.VarParameterItem;
+import org.apache.plc4x.java.s7.netty.model.payloads.items.VarPayloadItem;
+import org.apache.plc4x.java.s7.netty.model.types.DataTransportSize;
+
+import java.util.List;
+
+/**
+ * When sending S7 messages we have to also pay attention to the expected size
+ * of a response for a given request. This helper estimates this response size
+ * and hereby helps implementing different strategies for optimizing requests.
+ */
+<span class="nc" id="L36">public class S7ResponseSizeEstimator {</span>
+
+    /**
+     * Estimate the size of the response for a given request object.
+     * This is needed in order to decide if a request will be able to be processed
+     * as S7 PLCs will return errors if a request will produce a response that exceeds
+     * the agreed upon PDU size.
+     *
+     * @param requestMessage the request message for which we want to estimate the response size for.
+     * @return the estimated size in bytes the response for this message will have.
+     */
+    public static short getEstimatedResponseMessageSize(S7RequestMessage requestMessage) {
+        // The fixed header size (two bytes more than the request for error class and code values).
+<span class="nc" id="L49">        short size = 12;</span>
+<span class="nc" id="L50">        size += getEstimatedResponseParametersSize(requestMessage.getParameters());</span>
+<span class="nc" id="L51">        size += getEstimatedResponsePayloadsSize(requestMessage.getParameters());</span>
+<span class="nc" id="L52">        return size;</span>
+    }
+
+    /**
+     * Calculates the estimated size adding an item (parameter and eventually payload) would add to the
+     * response for a current request message. While for the parameters the size of the items depends on
+     * if they are requests or responses, the payload depends on if it's a read or write operation.
+     *
+     * @param varParameterItem parameter item.
+     * @param varPayloadItem payload item.
+     * @return size in bytes in the corresponding response message, this item would add to an existing response message.
+     */
+    public static short getEstimatedResponseReadItemTotalSize(VarParameterItem varParameterItem,
+                                                              VarPayloadItem varPayloadItem) {
+        // If both are provided, this is a write request.
+<span class="nc bnc" id="L67" title="All 2 branches missed.">        if(varPayloadItem != null) {</span>
+            // When writing values the item size in the response is constantly 1 byte.
+<span class="nc" id="L69">            return getEstimatedResponseWriteVarPayloadItemSize(varParameterItem);</span>
+        }
+        // If the payload is empty, this is a read request and the response could contain real information.
+        else {
+<span class="nc" id="L73">            return getEstimatedResponseReadVarPayloadItemSize(varParameterItem);</span>
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Internal Response size estimations.
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private static short getEstimatedResponseParametersSize(List&lt;S7Parameter&gt; parameters) {
+<span class="nc" id="L82">        short l = 0;</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">        if (parameters != null) {</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">            for (S7Parameter parameter : parameters) {</span>
+<span class="nc" id="L85">                l += getEstimatedResponseParameterSize(parameter);</span>
+<span class="nc" id="L86">            }</span>
+        }
+<span class="nc" id="L88">        return l;</span>
+    }
+
+    private static short getEstimatedResponseParameterSize(S7Parameter parameter) {
+<span class="nc bnc" id="L92" title="All 2 branches missed.">        if (parameter == null) {</span>
+<span class="nc" id="L93">            return 0;</span>
+        }
+
+<span class="nc bnc" id="L96" title="All 3 branches missed.">        switch (parameter.getType()) {</span>
+            case READ_VAR:
+            case WRITE_VAR:
+<span class="nc" id="L99">                return getEstimatedResponseReadWriteVarParameterSize((VarParameter) parameter);</span>
+            case SETUP_COMMUNICATION:
+<span class="nc" id="L101">                return 8;</span>
+            default:
+<span class="nc" id="L103">                throw new NotImplementedException(&quot;Not implemented&quot;);</span>
+        }
+    }
+
+    private static short getEstimatedResponseReadWriteVarParameterSize(VarParameter varParameter) {
+        // In the response the var parameter only consists of the type and number of items.
+<span class="nc" id="L109">        return 2;</span>
+    }
+
+    private static short getEstimatedResponsePayloadsSize(List&lt;S7Parameter&gt; parameters) {
+<span class="nc" id="L113">        short l = 0;</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">        if (parameters != null) {</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">            for (S7Parameter parameter : parameters) {</span>
+<span class="nc" id="L116">                l += getEstimatedResponsePayloadSize(parameter);</span>
+<span class="nc" id="L117">            }</span>
+        }
+<span class="nc" id="L119">        return l;</span>
+    }
+
+    private static short getEstimatedResponsePayloadSize(S7Parameter parameter) {
+<span class="nc bnc" id="L123" title="All 2 branches missed.">        if (parameter == null) {</span>
+<span class="nc" id="L124">            return 0;</span>
+        }
+
+<span class="nc bnc" id="L127" title="All 4 branches missed.">        switch (parameter.getType()) {</span>
+            case READ_VAR:
+<span class="nc" id="L129">                return getEstimatedResponseReadVarPayloadSize((VarParameter) parameter);</span>
+            case WRITE_VAR:
+<span class="nc" id="L131">                return getEstimatedResponseWriteVarPayloadSize((VarParameter) parameter);</span>
+            case SETUP_COMMUNICATION:
+<span class="nc" id="L133">                return 0;</span>
+            default:
+<span class="nc" id="L135">                throw new NotImplementedException(&quot;Not implemented&quot;);</span>
+        }
+    }
+
+    private static short getEstimatedResponseReadVarPayloadSize(VarParameter varParameter) {
+<span class="nc" id="L140">        short length = 0;</span>
+        // Then come the items ...
+<span class="nc bnc" id="L142" title="All 2 branches missed.">        for (VarParameterItem varParameterItem : varParameter.getItems()) {</span>
+<span class="nc" id="L143">            length += getEstimatedResponseReadVarPayloadItemSize(varParameterItem);</span>
+<span class="nc" id="L144">        }</span>
+<span class="nc" id="L145">        return length;</span>
+    }
+
+    private static short getEstimatedResponseReadVarPayloadItemSize(VarParameterItem varParameterItem) {
+        // A var payload item always has a minimum size of 4 bytes (return code, transport size, size (two bytes))
+<span class="nc" id="L150">        short length = 4;</span>
+<span class="nc" id="L151">        S7AnyVarParameterItem s7AnyVarParameterItem = (S7AnyVarParameterItem) varParameterItem;</span>
+<span class="nc" id="L152">        length +=</span>
+<span class="nc" id="L153">            s7AnyVarParameterItem.getNumElements() * s7AnyVarParameterItem.getTransportSize().getSizeInBytes();</span>
+        // Get the corresponding &quot;Data Transport Size&quot; for a given &quot;Transport Size&quot;.
+<span class="nc" id="L155">        DataTransportSize dataTransportSize =</span>
+<span class="nc" id="L156">            DataTransportSize.getForTransportSize(s7AnyVarParameterItem.getTransportSize());</span>
+        // It seems that bit payloads need a additional separating 0x00 byte.
+<span class="nc bnc" id="L158" title="All 4 branches missed.">        if((dataTransportSize != null) &amp;&amp; dataTransportSize.isSizeInBits()) {</span>
+<span class="nc" id="L159">            length += 1;</span>
+        }
+<span class="nc" id="L161">        return length;</span>
+    }
+
+    private static short getEstimatedResponseWriteVarPayloadSize(VarParameter varParameter) {
+<span class="nc" id="L165">        short length = 0;</span>
+<span class="nc bnc" id="L166" title="All 2 branches missed.">        for (VarParameterItem varParameterItem : varParameter.getItems()) {</span>
+<span class="nc" id="L167">            length += getEstimatedResponseWriteVarPayloadItemSize(varParameterItem);</span>
+<span class="nc" id="L168">        }</span>
+<span class="nc" id="L169">        return length;</span>
+    }
+
+    private static short getEstimatedResponseWriteVarPayloadItemSize(VarParameterItem varParameterItem) {
+        // This is just one byte containing the error code.
+<span class="nc" id="L174">        return 1;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
