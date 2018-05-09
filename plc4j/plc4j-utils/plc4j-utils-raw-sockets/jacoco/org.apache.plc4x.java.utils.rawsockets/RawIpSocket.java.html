@@ -44,7 +44,9 @@ public class RawIpSocket {
     private static final int SNAPLEN = 65536;
     private static final int READ_TIMEOUT = 10;
 
-<span class="nc" id="L47">    private static final Map&lt;InetAddress, MacAddress&gt; arpCache = new HashMap&lt;&gt;();</span>
+    private static final String GATEWAY_ONLY_NETMASK = &quot;255.255.255.255&quot;;
+
+<span class="nc" id="L49">    private static final Map&lt;InetAddress, MacAddress&gt; arpCache = new HashMap&lt;&gt;();</span>
 
     // The id of the protocol we will be communicating in.
     private final int protocolNumber;
@@ -54,20 +56,20 @@ public class RawIpSocket {
     private MacAddress firstHopMacAddress;
     private InetAddress localIpAddress;
     private MacAddress localMacAddress;
-<span class="nc" id="L57">    private ExecutorService pool = Executors.newSingleThreadExecutor();</span>
+<span class="nc" id="L59">    private ExecutorService pool = Executors.newSingleThreadExecutor();</span>
     private PcapHandle receiveHandle;
 
-<span class="nc" id="L60">    private final List&lt;RawSocketListener&gt; listeners = new LinkedList&lt;&gt;();</span>
+<span class="nc" id="L62">    private final List&lt;RawSocketListener&gt; listeners = new LinkedList&lt;&gt;();</span>
 
-<span class="nc" id="L62">    public RawIpSocket(int protocolNumber) {</span>
-<span class="nc" id="L63">        this.protocolNumber = protocolNumber;</span>
-<span class="nc" id="L64">    }</span>
+<span class="nc" id="L64">    public RawIpSocket(int protocolNumber) {</span>
+<span class="nc" id="L65">        this.protocolNumber = protocolNumber;</span>
+<span class="nc" id="L66">    }</span>
 
     public void connect(String remoteAddress) throws RawSocketException {
         try {
-<span class="nc" id="L68">            pool = Executors.newScheduledThreadPool(2);</span>
+<span class="nc" id="L70">            pool = Executors.newScheduledThreadPool(2);</span>
 
-<span class="nc" id="L70">            remoteIpAddress = InetAddress.getByName(remoteAddress);</span>
+<span class="nc" id="L72">            remoteIpAddress = InetAddress.getByName(remoteAddress);</span>
 
             // As we have to create the Ethernet packets ourselves, and
             // in case of non local remote addresses we need to go through
@@ -83,204 +85,204 @@ public class RawIpSocket {
             //     of the gateway.
 
             // Check if we can connect directly to the destination.
-<span class="nc" id="L86">            FirstHop firstHop = getFirstHop(remoteIpAddress);</span>
-<span class="nc bnc" id="L87" title="All 2 branches missed.">            if (firstHop == null) {</span>
+<span class="nc" id="L88">            FirstHop firstHop = getFirstHop(remoteIpAddress);</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">            if (firstHop == null) {</span>
                 // If this wouldn't work, try to figure out the default
                 // gateway and use that as next hop.
-<span class="nc" id="L90">                InetAddress defaultGatewayAddress = getDefaultGatewayAddress();</span>
-<span class="nc bnc" id="L91" title="All 2 branches missed.">                if (defaultGatewayAddress != null) {</span>
-<span class="nc" id="L92">                    firstHop = getFirstHop(defaultGatewayAddress);</span>
-<span class="nc bnc" id="L93" title="All 2 branches missed.">                    if (firstHop == null) {</span>
+<span class="nc" id="L92">                InetAddress defaultGatewayAddress = getDefaultGatewayAddress();</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">                if (defaultGatewayAddress != null) {</span>
+<span class="nc" id="L94">                    firstHop = getFirstHop(defaultGatewayAddress);</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">                    if (firstHop == null) {</span>
                         // If this didn't work, we simply can't reach the
                         // destination and give up with an exception. Not
                         // much we can do here.
-<span class="nc" id="L97">                        throw new RawSocketException(&quot;Unable to connect to &quot; + remoteAddress);</span>
+<span class="nc" id="L99">                        throw new RawSocketException(&quot;Unable to connect to &quot; + remoteAddress);</span>
                     }
                 } else {
-<span class="nc" id="L100">                    throw new RawSocketException(&quot;Unable to connect to &quot; + remoteAddress + &quot; no default gateway&quot;);</span>
+<span class="nc" id="L102">                    throw new RawSocketException(&quot;Unable to connect to &quot; + remoteAddress + &quot; no default gateway&quot;);</span>
                 }
             }
 
-<span class="nc" id="L104">            nif = firstHop.networkInterface;</span>
+<span class="nc" id="L106">            nif = firstHop.networkInterface;</span>
 
-<span class="nc bnc" id="L106" title="All 2 branches missed.">            if (nif.isLoopBack()) {</span>
-<span class="nc" id="L107">                throw new RawSocketException(&quot;Can't use RawSocket on loopback devices&quot;);</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">            if (nif.isLoopBack()) {</span>
+<span class="nc" id="L109">                throw new RawSocketException(&quot;Can't use RawSocket on loopback devices&quot;);</span>
             }
 
-<span class="nc" id="L110">            localMacAddress = MacAddress.getByAddress(firstHop.localMacAddress.getAddress());</span>
-<span class="nc" id="L111">            localIpAddress = firstHop.localInetAddress;</span>
+<span class="nc" id="L112">            localMacAddress = MacAddress.getByAddress(firstHop.localMacAddress.getAddress());</span>
+<span class="nc" id="L113">            localIpAddress = firstHop.localInetAddress;</span>
 
-<span class="nc" id="L113">            firstHopMacAddress = MacAddress.getByAddress(firstHop.remoteMacAddress.getAddress());</span>
+<span class="nc" id="L115">            firstHopMacAddress = MacAddress.getByAddress(firstHop.remoteMacAddress.getAddress());</span>
 
             // Setup receiving of packets and redirecting them to the corresponding listeners.
             // Filter packets to contain only the ip protocol number of the current protocol.
-<span class="nc" id="L117">            receiveHandle = nif.openLive(SNAPLEN, PcapNetworkInterface.PromiscuousMode.PROMISCUOUS, READ_TIMEOUT);</span>
+<span class="nc" id="L119">            receiveHandle = nif.openLive(SNAPLEN, PcapNetworkInterface.PromiscuousMode.PROMISCUOUS, READ_TIMEOUT);</span>
 
             // Set the filter.
-<span class="nc" id="L120">            String filterString = &quot;ip protochain &quot; + protocolNumber +</span>
-<span class="nc" id="L121">                &quot; and ether dst &quot; + localMacAddress.toString() +</span>
-<span class="nc" id="L122">                &quot; and ip dst &quot; + localIpAddress.getHostAddress() +</span>
-<span class="nc" id="L123">                &quot; and ether src &quot; + firstHopMacAddress.toString() +</span>
-<span class="nc" id="L124">                &quot; and ip src &quot; + remoteIpAddress.getHostAddress();</span>
+<span class="nc" id="L122">            String filterString = &quot;ip protochain &quot; + protocolNumber +</span>
+<span class="nc" id="L123">                &quot; and ether dst &quot; + localMacAddress.toString() +</span>
+<span class="nc" id="L124">                &quot; and ip dst &quot; + localIpAddress.getHostAddress() +</span>
+<span class="nc" id="L125">                &quot; and ether src &quot; + firstHopMacAddress.toString() +</span>
+<span class="nc" id="L126">                &quot; and ip src &quot; + remoteIpAddress.getHostAddress();</span>
 
-<span class="nc" id="L126">            receiveHandle.setFilter(filterString, BpfProgram.BpfCompileMode.OPTIMIZE);</span>
-<span class="nc" id="L127">            PacketListener packetListener = packet -&gt; {</span>
-<span class="nc bnc" id="L128" title="All 2 branches missed.">                for (RawSocketListener listener : listeners) {</span>
-<span class="nc" id="L129">                    listener.packetReceived(packet.getRawData());</span>
-<span class="nc" id="L130">                }</span>
-<span class="nc" id="L131">            };</span>
+<span class="nc" id="L128">            receiveHandle.setFilter(filterString, BpfProgram.BpfCompileMode.OPTIMIZE);</span>
+<span class="nc" id="L129">            PacketListener packetListener = packet -&gt; {</span>
+<span class="nc bnc" id="L130" title="All 2 branches missed.">                for (RawSocketListener listener : listeners) {</span>
+<span class="nc" id="L131">                    listener.packetReceived(packet.getRawData());</span>
+<span class="nc" id="L132">                }</span>
+<span class="nc" id="L133">            };</span>
 
-<span class="nc" id="L133">            pool.execute(() -&gt; {</span>
+<span class="nc" id="L135">            pool.execute(() -&gt; {</span>
                 try {
-<span class="nc" id="L135">                    receiveHandle.loop(-1, packetListener);</span>
-<span class="nc" id="L136">                } catch (PcapNativeException | InterruptedException | NotOpenException e) {</span>
-<span class="nc" id="L137">                    logger.error(&quot;Error receiving packet for protocol {} from MAC address {}&quot;,</span>
-<span class="nc" id="L138">                        protocolNumber, firstHopMacAddress, e);</span>
-<span class="nc" id="L139">                }</span>
-<span class="nc" id="L140">            });</span>
-<span class="nc" id="L141">        } catch (PcapNativeException | NotOpenException | UnknownHostException e) {</span>
-<span class="nc" id="L142">            throw new RawSocketException(&quot;Error setting up RawSocket&quot;, e);</span>
-<span class="nc" id="L143">        }</span>
-<span class="nc" id="L144">    }</span>
+<span class="nc" id="L137">                    receiveHandle.loop(-1, packetListener);</span>
+<span class="nc" id="L138">                } catch (PcapNativeException | InterruptedException | NotOpenException e) {</span>
+<span class="nc" id="L139">                    logger.error(&quot;Error receiving packet for protocol {} from MAC address {}&quot;,</span>
+<span class="nc" id="L140">                        protocolNumber, firstHopMacAddress, e);</span>
+<span class="nc" id="L141">                }</span>
+<span class="nc" id="L142">            });</span>
+<span class="nc" id="L143">        } catch (PcapNativeException | NotOpenException | UnknownHostException e) {</span>
+<span class="nc" id="L144">            throw new RawSocketException(&quot;Error setting up RawSocket&quot;, e);</span>
+<span class="nc" id="L145">        }</span>
+<span class="nc" id="L146">    }</span>
 
     public void disconnect() throws RawSocketException {
         // TODO: Terminate all the listeners and the thread pool.
-<span class="nc" id="L148">    }</span>
+<span class="nc" id="L150">    }</span>
 
     public void write(byte[] rawData) throws RawSocketException {
-<span class="nc" id="L151">        try (PcapHandle sendHandle =</span>
-<span class="nc" id="L152">                 nif.openLive(SNAPLEN, PcapNetworkInterface.PromiscuousMode.PROMISCUOUS, READ_TIMEOUT)) {</span>
-<span class="nc" id="L153">            UnknownPacket.Builder packetBuilder = new UnknownPacket.Builder();</span>
-<span class="nc" id="L154">            packetBuilder.rawData(rawData);</span>
+<span class="nc" id="L153">        try (PcapHandle sendHandle =</span>
+<span class="nc" id="L154">                 nif.openLive(SNAPLEN, PcapNetworkInterface.PromiscuousMode.PROMISCUOUS, READ_TIMEOUT)) {</span>
+<span class="nc" id="L155">            UnknownPacket.Builder packetBuilder = new UnknownPacket.Builder();</span>
+<span class="nc" id="L156">            packetBuilder.rawData(rawData);</span>
 
-<span class="nc" id="L156">            IpV4Packet.Builder ipV4Builder = new IpV4Packet.Builder();</span>
-<span class="nc" id="L157">            ipV4Builder</span>
-<span class="nc" id="L158">                .version(IpVersion.IPV4)</span>
-<span class="nc" id="L159">                .tos(IpV4Rfc791Tos.newInstance((byte) 0))</span>
-<span class="nc" id="L160">                .ttl((byte) 100)</span>
-<span class="nc" id="L161">                .protocol(new IpNumber((byte) protocolNumber, &quot;plc4x&quot;))</span>
-<span class="nc" id="L162">                .srcAddr((Inet4Address) localIpAddress)</span>
-<span class="nc" id="L163">                .dstAddr((Inet4Address) remoteIpAddress)</span>
-<span class="nc" id="L164">                .payloadBuilder(packetBuilder)</span>
-<span class="nc" id="L165">                .correctChecksumAtBuild(true)</span>
-<span class="nc" id="L166">                .correctLengthAtBuild(true);</span>
-<span class="nc" id="L167">            ipV4Builder.identification((short) 1);</span>
+<span class="nc" id="L158">            IpV4Packet.Builder ipV4Builder = new IpV4Packet.Builder();</span>
+<span class="nc" id="L159">            ipV4Builder</span>
+<span class="nc" id="L160">                .version(IpVersion.IPV4)</span>
+<span class="nc" id="L161">                .tos(IpV4Rfc791Tos.newInstance((byte) 0))</span>
+<span class="nc" id="L162">                .ttl((byte) 100)</span>
+<span class="nc" id="L163">                .protocol(new IpNumber((byte) protocolNumber, &quot;plc4x&quot;))</span>
+<span class="nc" id="L164">                .srcAddr((Inet4Address) localIpAddress)</span>
+<span class="nc" id="L165">                .dstAddr((Inet4Address) remoteIpAddress)</span>
+<span class="nc" id="L166">                .payloadBuilder(packetBuilder)</span>
+<span class="nc" id="L167">                .correctChecksumAtBuild(true)</span>
+<span class="nc" id="L168">                .correctLengthAtBuild(true);</span>
+<span class="nc" id="L169">            ipV4Builder.identification((short) 1);</span>
 
-<span class="nc" id="L169">            EthernetPacket.Builder etherBuilder = new EthernetPacket.Builder();</span>
-<span class="nc" id="L170">            etherBuilder.dstAddr(firstHopMacAddress)</span>
-<span class="nc" id="L171">                .srcAddr(localMacAddress)</span>
-<span class="nc" id="L172">                .type(EtherType.IPV4)</span>
-<span class="nc" id="L173">                .paddingAtBuild(true);</span>
-<span class="nc" id="L174">            etherBuilder.payloadBuilder(</span>
-<span class="nc" id="L175">                new AbstractPacket.AbstractBuilder() {</span>
+<span class="nc" id="L171">            EthernetPacket.Builder etherBuilder = new EthernetPacket.Builder();</span>
+<span class="nc" id="L172">            etherBuilder.dstAddr(firstHopMacAddress)</span>
+<span class="nc" id="L173">                .srcAddr(localMacAddress)</span>
+<span class="nc" id="L174">                .type(EtherType.IPV4)</span>
+<span class="nc" id="L175">                .paddingAtBuild(true);</span>
+<span class="nc" id="L176">            etherBuilder.payloadBuilder(</span>
+<span class="nc" id="L177">                new AbstractPacket.AbstractBuilder() {</span>
                     @Override
                     public Packet build() {
-<span class="nc" id="L178">                        return ipV4Builder.build();</span>
+<span class="nc" id="L180">                        return ipV4Builder.build();</span>
                     }
                 }
             );
 
-<span class="nc" id="L183">            Packet p = etherBuilder.build();</span>
-<span class="nc" id="L184">            sendHandle.sendPacket(p);</span>
-<span class="nc" id="L185">        } catch (PcapNativeException | NotOpenException e) {</span>
-<span class="nc" id="L186">            throw new RawSocketException(&quot;Error sending packet.&quot;, e);</span>
-<span class="nc" id="L187">        }</span>
-<span class="nc" id="L188">    }</span>
+<span class="nc" id="L185">            Packet p = etherBuilder.build();</span>
+<span class="nc" id="L186">            sendHandle.sendPacket(p);</span>
+<span class="nc" id="L187">        } catch (PcapNativeException | NotOpenException e) {</span>
+<span class="nc" id="L188">            throw new RawSocketException(&quot;Error sending packet.&quot;, e);</span>
+<span class="nc" id="L189">        }</span>
+<span class="nc" id="L190">    }</span>
 
     public void addListener(RawSocketListener listener) {
-<span class="nc" id="L191">        listeners.add(listener);</span>
-<span class="nc" id="L192">    }</span>
+<span class="nc" id="L193">        listeners.add(listener);</span>
+<span class="nc" id="L194">    }</span>
 
     public void removeListener(RawSocketListener listener) {
-<span class="nc" id="L195">        listeners.remove(listener);</span>
-<span class="nc" id="L196">    }</span>
+<span class="nc" id="L197">        listeners.remove(listener);</span>
+<span class="nc" id="L198">    }</span>
 
     private MacAddress getMacAddress(PcapNetworkInterface dev, InetAddress localIpAddress, InetAddress remoteIpAddress) throws RawSocketException {
-<span class="nc bnc" id="L199" title="All 2 branches missed.">        if (!arpCache.containsKey(remoteIpAddress)) {</span>
-<span class="nc" id="L200">            MacAddress macAddress = lookupMacAddress(dev, localIpAddress, remoteIpAddress);</span>
-<span class="nc" id="L201">            arpCache.put(remoteIpAddress, macAddress);</span>
-<span class="nc" id="L202">            return macAddress;</span>
+<span class="nc bnc" id="L201" title="All 2 branches missed.">        if (!arpCache.containsKey(remoteIpAddress)) {</span>
+<span class="nc" id="L202">            MacAddress macAddress = lookupMacAddress(dev, localIpAddress, remoteIpAddress);</span>
+<span class="nc" id="L203">            arpCache.put(remoteIpAddress, macAddress);</span>
+<span class="nc" id="L204">            return macAddress;</span>
         }
-<span class="nc" id="L204">        return arpCache.get(remoteIpAddress);</span>
+<span class="nc" id="L206">        return arpCache.get(remoteIpAddress);</span>
     }
 
     private MacAddress lookupMacAddress(PcapNetworkInterface dev, InetAddress localIpAddress, InetAddress remoteIpAddress) throws RawSocketException {
         try {
-<span class="nc" id="L209">            PcapHandle receiveHandle =</span>
-<span class="nc" id="L210">                dev.openLive(SNAPLEN, PcapNetworkInterface.PromiscuousMode.PROMISCUOUS, READ_TIMEOUT);</span>
-<span class="nc" id="L211">            PcapHandle sendHandle =</span>
+<span class="nc" id="L211">            PcapHandle receiveHandle =</span>
 <span class="nc" id="L212">                dev.openLive(SNAPLEN, PcapNetworkInterface.PromiscuousMode.PROMISCUOUS, READ_TIMEOUT);</span>
+<span class="nc" id="L213">            PcapHandle sendHandle =</span>
+<span class="nc" id="L214">                dev.openLive(SNAPLEN, PcapNetworkInterface.PromiscuousMode.PROMISCUOUS, READ_TIMEOUT);</span>
             try {
                 // Setup the filter to accept only the arp packets sent back to the current
                 // host from the address of the remote host we wanted to get the mac address
                 // from.
-<span class="nc" id="L217">                receiveHandle.setFilter(</span>
-<span class="nc" id="L218">                    &quot;arp and src host &quot; + remoteIpAddress.getHostAddress()</span>
-<span class="nc" id="L219">                        + &quot; and dst host &quot; + localIpAddress.getHostAddress(),</span>
+<span class="nc" id="L219">                receiveHandle.setFilter(</span>
+<span class="nc" id="L220">                    &quot;arp and src host &quot; + remoteIpAddress.getHostAddress()</span>
+<span class="nc" id="L221">                        + &quot; and dst host &quot; + localIpAddress.getHostAddress(),</span>
                     BpfProgram.BpfCompileMode.OPTIMIZE
                 );
 
-<span class="nc" id="L223">                CompletableFuture&lt;MacAddress&gt; resolutionFuture = new CompletableFuture&lt;&gt;();</span>
-<span class="nc" id="L224">                PacketListener listener</span>
+<span class="nc" id="L225">                CompletableFuture&lt;MacAddress&gt; resolutionFuture = new CompletableFuture&lt;&gt;();</span>
+<span class="nc" id="L226">                PacketListener listener</span>
                     = packet -&gt; {
-<span class="nc bnc" id="L226" title="All 2 branches missed.">                    if (packet.contains(ArpPacket.class)) {</span>
-<span class="nc" id="L227">                        ArpPacket arp = packet.get(ArpPacket.class);</span>
-<span class="nc bnc" id="L228" title="All 2 branches missed.">                        if (arp.getHeader().getOperation().equals(ArpOperation.REPLY)) {</span>
-<span class="nc" id="L229">                            resolutionFuture.complete(arp.getHeader().getSrcHardwareAddr());</span>
+<span class="nc bnc" id="L228" title="All 2 branches missed.">                    if (packet.contains(ArpPacket.class)) {</span>
+<span class="nc" id="L229">                        ArpPacket arp = packet.get(ArpPacket.class);</span>
+<span class="nc bnc" id="L230" title="All 2 branches missed.">                        if (arp.getHeader().getOperation().equals(ArpOperation.REPLY)) {</span>
+<span class="nc" id="L231">                            resolutionFuture.complete(arp.getHeader().getSrcHardwareAddr());</span>
                         }
                     }
-<span class="nc" id="L232">                };</span>
+<span class="nc" id="L234">                };</span>
 
-<span class="nc" id="L234">                pool.execute(() -&gt; {</span>
+<span class="nc" id="L236">                pool.execute(() -&gt; {</span>
                     try {
-<span class="nc" id="L236">                        receiveHandle.loop(-1, listener);</span>
-<span class="nc" id="L237">                    } catch (PcapNativeException | InterruptedException | NotOpenException e) {</span>
-<span class="nc" id="L238">                        logger.error(&quot;Error receiving ARP lookup&quot;, e);</span>
-<span class="nc" id="L239">                    }</span>
-<span class="nc" id="L240">                });</span>
+<span class="nc" id="L238">                        receiveHandle.loop(-1, listener);</span>
+<span class="nc" id="L239">                    } catch (PcapNativeException | InterruptedException | NotOpenException e) {</span>
+<span class="nc" id="L240">                        logger.error(&quot;Error receiving ARP lookup&quot;, e);</span>
+<span class="nc" id="L241">                    }</span>
+<span class="nc" id="L242">                });</span>
 
-<span class="nc" id="L242">                MacAddress localMacAddress = MacAddress.getByAddress(</span>
-<span class="nc" id="L243">                    dev.getLinkLayerAddresses().iterator().next().getAddress());</span>
-<span class="nc" id="L244">                ArpPacket.Builder arpBuilder = new ArpPacket.Builder();</span>
-<span class="nc" id="L245">                arpBuilder</span>
-<span class="nc" id="L246">                    .hardwareType(ArpHardwareType.ETHERNET)</span>
-<span class="nc" id="L247">                    .protocolType(EtherType.IPV4)</span>
-<span class="nc" id="L248">                    .hardwareAddrLength((byte) MacAddress.SIZE_IN_BYTES)</span>
-<span class="nc" id="L249">                    .protocolAddrLength((byte) ByteArrays.INET4_ADDRESS_SIZE_IN_BYTES)</span>
-<span class="nc" id="L250">                    .operation(ArpOperation.REQUEST)</span>
-<span class="nc" id="L251">                    .srcHardwareAddr(localMacAddress)</span>
-<span class="nc" id="L252">                    .srcProtocolAddr(localIpAddress)</span>
-<span class="nc" id="L253">                    .dstHardwareAddr(MacAddress.ETHER_BROADCAST_ADDRESS)</span>
-<span class="nc" id="L254">                    .dstProtocolAddr(remoteIpAddress);</span>
+<span class="nc" id="L244">                MacAddress localMacAddress = MacAddress.getByAddress(</span>
+<span class="nc" id="L245">                    dev.getLinkLayerAddresses().iterator().next().getAddress());</span>
+<span class="nc" id="L246">                ArpPacket.Builder arpBuilder = new ArpPacket.Builder();</span>
+<span class="nc" id="L247">                arpBuilder</span>
+<span class="nc" id="L248">                    .hardwareType(ArpHardwareType.ETHERNET)</span>
+<span class="nc" id="L249">                    .protocolType(EtherType.IPV4)</span>
+<span class="nc" id="L250">                    .hardwareAddrLength((byte) MacAddress.SIZE_IN_BYTES)</span>
+<span class="nc" id="L251">                    .protocolAddrLength((byte) ByteArrays.INET4_ADDRESS_SIZE_IN_BYTES)</span>
+<span class="nc" id="L252">                    .operation(ArpOperation.REQUEST)</span>
+<span class="nc" id="L253">                    .srcHardwareAddr(localMacAddress)</span>
+<span class="nc" id="L254">                    .srcProtocolAddr(localIpAddress)</span>
+<span class="nc" id="L255">                    .dstHardwareAddr(MacAddress.ETHER_BROADCAST_ADDRESS)</span>
+<span class="nc" id="L256">                    .dstProtocolAddr(remoteIpAddress);</span>
 
-<span class="nc" id="L256">                EthernetPacket.Builder etherBuilder = new EthernetPacket.Builder();</span>
-<span class="nc" id="L257">                etherBuilder.dstAddr(MacAddress.ETHER_BROADCAST_ADDRESS)</span>
-<span class="nc" id="L258">                    .srcAddr(localMacAddress)</span>
-<span class="nc" id="L259">                    .type(EtherType.ARP)</span>
-<span class="nc" id="L260">                    .payloadBuilder(arpBuilder)</span>
-<span class="nc" id="L261">                    .paddingAtBuild(true);</span>
+<span class="nc" id="L258">                EthernetPacket.Builder etherBuilder = new EthernetPacket.Builder();</span>
+<span class="nc" id="L259">                etherBuilder.dstAddr(MacAddress.ETHER_BROADCAST_ADDRESS)</span>
+<span class="nc" id="L260">                    .srcAddr(localMacAddress)</span>
+<span class="nc" id="L261">                    .type(EtherType.ARP)</span>
+<span class="nc" id="L262">                    .payloadBuilder(arpBuilder)</span>
+<span class="nc" id="L263">                    .paddingAtBuild(true);</span>
 
-<span class="nc" id="L263">                Packet p = etherBuilder.build();</span>
-<span class="nc" id="L264">                sendHandle.sendPacket(p);</span>
+<span class="nc" id="L265">                Packet p = etherBuilder.build();</span>
+<span class="nc" id="L266">                sendHandle.sendPacket(p);</span>
                 try {
-<span class="nc" id="L266">                    return resolutionFuture.get(3000, TimeUnit.MILLISECONDS);</span>
-<span class="nc" id="L267">                } catch (TimeoutException e) {</span>
-<span class="nc" id="L268">                    logger.info(&quot;Couldn't resolve MAC address for ip address {}&quot;, remoteIpAddress.getHostAddress(), e);</span>
-<span class="nc" id="L269">                    return null;</span>
+<span class="nc" id="L268">                    return resolutionFuture.get(3000, TimeUnit.MILLISECONDS);</span>
+<span class="nc" id="L269">                } catch (TimeoutException e) {</span>
+<span class="nc" id="L270">                    logger.info(&quot;Couldn't resolve MAC address for ip address {}&quot;, remoteIpAddress.getHostAddress(), e);</span>
+<span class="nc" id="L271">                    return null;</span>
                 }
             } finally {
-<span class="nc bnc" id="L272" title="All 2 branches missed.">                if (sendHandle.isOpen()) {</span>
-<span class="nc" id="L273">                    sendHandle.close();</span>
+<span class="nc bnc" id="L274" title="All 2 branches missed.">                if (sendHandle.isOpen()) {</span>
+<span class="nc" id="L275">                    sendHandle.close();</span>
                 }
-<span class="nc bnc" id="L275" title="All 2 branches missed.">                if (receiveHandle.isOpen()) {</span>
+<span class="nc bnc" id="L277" title="All 2 branches missed.">                if (receiveHandle.isOpen()) {</span>
                     // Terminate the receive loop first.
-<span class="nc" id="L277">                    receiveHandle.breakLoop();</span>
-<span class="nc" id="L278">                    receiveHandle.close();</span>
+<span class="nc" id="L279">                    receiveHandle.breakLoop();</span>
+<span class="nc" id="L280">                    receiveHandle.close();</span>
                 }
             }
-<span class="nc" id="L281">        } catch (PcapNativeException | InterruptedException | ExecutionException | NotOpenException e) {</span>
-<span class="nc" id="L282">            throw new RawSocketException(&quot;Error looking up MAC address for ip address &quot; +</span>
-<span class="nc" id="L283">                remoteIpAddress.getHostAddress() + &quot; on device &quot; + dev.getName(), e);</span>
+<span class="nc" id="L283">        } catch (PcapNativeException | InterruptedException | ExecutionException | NotOpenException e) {</span>
+<span class="nc" id="L284">            throw new RawSocketException(&quot;Error looking up MAC address for ip address &quot; +</span>
+<span class="nc" id="L285">                remoteIpAddress.getHostAddress() + &quot; on device &quot; + dev.getName(), e);</span>
         }
     }
 
@@ -292,44 +294,44 @@ public class RawIpSocket {
      * @throws RawSocketException something went wrong.
      */
     private FirstHop getFirstHop(InetAddress remoteAddress) throws RawSocketException {
-<span class="nc" id="L295">        byte[] remoteIp = remoteAddress.getAddress();</span>
+<span class="nc" id="L297">        byte[] remoteIp = remoteAddress.getAddress();</span>
         // Iterate over all network interfaces.
         try {
             // First try if we can connect to the remote device directly.
-<span class="nc bnc" id="L299" title="All 2 branches missed.">            for (PcapNetworkInterface dev : Pcaps.findAllDevs()) {</span>
+<span class="nc bnc" id="L301" title="All 2 branches missed.">            for (PcapNetworkInterface dev : Pcaps.findAllDevs()) {</span>
                 // Iterate over all addresses configured for this interface.
-<span class="nc bnc" id="L301" title="All 2 branches missed.">                for (PcapAddress localAddress : dev.getAddresses()) {</span>
-<span class="nc bnc" id="L302" title="All 2 branches missed.">                    if(&quot;255.255.255.255&quot;.equals(localAddress.getNetmask().getHostAddress())) {</span>
-<span class="nc" id="L303">                        return new FirstHop(dev, localAddress.getAddress(),</span>
-<span class="nc" id="L304">                            dev.getLinkLayerAddresses().iterator().next(),</span>
-<span class="nc" id="L305">                            getMacAddress(dev, localAddress.getAddress(), remoteAddress));</span>
+<span class="nc bnc" id="L303" title="All 2 branches missed.">                for (PcapAddress localAddress : dev.getAddresses()) {</span>
+<span class="nc bnc" id="L304" title="All 2 branches missed.">                    if(GATEWAY_ONLY_NETMASK.equals(localAddress.getNetmask().getHostAddress())) {</span>
+<span class="nc" id="L305">                        return new FirstHop(dev, localAddress.getAddress(),</span>
+<span class="nc" id="L306">                            dev.getLinkLayerAddresses().iterator().next(),</span>
+<span class="nc" id="L307">                            getMacAddress(dev, localAddress.getAddress(), remoteAddress));</span>
                     }
                     // Only check addresses matching the IP-version of the remote address.
-<span class="nc bnc" id="L308" title="All 2 branches missed.">                    if (remoteAddress.getClass().equals(localAddress.getAddress().getClass())) {</span>
-<span class="nc" id="L309">                        byte[] localIp = localAddress.getAddress().getAddress();</span>
-<span class="nc" id="L310">                        byte[] netMask = localAddress.getNetmask().getAddress();</span>
-<span class="nc" id="L311">                        boolean matches = true;</span>
+<span class="nc bnc" id="L310" title="All 2 branches missed.">                    if (remoteAddress.getClass().equals(localAddress.getAddress().getClass())) {</span>
+<span class="nc" id="L311">                        byte[] localIp = localAddress.getAddress().getAddress();</span>
+<span class="nc" id="L312">                        byte[] netMask = localAddress.getNetmask().getAddress();</span>
+<span class="nc" id="L313">                        boolean matches = true;</span>
                         // Iterate over all bytes of the address and see if they match
                         // after applying the net mask filter.
-<span class="nc bnc" id="L314" title="All 2 branches missed.">                        for (int i = 0; i &lt; localIp.length; i++) {</span>
-<span class="nc bnc" id="L315" title="All 2 branches missed.">                            if ((localIp[i] &amp; netMask[i]) != (remoteIp[i] &amp; netMask[i])) {</span>
-<span class="nc" id="L316">                                matches = false;</span>
-<span class="nc" id="L317">                                break;</span>
+<span class="nc bnc" id="L316" title="All 2 branches missed.">                        for (int i = 0; i &lt; localIp.length; i++) {</span>
+<span class="nc bnc" id="L317" title="All 2 branches missed.">                            if ((localIp[i] &amp; netMask[i]) != (remoteIp[i] &amp; netMask[i])) {</span>
+<span class="nc" id="L318">                                matches = false;</span>
+<span class="nc" id="L319">                                break;</span>
                             }
                         }
                         // If the current address would be able to connect to the remote
                         // address, return this device.
-<span class="nc bnc" id="L322" title="All 2 branches missed.">                        if (matches) {</span>
-<span class="nc" id="L323">                            return new FirstHop(dev, localAddress.getAddress(),</span>
-<span class="nc" id="L324">                                dev.getLinkLayerAddresses().iterator().next(),</span>
-<span class="nc" id="L325">                                getMacAddress(dev, localAddress.getAddress(), remoteAddress));</span>
+<span class="nc bnc" id="L324" title="All 2 branches missed.">                        if (matches) {</span>
+<span class="nc" id="L325">                            return new FirstHop(dev, localAddress.getAddress(),</span>
+<span class="nc" id="L326">                                dev.getLinkLayerAddresses().iterator().next(),</span>
+<span class="nc" id="L327">                                getMacAddress(dev, localAddress.getAddress(), remoteAddress));</span>
                         }
                     }
-<span class="nc" id="L328">                }</span>
-<span class="nc" id="L329">            }</span>
-<span class="nc" id="L330">            return null;</span>
-<span class="nc" id="L331">        } catch (PcapNativeException e) {</span>
-<span class="nc" id="L332">            throw new RawSocketException(&quot;Error finding a device to communicate with remote address.&quot;, e);</span>
+<span class="nc" id="L330">                }</span>
+<span class="nc" id="L331">            }</span>
+<span class="nc" id="L332">            return null;</span>
+<span class="nc" id="L333">        } catch (PcapNativeException e) {</span>
+<span class="nc" id="L334">            throw new RawSocketException(&quot;Error finding a device to communicate with remote address.&quot;, e);</span>
         }
     }
 
@@ -345,38 +347,38 @@ public class RawIpSocket {
     @SuppressWarnings(&quot;squid:S1313&quot;)
     private InetAddress getDefaultGatewayAddress() {
         try {
-<span class="nc" id="L348">            Runtime rt = Runtime.getRuntime();</span>
-<span class="nc" id="L349">            String[] commands = {&quot;netstat&quot;, &quot;-rn&quot;};</span>
-<span class="nc" id="L350">            Process proc = rt.exec(commands);</span>
+<span class="nc" id="L350">            Runtime rt = Runtime.getRuntime();</span>
+<span class="nc" id="L351">            String[] commands = {&quot;netstat&quot;, &quot;-rn&quot;};</span>
+<span class="nc" id="L352">            Process proc = rt.exec(commands);</span>
 
-<span class="nc" id="L352">            BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));</span>
+<span class="nc" id="L354">            BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));</span>
 
             String linePrefix;
             int gatewayColumn;
-<span class="nc bnc" id="L356" title="All 2 branches missed.">            if (SystemUtils.IS_OS_WINDOWS) {</span>
-<span class="nc" id="L357">                linePrefix = &quot;0.0.0.0&quot;;</span>
-<span class="nc" id="L358">                gatewayColumn = 2;</span>
-<span class="nc bnc" id="L359" title="All 2 branches missed.">            } else if (SystemUtils.IS_OS_MAC_OSX) {</span>
-<span class="nc" id="L360">                linePrefix = &quot;default&quot;;</span>
-<span class="nc" id="L361">                gatewayColumn = 1;</span>
-<span class="nc bnc" id="L362" title="All 2 branches missed.">            } else if (SystemUtils.IS_OS_LINUX) {</span>
-<span class="nc" id="L363">                linePrefix = &quot;0.0.0.0&quot;;</span>
-<span class="nc" id="L364">                gatewayColumn = 1;</span>
+<span class="nc bnc" id="L358" title="All 2 branches missed.">            if (SystemUtils.IS_OS_WINDOWS) {</span>
+<span class="nc" id="L359">                linePrefix = &quot;0.0.0.0&quot;;</span>
+<span class="nc" id="L360">                gatewayColumn = 2;</span>
+<span class="nc bnc" id="L361" title="All 2 branches missed.">            } else if (SystemUtils.IS_OS_MAC_OSX) {</span>
+<span class="nc" id="L362">                linePrefix = &quot;default&quot;;</span>
+<span class="nc" id="L363">                gatewayColumn = 1;</span>
+<span class="nc bnc" id="L364" title="All 2 branches missed.">            } else if (SystemUtils.IS_OS_LINUX) {</span>
+<span class="nc" id="L365">                linePrefix = &quot;0.0.0.0&quot;;</span>
+<span class="nc" id="L366">                gatewayColumn = 1;</span>
             } else {
-<span class="nc" id="L366">                return null;</span>
+<span class="nc" id="L368">                return null;</span>
             }
 
             String s;
-<span class="nc bnc" id="L370" title="All 2 branches missed.">            while ((s = stdInput.readLine()) != null) {</span>
-<span class="nc bnc" id="L371" title="All 2 branches missed.">                if (s.trim().startsWith(linePrefix)) {</span>
-<span class="nc" id="L372">                    String[] columns = s.trim().split(&quot;\\s+&quot;);</span>
-<span class="nc" id="L373">                    return InetAddress.getByName(columns[gatewayColumn]);</span>
+<span class="nc bnc" id="L372" title="All 2 branches missed.">            while ((s = stdInput.readLine()) != null) {</span>
+<span class="nc bnc" id="L373" title="All 2 branches missed.">                if (s.trim().startsWith(linePrefix)) {</span>
+<span class="nc" id="L374">                    String[] columns = s.trim().split(&quot;\\s+&quot;);</span>
+<span class="nc" id="L375">                    return InetAddress.getByName(columns[gatewayColumn]);</span>
                 }
             }
-<span class="nc" id="L376">        } catch (IOException e) {</span>
-<span class="nc" id="L377">            logger.debug(&quot;error caught&quot;, e);</span>
-<span class="nc" id="L378">            return null;</span>
-<span class="nc" id="L379">        }</span>
+<span class="nc" id="L378">        } catch (IOException e) {</span>
+<span class="nc" id="L379">            logger.debug(&quot;error caught&quot;, e);</span>
+<span class="nc" id="L380">            return null;</span>
+<span class="nc" id="L381">        }</span>
 
         // Command on all platforms: &quot;netstat -rn&quot;
 
@@ -599,7 +601,7 @@ ff02::%en8/32                           link#20                         UmCI    
 
 
          */
-<span class="nc" id="L602">        return null;</span>
+<span class="nc" id="L604">        return null;</span>
     }
 
     private static class FirstHop {
@@ -609,12 +611,12 @@ ff02::%en8/32                           link#20                         UmCI    
         private final LinkLayerAddress remoteMacAddress;
 
         private FirstHop(PcapNetworkInterface networkInterface, InetAddress localInetAddress, LinkLayerAddress localMacAddress,
-<span class="nc" id="L612">                         LinkLayerAddress remoteMacAddress) {</span>
-<span class="nc" id="L613">            this.networkInterface = networkInterface;</span>
-<span class="nc" id="L614">            this.localInetAddress = localInetAddress;</span>
-<span class="nc" id="L615">            this.localMacAddress = localMacAddress;</span>
-<span class="nc" id="L616">            this.remoteMacAddress = remoteMacAddress;</span>
-<span class="nc" id="L617">        }</span>
+<span class="nc" id="L614">                         LinkLayerAddress remoteMacAddress) {</span>
+<span class="nc" id="L615">            this.networkInterface = networkInterface;</span>
+<span class="nc" id="L616">            this.localInetAddress = localInetAddress;</span>
+<span class="nc" id="L617">            this.localMacAddress = localMacAddress;</span>
+<span class="nc" id="L618">            this.remoteMacAddress = remoteMacAddress;</span>
+<span class="nc" id="L619">        }</span>
     }
 
 }
