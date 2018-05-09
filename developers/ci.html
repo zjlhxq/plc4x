@@ -190,7 +190,8 @@
                     </a>
                     <div class="nav-collapse collapse" id="toc-nav-collapse">
                         <ul id="toc" class="nav">
-                            <li class="toplevel"><a href="#continuous_integration" title="Continuous Integration">Continuous Integration</a></li>
+                                <li class="toplevel"><a href="#continuous_integration" title="Continuous Integration">Continuous Integration</a></li>
+<li class="toplevel"><a href="#structure_of_the_jenkins_pipeline_build" title="Structure of the Jenkins Pipeline build">Structure of the Jenkins Pipeline build</a></li>
                         </ul>
                     </div>
                 </div>
@@ -221,6 +222,41 @@
   </div> 
   <div class="paragraph"> 
    <p>Travis integrates perfectly into GitHub. We are using this to auto-check any pull-requests coming in.</p> 
+  </div> 
+  <div class="sect2"> 
+   <h3 id="structure_of_the_jenkins_pipeline_build">Structure of the Jenkins Pipeline build</h3> 
+   <div class="paragraph"> 
+    <p>We are using the Jenkins <code>multi-branch pipeline plugin</code> to automatically setup build for branches based upon the build definition in the <code>Jenkinsfile</code> in the root of the project.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>In general it decides between building of the <code>master</code> branch and all others.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>When building <code>master</code> the build not only builds the project itself and runs all tests, it also runs the <code>sonarqube</code> analysis, deploys the artifacts built as well as generates and deploys the website.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>The general structure of the build is as follows:</p> 
+   </div> 
+   <div class="listingblock"> 
+    <div class="content"> 
+     <pre>Failed to generate image: blockdiag failed: ERROR: got unexpected token: 12,50-12,51: Op '-&gt;'
+
+{
+  Start [shape = beginpoint]
+  BuildMaster [label = &quot;Build Master&quot;]
+  CodeQuality [label = &quot;&quot;]
+  Deploy [color = &quot;#068D9D&quot;, textcolor=&quot;#FFFFFF&quot;]
+  BuildSite [label = &quot;Build Site&quot;]
+  StageSite [label = &quot;Stage Site&quot;]
+  DeploySite [label = &quot;Deploy Site&quot;, color = &quot;#80DED9&quot;, textcolor=&quot;#FFFFFF&quot;]
+  Finish [shape = endpoint]
+
+  Start -&gt; Initialization -&gt; Cleanup -&gt; Checkout
+  Checkout -&gt; Build [label = &quot;any other branch&quot;] -&gt; Finish
+  Checkout -&gt; BuildMaster [label = &quot;master branch&quot;] -&gt; CodeQuality -&gt; Deploy -&gt; BuildSite -&gt; StageSite -&gt; DeploySite -&gt; Finish
+}</pre> 
+    </div> 
+   </div> 
   </div> 
  </div> 
 </div>
