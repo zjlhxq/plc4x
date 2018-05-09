@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SingleAddressPerMessageS7MessageProcessor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PLC4J: Protocol: S7</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.java.s7.netty.strategies</a> &gt; <span class="el_source">SingleAddressPerMessageS7MessageProcessor.java</span></div><h1>SingleAddressPerMessageS7MessageProcessor.java</h1><pre class="source lang-java linenums">package org.apache.plc4x.java.s7.netty.strategies;/*
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+&quot;License&quot;); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+&quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+*/
+
+import org.apache.plc4x.java.s7.netty.model.messages.S7CompositeRequestMessage;
+import org.apache.plc4x.java.s7.netty.model.messages.S7Message;
+import org.apache.plc4x.java.s7.netty.model.messages.S7RequestMessage;
+import org.apache.plc4x.java.s7.netty.model.params.S7Parameter;
+import org.apache.plc4x.java.s7.netty.model.params.VarParameter;
+import org.apache.plc4x.java.s7.netty.model.params.items.VarParameterItem;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+
+/**
+ * This is just a dummy processor that splits up an incomming message with mutltiple ver items
+ * into one message per item. It's not really useful, but might be useful when tracking down problems.
+ */
+public class SingleAddressPerMessageS7MessageProcessor implements S7MessageProcessor {
+
+    private AtomicInteger tpduRefGen;
+
+<span class="nc" id="L40">    public SingleAddressPerMessageS7MessageProcessor() {</span>
+<span class="nc" id="L41">        this.tpduRefGen = new AtomicInteger(1);</span>
+<span class="nc" id="L42">    }</span>
+
+    @Override
+    public Collection&lt;? extends S7Message&gt; process(S7Message s7Message, int pduSize) {
+        // The following considerations have to be taken into account:
+        // - The size of all parameters and payloads of a message cannot exceed the negotiated PDU size
+        // - When reading data, the size of the returned data cannot exceed the negotiated PDU size
+        //
+        // Examples:
+        // - Size of the request exceeds the maximum
+        //  When having a negotiated max PDU size of 256, the maximum size of individual addresses can be at most 18
+        //  If more are sent, the S7 will respond with a frame error.
+        // - Size of the response exceeds the maximum
+        //  When reading two Strings of each 200 bytes length, the size of the request is ok, however the PLC would
+        //  have to send back 400 bytes of String data, which would exceed the PDU size. In this case the first String
+        //  is correctly returned, but for the second item the PLC will return a code of 0x03 = Access Denied
+
+<span class="nc bnc" id="L59" title="All 2 branches missed.">        if(s7Message instanceof S7RequestMessage) {</span>
+            // TODO: This currently splits up every address area into it's own request ... this is just for testing ...
+<span class="nc" id="L61">            S7RequestMessage originalRequestMessage = (S7RequestMessage) s7Message;</span>
+<span class="nc" id="L62">            Optional&lt;VarParameter&gt; varParameterOptional = originalRequestMessage.getParameter(VarParameter.class);</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">            if (varParameterOptional.isPresent()) {</span>
+<span class="nc" id="L64">                S7CompositeRequestMessage compositeRequestMessage = new S7CompositeRequestMessage(originalRequestMessage);</span>
+<span class="nc" id="L65">                VarParameter varParameter = varParameterOptional.get();</span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">                for (VarParameterItem varParameterItem : varParameter.getItems()) {</span>
+<span class="nc" id="L67">                    S7Parameter parameter = new VarParameter(varParameter.getType(), Collections.singletonList(varParameterItem));</span>
+<span class="nc" id="L68">                    S7RequestMessage subMessage = new S7RequestMessage(</span>
+<span class="nc" id="L69">                        s7Message.getMessageType(), (short) tpduRefGen.getAndIncrement(),</span>
+<span class="nc" id="L70">                        Collections.singletonList(parameter), Collections.emptyList(), compositeRequestMessage);</span>
+<span class="nc" id="L71">                    compositeRequestMessage.addRequestMessage(subMessage);</span>
+<span class="nc" id="L72">                }</span>
+<span class="nc" id="L73">                return compositeRequestMessage.getRequestMessages();</span>
+            }
+        }
+
+<span class="nc" id="L77">        return Collections.singletonList(s7Message);</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

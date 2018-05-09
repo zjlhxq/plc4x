@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>S7CompositeRequestMessage.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PLC4J: Protocol: S7</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.java.s7.netty.model.messages</a> &gt; <span class="el_source">S7CompositeRequestMessage.java</span></div><h1>S7CompositeRequestMessage.java</h1><pre class="source lang-java linenums">package org.apache.plc4x.java.s7.netty.model.messages;/*
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+&quot;License&quot;); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+&quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+*/
+
+import org.apache.plc4x.java.api.messages.ProtocolMessage;
+import org.apache.plc4x.java.s7.netty.model.params.S7Parameter;
+import org.apache.plc4x.java.s7.netty.model.params.VarParameter;
+import org.apache.plc4x.java.s7.netty.model.payloads.S7Payload;
+import org.apache.plc4x.java.s7.netty.model.payloads.VarPayload;
+import org.apache.plc4x.java.s7.netty.model.types.MessageType;
+import org.apache.plc4x.java.s7.netty.model.types.ParameterType;
+
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+
+public class S7CompositeRequestMessage implements ProtocolMessage {
+
+    private S7RequestMessage originalRequest;
+
+    private Collection&lt;S7RequestMessage&gt; requests;
+    private Collection&lt;S7ResponseMessage&gt; responses;
+
+<span class="nc" id="L39">    public S7CompositeRequestMessage(S7RequestMessage originalRequest) {</span>
+<span class="nc" id="L40">        this.originalRequest = originalRequest;</span>
+<span class="nc" id="L41">        this.requests = new LinkedList&lt;&gt;();</span>
+<span class="nc" id="L42">        this.responses = new LinkedList&lt;&gt;();</span>
+<span class="nc" id="L43">    }</span>
+
+    @Override
+    public ProtocolMessage getParent() {
+<span class="nc" id="L47">        return originalRequest;</span>
+    }
+
+    /**
+     * A {@link S7CompositeRequestMessage} is only acknowledged, if all children are acknowledged.
+     *
+     * @return true if all children are acknowledged.
+     */
+    public boolean isAcknowledged() {
+<span class="nc bnc" id="L56" title="All 2 branches missed.">        for (S7RequestMessage requestMessage : requests) {</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">            if(!requestMessage.isAcknowledged()) {</span>
+<span class="nc" id="L58">                return false;</span>
+            }
+<span class="nc" id="L60">        }</span>
+<span class="nc" id="L61">        return true;</span>
+    }
+
+    public void addRequestMessage(S7RequestMessage requestMessage) {
+<span class="nc" id="L65">        requests.add(requestMessage);</span>
+<span class="nc" id="L66">    }</span>
+
+    public Collection&lt;S7RequestMessage&gt; getRequestMessages() {
+<span class="nc" id="L69">        return requests;</span>
+    }
+
+    public void addResponseMessage(S7ResponseMessage responseMessage) {
+<span class="nc" id="L73">        responses.add(responseMessage);</span>
+<span class="nc" id="L74">    }</span>
+
+    public S7ResponseMessage getResponseMessage() {
+<span class="nc" id="L77">        S7ResponseMessage firstResponse = null;</span>
+<span class="nc" id="L78">        short tpduRerefence = originalRequest.getTpduReference();</span>
+<span class="nc" id="L79">        List&lt;S7Parameter&gt; s7Parameters = new LinkedList&lt;&gt;();</span>
+<span class="nc" id="L80">        List&lt;S7Payload &gt; s7Payloads = new LinkedList&lt;&gt;();</span>
+<span class="nc" id="L81">        byte errorClass = 0;</span>
+<span class="nc" id="L82">        byte errorCode = 0;</span>
+<span class="nc" id="L83">        VarParameter readVarParameter = null;</span>
+<span class="nc" id="L84">        VarParameter writeVarParameter = null;</span>
+<span class="nc" id="L85">        VarPayload readVarPayload = null;</span>
+<span class="nc" id="L86">        VarPayload writeVarPayload = null;</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">        for (S7ResponseMessage response : responses) {</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">            if(firstResponse == null) {</span>
+<span class="nc" id="L89">                firstResponse = response;</span>
+            }
+            // Some parameters have to be merged. In case of read and write parameters
+            // their items have to be merged into one single parameter.
+<span class="nc bnc" id="L93" title="All 2 branches missed.">            for(S7Parameter parameter : response.getParameters()) {</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">                if (parameter.getType() == ParameterType.READ_VAR) {</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">                    if (readVarParameter == null) {</span>
+<span class="nc" id="L96">                        readVarParameter = (VarParameter) parameter;</span>
+<span class="nc" id="L97">                        s7Parameters.add(parameter);</span>
+                    } else {
+<span class="nc" id="L99">                        readVarParameter.mergeParameter((VarParameter) parameter);</span>
+                    }
+<span class="nc bnc" id="L101" title="All 2 branches missed.">                } else if (parameter.getType() == ParameterType.WRITE_VAR) {</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">                    if (writeVarParameter == null) {</span>
+<span class="nc" id="L103">                        writeVarParameter = (VarParameter) parameter;</span>
+<span class="nc" id="L104">                        s7Parameters.add(parameter);</span>
+                    } else {
+<span class="nc" id="L106">                        writeVarParameter.mergeParameter((VarParameter) parameter);</span>
+                    }
+                } else {
+<span class="nc" id="L109">                    s7Parameters.add(parameter);</span>
+                }
+<span class="nc" id="L111">            }</span>
+
+            // Some payloads have to be merged. In case of read and write payloads
+            // their items have to be merged into one single payload.
+<span class="nc bnc" id="L115" title="All 2 branches missed.">            for(S7Payload payload : response.getPayloads()) {</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">                if(payload.getType() == ParameterType.READ_VAR) {</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">                    if (readVarPayload == null) {</span>
+<span class="nc" id="L118">                        readVarPayload = (VarPayload) payload;</span>
+<span class="nc" id="L119">                        s7Payloads.add(payload);</span>
+                    } else {
+<span class="nc" id="L121">                        readVarPayload.mergePayload((VarPayload) payload);</span>
+                    }
+<span class="nc bnc" id="L123" title="All 2 branches missed.">                } else if(payload.getType() == ParameterType.WRITE_VAR) {</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">                    if(writeVarPayload == null) {</span>
+<span class="nc" id="L125">                        writeVarPayload = (VarPayload) payload;</span>
+<span class="nc" id="L126">                        s7Payloads.add(payload);</span>
+                    } else {
+<span class="nc" id="L128">                        writeVarPayload.mergePayload((VarPayload) payload);</span>
+                    }
+                } else {
+<span class="nc" id="L131">                    s7Payloads.add(payload);</span>
+                }
+<span class="nc" id="L133">            }</span>
+<span class="nc" id="L134">        }</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">        if(firstResponse != null) {</span>
+<span class="nc" id="L136">            MessageType messageType = firstResponse.getMessageType();</span>
+<span class="nc" id="L137">            return new S7ResponseMessage(messageType, tpduRerefence, s7Parameters, s7Payloads, errorClass, errorCode);</span>
+        }
+<span class="nc" id="L139">        return null;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

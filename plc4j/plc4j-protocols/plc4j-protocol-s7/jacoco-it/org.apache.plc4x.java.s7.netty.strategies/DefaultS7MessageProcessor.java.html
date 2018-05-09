@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DefaultS7MessageProcessor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PLC4J: Protocol: S7</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.java.s7.netty.strategies</a> &gt; <span class="el_source">DefaultS7MessageProcessor.java</span></div><h1>DefaultS7MessageProcessor.java</h1><pre class="source lang-java linenums">package org.apache.plc4x.java.s7.netty.strategies;/*
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+&quot;License&quot;); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+&quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+*/
+
+import org.apache.commons.lang3.NotImplementedException;
+import org.apache.plc4x.java.s7.netty.model.messages.S7CompositeRequestMessage;
+import org.apache.plc4x.java.s7.netty.model.messages.S7Message;
+import org.apache.plc4x.java.s7.netty.model.messages.S7RequestMessage;
+import org.apache.plc4x.java.s7.netty.model.params.S7Parameter;
+import org.apache.plc4x.java.s7.netty.model.params.VarParameter;
+import org.apache.plc4x.java.s7.netty.model.params.items.S7AnyVarParameterItem;
+import org.apache.plc4x.java.s7.netty.model.params.items.VarParameterItem;
+import org.apache.plc4x.java.s7.netty.model.payloads.items.VarPayloadItem;
+import org.apache.plc4x.java.s7.netty.model.types.ParameterType;
+import org.apache.plc4x.java.s7.netty.model.types.TransportSize;
+import org.apache.plc4x.java.s7.netty.util.S7RequestSizeCalculator;
+import org.apache.plc4x.java.s7.netty.util.S7ResponseSizeEstimator;
+
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
+/**
+ * While a SetupCommunication message is no problem, when reading or writing data,
+ * situations could arise that have to be handled. The following situations have to
+ * be handled:
+ * - The number of request items is so big, that the resulting PDU would exceed the
+ *   agreed upon PDU size: The request has to be split up into multiple requests.
+ * - If large blocks of data are requested by request items the result of a request
+ *   could exceed the PDU size: The requests has to be split up into multiple requests
+ *   where each requests response doesn't exceed the PDU size.
+ *
+ * The following optimizations should be implemented:
+ * - If blocks are read which are in near proximity to each other it could be better
+ *   to replace multiple requests by one that includes multiple blocks.
+ * - Rearranging the order of request items could reduce the number of needed PDUs.
+ */
+public class DefaultS7MessageProcessor implements S7MessageProcessor {
+
+    private AtomicInteger tpduRefGen;
+
+<span class="fc" id="L56">    public DefaultS7MessageProcessor() {</span>
+<span class="fc" id="L57">        this.tpduRefGen = new AtomicInteger(1);</span>
+<span class="fc" id="L58">    }</span>
+
+    @Override
+    public Collection&lt;? extends S7Message&gt; process(S7Message s7Message, int pduSize) {
+        // The following considerations have to be taken into account:
+        // - The size of all parameters and payloads of a message cannot exceed the negotiated PDU size
+        // - When reading data, the size of the returned data cannot exceed the negotiated PDU size
+        //
+        // Examples:
+        // - Size of the request exceeds the maximum
+        //  When having a negotiated max PDU size of 256, the maximum size of individual addresses can be at most 18
+        //  If more are sent, the S7 will respond with a frame error.
+        // - Size of the response exceeds the maximum
+        //  When reading two Strings of each 200 bytes length, the size of the request is ok, however the PLC would
+        //  have to send back 400 bytes of String data, which would exceed the PDU size. In this case the first String
+        //  is correctly returned, but for the second item the PLC will return a code of 0x03 = Access Denied
+        // - A S7 device doesn't seem to accept more than one write item. So if we are doing write operations, we
+        //  have to split that up into one message per written item. This also seems to affect arrays. So if
+        //  an array of values is written, we have to also split up that array into single writes.
+
+<span class="pc bpc" id="L78" title="1 of 2 branches missed.">        if(s7Message instanceof S7RequestMessage) {</span>
+<span class="fc" id="L79">            S7RequestMessage originalRequestMessage = (S7RequestMessage) s7Message;</span>
+<span class="fc" id="L80">            Optional&lt;VarParameter&gt; varParameterOptional = originalRequestMessage.getParameter(VarParameter.class);</span>
+<span class="pc bpc" id="L81" title="1 of 2 branches missed.">            if (varParameterOptional.isPresent()) {</span>
+<span class="nc" id="L82">                VarParameter varParameter = varParameterOptional.get();</span>
+
+                // Create a new composite request message.
+<span class="nc" id="L85">                S7CompositeRequestMessage compositeRequestMessage =</span>
+                    new S7CompositeRequestMessage(originalRequestMessage);
+
+                // If this is a read operation, try to get as many items in as possible.
+<span class="nc bnc" id="L89" title="All 2 branches missed.">                if(varParameter.getType() == ParameterType.READ_VAR) {</span>
+                    // Create a var parameter without any items (yet).
+<span class="nc" id="L91">                    S7Parameter subVarParameter = new VarParameter(varParameter.getType(), new LinkedList&lt;&gt;());</span>
+
+                    // Create a sub message with only this empty parameter.
+<span class="nc" id="L94">                    S7RequestMessage subMessage = new S7RequestMessage(</span>
+<span class="nc" id="L95">                        s7Message.getMessageType(), (short) tpduRefGen.getAndIncrement(),</span>
+<span class="nc" id="L96">                        Collections.singletonList(subVarParameter), Collections.emptyList(), compositeRequestMessage);</span>
+
+                    // Add this sub-message to the composite.
+<span class="nc" id="L99">                    compositeRequestMessage.addRequestMessage(subMessage);</span>
+
+                    // This calculates the size of the header for the request and response.
+<span class="nc" id="L102">                    int curRequestSize = S7RequestSizeCalculator.getRequestMessageSize(subMessage);</span>
+<span class="nc" id="L103">                    int curResponseSize = S7ResponseSizeEstimator.getEstimatedResponseMessageSize(subMessage);</span>
+
+                    // For each var item of the original request, try adding them to the current sub-message
+                    // as long as it or the resulting response does not exceed the max PDU size.
+<span class="nc bnc" id="L107" title="All 2 branches missed.">                    for (VarParameterItem varParameterItem : varParameter.getItems()) {</span>
+<span class="nc" id="L108">                        VarPayloadItem varPayloadItem = null;</span>
+<span class="nc" id="L109">                        Optional&lt;VarPayloadItem&gt; payloadItem = s7Message.getPayload(VarPayloadItem.class);</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">                        if (payloadItem.isPresent()) {</span>
+<span class="nc" id="L111">                            varPayloadItem = payloadItem.get();</span>
+                        }
+
+                        // Use the S7RequestSizeCalculator to calculate the actual and estimated item sizes.
+<span class="nc" id="L115">                        int itemRequestSize = S7RequestSizeCalculator.getRequestItemTotalSize(</span>
+                            varParameterItem, varPayloadItem);
+<span class="nc" id="L117">                        int itemResponseSize = S7ResponseSizeEstimator.getEstimatedResponseReadItemTotalSize(</span>
+                            varParameterItem, varPayloadItem);
+
+                        // When adding this item to the request we would exceed the pdu size in
+                        // the request or response, so we have to create a new sub-message.
+<span class="nc bnc" id="L122" title="All 4 branches missed.">                        if ((curRequestSize + itemRequestSize &gt; pduSize) || (curResponseSize + itemResponseSize &gt; pduSize)) {</span>
+                            // Create a new var parameter without any items (yet).
+<span class="nc" id="L124">                            subVarParameter = new VarParameter(varParameter.getType(), new LinkedList&lt;&gt;());</span>
+
+                            // Create a new sub message with only this empty parameter.
+<span class="nc" id="L127">                            subMessage = new S7RequestMessage(</span>
+<span class="nc" id="L128">                                s7Message.getMessageType(), (short) tpduRefGen.getAndIncrement(),</span>
+<span class="nc" id="L129">                                Collections.singletonList(subVarParameter),</span>
+<span class="nc" id="L130">                                Collections.emptyList(), compositeRequestMessage);</span>
+
+                            // Reset the message size
+<span class="nc" id="L133">                            curRequestSize = S7RequestSizeCalculator.getRequestMessageSize(subMessage);</span>
+<span class="nc" id="L134">                            curResponseSize = S7ResponseSizeEstimator.getEstimatedResponseMessageSize(subMessage);</span>
+
+                            // Add this new sub-message to the composite.
+<span class="nc" id="L137">                            compositeRequestMessage.addRequestMessage(subMessage);</span>
+                        } else {
+                            // Increment the current sizes.
+<span class="nc" id="L140">                            curRequestSize += itemRequestSize;</span>
+<span class="nc" id="L141">                            curResponseSize += itemResponseSize;</span>
+                        }
+
+                        // Add the item to the current subVarParameter.
+<span class="nc" id="L145">                        ((VarParameter) subVarParameter).getItems().add(varParameterItem);</span>
+<span class="nc" id="L146">                    }</span>
+<span class="nc" id="L147">                }</span>
+
+                // If this is a write operation, split up every array item into single value items
+                // and every item into a separate message.
+<span class="nc bnc" id="L151" title="All 2 branches missed.">                else if(varParameter.getType() == ParameterType.WRITE_VAR) {</span>
+<span class="nc bnc" id="L152" title="All 2 branches missed.">                    for (VarParameterItem varParameterItem : varParameter.getItems()) {</span>
+<span class="nc bnc" id="L153" title="All 2 branches missed.">                        if(varParameterItem instanceof S7AnyVarParameterItem) {</span>
+<span class="nc" id="L154">                            S7AnyVarParameterItem s7AnyVarParameterItem = (S7AnyVarParameterItem) varParameterItem;</span>
+<span class="nc" id="L155">                            short byteOffset = s7AnyVarParameterItem.getByteOffset();</span>
+<span class="nc bnc" id="L156" title="All 2 branches missed.">                            if(s7AnyVarParameterItem.getTransportSize() == TransportSize.BIT) {</span>
+<span class="nc" id="L157">                                byte bitOffset = 0;</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">                                for (int i = 0; i &lt; s7AnyVarParameterItem.getNumElements(); i++) {</span>
+                                    // Calculate the new memory and bit offset.
+<span class="nc bnc" id="L160" title="All 4 branches missed.">                                    if((i &gt; 0) &amp;&amp; (i % 8) == 0) {</span>
+<span class="nc" id="L161">                                        byteOffset++;</span>
+<span class="nc" id="L162">                                        bitOffset = 0;</span>
+                                    } else {
+<span class="nc" id="L164">                                        bitOffset++;</span>
+                                    }
+
+                                    // Create a new message with only one single value item in the var parameter.
+<span class="nc" id="L168">                                    VarParameterItem item = new S7AnyVarParameterItem(</span>
+<span class="nc" id="L169">                                        s7AnyVarParameterItem.getSpecificationType(),</span>
+<span class="nc" id="L170">                                        s7AnyVarParameterItem.getMemoryArea(),</span>
+<span class="nc" id="L171">                                        s7AnyVarParameterItem.getTransportSize(), (short) 1,</span>
+<span class="nc" id="L172">                                        s7AnyVarParameterItem.getDataBlockNumber(),</span>
+                                        byteOffset, bitOffset);
+<span class="nc" id="L174">                                    S7Parameter subVarParameter = new VarParameter(varParameter.getType(),</span>
+<span class="nc" id="L175">                                        Collections.singletonList(item));</span>
+<span class="nc" id="L176">                                    S7RequestMessage subMessage = new S7RequestMessage(</span>
+<span class="nc" id="L177">                                        s7Message.getMessageType(), (short) tpduRefGen.getAndIncrement(),</span>
+<span class="nc" id="L178">                                        Collections.singletonList(subVarParameter), Collections.emptyList(),</span>
+                                        compositeRequestMessage);
+
+                                    // Add the new message to the composite.
+<span class="nc" id="L182">                                    compositeRequestMessage.addRequestMessage(subMessage);</span>
+                                }
+<span class="nc" id="L184">                            } else {</span>
+<span class="nc bnc" id="L185" title="All 2 branches missed.">                                for (int i = 0; i &lt; s7AnyVarParameterItem.getNumElements(); i++) {</span>
+<span class="nc" id="L186">                                    byteOffset += s7AnyVarParameterItem.getTransportSize().getSizeInBytes();</span>
+
+                                    // Create a new message with only one single value item in the var parameter.
+<span class="nc" id="L189">                                    VarParameterItem item = new S7AnyVarParameterItem(</span>
+<span class="nc" id="L190">                                        s7AnyVarParameterItem.getSpecificationType(),</span>
+<span class="nc" id="L191">                                        s7AnyVarParameterItem.getMemoryArea(),</span>
+<span class="nc" id="L192">                                        s7AnyVarParameterItem.getTransportSize(), (short) 1,</span>
+<span class="nc" id="L193">                                        s7AnyVarParameterItem.getDataBlockNumber(),</span>
+                                        byteOffset, (byte) 0);
+<span class="nc" id="L195">                                    S7Parameter subVarParameter = new VarParameter(varParameter.getType(),</span>
+<span class="nc" id="L196">                                        Collections.singletonList(item));</span>
+<span class="nc" id="L197">                                    S7RequestMessage subMessage = new S7RequestMessage(</span>
+<span class="nc" id="L198">                                        s7Message.getMessageType(), (short) tpduRefGen.getAndIncrement(),</span>
+<span class="nc" id="L199">                                        Collections.singletonList(subVarParameter), Collections.emptyList(),</span>
+                                        compositeRequestMessage);
+
+                                    // Add the new message to the composite.
+<span class="nc" id="L203">                                    compositeRequestMessage.addRequestMessage(subMessage);</span>
+                                }
+                            }
+<span class="nc" id="L206">                        } else {</span>
+<span class="nc" id="L207">                            throw new NotImplementedException(&quot;Handling of other element types not implemented.&quot;);</span>
+                        }
+<span class="nc" id="L209">                    }</span>
+                }
+<span class="nc" id="L211">                return compositeRequestMessage.getRequestMessages();</span>
+            }
+        }
+
+<span class="fc" id="L215">        return Collections.singletonList(s7Message);</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
