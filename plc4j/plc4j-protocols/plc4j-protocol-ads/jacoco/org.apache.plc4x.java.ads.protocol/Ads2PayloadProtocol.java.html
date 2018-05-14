@@ -21,6 +21,8 @@ package org.apache.plc4x.java.ads.protocol;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.SystemConfiguration;
 import org.apache.plc4x.java.ads.api.commands.*;
 import org.apache.plc4x.java.ads.api.commands.types.*;
 import org.apache.plc4x.java.ads.api.generic.AmsHeader;
@@ -37,306 +39,340 @@ import java.util.concurrent.ConcurrentMap;
 
 public class Ads2PayloadProtocol extends MessageToMessageCodec&lt;ByteBuf, AmsPacket&gt; {
 
-<span class="fc" id="L40">    private static final Logger LOGGER = LoggerFactory.getLogger(Ads2PayloadProtocol.class);</span>
+<span class="fc" id="L42">    private static final Logger LOGGER = LoggerFactory.getLogger(Ads2PayloadProtocol.class);</span>
+
+<span class="fc" id="L44">    private static final Configuration CONF = new SystemConfiguration();</span>
+<span class="fc" id="L45">    private static final long MAX_NUM_STAMPS = CONF.getLong(&quot;plc4x.ads2payloadprotocol.max_num_stamps&quot;, 512L);</span>
+<span class="fc" id="L46">    private static final long MAX_NUM_SAMPLES = CONF.getLong(&quot;plc4x.ads2payloadprotocol.max_num_samples&quot;, 1024L);</span>
+<span class="fc" id="L47">    private static final long ADS_READ_COMMAND_MAX_BYTES = CONF.getLong(&quot;plc4x.ads2payloadprotocol.ads_read_command_max_bytes&quot;, 134217728L);</span>
+<span class="fc" id="L48">    private static final long ADS_WRITE_COMMAND_MAX_BYTES = CONF.getLong(&quot;plc4x.ads2payloadprotocol.ads_write_command_max_bytes&quot;, 134217728L);</span>
+<span class="fc" id="L49">    private static final long ADS_WRITE_CONTROL_COMMAND_MAX_BYTES = CONF.getLong(&quot;plc4x.ads2payloadprotocol.ads_write_control_command_max_bytes&quot;, 134217728L);</span>
+<span class="fc" id="L50">    private static final long ADS_NOTIFICATION_SAMPLE_MAX_BYTES = CONF.getLong(&quot;plc4x.ads2payloadprotocol.ads_notification_sample_max_bytes&quot;, 134217728L);</span>
+<span class="fc" id="L51">    private static final long ADS_READ_WRITE_COMMAND_REQUEST_MAX_BYTES = CONF.getLong(&quot;plc4x.ads2payloadprotocol.ads_read_write_command_request_max_bytes&quot;, 134217728L);</span>
+<span class="fc" id="L52">    private static final long ADS_READ_WRITE_COMMAND_RESPONSE_MAX_BYTES = CONF.getLong(&quot;plc4x.ads2payloadprotocol.ads_read_write_command_response_max_bytes&quot;, 134217728L);</span>
 
     private final ConcurrentMap&lt;Invoke, AmsPacket&gt; requests;
 
-<span class="fc" id="L44">    public Ads2PayloadProtocol() {</span>
-<span class="fc" id="L45">        this.requests = new ConcurrentHashMap&lt;&gt;();</span>
-<span class="fc" id="L46">    }</span>
+<span class="fc" id="L56">    public Ads2PayloadProtocol() {</span>
+<span class="fc" id="L57">        this.requests = new ConcurrentHashMap&lt;&gt;();</span>
+<span class="fc" id="L58">    }</span>
 
     /**
      * Resets this protocol and discard all send requests.
      */
     public void reset() {
-<span class="nc" id="L52">        requests.clear();</span>
-<span class="nc" id="L53">    }</span>
+<span class="nc" id="L64">        requests.clear();</span>
+<span class="nc" id="L65">    }</span>
 
     @Override
-    protected void encode(ChannelHandlerContext channelHandlerContext, AmsPacket amsPacket, List&lt;Object&gt; out) throws Exception {
-<span class="fc" id="L57">        Invoke invokeId = amsPacket.getAmsHeader().getInvokeId();</span>
-<span class="pc bpc" id="L58" title="1 of 2 branches missed.">        if (invokeId != Invoke.NONE) {</span>
-<span class="fc" id="L59">            requests.put(invokeId, amsPacket);</span>
+    protected void encode(ChannelHandlerContext channelHandlerContext, AmsPacket amsPacket, List&lt;Object&gt; out) {
+<span class="fc" id="L69">        Invoke invokeId = amsPacket.getAmsHeader().getInvokeId();</span>
+<span class="pc bpc" id="L70" title="1 of 2 branches missed.">        if (invokeId != Invoke.NONE) {</span>
+<span class="fc" id="L71">            requests.put(invokeId, amsPacket);</span>
         }
-<span class="fc" id="L61">        out.add(amsPacket.getByteBuf());</span>
-<span class="fc" id="L62">    }</span>
+<span class="fc" id="L73">        out.add(amsPacket.getByteBuf());</span>
+<span class="fc" id="L74">    }</span>
 
     @Override
-    protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf, List&lt;Object&gt; out) throws Exception {
-<span class="fc" id="L66">        AmsNetId targetAmsNetId = AmsNetId.of(byteBuf);</span>
-<span class="fc" id="L67">        AmsPort targetAmsPort = AmsPort.of(byteBuf);</span>
-<span class="fc" id="L68">        AmsNetId sourceAmsNetId = AmsNetId.of(byteBuf);</span>
-<span class="fc" id="L69">        AmsPort sourceAmsPort = AmsPort.of(byteBuf);</span>
-<span class="fc" id="L70">        Command commandId = Command.of(byteBuf);</span>
-<span class="fc" id="L71">        State stateId = State.of(byteBuf);</span>
-<span class="fc" id="L72">        DataLength dataLength = DataLength.of(byteBuf);</span>
-<span class="fc" id="L73">        AmsError errorCode = AmsError.of(byteBuf);</span>
-<span class="fc" id="L74">        Invoke invoke = Invoke.of(byteBuf);</span>
-<span class="fc" id="L75">        AmsPacket correlatedAmsPacket = requests.remove(invoke);</span>
-<span class="fc bfc" id="L76" title="All 2 branches covered.">        if (correlatedAmsPacket != null) {</span>
-<span class="fc" id="L77">            LOGGER.debug(&quot;Correlated packet received {}&quot;, correlatedAmsPacket);</span>
+    protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf, List&lt;Object&gt; out) {
+<span class="fc" id="L78">        AmsNetId targetAmsNetId = AmsNetId.of(byteBuf);</span>
+<span class="fc" id="L79">        AmsPort targetAmsPort = AmsPort.of(byteBuf);</span>
+<span class="fc" id="L80">        AmsNetId sourceAmsNetId = AmsNetId.of(byteBuf);</span>
+<span class="fc" id="L81">        AmsPort sourceAmsPort = AmsPort.of(byteBuf);</span>
+<span class="fc" id="L82">        Command commandId = Command.of(byteBuf);</span>
+<span class="fc" id="L83">        State stateId = State.of(byteBuf);</span>
+<span class="fc" id="L84">        DataLength dataLength = DataLength.of(byteBuf);</span>
+<span class="fc" id="L85">        AmsError errorCode = AmsError.of(byteBuf);</span>
+<span class="fc" id="L86">        Invoke invoke = Invoke.of(byteBuf);</span>
+<span class="fc" id="L87">        AmsPacket correlatedAmsPacket = requests.remove(invoke);</span>
+<span class="fc bfc" id="L88" title="All 2 branches covered.">        if (correlatedAmsPacket != null) {</span>
+<span class="fc" id="L89">            LOGGER.debug(&quot;Correlated packet received {}&quot;, correlatedAmsPacket);</span>
         }
-<span class="pc bpc" id="L79" title="1 of 2 branches missed.">        if (dataLength.getAsLong() &gt; Integer.MAX_VALUE) {</span>
-<span class="nc" id="L80">            throw new IllegalStateException(&quot;Overflow in datalength: &quot; + dataLength.getAsLong());</span>
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">        if (dataLength.getAsLong() &gt; Integer.MAX_VALUE) {</span>
+<span class="nc" id="L92">            throw new IllegalStateException(&quot;Overflow in datalength: &quot; + dataLength.getAsLong());</span>
         }
-<span class="fc" id="L82">        ByteBuf commandBuffer = byteBuf.readBytes((int) dataLength.getAsLong());</span>
-<span class="fc" id="L83">        AmsHeader amsHeader = AmsHeader.of(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, commandId, stateId, dataLength, errorCode, invoke);</span>
+<span class="fc" id="L94">        ByteBuf commandBuffer = byteBuf.readBytes((int) dataLength.getAsLong());</span>
+<span class="fc" id="L95">        AmsHeader amsHeader = AmsHeader.of(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, commandId, stateId, dataLength, errorCode, invoke);</span>
         final AmsPacket amsPacket;
-<span class="pc bpc" id="L85" title="2 of 11 branches missed.">        switch (commandId) {</span>
+<span class="pc bpc" id="L97" title="2 of 11 branches missed.">        switch (commandId) {</span>
             case INVALID:
-<span class="nc" id="L87">                amsPacket = handleInvalidCommand(commandBuffer, amsHeader);</span>
-<span class="nc" id="L88">                break;</span>
+<span class="nc" id="L99">                amsPacket = handleInvalidCommand(commandBuffer, amsHeader);</span>
+<span class="nc" id="L100">                break;</span>
             case ADS_READ_DEVICE_INFO:
-<span class="fc" id="L90">                amsPacket = handleADSReadDeviceInfoCommand(stateId, commandBuffer, amsHeader);</span>
-<span class="fc" id="L91">                break;</span>
-            case ADS_READ:
-<span class="fc" id="L93">                amsPacket = handleADSReadCommand(stateId, commandBuffer, amsHeader);</span>
-<span class="fc" id="L94">                break;</span>
-            case ADS_WRITE:
-<span class="fc" id="L96">                amsPacket = handleADSWriteCommand(stateId, commandBuffer, amsHeader);</span>
-<span class="fc" id="L97">                break;</span>
-            case ADS_READ_STATE:
-<span class="fc" id="L99">                amsPacket = handleADSReadStateCommand(stateId, commandBuffer, amsHeader);</span>
-<span class="fc" id="L100">                break;</span>
-            case ADS_WRITE_CONTROL:
-<span class="fc" id="L102">                amsPacket = handleADSWriteControlCommand(stateId, commandBuffer, amsHeader);</span>
+<span class="fc" id="L102">                amsPacket = handleADSReadDeviceInfoCommand(stateId, commandBuffer, amsHeader);</span>
 <span class="fc" id="L103">                break;</span>
-            case ADS_ADD_DEVICE_NOTIFICATION:
-<span class="fc" id="L105">                amsPacket = handleADSAddDeviceNotificationCommand(stateId, commandBuffer, amsHeader);</span>
+            case ADS_READ:
+<span class="fc" id="L105">                amsPacket = handleADSReadCommand(stateId, commandBuffer, amsHeader);</span>
 <span class="fc" id="L106">                break;</span>
-            case ADS_DELETE_DEVICE_NOTIFICATION:
-<span class="fc" id="L108">                amsPacket = handADSDeleteDeviceNotificationCommand(stateId, commandBuffer, amsHeader);</span>
+            case ADS_WRITE:
+<span class="fc" id="L108">                amsPacket = handleADSWriteCommand(stateId, commandBuffer, amsHeader);</span>
 <span class="fc" id="L109">                break;</span>
-            case ADS_DEVICE_NOTIFICATION:
-<span class="fc" id="L111">                amsPacket = handleADSDeviceNotificationCommand(stateId, commandBuffer, amsHeader);</span>
+            case ADS_READ_STATE:
+<span class="fc" id="L111">                amsPacket = handleADSReadStateCommand(stateId, commandBuffer, amsHeader);</span>
 <span class="fc" id="L112">                break;</span>
-            case ADS_READ_WRITE:
-<span class="fc" id="L114">                amsPacket = handleADSReadWriteCommand(stateId, commandBuffer, amsHeader);</span>
+            case ADS_WRITE_CONTROL:
+<span class="fc" id="L114">                amsPacket = handleADSWriteControlCommand(stateId, commandBuffer, amsHeader);</span>
 <span class="fc" id="L115">                break;</span>
+            case ADS_ADD_DEVICE_NOTIFICATION:
+<span class="fc" id="L117">                amsPacket = handleADSAddDeviceNotificationCommand(stateId, commandBuffer, amsHeader);</span>
+<span class="fc" id="L118">                break;</span>
+            case ADS_DELETE_DEVICE_NOTIFICATION:
+<span class="fc" id="L120">                amsPacket = handADSDeleteDeviceNotificationCommand(stateId, commandBuffer, amsHeader);</span>
+<span class="fc" id="L121">                break;</span>
+            case ADS_DEVICE_NOTIFICATION:
+<span class="fc" id="L123">                amsPacket = handleADSDeviceNotificationCommand(stateId, commandBuffer, amsHeader);</span>
+<span class="fc" id="L124">                break;</span>
+            case ADS_READ_WRITE:
+<span class="fc" id="L126">                amsPacket = handleADSReadWriteCommand(stateId, commandBuffer, amsHeader);</span>
+<span class="fc" id="L127">                break;</span>
             case UNKNOWN:
             default:
-<span class="nc" id="L118">                amsPacket = handleUnknownCommand(commandBuffer, amsHeader);</span>
+<span class="nc" id="L130">                amsPacket = handleUnknownCommand(commandBuffer, amsHeader);</span>
         }
-<span class="fc" id="L120">        out.add(amsPacket);</span>
-<span class="fc" id="L121">        LOGGER.trace(&quot;Set amsPacket {} to out&quot;, amsPacket);</span>
-<span class="pc bpc" id="L122" title="1 of 2 branches missed.">        if (commandBuffer.readableBytes() &gt; 0) {</span>
-<span class="nc" id="L123">            throw new IllegalStateException(&quot;Unread bytes left: &quot; + commandBuffer.readableBytes());</span>
+<span class="fc" id="L132">        out.add(amsPacket);</span>
+<span class="fc" id="L133">        LOGGER.trace(&quot;Set amsPacket {} to out&quot;, amsPacket);</span>
+<span class="pc bpc" id="L134" title="1 of 2 branches missed.">        if (commandBuffer.readableBytes() &gt; 0) {</span>
+<span class="nc" id="L135">            throw new IllegalStateException(&quot;Unread bytes left: &quot; + commandBuffer.readableBytes());</span>
         }
-<span class="fc" id="L125">    }</span>
+<span class="fc" id="L137">    }</span>
 
 
     private AmsPacket handleInvalidCommand(ByteBuf commandBuffer, AmsHeader amsHeader) {
-<span class="nc" id="L129">        return UnknownCommand.of(amsHeader, commandBuffer);</span>
+<span class="nc" id="L141">        return UnknownCommand.of(amsHeader, commandBuffer);</span>
     }
 
     private AmsPacket handleADSReadDeviceInfoCommand(State stateId, ByteBuf commandBuffer, AmsHeader amsHeader) {
         AmsPacket amsPacket;
-<span class="fc bfc" id="L134" title="All 2 branches covered.">        if (stateId.isRequest()) {</span>
-<span class="fc" id="L135">            amsPacket = AdsReadDeviceInfoRequest.of(amsHeader);</span>
+<span class="fc bfc" id="L146" title="All 2 branches covered.">        if (stateId.isRequest()) {</span>
+<span class="fc" id="L147">            amsPacket = AdsReadDeviceInfoRequest.of(amsHeader);</span>
         } else {
-<span class="fc" id="L137">            Result result = Result.of(commandBuffer);</span>
-<span class="fc" id="L138">            MajorVersion majorVersion = MajorVersion.of(commandBuffer);</span>
-<span class="fc" id="L139">            MinorVersion minorVersion = MinorVersion.of(commandBuffer);</span>
-<span class="fc" id="L140">            Version version = Version.of(commandBuffer);</span>
-<span class="fc" id="L141">            Device device = Device.of(commandBuffer);</span>
-<span class="fc" id="L142">            amsPacket = AdsReadDeviceInfoResponse.of(amsHeader, result, majorVersion, minorVersion, version, device);</span>
+<span class="fc" id="L149">            Result result = Result.of(commandBuffer);</span>
+<span class="fc" id="L150">            MajorVersion majorVersion = MajorVersion.of(commandBuffer);</span>
+<span class="fc" id="L151">            MinorVersion minorVersion = MinorVersion.of(commandBuffer);</span>
+<span class="fc" id="L152">            Version version = Version.of(commandBuffer);</span>
+<span class="fc" id="L153">            Device device = Device.of(commandBuffer);</span>
+<span class="fc" id="L154">            amsPacket = AdsReadDeviceInfoResponse.of(amsHeader, result, majorVersion, minorVersion, version, device);</span>
         }
-<span class="fc" id="L144">        return amsPacket;</span>
+<span class="fc" id="L156">        return amsPacket;</span>
     }
 
     private AmsPacket handleADSReadCommand(State stateId, ByteBuf commandBuffer, AmsHeader amsHeader) {
         AmsPacket amsPacket;
-<span class="fc bfc" id="L149" title="All 2 branches covered.">        if (stateId.isRequest()) {</span>
-<span class="fc" id="L150">            IndexGroup indexGroup = IndexGroup.of(commandBuffer);</span>
-<span class="fc" id="L151">            IndexOffset indexOffset = IndexOffset.of(commandBuffer);</span>
-<span class="fc" id="L152">            Length length = Length.of(commandBuffer);</span>
-<span class="fc" id="L153">            amsPacket = AdsReadRequest.of(amsHeader, indexGroup, indexOffset, length);</span>
-<span class="fc" id="L154">        } else {</span>
-<span class="fc" id="L155">            Result result = Result.of(commandBuffer);</span>
-<span class="fc" id="L156">            Length length = Length.of(commandBuffer);</span>
-<span class="pc bpc" id="L157" title="1 of 2 branches missed.">            if (length.getAsLong() &gt; Integer.MAX_VALUE) {</span>
-<span class="nc" id="L158">                throw new IllegalStateException(&quot;Overflow in datalength: &quot; + length.getAsLong());</span>
+<span class="fc bfc" id="L161" title="All 2 branches covered.">        if (stateId.isRequest()) {</span>
+<span class="fc" id="L162">            IndexGroup indexGroup = IndexGroup.of(commandBuffer);</span>
+<span class="fc" id="L163">            IndexOffset indexOffset = IndexOffset.of(commandBuffer);</span>
+<span class="fc" id="L164">            Length length = Length.of(commandBuffer);</span>
+<span class="fc" id="L165">            amsPacket = AdsReadRequest.of(amsHeader, indexGroup, indexOffset, length);</span>
+<span class="fc" id="L166">        } else {</span>
+<span class="fc" id="L167">            Result result = Result.of(commandBuffer);</span>
+<span class="fc" id="L168">            Length length = Length.of(commandBuffer);</span>
+<span class="pc bpc" id="L169" title="1 of 2 branches missed.">            if (length.getAsLong() &gt; Integer.MAX_VALUE) {</span>
+<span class="nc" id="L170">                throw new IllegalStateException(&quot;Overflow in datalength: &quot; + length.getAsLong());</span>
             }
-<span class="fc" id="L160">            byte[] dataToRead = new byte[(int) length.getAsLong()];</span>
-<span class="fc" id="L161">            commandBuffer.readBytes(dataToRead);</span>
-<span class="fc" id="L162">            Data data = Data.of(dataToRead);</span>
-<span class="fc" id="L163">            amsPacket = AdsReadResponse.of(amsHeader, result, length, data);</span>
+<span class="pc bpc" id="L172" title="1 of 2 branches missed.">            if (length.getAsLong() &gt; ADS_READ_COMMAND_MAX_BYTES) {</span>
+<span class="nc" id="L173">                throw new IllegalStateException(&quot;Overflow of ADS_READ_COMMAND_MAX_BYTES: &quot; + ADS_READ_COMMAND_MAX_BYTES + &quot;. Actual &quot; + length.getAsLong() + &quot;bytes.&quot;);</span>
+            }
+<span class="fc" id="L175">            byte[] dataToRead = new byte[(int) length.getAsLong()];</span>
+<span class="fc" id="L176">            commandBuffer.readBytes(dataToRead);</span>
+<span class="fc" id="L177">            Data data = Data.of(dataToRead);</span>
+<span class="fc" id="L178">            amsPacket = AdsReadResponse.of(amsHeader, result, length, data);</span>
         }
-<span class="fc" id="L165">        return amsPacket;</span>
+<span class="fc" id="L180">        return amsPacket;</span>
     }
 
     private AmsPacket handleADSWriteCommand(State stateId, ByteBuf commandBuffer, AmsHeader amsHeader) {
         AmsPacket amsPacket;
-<span class="fc bfc" id="L170" title="All 2 branches covered.">        if (stateId.isRequest()) {</span>
-<span class="fc" id="L171">            IndexGroup indexGroup = IndexGroup.of(commandBuffer);</span>
-<span class="fc" id="L172">            IndexOffset indexOffset = IndexOffset.of(commandBuffer);</span>
-<span class="fc" id="L173">            Length length = Length.of(commandBuffer);</span>
-<span class="pc bpc" id="L174" title="1 of 2 branches missed.">            if (length.getAsLong() &gt; Integer.MAX_VALUE) {</span>
-<span class="nc" id="L175">                throw new IllegalStateException(&quot;Overflow in datalength: &quot; + length.getAsLong());</span>
+<span class="fc bfc" id="L185" title="All 2 branches covered.">        if (stateId.isRequest()) {</span>
+<span class="fc" id="L186">            IndexGroup indexGroup = IndexGroup.of(commandBuffer);</span>
+<span class="fc" id="L187">            IndexOffset indexOffset = IndexOffset.of(commandBuffer);</span>
+<span class="fc" id="L188">            Length length = Length.of(commandBuffer);</span>
+<span class="pc bpc" id="L189" title="1 of 2 branches missed.">            if (length.getAsLong() &gt; Integer.MAX_VALUE) {</span>
+<span class="nc" id="L190">                throw new IllegalStateException(&quot;Overflow in datalength: &quot; + length.getAsLong());</span>
             }
-<span class="fc" id="L177">            byte[] dataToRead = new byte[(int) length.getAsLong()];</span>
-<span class="fc" id="L178">            commandBuffer.readBytes(dataToRead);</span>
-<span class="fc" id="L179">            Data data = Data.of(dataToRead);</span>
-<span class="fc" id="L180">            amsPacket = AdsWriteRequest.of(amsHeader, indexGroup, indexOffset, length, data);</span>
-<span class="fc" id="L181">        } else {</span>
-<span class="fc" id="L182">            Result result = Result.of(commandBuffer);</span>
-<span class="fc" id="L183">            amsPacket = AdsWriteResponse.of(amsHeader, result);</span>
+<span class="pc bpc" id="L192" title="1 of 2 branches missed.">            if (length.getAsLong() &gt; ADS_WRITE_COMMAND_MAX_BYTES) {</span>
+<span class="nc" id="L193">                throw new IllegalStateException(&quot;Overflow of ADS_WRITE_COMMAND_MAX_BYTES: &quot; + ADS_WRITE_COMMAND_MAX_BYTES + &quot;. Actual &quot; + length.getAsLong() + &quot;bytes.&quot;);</span>
+            }
+<span class="fc" id="L195">            byte[] dataToRead = new byte[(int) length.getAsLong()];</span>
+<span class="fc" id="L196">            commandBuffer.readBytes(dataToRead);</span>
+<span class="fc" id="L197">            Data data = Data.of(dataToRead);</span>
+<span class="fc" id="L198">            amsPacket = AdsWriteRequest.of(amsHeader, indexGroup, indexOffset, length, data);</span>
+<span class="fc" id="L199">        } else {</span>
+<span class="fc" id="L200">            Result result = Result.of(commandBuffer);</span>
+<span class="fc" id="L201">            amsPacket = AdsWriteResponse.of(amsHeader, result);</span>
         }
-<span class="fc" id="L185">        return amsPacket;</span>
+<span class="fc" id="L203">        return amsPacket;</span>
     }
 
 
     private AmsPacket handleADSReadStateCommand(State stateId, ByteBuf commandBuffer, AmsHeader amsHeader) {
         AmsPacket amsPacket;
-<span class="fc bfc" id="L191" title="All 2 branches covered.">        if (stateId.isRequest()) {</span>
-<span class="fc" id="L192">            amsPacket = AdsReadStateRequest.of(amsHeader);</span>
+<span class="fc bfc" id="L209" title="All 2 branches covered.">        if (stateId.isRequest()) {</span>
+<span class="fc" id="L210">            amsPacket = AdsReadStateRequest.of(amsHeader);</span>
         } else {
-<span class="fc" id="L194">            Result result = Result.of(commandBuffer);</span>
-<span class="fc" id="L195">            AdsState adsState = AdsState.of(commandBuffer);</span>
-<span class="fc" id="L196">            DeviceState deviceState = DeviceState.of(commandBuffer);</span>
-<span class="fc" id="L197">            amsPacket = AdsReadStateResponse.of(amsHeader, result, adsState, deviceState);</span>
+<span class="fc" id="L212">            Result result = Result.of(commandBuffer);</span>
+<span class="fc" id="L213">            AdsState adsState = AdsState.of(commandBuffer);</span>
+<span class="fc" id="L214">            DeviceState deviceState = DeviceState.of(commandBuffer);</span>
+<span class="fc" id="L215">            amsPacket = AdsReadStateResponse.of(amsHeader, result, adsState, deviceState);</span>
         }
-<span class="fc" id="L199">        return amsPacket;</span>
+<span class="fc" id="L217">        return amsPacket;</span>
     }
 
     private AmsPacket handleADSWriteControlCommand(State stateId, ByteBuf commandBuffer, AmsHeader amsHeader) {
         AmsPacket amsPacket;
-<span class="fc bfc" id="L204" title="All 2 branches covered.">        if (stateId.isRequest()) {</span>
-<span class="fc" id="L205">            AdsState adsState = AdsState.of(commandBuffer);</span>
-<span class="fc" id="L206">            DeviceState deviceState = DeviceState.of(commandBuffer);</span>
-<span class="fc" id="L207">            Length length = Length.of(commandBuffer);</span>
-<span class="pc bpc" id="L208" title="1 of 2 branches missed.">            if (length.getAsLong() &gt; Integer.MAX_VALUE) {</span>
-<span class="nc" id="L209">                throw new IllegalStateException(&quot;Overflow in datalength: &quot; + length.getAsLong());</span>
+<span class="fc bfc" id="L222" title="All 2 branches covered.">        if (stateId.isRequest()) {</span>
+<span class="fc" id="L223">            AdsState adsState = AdsState.of(commandBuffer);</span>
+<span class="fc" id="L224">            DeviceState deviceState = DeviceState.of(commandBuffer);</span>
+<span class="fc" id="L225">            Length length = Length.of(commandBuffer);</span>
+<span class="pc bpc" id="L226" title="1 of 2 branches missed.">            if (length.getAsLong() &gt; Integer.MAX_VALUE) {</span>
+<span class="nc" id="L227">                throw new IllegalStateException(&quot;Overflow in datalength: &quot; + length.getAsLong());</span>
             }
-<span class="fc" id="L211">            byte[] dataToRead = new byte[(int) length.getAsLong()];</span>
-<span class="fc" id="L212">            commandBuffer.readBytes(dataToRead);</span>
-<span class="fc" id="L213">            Data data = Data.of(dataToRead);</span>
-<span class="fc" id="L214">            amsPacket = AdsWriteControlRequest.of(amsHeader, adsState, deviceState, length, data);</span>
-<span class="fc" id="L215">        } else {</span>
-<span class="fc" id="L216">            Result result = Result.of(commandBuffer);</span>
-<span class="fc" id="L217">            amsPacket = AdsWriteControlResponse.of(amsHeader, result);</span>
+<span class="pc bpc" id="L229" title="1 of 2 branches missed.">            if (length.getAsLong() &gt; ADS_WRITE_CONTROL_COMMAND_MAX_BYTES) {</span>
+<span class="nc" id="L230">                throw new IllegalStateException(&quot;Overflow of ADS_WRITE_CONTROL_COMMAND_MAX_BYTES: &quot; + ADS_WRITE_CONTROL_COMMAND_MAX_BYTES + &quot;. Actual &quot; + length.getAsLong() + &quot;bytes.&quot;);</span>
+            }
+<span class="fc" id="L232">            byte[] dataToRead = new byte[(int) length.getAsLong()];</span>
+<span class="fc" id="L233">            commandBuffer.readBytes(dataToRead);</span>
+<span class="fc" id="L234">            Data data = Data.of(dataToRead);</span>
+<span class="fc" id="L235">            amsPacket = AdsWriteControlRequest.of(amsHeader, adsState, deviceState, length, data);</span>
+<span class="fc" id="L236">        } else {</span>
+<span class="fc" id="L237">            Result result = Result.of(commandBuffer);</span>
+<span class="fc" id="L238">            amsPacket = AdsWriteControlResponse.of(amsHeader, result);</span>
         }
-<span class="fc" id="L219">        return amsPacket;</span>
+<span class="fc" id="L240">        return amsPacket;</span>
     }
 
     private AmsPacket handleADSAddDeviceNotificationCommand(State stateId, ByteBuf commandBuffer, AmsHeader amsHeader) {
         AmsPacket amsPacket;
-<span class="fc bfc" id="L224" title="All 2 branches covered.">        if (stateId.isRequest()) {</span>
-<span class="fc" id="L225">            IndexGroup indexGroup = IndexGroup.of(commandBuffer);</span>
-<span class="fc" id="L226">            IndexOffset indexOffset = IndexOffset.of(commandBuffer);</span>
-<span class="fc" id="L227">            Length length = Length.of(commandBuffer);</span>
-<span class="fc" id="L228">            TransmissionMode transmissionMode = TransmissionMode.of(commandBuffer);</span>
-<span class="fc" id="L229">            MaxDelay maxDelay = MaxDelay.of(commandBuffer);</span>
-<span class="fc" id="L230">            CycleTime cycleTime = CycleTime.of(commandBuffer);</span>
-<span class="fc" id="L231">            commandBuffer.skipBytes(AdsAddDeviceNotificationRequest.Reserved.NUM_BYTES);</span>
-<span class="fc" id="L232">            amsPacket = AdsAddDeviceNotificationRequest.of(amsHeader, indexGroup, indexOffset, length, transmissionMode, maxDelay, cycleTime);</span>
-<span class="fc" id="L233">        } else {</span>
-<span class="fc" id="L234">            Result result = Result.of(commandBuffer);</span>
-<span class="fc" id="L235">            NotificationHandle notificationHandle = NotificationHandle.of(commandBuffer);</span>
-<span class="fc" id="L236">            amsPacket = AdsAddDeviceNotificationResponse.of(amsHeader, result, notificationHandle);</span>
+<span class="fc bfc" id="L245" title="All 2 branches covered.">        if (stateId.isRequest()) {</span>
+<span class="fc" id="L246">            IndexGroup indexGroup = IndexGroup.of(commandBuffer);</span>
+<span class="fc" id="L247">            IndexOffset indexOffset = IndexOffset.of(commandBuffer);</span>
+<span class="fc" id="L248">            Length length = Length.of(commandBuffer);</span>
+<span class="fc" id="L249">            TransmissionMode transmissionMode = TransmissionMode.of(commandBuffer);</span>
+<span class="fc" id="L250">            MaxDelay maxDelay = MaxDelay.of(commandBuffer);</span>
+<span class="fc" id="L251">            CycleTime cycleTime = CycleTime.of(commandBuffer);</span>
+<span class="fc" id="L252">            commandBuffer.skipBytes(AdsAddDeviceNotificationRequest.Reserved.NUM_BYTES);</span>
+<span class="fc" id="L253">            amsPacket = AdsAddDeviceNotificationRequest.of(amsHeader, indexGroup, indexOffset, length, transmissionMode, maxDelay, cycleTime);</span>
+<span class="fc" id="L254">        } else {</span>
+<span class="fc" id="L255">            Result result = Result.of(commandBuffer);</span>
+<span class="fc" id="L256">            NotificationHandle notificationHandle = NotificationHandle.of(commandBuffer);</span>
+<span class="fc" id="L257">            amsPacket = AdsAddDeviceNotificationResponse.of(amsHeader, result, notificationHandle);</span>
         }
-<span class="fc" id="L238">        return amsPacket;</span>
+<span class="fc" id="L259">        return amsPacket;</span>
     }
 
     private AmsPacket handADSDeleteDeviceNotificationCommand(State stateId, ByteBuf commandBuffer, AmsHeader amsHeader) {
         AmsPacket amsPacket;
-<span class="fc bfc" id="L243" title="All 2 branches covered.">        if (stateId.isRequest()) {</span>
-<span class="fc" id="L244">            NotificationHandle notificationHandle = NotificationHandle.of(commandBuffer);</span>
-<span class="fc" id="L245">            amsPacket = AdsDeleteDeviceNotificationRequest.of(amsHeader, notificationHandle);</span>
-<span class="fc" id="L246">        } else {</span>
-<span class="fc" id="L247">            Result result = Result.of(commandBuffer);</span>
-<span class="fc" id="L248">            amsPacket = AdsDeleteDeviceNotificationResponse.of(amsHeader, result);</span>
+<span class="fc bfc" id="L264" title="All 2 branches covered.">        if (stateId.isRequest()) {</span>
+<span class="fc" id="L265">            NotificationHandle notificationHandle = NotificationHandle.of(commandBuffer);</span>
+<span class="fc" id="L266">            amsPacket = AdsDeleteDeviceNotificationRequest.of(amsHeader, notificationHandle);</span>
+<span class="fc" id="L267">        } else {</span>
+<span class="fc" id="L268">            Result result = Result.of(commandBuffer);</span>
+<span class="fc" id="L269">            amsPacket = AdsDeleteDeviceNotificationResponse.of(amsHeader, result);</span>
         }
-<span class="fc" id="L250">        return amsPacket;</span>
+<span class="fc" id="L271">        return amsPacket;</span>
     }
 
     private AmsPacket handleADSDeviceNotificationCommand(State stateId, ByteBuf commandBuffer, AmsHeader amsHeader) {
         AmsPacket amsPacket;
-<span class="pc bpc" id="L255" title="1 of 2 branches missed.">        if (stateId.isRequest()) {</span>
-<span class="fc" id="L256">            Length length = Length.of(commandBuffer);</span>
-<span class="pc bpc" id="L257" title="1 of 2 branches missed.">            if (length.getAsLong() &gt; Integer.MAX_VALUE) {</span>
-<span class="nc" id="L258">                throw new IllegalStateException(&quot;Overflow in datalength: &quot; + length.getAsLong());</span>
+<span class="pc bpc" id="L276" title="1 of 2 branches missed.">        if (stateId.isRequest()) {</span>
+<span class="fc" id="L277">            Length length = Length.of(commandBuffer);</span>
+<span class="pc bpc" id="L278" title="1 of 2 branches missed.">            if (length.getAsLong() &gt; Integer.MAX_VALUE) {</span>
+<span class="nc" id="L279">                throw new IllegalStateException(&quot;Overflow in datalength: &quot; + length.getAsLong());</span>
             }
-<span class="fc" id="L260">            Stamps stamps = Stamps.of(commandBuffer);</span>
-<span class="pc bpc" id="L261" title="1 of 2 branches missed.">            if (stamps.getAsLong() &gt; Integer.MAX_VALUE) {</span>
-<span class="nc" id="L262">                throw new IllegalStateException(&quot;Overflow in datalength: &quot; + stamps.getAsLong());</span>
+<span class="fc" id="L281">            Stamps stamps = Stamps.of(commandBuffer);</span>
+<span class="pc bpc" id="L282" title="1 of 2 branches missed.">            if (stamps.getAsLong() &gt; Integer.MAX_VALUE) {</span>
+<span class="nc" id="L283">                throw new IllegalStateException(&quot;Overflow in datalength: &quot; + stamps.getAsLong());</span>
             }
             // Note: the length includes the 4 Bytes of stamps which we read already so we substract.
-<span class="fc" id="L265">            ByteBuf adsDeviceNotificationBuffer = commandBuffer.readBytes((int) length.getAsLong() - Stamps.NUM_BYTES);</span>
-<span class="fc" id="L266">            List&lt;AdsStampHeader&gt; adsStampHeaders = new ArrayList&lt;&gt;((int) stamps.getAsLong());</span>
-<span class="fc bfc" id="L267" title="All 2 branches covered.">            for (int i = 1; i &lt;= stamps.getAsLong(); i++) {</span>
-<span class="fc" id="L268">                AdsStampHeader adsStampHeader = handleStampHeader(adsDeviceNotificationBuffer);</span>
-<span class="fc" id="L269">                adsStampHeaders.add(adsStampHeader);</span>
+<span class="fc" id="L286">            ByteBuf adsDeviceNotificationBuffer = commandBuffer.readBytes((int) length.getAsLong() - Stamps.NUM_BYTES);</span>
+<span class="fc" id="L287">            List&lt;AdsStampHeader&gt; adsStampHeaders = new ArrayList&lt;&gt;((int) stamps.getAsLong());</span>
+<span class="pc bpc" id="L288" title="1 of 2 branches missed.">            if (stamps.getAsLong() &gt; MAX_NUM_STAMPS) {</span>
+<span class="nc" id="L289">                throw new IllegalStateException(&quot;Overflow of MAX_NUM_STAMPS: &quot; + MAX_NUM_STAMPS + &quot;. Actual &quot; + stamps.getAsLong());</span>
             }
-<span class="fc" id="L271">            amsPacket = AdsDeviceNotificationRequest.of(amsHeader, length, stamps, adsStampHeaders);</span>
-<span class="fc" id="L272">        } else {</span>
-<span class="nc" id="L273">            amsPacket = UnknownCommand.of(amsHeader, commandBuffer);</span>
+<span class="fc bfc" id="L291" title="All 2 branches covered.">            for (int i = 1; i &lt;= stamps.getAsLong(); i++) {</span>
+<span class="fc" id="L292">                AdsStampHeader adsStampHeader = handleStampHeader(adsDeviceNotificationBuffer);</span>
+<span class="fc" id="L293">                adsStampHeaders.add(adsStampHeader);</span>
+            }
+<span class="fc" id="L295">            amsPacket = AdsDeviceNotificationRequest.of(amsHeader, length, stamps, adsStampHeaders);</span>
+<span class="fc" id="L296">        } else {</span>
+<span class="nc" id="L297">            amsPacket = UnknownCommand.of(amsHeader, commandBuffer);</span>
         }
-<span class="fc" id="L275">        return amsPacket;</span>
+<span class="fc" id="L299">        return amsPacket;</span>
     }
 
     private AdsStampHeader handleStampHeader(ByteBuf adsDeviceNotificationBuffer) {
-<span class="fc" id="L279">        TimeStamp timeStamp = TimeStamp.of(adsDeviceNotificationBuffer);</span>
-<span class="fc" id="L280">        Samples samples = Samples.of(adsDeviceNotificationBuffer);</span>
+<span class="fc" id="L303">        TimeStamp timeStamp = TimeStamp.of(adsDeviceNotificationBuffer);</span>
+<span class="fc" id="L304">        Samples samples = Samples.of(adsDeviceNotificationBuffer);</span>
 
-<span class="fc" id="L282">        List&lt;AdsNotificationSample&gt; adsNotificationSamples = new LinkedList&lt;&gt;();</span>
-<span class="fc bfc" id="L283" title="All 2 branches covered.">        for (int i = 1; i &lt;= samples.getAsLong(); i++) {</span>
-<span class="fc" id="L284">            AdsNotificationSample adsNotificationSample = handleAdsNotificartionSample(adsDeviceNotificationBuffer);</span>
-<span class="fc" id="L285">            adsNotificationSamples.add(adsNotificationSample);</span>
+<span class="fc" id="L306">        List&lt;AdsNotificationSample&gt; adsNotificationSamples = new LinkedList&lt;&gt;();</span>
+<span class="pc bpc" id="L307" title="1 of 2 branches missed.">        if (samples.getAsLong() &gt; MAX_NUM_SAMPLES) {</span>
+<span class="nc" id="L308">            throw new IllegalStateException(&quot;Overflow of MAX_NUM_SAMPLES: &quot; + MAX_NUM_SAMPLES + &quot;. Actual &quot; + samples.getAsLong());</span>
+        }
+<span class="fc bfc" id="L310" title="All 2 branches covered.">        for (int i = 1; i &lt;= samples.getAsLong(); i++) {</span>
+<span class="fc" id="L311">            AdsNotificationSample adsNotificationSample = handleAdsNotificartionSample(adsDeviceNotificationBuffer);</span>
+<span class="fc" id="L312">            adsNotificationSamples.add(adsNotificationSample);</span>
 
         }
-<span class="fc" id="L288">        return AdsStampHeader.of(timeStamp, samples, adsNotificationSamples);</span>
+<span class="fc" id="L315">        return AdsStampHeader.of(timeStamp, samples, adsNotificationSamples);</span>
     }
 
     private AdsNotificationSample handleAdsNotificartionSample(ByteBuf adsDeviceNotificationBuffer) {
-<span class="fc" id="L292">        NotificationHandle notificationHandle = NotificationHandle.of(adsDeviceNotificationBuffer);</span>
-<span class="fc" id="L293">        SampleSize sampleSize = SampleSize.of(adsDeviceNotificationBuffer);</span>
-<span class="pc bpc" id="L294" title="1 of 2 branches missed.">        if (sampleSize.getAsLong() &gt; Integer.MAX_VALUE) {</span>
-<span class="nc" id="L295">            throw new IllegalStateException(&quot;Overflow in datalength: &quot; + sampleSize.getAsLong());</span>
+<span class="fc" id="L319">        NotificationHandle notificationHandle = NotificationHandle.of(adsDeviceNotificationBuffer);</span>
+<span class="fc" id="L320">        SampleSize sampleSize = SampleSize.of(adsDeviceNotificationBuffer);</span>
+<span class="pc bpc" id="L321" title="1 of 2 branches missed.">        if (sampleSize.getAsLong() &gt; Integer.MAX_VALUE) {</span>
+<span class="nc" id="L322">            throw new IllegalStateException(&quot;Overflow in datalength: &quot; + sampleSize.getAsLong());</span>
+        }
+<span class="pc bpc" id="L324" title="1 of 2 branches missed.">        if (sampleSize.getAsLong() &gt; ADS_NOTIFICATION_SAMPLE_MAX_BYTES) {</span>
+<span class="nc" id="L325">            throw new IllegalStateException(&quot;Overflow of ADS_NOTIFICATION_SAMPLE_MAX_BYTES: &quot; + ADS_NOTIFICATION_SAMPLE_MAX_BYTES + &quot;. Actual &quot; + sampleSize.getAsLong() + &quot;bytes.&quot;);</span>
         }
         // TODO: do we need a special marker class for: Notice: If your handle becomes invalid, one notification without data will be send once as advice.
-<span class="fc" id="L298">        byte[] dataToRead = new byte[(int) sampleSize.getAsLong()];</span>
-<span class="fc" id="L299">        adsDeviceNotificationBuffer.readBytes(dataToRead);</span>
-<span class="fc" id="L300">        Data data = Data.of(dataToRead);</span>
-<span class="fc" id="L301">        return AdsNotificationSample.of(notificationHandle, sampleSize, data);</span>
+<span class="fc" id="L328">        byte[] dataToRead = new byte[(int) sampleSize.getAsLong()];</span>
+<span class="fc" id="L329">        adsDeviceNotificationBuffer.readBytes(dataToRead);</span>
+<span class="fc" id="L330">        Data data = Data.of(dataToRead);</span>
+<span class="fc" id="L331">        return AdsNotificationSample.of(notificationHandle, sampleSize, data);</span>
     }
 
     private AmsPacket handleADSReadWriteCommand(State stateId, ByteBuf commandBuffer, AmsHeader amsHeader) {
         AmsPacket amsPacket;
-<span class="fc bfc" id="L306" title="All 2 branches covered.">        if (stateId.isRequest()) {</span>
-<span class="fc" id="L307">            IndexGroup indexGroup = IndexGroup.of(commandBuffer);</span>
-<span class="fc" id="L308">            IndexOffset indexOffset = IndexOffset.of(commandBuffer);</span>
-<span class="fc" id="L309">            ReadLength readLength = ReadLength.of(commandBuffer);</span>
-<span class="pc bpc" id="L310" title="1 of 2 branches missed.">            if (readLength.getAsLong() &gt; Integer.MAX_VALUE) {</span>
-<span class="nc" id="L311">                throw new IllegalStateException(&quot;Overflow in datalength: &quot; + readLength.getAsLong());</span>
+<span class="fc bfc" id="L336" title="All 2 branches covered.">        if (stateId.isRequest()) {</span>
+<span class="fc" id="L337">            IndexGroup indexGroup = IndexGroup.of(commandBuffer);</span>
+<span class="fc" id="L338">            IndexOffset indexOffset = IndexOffset.of(commandBuffer);</span>
+<span class="fc" id="L339">            ReadLength readLength = ReadLength.of(commandBuffer);</span>
+<span class="pc bpc" id="L340" title="1 of 2 branches missed.">            if (readLength.getAsLong() &gt; Integer.MAX_VALUE) {</span>
+<span class="nc" id="L341">                throw new IllegalStateException(&quot;Overflow in datalength: &quot; + readLength.getAsLong());</span>
             }
-<span class="fc" id="L313">            WriteLength writeLength = WriteLength.of(commandBuffer);</span>
-<span class="pc bpc" id="L314" title="1 of 2 branches missed.">            if (writeLength.getAsLong() &gt; Integer.MAX_VALUE) {</span>
-<span class="nc" id="L315">                throw new IllegalStateException(&quot;Overflow in datalength: &quot; + writeLength.getAsLong());</span>
+<span class="fc" id="L343">            WriteLength writeLength = WriteLength.of(commandBuffer);</span>
+<span class="pc bpc" id="L344" title="1 of 2 branches missed.">            if (writeLength.getAsLong() &gt; Integer.MAX_VALUE) {</span>
+<span class="nc" id="L345">                throw new IllegalStateException(&quot;Overflow in datalength: &quot; + writeLength.getAsLong());</span>
             }
-<span class="pc bpc" id="L317" title="1 of 2 branches missed.">            if (readLength.getAsLong() + writeLength.getAsLong() &gt; Integer.MAX_VALUE) {</span>
-<span class="nc" id="L318">                throw new IllegalStateException(&quot;Overflow in datalength: &quot; + readLength.getAsLong() + writeLength.getAsLong());</span>
+<span class="pc bpc" id="L347" title="1 of 2 branches missed.">            if (readLength.getAsLong() + writeLength.getAsLong() &gt; Integer.MAX_VALUE) {</span>
+<span class="nc" id="L348">                throw new IllegalStateException(&quot;Overflow in datalength: &quot; + readLength.getAsLong() + writeLength.getAsLong());</span>
             }
-<span class="fc" id="L320">            byte[] dataToRead = new byte[(int) readLength.getAsLong()];</span>
-<span class="fc" id="L321">            commandBuffer.readBytes(dataToRead);</span>
-<span class="fc" id="L322">            Data data = Data.of(dataToRead);</span>
-<span class="fc" id="L323">            amsPacket = AdsReadWriteRequest.of(amsHeader, indexGroup, indexOffset, readLength, writeLength, data);</span>
-<span class="fc" id="L324">        } else {</span>
-<span class="fc" id="L325">            Result result = Result.of(commandBuffer);</span>
-<span class="fc" id="L326">            Length length = Length.of(commandBuffer);</span>
-<span class="pc bpc" id="L327" title="1 of 2 branches missed.">            if (length.getAsLong() &gt; Integer.MAX_VALUE) {</span>
-<span class="nc" id="L328">                throw new IllegalStateException(&quot;Overflow in datalength: &quot; + length.getAsLong());</span>
+<span class="pc bpc" id="L350" title="1 of 2 branches missed.">            if (readLength.getAsLong() &gt; ADS_READ_WRITE_COMMAND_REQUEST_MAX_BYTES) {</span>
+<span class="nc" id="L351">                throw new IllegalStateException(&quot;Overflow of ADS_READ_WRITE_COMMAND_REQUEST_MAX_BYTES: &quot; + ADS_READ_WRITE_COMMAND_REQUEST_MAX_BYTES + &quot;. Actual &quot; + readLength.getAsLong() + &quot;bytes.&quot;);</span>
             }
-<span class="fc" id="L330">            byte[] dataToRead = new byte[(int) length.getAsLong()];</span>
-<span class="fc" id="L331">            commandBuffer.readBytes(dataToRead);</span>
-<span class="fc" id="L332">            Data data = Data.of(dataToRead);</span>
-<span class="fc" id="L333">            amsPacket = AdsReadWriteResponse.of(amsHeader, result, length, data);</span>
+<span class="fc" id="L353">            byte[] dataToRead = new byte[(int) readLength.getAsLong()];</span>
+<span class="fc" id="L354">            commandBuffer.readBytes(dataToRead);</span>
+<span class="fc" id="L355">            Data data = Data.of(dataToRead);</span>
+<span class="fc" id="L356">            amsPacket = AdsReadWriteRequest.of(amsHeader, indexGroup, indexOffset, readLength, writeLength, data);</span>
+<span class="fc" id="L357">        } else {</span>
+<span class="fc" id="L358">            Result result = Result.of(commandBuffer);</span>
+<span class="fc" id="L359">            Length length = Length.of(commandBuffer);</span>
+<span class="pc bpc" id="L360" title="1 of 2 branches missed.">            if (length.getAsLong() &gt; Integer.MAX_VALUE) {</span>
+<span class="nc" id="L361">                throw new IllegalStateException(&quot;Overflow in datalength: &quot; + length.getAsLong());</span>
+            }
+<span class="pc bpc" id="L363" title="1 of 2 branches missed.">            if (length.getAsLong() &gt; ADS_READ_WRITE_COMMAND_RESPONSE_MAX_BYTES) {</span>
+<span class="nc" id="L364">                throw new IllegalStateException(&quot;Overflow of ADS_READ_WRITE_COMMAND_RESPONSE_MAX_BYTES: &quot; + ADS_READ_WRITE_COMMAND_RESPONSE_MAX_BYTES + &quot;. Actual &quot; + length.getAsLong() + &quot;bytes.&quot;);</span>
+            }
+<span class="fc" id="L366">            byte[] dataToRead = new byte[(int) length.getAsLong()];</span>
+<span class="fc" id="L367">            commandBuffer.readBytes(dataToRead);</span>
+<span class="fc" id="L368">            Data data = Data.of(dataToRead);</span>
+<span class="fc" id="L369">            amsPacket = AdsReadWriteResponse.of(amsHeader, result, length, data);</span>
         }
-<span class="fc" id="L335">        return amsPacket;</span>
+<span class="fc" id="L371">        return amsPacket;</span>
     }
 
     private AmsPacket handleUnknownCommand(ByteBuf commandBuffer, AmsHeader amsHeader) {
-<span class="nc" id="L339">        return UnknownCommand.of(amsHeader, commandBuffer);</span>
+<span class="nc" id="L375">        return UnknownCommand.of(amsHeader, commandBuffer);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
