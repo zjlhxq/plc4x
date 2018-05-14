@@ -8,7 +8,7 @@
 
 <head>
     <meta charset="UTF-8" />
-    <title>Apache PLC4X® (Incubating) - Bug & Issue Tracker</title>
+    <title>Apache PLC4X® (Incubating) - The PLC4X PLC VPN</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="" />
     <meta http-equiv="content-language" content="en" />
@@ -33,7 +33,7 @@
     
 </head>
 
-<body class="page-developers-issues project-plc4x-parent" data-spy="scroll" data-offset="60" data-target="#toc-scroll-target">
+<body class="page-developers-vpn project-plc4x-parent" data-spy="scroll" data-offset="60" data-target="#toc-scroll-target">
 
 <div class="navbar navbar-fixed-top">
     <div class="navbar-inner">
@@ -64,14 +64,14 @@
                                         <li class="dropdown active">
     <a href="#" class="dropdown-toggle" data-toggle="dropdown">Developers <b class="caret"></b></a>
     <ul class="dropdown-menu">
-                <li class="active"><a href="" title="Bug & Issue Tracker"    >Bug & Issue Tracker</a></li>
+                <li ><a href="issues.html" title="Bug & Issue Tracker"    >Bug & Issue Tracker</a></li>
                 <li ><a href="building.html" title="Building PLC4X"    >Building PLC4X</a></li>
                 <li ><a href="sonar.html" title="Code Analysis"    >Code Analysis</a></li>
                 <li ><a href="ci.html" title="Continuous Integration"    >Continuous Integration</a></li>
                 <li ><a href="contributing.html" title="Contributing"    >Contributing</a></li>
                 <li ><a href="jqassistant.html" title="JQassistant"    >JQassistant</a></li>
                 <li ><a href="vm.html" title="VM Access"    >VM Access</a></li>
-                <li ><a href="vpn.html" title="VPN Access"    >VPN Access</a></li>
+                <li class="active"><a href="" title="VPN Access"    >VPN Access</a></li>
                 <li ><a href="website.html" title="Website"    >Website</a></li>
                 <li ><a href="wiki.html" title="Wiki"    >Wiki</a></li>
         </ul>
@@ -191,7 +191,23 @@
                     </a>
                     <div class="nav-collapse collapse" id="toc-nav-collapse">
                         <ul id="toc" class="nav">
-                            <li class="toplevel"><a href="#bug_issue_tracker" title="Bug & Issue Tracker">Bug & Issue Tracker</a></li>
+                                            <li class="toplevel"><a href="#the_plc4x_plc_vpn" title="The PLC4X PLC VPN">The PLC4X PLC VPN</a></li>
+<li class="toplevel"><a href="#network" title="Network">Network</a></li>
+<li class="dropdown">
+    <a href="#plcs" title="PLCs" class="dropdown-toggle" role="button" data-toggle="dropdown" data-target="#">PLCs <b class="caret"></b></a>
+    <ul class="dropdown-menu" role="menu">
+        <!-- Repeat the item, otherwise it is not clickable as the dropdown root -->
+        <li><a href="#plcs" title="PLCs">PLCs</a></li>
+        <li class="divider"></li>
+    <li><a href="#fatek_fbs_40mc" title="Fatek: FBs-40MC">Fatek: FBs-40MC</a></li>
+<li><a href="#siemens_s7_1212ac_dc" title="Siemens: S7-1212AC/DC">Siemens: S7-1212AC/DC</a></li>
+<li><a href="#wago_750_352_feldbuskoppler_ethernet" title="WaGo: 750-352 Feldbuskoppler ETHERNET">WaGo: 750-352 Feldbuskoppler ETHERNET</a></li>
+<li><a href="#beckhoff_c6920_0030" title="Beckhoff: C6920-0030">Beckhoff: C6920-0030</a></li>
+
+    </ul>
+</li>
+<li class="toplevel"><a href="#requesting_an_account" title="Requesting an account">Requesting an account</a></li>
+<li class="toplevel"><a href="#setup" title="Setup">Setup</a></li>
                         </ul>
                     </div>
                 </div>
@@ -205,11 +221,141 @@
                 <div class="body-content">
         <div class="sect1"> 
  <div class="page-header">
-  <h2 id="bug_issue_tracker">Bug &amp; Issue Tracker</h2>
+  <h2 id="the_plc4x_plc_vpn">The PLC4X PLC VPN</h2>
  </div> 
  <div class="sectionbody"> 
   <div class="paragraph"> 
-   <p><a href="https://issues.apache.org/jira/projects/PLC4X" class="bare">https://issues.apache.org/jira/projects/PLC4X</a></p> 
+   <p>As attaching physical PLC devices to a cloud infrastructure is challenging, we decided to setup a VPN in the IoT lab of codecentric Frankfurt and to grant committers of the Apache PLC4X project access to that.</p> 
+  </div> 
+  <div class="paragraph"> 
+   <p>This document contains all the information needed to setup the VPN and to communicate with the different PLCs.</p> 
+  </div> 
+  <div class="sect2"> 
+   <h3 id="network">Network</h3> 
+   <div class="paragraph"> 
+    <p>All nodes of the IoT VPN are configured to use the IP range: '10.10.64.0/24'.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>In order to access the VPN from outside, a VPN gateway is configured to accept incoming connections.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>This VPN gateway is listening on port <code>vpn.plc4x.apache.org</code> on port <code>444</code> and should it should be possible to connect to it via OpenVPN.</p> 
+   </div> 
+  </div> 
+  <div class="sect2"> 
+   <h3 id="plcs">PLCs</h3> 
+   <div class="paragraph"> 
+    <p>The following PLCs have been configured and should be available in the VPN.</p> 
+   </div> 
+   <div class="sect3"> 
+    <h4 id="fatek_fbs_40mc">Fatek: FBs-40MC</h4> 
+    <div class="paragraph"> 
+     <p>This device is able to use the following protocols:</p> 
+    </div> 
+    <div class="ulist"> 
+     <ul> 
+      <li> <p>Modbus (Port <code>502</code>)</p> </li> 
+      <li> <p>Fatek (Port <code>500</code>)</p> </li> 
+     </ul> 
+    </div> 
+    <div class="paragraph"> 
+     <p>It is configured to use the IP: <code>10.10.64.10</code></p> 
+    </div> 
+   </div> 
+   <div class="sect3"> 
+    <h4 id="siemens_s7_1212ac_dc">Siemens: S7-1212AC/DC</h4> 
+    <div class="paragraph"> 
+     <p>This device is able to use the following protocols:</p> 
+    </div> 
+    <div class="ulist"> 
+     <ul> 
+      <li> <p>S7 (32 flavour) (Port <code>102</code>)</p> </li> 
+      <li> <p>S7 (72 flavour) (Port <code>102</code>)</p> </li> 
+      <li> <p>ProfiNet</p> </li> 
+     </ul> 
+    </div> 
+    <div class="paragraph"> 
+     <p>It is configured to use the IP: <code>10.10.64.20</code></p> 
+    </div> 
+   </div> 
+   <div class="sect3"> 
+    <h4 id="wago_750_352_feldbuskoppler_ethernet">WaGo: 750-352 Feldbuskoppler ETHERNET</h4> 
+    <div class="paragraph"> 
+     <p>This device is not a typical PLC, but more a device making I/O values available via Ethernet protocols.</p> 
+    </div> 
+    <div class="paragraph"> 
+     <p>For our job however it is exactly what we need as it allows testing the protocols without the need to develop a sophisticated PLC software in the first place.</p> 
+    </div> 
+    <div class="paragraph"> 
+     <p>This device is able to use the following protocols:</p> 
+    </div> 
+    <div class="ulist"> 
+     <ul> 
+      <li> <p>Modbus (TCP port <code>502</code>, UDP port <code>502</code>)</p> </li> 
+      <li> <p>EtherNet/IP (TCP port <code>44818</code>, UDP port <code>2222</code>)</p> </li> 
+     </ul> 
+    </div> 
+    <div class="paragraph"> 
+     <p>It is configured to use the IP: <code>10.10.64.30</code></p> 
+    </div> 
+   </div> 
+   <div class="sect3"> 
+    <h4 id="beckhoff_c6920_0030">Beckhoff: C6920-0030</h4> 
+    <div class="paragraph"> 
+     <p>This device is able to use the following protocols:</p> 
+    </div> 
+    <div class="ulist"> 
+     <ul> 
+      <li> <p>ADS (Port <code>48898</code>)</p> </li> 
+     </ul> 
+    </div> 
+    <div class="paragraph"> 
+     <p>It is configured to use the IP: <code>10.10.64.40</code></p> 
+    </div> 
+   </div> 
+  </div> 
+  <div class="sect2"> 
+   <h3 id="requesting_an_account">Requesting an account</h3> 
+   <div class="paragraph"> 
+    <p>The PLC hardware in the <code>PLC4X IoT Lab</code> is hosted in the codecentric Frankfurt office.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>Even if we wanted to integrate our VPN Gateway with Apache’s LDAP service, this is currently not possible.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>In order to get access to the hardware, please request an account on the <code>PLC4X Developer Mailinglist</code>: <a href="mailto:dev@plc4x.apache.org">dev@plc4x.apache.org</a></p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>We’ll try to create the account as quickly as possible.</p> 
+   </div> 
+  </div> 
+  <div class="sect2"> 
+   <h3 id="setup">Setup</h3> 
+   <div class="paragraph"> 
+    <p>By accessing the following URL with the <code>username</code> and <code>password</code>, provided by <code>codecentric</code>, you will be provided with links to download the VPN clients for different platforms.</p> 
+   </div> 
+   <div class="literalblock"> 
+    <div class="content"> 
+     <pre>https://vpn.plc4x.apache.org:444</pre> 
+    </div> 
+   </div> 
+   <div class="imageblock"> 
+    <div class="content"> 
+     <img src="../img/plc4x-vpn-client-download.png" alt="plc4x vpn client download" /> 
+    </div> 
+   </div> 
+   <div class="paragraph"> 
+    <p>However it is also possible to use other VPN clients based on <code>OpenVPN</code>.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>To do this, just download the option labeled: <code>Mobile VPN with SSL client profile</code>.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>It’s a normal <code>tgz</code> file, so rename the file and unpack it.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>The archive contains a <code>client.ovpn</code> file which contains the configuration needed by <code>OpenVPN</code>.</p> 
+   </div> 
   </div> 
  </div> 
 </div>
