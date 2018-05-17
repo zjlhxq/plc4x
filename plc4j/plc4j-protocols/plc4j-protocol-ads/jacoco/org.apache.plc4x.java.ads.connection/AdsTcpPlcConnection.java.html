@@ -80,21 +80,25 @@ public class AdsTcpPlcConnection extends AdsAbstractPlcConnection {
 <span class="fc" id="L80">                ChannelPipeline pipeline = channel.pipeline();</span>
 <span class="fc" id="L81">                pipeline.addLast(new Payload2TcpProtocol());</span>
 <span class="fc" id="L82">                pipeline.addLast(new Ads2PayloadProtocol());</span>
-<span class="fc" id="L83">                pipeline.addLast(new Plc4x2AdsProtocol(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort));</span>
+<span class="fc" id="L83">                pipeline.addLast(new Plc4x2AdsProtocol(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, addressMapping));</span>
 <span class="fc" id="L84">            }</span>
         };
     }
 
+    public InetAddress getRemoteAddress() {
+<span class="nc" id="L89">        return ((TcpSocketChannelFactory) channelFactory).getAddress();</span>
+    }
+
     protected static AmsNetId generateAMSNetId() {
         try {
-<span class="fc" id="L90">            return AmsNetId.of(Inet4Address.getLocalHost().getHostAddress() + &quot;.1.1&quot;);</span>
-<span class="nc" id="L91">        } catch (UnknownHostException e) {</span>
-<span class="nc" id="L92">            throw new PlcRuntimeException(e);</span>
+<span class="fc" id="L94">            return AmsNetId.of(Inet4Address.getLocalHost().getHostAddress() + &quot;.1.1&quot;);</span>
+<span class="nc" id="L95">        } catch (UnknownHostException e) {</span>
+<span class="nc" id="L96">            throw new PlcRuntimeException(e);</span>
         }
     }
 
     protected static AmsPort generateAMSPort() {
-<span class="fc" id="L97">        return AmsPort.of(TCP_PORT);</span>
+<span class="fc" id="L101">        return AmsPort.of(TCP_PORT);</span>
     }
 
 }
