@@ -199,8 +199,8 @@
 <a class="jxr_linenumber" name="L191" href="#L191">191</a> 
 <a class="jxr_linenumber" name="L192" href="#L192">192</a>     @Override
 <a class="jxr_linenumber" name="L193" href="#L193">193</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> close() {
-<a class="jxr_linenumber" name="L194" href="#L194">194</a>         <strong class="jxr_keyword">for</strong> (AdsAddress adsAddress : addressMapping.values()) {
-<a class="jxr_linenumber" name="L195" href="#L195">195</a>             <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/AdsWriteRequest.html">AdsWriteRequest</a> adsWriteRequest = AdsWriteRequest.of(
+<a class="jxr_linenumber" name="L194" href="#L194">194</a>         addressMapping.values().stream()
+<a class="jxr_linenumber" name="L195" href="#L195">195</a>             .map(adsAddress -&gt; AdsWriteRequest.of(
 <a class="jxr_linenumber" name="L196" href="#L196">196</a>                 targetAmsNetId,
 <a class="jxr_linenumber" name="L197" href="#L197">197</a>                 targetAmsPort,
 <a class="jxr_linenumber" name="L198" href="#L198">198</a>                 sourceAmsNetId,
@@ -209,10 +209,10 @@
 <a class="jxr_linenumber" name="L201" href="#L201">201</a>                 IndexGroup.ReservedGroups.ADSIGRP_SYM_RELEASEHND,
 <a class="jxr_linenumber" name="L202" href="#L202">202</a>                 IndexOffset.of(0),
 <a class="jxr_linenumber" name="L203" href="#L203">203</a>                 Data.of(IndexGroup.of(adsAddress.getIndexGroup()).getBytes())
-<a class="jxr_linenumber" name="L204" href="#L204">204</a>             );
-<a class="jxr_linenumber" name="L205" href="#L205">205</a>             <em class="jxr_comment">// We don't need a response so we just supply a throw away future.</em>
-<a class="jxr_linenumber" name="L206" href="#L206">206</a>             channel.writeAndFlush(<strong class="jxr_keyword">new</strong> PlcRequestContainer&lt;&gt;(<strong class="jxr_keyword">new</strong> PlcProprietaryRequest&lt;&gt;(adsWriteRequest), <strong class="jxr_keyword">new</strong> CompletableFuture&lt;&gt;()));
-<a class="jxr_linenumber" name="L207" href="#L207">207</a>         }
+<a class="jxr_linenumber" name="L204" href="#L204">204</a>             ))
+<a class="jxr_linenumber" name="L205" href="#L205">205</a>             .map(adsWriteRequest -&gt; <strong class="jxr_keyword">new</strong> PlcRequestContainer&lt;&gt;(<strong class="jxr_keyword">new</strong> PlcProprietaryRequest&lt;&gt;(adsWriteRequest), <strong class="jxr_keyword">new</strong> CompletableFuture&lt;&gt;()))
+<a class="jxr_linenumber" name="L206" href="#L206">206</a>             <em class="jxr_comment">// We don't need a response so we just supply a throw away future.</em>
+<a class="jxr_linenumber" name="L207" href="#L207">207</a>             .forEach(channel::writeAndFlush);
 <a class="jxr_linenumber" name="L208" href="#L208">208</a>         <strong class="jxr_keyword">super</strong>.close();
 <a class="jxr_linenumber" name="L209" href="#L209">209</a>     }
 <a class="jxr_linenumber" name="L210" href="#L210">210</a> 

@@ -191,8 +191,8 @@ public abstract class AdsAbstractPlcConnection extends AbstractPlcConnection imp
 
     @Override
     public void close() {
-<span class="pc bpc" id="L194" title="1 of 2 branches missed.">        for (AdsAddress adsAddress : addressMapping.values()) {</span>
-<span class="nc" id="L195">            AdsWriteRequest adsWriteRequest = AdsWriteRequest.of(</span>
+<span class="fc" id="L194">        addressMapping.values().stream()</span>
+<span class="pc" id="L195">            .map(adsAddress -&gt; AdsWriteRequest.of(</span>
                 targetAmsNetId,
                 targetAmsPort,
                 sourceAmsNetId,
@@ -201,10 +201,10 @@ public abstract class AdsAbstractPlcConnection extends AbstractPlcConnection imp
                 IndexGroup.ReservedGroups.ADSIGRP_SYM_RELEASEHND,
 <span class="nc" id="L202">                IndexOffset.of(0),</span>
 <span class="nc" id="L203">                Data.of(IndexGroup.of(adsAddress.getIndexGroup()).getBytes())</span>
-            );
+            ))
+<span class="pc" id="L205">            .map(adsWriteRequest -&gt; new PlcRequestContainer&lt;&gt;(new PlcProprietaryRequest&lt;&gt;(adsWriteRequest), new CompletableFuture&lt;&gt;()))</span>
             // We don't need a response so we just supply a throw away future.
-<span class="nc" id="L206">            channel.writeAndFlush(new PlcRequestContainer&lt;&gt;(new PlcProprietaryRequest&lt;&gt;(adsWriteRequest), new CompletableFuture&lt;&gt;()));</span>
-<span class="nc" id="L207">        }</span>
+<span class="fc" id="L207">            .forEach(channel::writeAndFlush);</span>
 <span class="fc" id="L208">        super.close();</span>
 <span class="fc" id="L209">    }</span>
 
