@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Plc4XConsumer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Integrations: Apache Camel</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.camel</a> &gt; <span class="el_source">Plc4XConsumer.java</span></div><h1>Plc4XConsumer.java</h1><pre class="source lang-java linenums">/*
+ Licensed to the Apache Software Foundation (ASF) under one
+ or more contributor license agreements.  See the NOTICE file
+ distributed with this work for additional information
+ regarding copyright ownership.  The ASF licenses this file
+ to you under the Apache License, Version 2.0 (the
+ &quot;License&quot;); you may not use this file except in compliance
+ with the License.  You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing,
+ software distributed under the License is distributed on an
+ &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ KIND, either express or implied.  See the License for the
+ specific language governing permissions and limitations
+ under the License.
+ */
+package org.apache.plc4x.camel;
+
+import org.apache.camel.*;
+import org.apache.camel.spi.ExceptionHandler;
+import org.apache.camel.support.LoggingExceptionHandler;
+import org.apache.camel.support.ServiceSupport;
+import org.apache.camel.util.AsyncProcessorConverterHelper;
+import org.apache.plc4x.java.api.connection.PlcConnection;
+import org.apache.plc4x.java.api.connection.PlcSubscriber;
+import org.apache.plc4x.java.api.exceptions.PlcException;
+import org.apache.plc4x.java.api.messages.PlcNotification;
+import org.apache.plc4x.java.api.model.Address;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
+
+public class Plc4XConsumer extends ServiceSupport implements Consumer, java.util.function.Consumer&lt;PlcNotification&lt;Object&gt;&gt; {
+<span class="fc" id="L37">    private static final Logger LOGGER = LoggerFactory.getLogger(Plc4XConsumer.class);</span>
+
+    private Plc4XEndpoint endpoint;
+    private AsyncProcessor processor;
+    private ExceptionHandler exceptionHandler;
+    private PlcConnection plcConnection;
+    private Address address;
+    private Class dataType;
+
+
+<span class="fc" id="L47">    public Plc4XConsumer(Plc4XEndpoint endpoint, Processor processor) throws PlcException {</span>
+<span class="fc" id="L48">        this.endpoint = endpoint;</span>
+<span class="fc" id="L49">        this.dataType = endpoint.getDataType();</span>
+<span class="fc" id="L50">        this.processor = AsyncProcessorConverterHelper.convert(processor);</span>
+<span class="fc" id="L51">        this.exceptionHandler = new LoggingExceptionHandler(endpoint.getCamelContext(), getClass());</span>
+<span class="fc" id="L52">        String plc4xURI = endpoint.getEndpointUri().replaceFirst(&quot;plc4x:/?/?&quot;, &quot;&quot;);</span>
+<span class="fc" id="L53">        this.plcConnection = endpoint.getPlcDriverManager().getConnection(plc4xURI);</span>
+<span class="fc" id="L54">        this.address = plcConnection.parseAddress(endpoint.getAddress());</span>
+<span class="fc" id="L55">    }</span>
+
+    @Override
+    public String toString() {
+<span class="fc" id="L59">        return &quot;Plc4XConsumer[&quot; + endpoint + &quot;]&quot;;</span>
+    }
+
+    @Override
+    public Endpoint getEndpoint() {
+<span class="fc" id="L64">        return endpoint;</span>
+    }
+
+    public ExceptionHandler getExceptionHandler() {
+<span class="nc" id="L68">        return exceptionHandler;</span>
+    }
+
+    public void setExceptionHandler(ExceptionHandler exceptionHandler) {
+<span class="nc" id="L72">        this.exceptionHandler = exceptionHandler;</span>
+<span class="nc" id="L73">    }</span>
+
+    @Override
+    protected void doStart() {
+<span class="fc" id="L77">        getSubscriber().subscribe(this, address, dataType);</span>
+<span class="fc" id="L78">    }</span>
+
+    @Override
+    protected void doStop() {
+<span class="fc" id="L82">        getSubscriber().unsubscribe(this, address);</span>
+        try {
+<span class="fc" id="L84">            plcConnection.close();</span>
+<span class="nc" id="L85">        } catch (Exception e) {</span>
+<span class="nc" id="L86">            LOGGER.error(&quot;Error closing connection&quot;, e);</span>
+<span class="fc" id="L87">        }</span>
+<span class="fc" id="L88">    }</span>
+
+    private PlcSubscriber getSubscriber() {
+<span class="pc" id="L91">        return plcConnection.getSubscriber().orElseThrow(() -&gt; new RuntimeException(&quot;No subscriber available&quot;));</span>
+    }
+
+    @Override
+    public void accept(PlcNotification&lt;Object&gt; plcNotification) {
+<span class="fc" id="L96">        LOGGER.debug(&quot;Received {}&quot;, plcNotification);</span>
+        try {
+<span class="fc" id="L98">            Exchange exchange = endpoint.createExchange();</span>
+<span class="fc" id="L99">            exchange.getIn().setBody(unwrapIfSingle(plcNotification.getValues()));</span>
+<span class="fc" id="L100">            processor.process(exchange);</span>
+<span class="nc" id="L101">        } catch (Exception e) {</span>
+<span class="nc" id="L102">            exceptionHandler.handleException(e);</span>
+<span class="fc" id="L103">        }</span>
+<span class="fc" id="L104">    }</span>
+
+    public Object unwrapIfSingle(List list) {
+<span class="pc bpc" id="L107" title="1 of 2 branches missed.">        if (list.size() &lt; 1) {</span>
+<span class="nc" id="L108">            return null;</span>
+        }
+<span class="pc bpc" id="L110" title="1 of 2 branches missed.">        if (list.size() &lt; 2) {</span>
+<span class="fc" id="L111">            return list.get(0);</span>
+        }
+<span class="nc" id="L113">        return list;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
