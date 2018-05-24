@@ -19,10 +19,10 @@
 package org.apache.plc4x.java.ads.api.commands.types;
 
 import io.netty.buffer.ByteBuf;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.plc4x.java.ads.api.util.ByteValue;
 
 import java.nio.charset.Charset;
-import java.util.Arrays;
 
 import static java.util.Objects.requireNonNull;
 
@@ -46,24 +46,18 @@ public class Data extends ByteValue {
 
     public static Data of(String value) {
 <span class="fc" id="L48">        requireNonNull(value);</span>
-<span class="fc" id="L49">        byte[] origData = value.getBytes();</span>
-<span class="fc" id="L50">        byte[] newData = Arrays.copyOf(origData, origData.length + 1);</span>
-<span class="fc" id="L51">        newData[newData.length - 1] = 0x0;</span>
-<span class="fc" id="L52">        return new Data(newData);</span>
+<span class="fc" id="L49">        return new Data(ArrayUtils.add(value.getBytes(), (byte) 0x0));</span>
     }
 
     public static Data of(String value, Charset charset) {
-<span class="fc" id="L56">        requireNonNull(value);</span>
-<span class="fc" id="L57">        byte[] origData = value.getBytes(charset);</span>
-<span class="fc" id="L58">        byte[] newData = Arrays.copyOf(origData, origData.length + 1);</span>
-<span class="fc" id="L59">        newData[newData.length - 1] = 0x0;</span>
-<span class="fc" id="L60">        return new Data(newData);</span>
+<span class="fc" id="L53">        requireNonNull(value);</span>
+<span class="fc" id="L54">        return new Data(ArrayUtils.add(value.getBytes(charset), (byte) 0x0));</span>
     }
 
     @Override
     public String toString() {
         // TODO: maybe we could find a way to implement this to string
-<span class="fc" id="L66">        return &quot;Data{&quot; + value.length + &quot;bytes} &quot;;</span>
+<span class="fc" id="L60">        return &quot;Data{&quot; + value.length + &quot;bytes} &quot;;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
