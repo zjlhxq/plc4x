@@ -26,6 +26,8 @@ import org.apache.camel.spi.UriParam;
 import org.apache.camel.spi.UriPath;
 import org.apache.plc4x.java.PlcDriverManager;
 
+import java.util.Objects;
+
 @UriEndpoint(scheme = &quot;plc4x&quot;, title = &quot;PLC4X&quot;, syntax = &quot;plc4x:driver&quot;, label = &quot;plc4x&quot;)
 public class Plc4XEndpoint extends DefaultEndpoint {
 
@@ -56,56 +58,74 @@ public class Plc4XEndpoint extends DefaultEndpoint {
     private final PlcDriverManager plcDriverManager;
 
     public Plc4XEndpoint(String endpointUri, Component component) {
-<span class="fc" id="L59">        super(endpointUri, component);</span>
-<span class="fc" id="L60">        plcDriverManager = new PlcDriverManager();</span>
-<span class="fc" id="L61">    }</span>
+<span class="fc" id="L61">        super(endpointUri, component);</span>
+<span class="fc" id="L62">        plcDriverManager = new PlcDriverManager();</span>
+<span class="fc" id="L63">    }</span>
 
     @Override
     public Producer createProducer() throws Exception {
-<span class="fc" id="L65">        return new Plc4XProducer(this);</span>
+<span class="fc" id="L67">        return new Plc4XProducer(this);</span>
     }
 
     @Override
     public Consumer createConsumer(Processor processor) throws Exception {
-<span class="fc" id="L70">        return new Plc4XConsumer(this, processor);</span>
+<span class="fc" id="L72">        return new Plc4XConsumer(this, processor);</span>
     }
 
     @Override
     public PollingConsumer createPollingConsumer() throws Exception {
-<span class="nc" id="L75">        return new Plc4XPollingConsumer(this);</span>
+<span class="nc" id="L77">        return new Plc4XPollingConsumer(this);</span>
     }
 
     @Override
     public boolean isSingleton() {
-<span class="fc" id="L80">        return true;</span>
+<span class="fc" id="L82">        return true;</span>
     }
 
     public PlcDriverManager getPlcDriverManager() {
-<span class="fc" id="L84">        return plcDriverManager;</span>
+<span class="fc" id="L86">        return plcDriverManager;</span>
     }
 
     public String getDriver() {
-<span class="nc" id="L88">        return driver;</span>
+<span class="fc" id="L90">        return driver;</span>
     }
 
     public void setDriver(String driver) {
-<span class="fc" id="L92">        this.driver = driver;</span>
-<span class="fc" id="L93">    }</span>
+<span class="fc" id="L94">        this.driver = driver;</span>
+<span class="fc" id="L95">    }</span>
 
     public String getAddress() {
-<span class="fc" id="L96">        return address;</span>
+<span class="fc" id="L98">        return address;</span>
     }
 
     public void setAddress(String address) {
-<span class="fc" id="L100">        this.address = address;</span>
-<span class="fc" id="L101">    }</span>
+<span class="fc" id="L102">        this.address = address;</span>
+<span class="fc" id="L103">    }</span>
 
     public Class getDataType() {
-<span class="fc" id="L104">        return dataType;</span>
+<span class="fc" id="L106">        return dataType;</span>
     }
 
     public void setDataType(Class dataType) {
-<span class="fc" id="L108">        this.dataType = dataType;</span>
-<span class="fc" id="L109">    }</span>
+<span class="fc" id="L110">        this.dataType = dataType;</span>
+<span class="fc" id="L111">    }</span>
+
+    @Override
+    public boolean equals(Object o) {
+<span class="fc bfc" id="L115" title="All 2 branches covered.">        if (this == o) return true;</span>
+<span class="fc bfc" id="L116" title="All 2 branches covered.">        if (!(o instanceof Plc4XEndpoint)) return false;</span>
+<span class="pc bpc" id="L117" title="1 of 2 branches missed.">        if (!super.equals(o)) return false;</span>
+<span class="nc" id="L118">        Plc4XEndpoint that = (Plc4XEndpoint) o;</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">        return Objects.equals(getDriver(), that.getDriver()) &amp;&amp;</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">            Objects.equals(getAddress(), that.getAddress()) &amp;&amp;</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">            Objects.equals(getDataType(), that.getDataType()) &amp;&amp;</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">            Objects.equals(getPlcDriverManager(), that.getPlcDriverManager());</span>
+    }
+
+    @Override
+    public int hashCode() {
+<span class="fc" id="L127">        return Objects.hash(super.hashCode(), getDriver(), getAddress(), getDataType(), getPlcDriverManager());</span>
+    }
+
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
