@@ -298,76 +298,78 @@ public class DefaultS7MessageProcessor implements S7MessageProcessor {
 <span class="nc" id="L298">        VarParameter writeVarParameter = null;</span>
 <span class="nc" id="L299">        VarPayload readVarPayload = null;</span>
 <span class="nc" id="L300">        VarPayload writeVarPayload = null;</span>
-<span class="nc bnc" id="L301" title="All 2 branches missed.">        for (S7ResponseMessage response : responses) {</span>
-<span class="nc bnc" id="L302" title="All 2 branches missed.">            if(firstResponse == null) {</span>
-<span class="nc" id="L303">                firstResponse = response;</span>
+
+        // TODO: We should change this code to not use the lists of the first parameter or payload as this can cause problems when using mutable lists.
+<span class="nc bnc" id="L303" title="All 2 branches missed.">        for (S7ResponseMessage response : responses) {</span>
+<span class="nc bnc" id="L304" title="All 2 branches missed.">            if(firstResponse == null) {</span>
+<span class="nc" id="L305">                firstResponse = response;</span>
             }
             // Some parameters have to be merged. In case of read and write parameters
             // their items have to be merged into one single parameter.
-<span class="nc bnc" id="L307" title="All 2 branches missed.">            for(S7Parameter parameter : response.getParameters()) {</span>
-<span class="nc bnc" id="L308" title="All 2 branches missed.">                if (parameter.getType() == ParameterType.READ_VAR) {</span>
-<span class="nc bnc" id="L309" title="All 2 branches missed.">                    if (readVarParameter == null) {</span>
-<span class="nc" id="L310">                        readVarParameter = (VarParameter) parameter;</span>
-<span class="nc" id="L311">                        s7Parameters.add(parameter);</span>
+<span class="nc bnc" id="L309" title="All 2 branches missed.">            for(S7Parameter parameter : response.getParameters()) {</span>
+<span class="nc bnc" id="L310" title="All 2 branches missed.">                if (parameter.getType() == ParameterType.READ_VAR) {</span>
+<span class="nc bnc" id="L311" title="All 2 branches missed.">                    if (readVarParameter == null) {</span>
+<span class="nc" id="L312">                        readVarParameter = (VarParameter) parameter;</span>
+<span class="nc" id="L313">                        s7Parameters.add(parameter);</span>
                     } else {
-<span class="nc" id="L313">                        readVarParameter.mergeParameter((VarParameter) parameter);</span>
+<span class="nc" id="L315">                        readVarParameter.mergeParameter((VarParameter) parameter);</span>
                     }
-<span class="nc bnc" id="L315" title="All 2 branches missed.">                } else if (parameter.getType() == ParameterType.WRITE_VAR) {</span>
-<span class="nc bnc" id="L316" title="All 2 branches missed.">                    if (writeVarParameter == null) {</span>
-<span class="nc" id="L317">                        writeVarParameter = (VarParameter) parameter;</span>
-<span class="nc" id="L318">                        s7Parameters.add(parameter);</span>
+<span class="nc bnc" id="L317" title="All 2 branches missed.">                } else if (parameter.getType() == ParameterType.WRITE_VAR) {</span>
+<span class="nc bnc" id="L318" title="All 2 branches missed.">                    if (writeVarParameter == null) {</span>
+<span class="nc" id="L319">                        writeVarParameter = (VarParameter) parameter;</span>
+<span class="nc" id="L320">                        s7Parameters.add(parameter);</span>
                     } else {
-<span class="nc" id="L320">                        writeVarParameter.mergeParameter((VarParameter) parameter);</span>
+<span class="nc" id="L322">                        writeVarParameter.mergeParameter((VarParameter) parameter);</span>
                     }
                 } else {
-<span class="nc" id="L323">                    s7Parameters.add(parameter);</span>
+<span class="nc" id="L325">                    s7Parameters.add(parameter);</span>
                 }
-<span class="nc" id="L325">            }</span>
+<span class="nc" id="L327">            }</span>
 
             // Some payloads have to be merged. In case of read and write payloads
             // their items have to be merged into one single payload.
-<span class="nc bnc" id="L329" title="All 2 branches missed.">            for(S7Payload payload : response.getPayloads()) {</span>
-<span class="nc bnc" id="L330" title="All 2 branches missed.">                if(payload.getType() == ParameterType.READ_VAR) {</span>
-<span class="nc bnc" id="L331" title="All 2 branches missed.">                    if (readVarPayload == null) {</span>
-<span class="nc" id="L332">                        readVarPayload = (VarPayload) payload;</span>
-<span class="nc" id="L333">                        s7Payloads.add(payload);</span>
+<span class="nc bnc" id="L331" title="All 2 branches missed.">            for(S7Payload payload : response.getPayloads()) {</span>
+<span class="nc bnc" id="L332" title="All 2 branches missed.">                if(payload.getType() == ParameterType.READ_VAR) {</span>
+<span class="nc bnc" id="L333" title="All 2 branches missed.">                    if (readVarPayload == null) {</span>
+<span class="nc" id="L334">                        readVarPayload = (VarPayload) payload;</span>
+<span class="nc" id="L335">                        s7Payloads.add(payload);</span>
                     } else {
-<span class="nc" id="L335">                        readVarPayload.mergePayload((VarPayload) payload);</span>
+<span class="nc" id="L337">                        readVarPayload.mergePayload((VarPayload) payload);</span>
                     }
-<span class="nc bnc" id="L337" title="All 2 branches missed.">                } else if(payload.getType() == ParameterType.WRITE_VAR) {</span>
-<span class="nc bnc" id="L338" title="All 2 branches missed.">                    if(writeVarPayload == null) {</span>
-<span class="nc" id="L339">                        writeVarPayload = (VarPayload) payload;</span>
-<span class="nc" id="L340">                        s7Payloads.add(payload);</span>
+<span class="nc bnc" id="L339" title="All 2 branches missed.">                } else if(payload.getType() == ParameterType.WRITE_VAR) {</span>
+<span class="nc bnc" id="L340" title="All 2 branches missed.">                    if(writeVarPayload == null) {</span>
+<span class="nc" id="L341">                        writeVarPayload = (VarPayload) payload;</span>
+<span class="nc" id="L342">                        s7Payloads.add(payload);</span>
                     } else {
-<span class="nc" id="L342">                        writeVarPayload.mergePayload((VarPayload) payload);</span>
+<span class="nc" id="L344">                        writeVarPayload.mergePayload((VarPayload) payload);</span>
                     }
                 } else {
-<span class="nc" id="L345">                    s7Payloads.add(payload);</span>
+<span class="nc" id="L347">                    s7Payloads.add(payload);</span>
                 }
-<span class="nc" id="L347">            }</span>
-<span class="nc" id="L348">        }</span>
-<span class="nc bnc" id="L349" title="All 2 branches missed.">        if(firstResponse != null) {</span>
-<span class="nc" id="L350">            MessageType messageType = firstResponse.getMessageType();</span>
-<span class="nc" id="L351">            return new S7ResponseMessage(messageType, tpduReference, s7Parameters, s7Payloads, errorClass, errorCode);</span>
+<span class="nc" id="L349">            }</span>
+<span class="nc" id="L350">        }</span>
+<span class="nc bnc" id="L351" title="All 2 branches missed.">        if(firstResponse != null) {</span>
+<span class="nc" id="L352">            MessageType messageType = firstResponse.getMessageType();</span>
+<span class="nc" id="L353">            return new S7ResponseMessage(messageType, tpduReference, s7Parameters, s7Payloads, errorClass, errorCode);</span>
         }
-<span class="nc" id="L353">        return null;</span>
+<span class="nc" id="L355">        return null;</span>
     }
 
-    private static class S7CompositeRequestMessage implements ProtocolMessage {
+    static class S7CompositeRequestMessage implements ProtocolMessage {
 
         private S7RequestMessage originalRequest;
         private Collection&lt;S7RequestMessage&gt; requestMessages;
         private Collection&lt;S7ResponseMessage&gt; responseMessages;
 
-<span class="nc" id="L362">        private S7CompositeRequestMessage(S7RequestMessage originalRequest) {</span>
-<span class="nc" id="L363">            this.originalRequest = originalRequest;</span>
-<span class="nc" id="L364">            this.requestMessages = new LinkedList&lt;&gt;();</span>
-<span class="nc" id="L365">            this.responseMessages = new LinkedList&lt;&gt;();</span>
-<span class="nc" id="L366">        }</span>
+<span class="nc" id="L364">        S7CompositeRequestMessage(S7RequestMessage originalRequest) {</span>
+<span class="nc" id="L365">            this.originalRequest = originalRequest;</span>
+<span class="nc" id="L366">            this.requestMessages = new LinkedList&lt;&gt;();</span>
+<span class="nc" id="L367">            this.responseMessages = new LinkedList&lt;&gt;();</span>
+<span class="nc" id="L368">        }</span>
 
         @Override
         public ProtocolMessage getParent() {
-<span class="nc" id="L370">            return originalRequest;</span>
+<span class="nc" id="L372">            return originalRequest;</span>
         }
 
         /**
@@ -376,28 +378,28 @@ public class DefaultS7MessageProcessor implements S7MessageProcessor {
          * @return true if all children are acknowledged.
          */
         private boolean isAcknowledged() {
-<span class="nc bnc" id="L379" title="All 2 branches missed.">            for (S7RequestMessage requestMessage : requestMessages) {</span>
-<span class="nc bnc" id="L380" title="All 2 branches missed.">                if(!requestMessage.isAcknowledged()) {</span>
-<span class="nc" id="L381">                    return false;</span>
+<span class="nc bnc" id="L381" title="All 2 branches missed.">            for (S7RequestMessage requestMessage : requestMessages) {</span>
+<span class="nc bnc" id="L382" title="All 2 branches missed.">                if(!requestMessage.isAcknowledged()) {</span>
+<span class="nc" id="L383">                    return false;</span>
                 }
-<span class="nc" id="L383">            }</span>
-<span class="nc" id="L384">            return true;</span>
+<span class="nc" id="L385">            }</span>
+<span class="nc" id="L386">            return true;</span>
         }
 
-        private void addRequestMessage(S7RequestMessage requestMessage) {
-<span class="nc" id="L388">            requestMessages.add(requestMessage);</span>
-<span class="nc" id="L389">        }</span>
+        void addRequestMessage(S7RequestMessage requestMessage) {
+<span class="nc" id="L390">            requestMessages.add(requestMessage);</span>
+<span class="nc" id="L391">        }</span>
 
         private Collection&lt;S7RequestMessage&gt; getRequestMessages() {
-<span class="nc" id="L392">            return requestMessages;</span>
+<span class="nc" id="L394">            return requestMessages;</span>
         }
 
         private void addResponseMessage(S7ResponseMessage responseMessage) {
-<span class="nc" id="L396">            responseMessages.add(responseMessage);</span>
-<span class="nc" id="L397">        }</span>
+<span class="nc" id="L398">            responseMessages.add(responseMessage);</span>
+<span class="nc" id="L399">        }</span>
 
         private Collection&lt;S7ResponseMessage&gt; getResponseMessages() {
-<span class="nc" id="L400">            return responseMessages;</span>
+<span class="nc" id="L402">            return responseMessages;</span>
         }
     }
 
