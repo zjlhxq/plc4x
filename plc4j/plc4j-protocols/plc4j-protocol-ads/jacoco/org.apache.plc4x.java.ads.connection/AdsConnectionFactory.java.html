@@ -22,30 +22,37 @@ import org.apache.plc4x.java.ads.api.generic.types.AmsNetId;
 import org.apache.plc4x.java.ads.api.generic.types.AmsPort;
 
 import java.net.InetAddress;
+import java.util.Objects;
 
-<span class="fc" id="L26">public class AdsConnectionFactory {</span>
+<span class="fc" id="L27">public class AdsConnectionFactory {</span>
 
     public AdsTcpPlcConnection adsTcpPlcConnectionOf(InetAddress address, Integer port, AmsNetId targetAmsNetId, AmsPort targetAmsPort, AmsNetId sourceAmsNetId, AmsPort sourceAmsPort) {
-<span class="pc bpc" id="L29" title="3 of 4 branches missed.">        if (sourceAmsNetId == null || sourceAmsPort == null) {</span>
-<span class="pc bpc" id="L30" title="1 of 2 branches missed.">            if (port == null) {</span>
-<span class="nc" id="L31">                return AdsTcpPlcConnection.of(address, targetAmsNetId, targetAmsPort);</span>
+<span class="fc" id="L30">        Objects.requireNonNull(address);</span>
+<span class="fc" id="L31">        Objects.requireNonNull(targetAmsNetId);</span>
+<span class="fc" id="L32">        Objects.requireNonNull(targetAmsPort);</span>
+<span class="fc bfc" id="L33" title="All 4 branches covered.">        if (sourceAmsNetId == null || sourceAmsPort == null) {</span>
+<span class="fc bfc" id="L34" title="All 2 branches covered.">            if (port == null) {</span>
+<span class="fc" id="L35">                return AdsTcpPlcConnection.of(address, targetAmsNetId, targetAmsPort);</span>
             } else {
-<span class="fc" id="L33">                return AdsTcpPlcConnection.of(address, port, targetAmsNetId, targetAmsPort);</span>
+<span class="fc" id="L37">                return AdsTcpPlcConnection.of(address, port, targetAmsNetId, targetAmsPort);</span>
             }
         } else {
-<span class="nc bnc" id="L36" title="All 2 branches missed.">            if (port == null) {</span>
-<span class="nc" id="L37">                return AdsTcpPlcConnection.of(address, targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort);</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">            if (port == null) {</span>
+<span class="fc" id="L41">                return AdsTcpPlcConnection.of(address, targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort);</span>
             } else {
-<span class="nc" id="L39">                return AdsTcpPlcConnection.of(address, port, targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort);</span>
+<span class="fc" id="L43">                return AdsTcpPlcConnection.of(address, port, targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort);</span>
             }
         }
     }
 
     public AdsSerialPlcConnection adsSerialPlcConnectionOf(String serialPort, AmsNetId targetAmsNetId, AmsPort targetAmsPort, AmsNetId sourceAmsNetId, AmsPort sourceAmsPort) {
-<span class="nc bnc" id="L45" title="All 4 branches missed.">        if (sourceAmsNetId == null || sourceAmsPort == null) {</span>
-<span class="nc" id="L46">            return AdsSerialPlcConnection.of(serialPort, targetAmsNetId, targetAmsPort);</span>
+<span class="fc" id="L49">        Objects.requireNonNull(serialPort);</span>
+<span class="fc" id="L50">        Objects.requireNonNull(targetAmsNetId);</span>
+<span class="fc" id="L51">        Objects.requireNonNull(targetAmsPort);</span>
+<span class="fc bfc" id="L52" title="All 4 branches covered.">        if (sourceAmsNetId == null || sourceAmsPort == null) {</span>
+<span class="fc" id="L53">            return AdsSerialPlcConnection.of(serialPort, targetAmsNetId, targetAmsPort);</span>
         } else {
-<span class="nc" id="L48">            return AdsSerialPlcConnection.of(serialPort, targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort);</span>
+<span class="fc" id="L55">            return AdsSerialPlcConnection.of(serialPort, targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort);</span>
         }
     }
 }
