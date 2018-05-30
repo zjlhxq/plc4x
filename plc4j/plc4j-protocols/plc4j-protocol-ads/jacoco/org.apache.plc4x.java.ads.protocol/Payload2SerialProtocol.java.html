@@ -73,11 +73,11 @@ import java.util.concurrent.locks.ReentrantLock;
                 try {
 <span class="nc" id="L74">                    TimeUnit.SECONDS.sleep(2);</span>
 <span class="nc" id="L75">                    channelHandlerContext.channel().writeAndFlush(amsSerialFrame.getByteBuf());</span>
-<span class="nc" id="L76">                } catch (InterruptedException e) {</span>
-<span class="nc" id="L77">                    LOGGER.debug(&quot;Interrupted&quot;, e);</span>
-<span class="nc" id="L78">                    Thread.currentThread().interrupt();</span>
+<span class="fc" id="L76">                } catch (InterruptedException e) {</span>
+<span class="fc" id="L77">                    LOGGER.debug(&quot;Interrupted&quot;, e);</span>
+<span class="fc" id="L78">                    Thread.currentThread().interrupt();</span>
 <span class="nc" id="L79">                }</span>
-<span class="nc" id="L80">                return channelHandlerContext.voidPromise();</span>
+<span class="fc" id="L80">                return channelHandlerContext.voidPromise();</span>
             }, 0, TimeUnit.MILLISECONDS);
 <span class="fc" id="L82">            frameOnTheWay.set(true);</span>
         } finally {
@@ -110,8 +110,8 @@ import java.util.concurrent.locks.ReentrantLock;
                 // TODO: check if this is the right way to ack a package.
 <span class="fc" id="L111">                ChannelFuture channelFuture = channelHandlerContext.writeAndFlush(AmsSerialAcknowledgeFrame.of(transmitterAddress, receiverAddress, fragmentNumber));</span>
 <span class="fc" id="L112">                channelFuture.addListener((ChannelFutureListener) future -&gt; {</span>
-<span class="nc" id="L113">                    frameOnTheWay.set(false);</span>
-<span class="nc" id="L114">                });</span>
+<span class="fc" id="L113">                    frameOnTheWay.set(false);</span>
+<span class="fc" id="L114">                });</span>
                 // waiting for the ack-frame to be transmitted before we forward the package
 <span class="fc" id="L116">                channelFuture.await();</span>
 <span class="fc" id="L117">                out.add(userData.getByteBuf());</span>
