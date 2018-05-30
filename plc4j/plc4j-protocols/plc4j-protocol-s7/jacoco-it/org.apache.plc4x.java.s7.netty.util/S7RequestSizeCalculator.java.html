@@ -36,7 +36,11 @@ import java.util.List;
  * PDU size. This helper calculates this message size and hereby helps implementing
  * different strategies for optimizing requests.
  */
-<span class="nc" id="L39">public class S7RequestSizeCalculator {</span>
+public class S7RequestSizeCalculator {
+
+    private S7RequestSizeCalculator() {
+        // We don't want this to be instantiated.
+    }
 
     /**
      * Calculate the size of a request message.
@@ -46,10 +50,10 @@ import java.util.List;
      */
     public static short getRequestMessageSize(S7RequestMessage requestMessage) {
         // The fixed header size.
-<span class="nc" id="L49">        short size = 10;</span>
-<span class="nc" id="L50">        size += getRequestParametersSize(requestMessage.getParameters());</span>
-<span class="nc" id="L51">        size += getRequestPayloadsSize(requestMessage.getPayloads());</span>
-<span class="nc" id="L52">        return size;</span>
+<span class="nc" id="L53">        short size = 10;</span>
+<span class="nc" id="L54">        size += getRequestParametersSize(requestMessage.getParameters());</span>
+<span class="nc" id="L55">        size += getRequestPayloadsSize(requestMessage.getPayloads());</span>
+<span class="nc" id="L56">        return size;</span>
     }
 
     /**
@@ -61,8 +65,8 @@ import java.util.List;
      * @return size in bytes this item would add to an existing request message.
      */
     public static short getRequestItemTotalSize(VarParameterItem varParameterItem, VarPayloadItem varPayloadItem) {
-<span class="nc" id="L64">        return (short) (getRequestReadWriteVarParameterItemSize(varParameterItem) +</span>
-<span class="nc" id="L65">            getRequestWriteVarPayloadItemSize(varPayloadItem));</span>
+<span class="nc" id="L68">        return (short) (getRequestReadWriteVarParameterItemSize(varParameterItem) +</span>
+<span class="nc" id="L69">            getRequestWriteVarPayloadItemSize(varPayloadItem));</span>
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -70,96 +74,96 @@ import java.util.List;
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     private static short getRequestParametersSize(List&lt;S7Parameter&gt; parameters) {
-<span class="nc" id="L73">        short l = 0;</span>
-<span class="nc bnc" id="L74" title="All 2 branches missed.">        if (parameters != null) {</span>
-<span class="nc bnc" id="L75" title="All 2 branches missed.">            for (S7Parameter parameter : parameters) {</span>
-<span class="nc" id="L76">                l += getRequestParameterSize(parameter);</span>
-<span class="nc" id="L77">            }</span>
+<span class="nc" id="L77">        short l = 0;</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">        if (parameters != null) {</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">            for (S7Parameter parameter : parameters) {</span>
+<span class="nc" id="L80">                l += getRequestParameterSize(parameter);</span>
+<span class="nc" id="L81">            }</span>
         }
-<span class="nc" id="L79">        return l;</span>
+<span class="nc" id="L83">        return l;</span>
     }
 
     private static short getRequestParameterSize(S7Parameter parameter) {
-<span class="nc bnc" id="L83" title="All 2 branches missed.">        if (parameter == null) {</span>
-<span class="nc" id="L84">            return 0;</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">        if (parameter == null) {</span>
+<span class="nc" id="L88">            return 0;</span>
         }
 
-<span class="nc bnc" id="L87" title="All 3 branches missed.">        switch (parameter.getType()) {</span>
+<span class="nc bnc" id="L91" title="All 3 branches missed.">        switch (parameter.getType()) {</span>
             case READ_VAR:
             case WRITE_VAR:
-<span class="nc" id="L90">                return getRequestReadWriteVarParameterSize((VarParameter) parameter);</span>
+<span class="nc" id="L94">                return getRequestReadWriteVarParameterSize((VarParameter) parameter);</span>
             case SETUP_COMMUNICATION:
-<span class="nc" id="L92">                return 8;</span>
+<span class="nc" id="L96">                return 8;</span>
             default:
-<span class="nc" id="L94">                throw new NotImplementedException(&quot;Not implemented&quot;);</span>
+<span class="nc" id="L98">                throw new NotImplementedException(&quot;Not implemented&quot;);</span>
         }
     }
 
     private static short getRequestReadWriteVarParameterSize(VarParameter varParameter) {
         // A var parameter always has a minimum size of 2 bytes (type of parameter, number of items)
-<span class="nc" id="L100">        short length = 2;</span>
+<span class="nc" id="L104">        short length = 2;</span>
         // Then come the items ...
-<span class="nc bnc" id="L102" title="All 2 branches missed.">        for (VarParameterItem varParameterItem : varParameter.getItems()) {</span>
-<span class="nc" id="L103">            length += getRequestReadWriteVarParameterItemSize(varParameterItem);</span>
-<span class="nc" id="L104">        }</span>
-<span class="nc" id="L105">        return length;</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">        for (VarParameterItem varParameterItem : varParameter.getItems()) {</span>
+<span class="nc" id="L107">            length += getRequestReadWriteVarParameterItemSize(varParameterItem);</span>
+<span class="nc" id="L108">        }</span>
+<span class="nc" id="L109">        return length;</span>
     }
 
     private static short getRequestReadWriteVarParameterItemSize(VarParameterItem varParameterItem) {
-<span class="nc" id="L109">        VariableAddressingMode addressMode = varParameterItem.getAddressingMode();</span>
+<span class="nc" id="L113">        VariableAddressingMode addressMode = varParameterItem.getAddressingMode();</span>
         // S7 Any items have a fixed size of 12 bytes.
-<span class="nc bnc" id="L111" title="All 2 branches missed.">        if (addressMode == VariableAddressingMode.S7ANY) {</span>
-<span class="nc" id="L112">            return 12;</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">        if (addressMode == VariableAddressingMode.S7ANY) {</span>
+<span class="nc" id="L116">            return 12;</span>
         } else {
-<span class="nc" id="L114">            throw new NotImplementedException(&quot;Not implemented&quot;);</span>
+<span class="nc" id="L118">            throw new NotImplementedException(&quot;Not implemented&quot;);</span>
         }
     }
 
     private static short getRequestPayloadsSize(List&lt;S7Payload&gt; payloads) {
-<span class="nc" id="L119">        short l = 0;</span>
-<span class="nc bnc" id="L120" title="All 2 branches missed.">        if (payloads != null) {</span>
-<span class="nc bnc" id="L121" title="All 2 branches missed.">            for (S7Payload payload : payloads) {</span>
-<span class="nc" id="L122">                l += getRequestPayloadSize(payload);</span>
-<span class="nc" id="L123">            }</span>
+<span class="nc" id="L123">        short l = 0;</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">        if (payloads != null) {</span>
+<span class="nc bnc" id="L125" title="All 2 branches missed.">            for (S7Payload payload : payloads) {</span>
+<span class="nc" id="L126">                l += getRequestPayloadSize(payload);</span>
+<span class="nc" id="L127">            }</span>
         }
-<span class="nc" id="L125">        return l;</span>
+<span class="nc" id="L129">        return l;</span>
     }
 
     private static short getRequestPayloadSize(S7Payload payload) {
-<span class="nc bnc" id="L129" title="All 2 branches missed.">        if (payload == null) {</span>
-<span class="nc" id="L130">            return 0;</span>
+<span class="nc bnc" id="L133" title="All 2 branches missed.">        if (payload == null) {</span>
+<span class="nc" id="L134">            return 0;</span>
         }
 
-<span class="nc bnc" id="L133" title="All 2 branches missed.">        switch (payload.getType()) {</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">        switch (payload.getType()) {</span>
             case WRITE_VAR:
-<span class="nc" id="L135">                return getRequestWriteVarPayloadSize((VarPayload) payload);</span>
+<span class="nc" id="L139">                return getRequestWriteVarPayloadSize((VarPayload) payload);</span>
             default:
-<span class="nc" id="L137">                throw new NotImplementedException(&quot;Not implemented&quot;);</span>
+<span class="nc" id="L141">                throw new NotImplementedException(&quot;Not implemented&quot;);</span>
         }
     }
 
     private static short getRequestWriteVarPayloadSize(VarPayload varPayload) {
-<span class="nc" id="L142">        short length = 0;</span>
+<span class="nc" id="L146">        short length = 0;</span>
         // Then come the items ...
-<span class="nc bnc" id="L144" title="All 2 branches missed.">        for (VarPayloadItem varPayloadItem : varPayload.getItems()) {</span>
-<span class="nc" id="L145">            length += getRequestWriteVarPayloadItemSize(varPayloadItem);</span>
-<span class="nc" id="L146">        }</span>
-<span class="nc" id="L147">        return length;</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">        for (VarPayloadItem varPayloadItem : varPayload.getItems()) {</span>
+<span class="nc" id="L149">            length += getRequestWriteVarPayloadItemSize(varPayloadItem);</span>
+<span class="nc" id="L150">        }</span>
+<span class="nc" id="L151">        return length;</span>
     }
 
     private static short getRequestWriteVarPayloadItemSize(VarPayloadItem varPayloadItem) {
-<span class="nc bnc" id="L151" title="All 2 branches missed.">        if(varPayloadItem == null) {</span>
-<span class="nc" id="L152">            return 0;</span>
+<span class="nc bnc" id="L155" title="All 2 branches missed.">        if(varPayloadItem == null) {</span>
+<span class="nc" id="L156">            return 0;</span>
         }
 
         // A var payload item always has a minimum size of 4 bytes (return code, transport size, size (two bytes))
-<span class="nc" id="L156">        short length = 4;</span>
-<span class="nc" id="L157">        length += varPayloadItem.getData().length;</span>
+<span class="nc" id="L160">        short length = 4;</span>
+<span class="nc" id="L161">        length += varPayloadItem.getData().length;</span>
         // It seems that bit payloads need a additional separating 0x00 byte.
-<span class="nc bnc" id="L159" title="All 2 branches missed.">        if(varPayloadItem.getDataTransportSize().isSizeInBits()) {</span>
-<span class="nc" id="L160">            length += 1;</span>
+<span class="nc bnc" id="L163" title="All 2 branches missed.">        if(varPayloadItem.getDataTransportSize().isSizeInBits()) {</span>
+<span class="nc" id="L164">            length += 1;</span>
         }
-<span class="nc" id="L162">        return length;</span>
+<span class="nc" id="L166">        return length;</span>
     }
 
 }
