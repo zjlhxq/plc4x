@@ -26,43 +26,47 @@
 <a class="jxr_linenumber" name="L18" href="#L18">18</a>  <em class="jxr_comment"> */</em>
 <a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">package</strong> org.apache.plc4x.java.ads.protocol.util;
 <a class="jxr_linenumber" name="L20" href="#L20">20</a>  
-<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> org.junit.Test;
-<a class="jxr_linenumber" name="L22" href="#L22">22</a>  
-<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> java.util.Calendar;
-<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> java.util.Date;
-<a class="jxr_linenumber" name="L25" href="#L25">25</a>  
-<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.apache.plc4x.java.ads.util.Assert.assertByteEquals;
-<a class="jxr_linenumber" name="L27" href="#L27">27</a>  
-<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../../../org/apache/plc4x/java/ads/protocol/util/LittleEndianEncoderTest.html">LittleEndianEncoderTest</a> {
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.exceptions.PlcProtocolException;
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> org.junit.Test;
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> java.util.Calendar;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> java.util.Date;
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.apache.plc4x.java.ads.util.Assert.assertByteEquals;
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.apache.plc4x.java.ads.util.Junit5Backport.assertThrows;
 <a class="jxr_linenumber" name="L29" href="#L29">29</a>  
-<a class="jxr_linenumber" name="L30" href="#L30">30</a>      @Test
-<a class="jxr_linenumber" name="L31" href="#L31">31</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> encodeData() <strong class="jxr_keyword">throws</strong> Exception {
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>          assertByteEquals(<strong class="jxr_keyword">new</strong> byte[]{0x01, 0x00, 0x01, 0x00}, LittleEndianEncoder.encodeData(Boolean.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">true</strong>, false, <strong class="jxr_keyword">true</strong>, false));
-<a class="jxr_linenumber" name="L33" href="#L33">33</a>  
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>          assertByteEquals(<strong class="jxr_keyword">new</strong> byte[]{0x12, 0x03, 0x05, 0x7f}, LittleEndianEncoder.encodeData(Byte.<strong class="jxr_keyword">class</strong>, (byte) 0x12, (byte) 0x03, (byte) 0x05, (byte) 0x7f));
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../../../org/apache/plc4x/java/ads/protocol/util/LittleEndianEncoderTest.html">LittleEndianEncoderTest</a> {
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>      @Test
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> encodeData() <strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>          assertByteEquals(<strong class="jxr_keyword">new</strong> byte[]{0x01, 0x00, 0x01, 0x00}, LittleEndianEncoder.encodeData(Boolean.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">true</strong>, false, <strong class="jxr_keyword">true</strong>, false));
 <a class="jxr_linenumber" name="L35" href="#L35">35</a>  
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>          assertByteEquals(<strong class="jxr_keyword">new</strong> byte[]{0x1, 0x00}, LittleEndianEncoder.encodeData(Short.<strong class="jxr_keyword">class</strong>, (<strong class="jxr_keyword">short</strong>) 1));
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>          assertByteEquals(<strong class="jxr_keyword">new</strong> byte[]{0x0e, 0x00, 0x50, 0x00}, LittleEndianEncoder.encodeData(Short.<strong class="jxr_keyword">class</strong>, (<strong class="jxr_keyword">short</strong>) 14, (<strong class="jxr_keyword">short</strong>) 80));
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>  
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>          assertByteEquals(<strong class="jxr_keyword">new</strong> byte[]{0x5a, 0x0a, 0x00, 0x00}, LittleEndianEncoder.encodeData(Integer.<strong class="jxr_keyword">class</strong>, 2650));
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>          assertByteEquals(<strong class="jxr_keyword">new</strong> byte[]{0x5a, 0x0a, 0x00, 0x00, 0x50, 0x00, 0x00, 0x00}, LittleEndianEncoder.encodeData(Integer.<strong class="jxr_keyword">class</strong>, 2650, 80));
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>  
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>          assertByteEquals(<strong class="jxr_keyword">new</strong> byte[]{(byte) 0xc3, (byte) 0xf5, 0x48, 0x40}, LittleEndianEncoder.encodeData(Float.<strong class="jxr_keyword">class</strong>, 3.14f));
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>          assertByteEquals(<strong class="jxr_keyword">new</strong> byte[]{(byte) 0xc3, (byte) 0xf5, 0x48, 0x40, 0x14, (byte) 0xae, 0x07, 0x40}, LittleEndianEncoder.encodeData(Float.<strong class="jxr_keyword">class</strong>, 3.14f, 2.12f));
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>  
-<a class="jxr_linenumber" name="L45" href="#L45">45</a>          assertByteEquals(<strong class="jxr_keyword">new</strong> byte[]{0x1F, (byte) 0x85, (byte) 0xEB, 0x51, (byte) 0xB8, 0x1E, 0x09, 0x40}, LittleEndianEncoder.encodeData(Double.<strong class="jxr_keyword">class</strong>, 3.14));
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>          assertByteEquals(<strong class="jxr_keyword">new</strong> byte[]{0x1F, (byte) 0x85, (byte) 0xEB, 0x51, (byte) 0xB8, 0x1E, 0x09, 0x40, (byte) 0xF6, 0x28, 0x5C, (byte) 0x8F, (byte) 0xC2, (byte) 0xF5, 0x00, 0x40}, LittleEndianEncoder.encodeData(Double.<strong class="jxr_keyword">class</strong>, 3.14, 2.12));
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>  
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>          Calendar calendar1 = Calendar.getInstance();
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>          <em class="jxr_comment">//calendar1.set(2003, Calendar.DECEMBER, 23, 13, 3, 0);</em>
-<a class="jxr_linenumber" name="L50" href="#L50">50</a>          calendar1.setTime(<strong class="jxr_keyword">new</strong> Date(1072180980436L));
-<a class="jxr_linenumber" name="L51" href="#L51">51</a>          assertByteEquals(<strong class="jxr_keyword">new</strong> byte[]{(byte) 0x40, (byte) 0x79, (byte) 0xFB, (byte) 0xB5, (byte) 0x4C, (byte) 0xC9, (byte) 0xC3, (byte) 0x01}, LittleEndianEncoder.encodeData(Calendar.<strong class="jxr_keyword">class</strong>, calendar1));
-<a class="jxr_linenumber" name="L52" href="#L52">52</a>  
-<a class="jxr_linenumber" name="L53" href="#L53">53</a>          assertByteEquals(<strong class="jxr_keyword">new</strong> byte[]{0x70, 0x6c, 0x63, 0x34, 0x78, 0x00}, LittleEndianEncoder.encodeData(String.<strong class="jxr_keyword">class</strong>, <span class="jxr_string">"plc4x"</span>));
-<a class="jxr_linenumber" name="L54" href="#L54">54</a>          assertByteEquals(<strong class="jxr_keyword">new</strong> byte[]{0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x57, 0x6f, 0x72, 0x6c, 0x64, 0x21, 0x00}, LittleEndianEncoder.encodeData(String.<strong class="jxr_keyword">class</strong>, <span class="jxr_string">"HelloWorld!"</span>));
-<a class="jxr_linenumber" name="L55" href="#L55">55</a>          assertByteEquals(<strong class="jxr_keyword">new</strong> byte[]{0x70, 0x6c, 0x63, 0x34, 0x78, 0x00, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x57, 0x6f, 0x72, 0x6c, 0x64, 0x21, 0x00}, LittleEndianEncoder.encodeData(String.<strong class="jxr_keyword">class</strong>, <span class="jxr_string">"plc4x"</span>, <span class="jxr_string">"HelloWorld!"</span>));
-<a class="jxr_linenumber" name="L56" href="#L56">56</a>      }
-<a class="jxr_linenumber" name="L57" href="#L57">57</a>  }
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>          assertByteEquals(<strong class="jxr_keyword">new</strong> byte[]{0x12, 0x03, 0x05, 0x7f}, LittleEndianEncoder.encodeData(Byte.<strong class="jxr_keyword">class</strong>, (byte) 0x12, (byte) 0x03, (byte) 0x05, (byte) 0x7f));
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>          assertByteEquals(<strong class="jxr_keyword">new</strong> byte[]{0x1, 0x00}, LittleEndianEncoder.encodeData(Short.<strong class="jxr_keyword">class</strong>, (<strong class="jxr_keyword">short</strong>) 1));
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>          assertByteEquals(<strong class="jxr_keyword">new</strong> byte[]{0x0e, 0x00, 0x50, 0x00}, LittleEndianEncoder.encodeData(Short.<strong class="jxr_keyword">class</strong>, (<strong class="jxr_keyword">short</strong>) 14, (<strong class="jxr_keyword">short</strong>) 80));
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>          assertByteEquals(<strong class="jxr_keyword">new</strong> byte[]{0x5a, 0x0a, 0x00, 0x00}, LittleEndianEncoder.encodeData(Integer.<strong class="jxr_keyword">class</strong>, 2650));
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>          assertByteEquals(<strong class="jxr_keyword">new</strong> byte[]{0x5a, 0x0a, 0x00, 0x00, 0x50, 0x00, 0x00, 0x00}, LittleEndianEncoder.encodeData(Integer.<strong class="jxr_keyword">class</strong>, 2650, 80));
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>          assertByteEquals(<strong class="jxr_keyword">new</strong> byte[]{(byte) 0xc3, (byte) 0xf5, 0x48, 0x40}, LittleEndianEncoder.encodeData(Float.<strong class="jxr_keyword">class</strong>, 3.14f));
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>          assertByteEquals(<strong class="jxr_keyword">new</strong> byte[]{(byte) 0xc3, (byte) 0xf5, 0x48, 0x40, 0x14, (byte) 0xae, 0x07, 0x40}, LittleEndianEncoder.encodeData(Float.<strong class="jxr_keyword">class</strong>, 3.14f, 2.12f));
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>          assertByteEquals(<strong class="jxr_keyword">new</strong> byte[]{0x1F, (byte) 0x85, (byte) 0xEB, 0x51, (byte) 0xB8, 0x1E, 0x09, 0x40}, LittleEndianEncoder.encodeData(Double.<strong class="jxr_keyword">class</strong>, 3.14));
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>          assertByteEquals(<strong class="jxr_keyword">new</strong> byte[]{0x1F, (byte) 0x85, (byte) 0xEB, 0x51, (byte) 0xB8, 0x1E, 0x09, 0x40, (byte) 0xF6, 0x28, 0x5C, (byte) 0x8F, (byte) 0xC2, (byte) 0xF5, 0x00, 0x40}, LittleEndianEncoder.encodeData(Double.<strong class="jxr_keyword">class</strong>, 3.14, 2.12));
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>  
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>          Calendar calendar1 = Calendar.getInstance();
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>          <em class="jxr_comment">//calendar1.set(2003, Calendar.DECEMBER, 23, 13, 3, 0);</em>
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>          calendar1.setTime(<strong class="jxr_keyword">new</strong> Date(1072180980436L));
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>          assertByteEquals(<strong class="jxr_keyword">new</strong> byte[]{(byte) 0x40, (byte) 0x79, (byte) 0xFB, (byte) 0xB5, (byte) 0x4C, (byte) 0xC9, (byte) 0xC3, (byte) 0x01}, LittleEndianEncoder.encodeData(Calendar.<strong class="jxr_keyword">class</strong>, calendar1));
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>  
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>          assertByteEquals(<strong class="jxr_keyword">new</strong> byte[]{0x70, 0x6c, 0x63, 0x34, 0x78, 0x00}, LittleEndianEncoder.encodeData(String.<strong class="jxr_keyword">class</strong>, <span class="jxr_string">"plc4x"</span>));
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>          assertByteEquals(<strong class="jxr_keyword">new</strong> byte[]{0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x57, 0x6f, 0x72, 0x6c, 0x64, 0x21, 0x00}, LittleEndianEncoder.encodeData(String.<strong class="jxr_keyword">class</strong>, <span class="jxr_string">"HelloWorld!"</span>));
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>          assertByteEquals(<strong class="jxr_keyword">new</strong> byte[]{0x70, 0x6c, 0x63, 0x34, 0x78, 0x00, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x57, 0x6f, 0x72, 0x6c, 0x64, 0x21, 0x00}, LittleEndianEncoder.encodeData(String.<strong class="jxr_keyword">class</strong>, <span class="jxr_string">"plc4x"</span>, <span class="jxr_string">"HelloWorld!"</span>));
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>  
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>          assertThrows(PlcProtocolException.<strong class="jxr_keyword">class</strong>, () -&gt; LittleEndianEncoder.encodeData(<strong class="jxr_keyword">this</strong>.getClass(), <span class="jxr_string">""</span>));
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>      }
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>  }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2017&#x2013;2018 <a href="https://www.apache.org/">The Apache Software Foundation</a>. All rights reserved.</div>
