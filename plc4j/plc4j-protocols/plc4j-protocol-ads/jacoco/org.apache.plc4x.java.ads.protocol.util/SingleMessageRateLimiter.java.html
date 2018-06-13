@@ -60,57 +60,61 @@ import java.util.concurrent.atomic.AtomicBoolean;
 <span class="fc" id="L60">        LOGGER.debug(&quot;connect({}, {}, {}, {})&quot;, ctx, remoteAddress, localAddress, promise);</span>
 <span class="fc" id="L61">        sender = ctx.executor().scheduleAtFixedRate(() -&gt; {</span>
 <span class="fc" id="L62">            LOGGER.trace(&quot;Woke up and doing work messageOnTheWay:{}, messageQueue:{}&quot;, messageOnTheWay, messagesQueue);</span>
-<span class="pc bpc" id="L63" title="1 of 4 branches missed.">            if (!messagesQueue.isEmpty() &amp;&amp; messageOnTheWay.compareAndSet(false, true)) {</span>
-<span class="fc" id="L64">                ToSend pop = messagesQueue.pop();</span>
-<span class="fc" id="L65">                LOGGER.debug(&quot;Sending {}&quot;, pop);</span>
-<span class="fc" id="L66">                pop.channelHandlerContext.writeAndFlush(pop.toSend, pop.promise);</span>
-<span class="fc" id="L67">                LOGGER.debug(&quot;Send {}&quot;, pop);</span>
+<span class="pc bpc" id="L63" title="3 of 4 branches missed.">            if (!messagesQueue.isEmpty() &amp;&amp; messageOnTheWay.compareAndSet(false, true)) {</span>
+<span class="nc" id="L64">                ToSend pop = messagesQueue.pop();</span>
+<span class="nc" id="L65">                LOGGER.debug(&quot;Sending {}&quot;, pop);</span>
+<span class="nc" id="L66">                pop.channelHandlerContext.writeAndFlush(pop.toSend, pop.promise);</span>
+<span class="nc" id="L67">                LOGGER.debug(&quot;Send {}&quot;, pop);</span>
             }
-<span class="fc" id="L69">        }, 0, 10, TimeUnit.MILLISECONDS);</span>
+<span class="fc" id="L69">        }, 100, 10, TimeUnit.MILLISECONDS);</span>
 <span class="fc" id="L70">        super.connect(ctx, remoteAddress, localAddress, promise);</span>
 <span class="fc" id="L71">    }</span>
 
     @Override
     public void disconnect(ChannelHandlerContext ctx, ChannelPromise promise) throws Exception {
 <span class="nc" id="L75">        LOGGER.debug(&quot;disconnect({}, {}, {}, {})&quot;, ctx, promise);</span>
-<span class="nc" id="L76">        sender.cancel(true);</span>
+<span class="nc" id="L76">        sender.cancel(false);</span>
 <span class="nc" id="L77">        super.disconnect(ctx, promise);</span>
 <span class="nc" id="L78">    }</span>
 
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
 <span class="fc" id="L82">        LOGGER.trace(&quot;(&lt;--OUT): {}, {}, {}&quot;, ctx, msg, promise);</span>
-<span class="fc" id="L83">        messagesQueue.add(new ToSend(ctx, msg, promise));</span>
-<span class="fc" id="L84">    }</span>
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">        if (messageOnTheWay.compareAndSet(false, true)) {</span>
+<span class="fc" id="L84">            ctx.write(msg, promise);</span>
+        } else {
+<span class="nc" id="L86">            messagesQueue.add(new ToSend(ctx, msg, promise));</span>
+        }
+<span class="fc" id="L88">    }</span>
 
     @Override
     public void read(ChannelHandlerContext ctx) throws Exception {
-<span class="fc" id="L88">        LOGGER.trace(&quot;(--&gt;In): {}&quot;, ctx);</span>
-<span class="fc" id="L89">        messageOnTheWay.set(false);</span>
-<span class="fc" id="L90">        super.read(ctx);</span>
-<span class="fc" id="L91">    }</span>
+<span class="fc" id="L92">        LOGGER.trace(&quot;(--&gt;In): {}&quot;, ctx);</span>
+<span class="fc" id="L93">        messageOnTheWay.set(false);</span>
+<span class="fc" id="L94">        super.read(ctx);</span>
+<span class="fc" id="L95">    }</span>
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-<span class="nc" id="L95">        LOGGER.trace(&quot;(--&gt;ERR): {}&quot;, ctx, cause);</span>
-<span class="nc" id="L96">        messageOnTheWay.set(false);</span>
-<span class="nc" id="L97">        super.exceptionCaught(ctx, cause);</span>
-<span class="nc" id="L98">    }</span>
+<span class="nc" id="L99">        LOGGER.trace(&quot;(--&gt;ERR): {}&quot;, ctx, cause);</span>
+<span class="nc" id="L100">        messageOnTheWay.set(false);</span>
+<span class="nc" id="L101">        super.exceptionCaught(ctx, cause);</span>
+<span class="nc" id="L102">    }</span>
 
     private static final class ToSend {
         final ChannelHandlerContext channelHandlerContext;
         final Object toSend;
         final ChannelPromise promise;
 
-<span class="fc" id="L105">        private ToSend(ChannelHandlerContext channelHandlerContext, Object toSend, ChannelPromise promise) {</span>
-<span class="fc" id="L106">            this.channelHandlerContext = channelHandlerContext;</span>
-<span class="fc" id="L107">            this.toSend = toSend;</span>
-<span class="fc" id="L108">            this.promise = promise;</span>
-<span class="fc" id="L109">        }</span>
+<span class="nc" id="L109">        private ToSend(ChannelHandlerContext channelHandlerContext, Object toSend, ChannelPromise promise) {</span>
+<span class="nc" id="L110">            this.channelHandlerContext = channelHandlerContext;</span>
+<span class="nc" id="L111">            this.toSend = toSend;</span>
+<span class="nc" id="L112">            this.promise = promise;</span>
+<span class="nc" id="L113">        }</span>
 
         @Override
         public String toString() {
-<span class="nc" id="L113">            return &quot;ToSend{&quot; +</span>
+<span class="nc" id="L117">            return &quot;ToSend{&quot; +</span>
                 &quot;channelHandlerContext=&quot; + channelHandlerContext +
                 &quot;, toSend=&quot; + toSend +
                 &quot;, promise=&quot; + promise +
