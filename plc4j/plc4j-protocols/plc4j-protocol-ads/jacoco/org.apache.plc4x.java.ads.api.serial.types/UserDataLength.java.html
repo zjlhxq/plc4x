@@ -32,27 +32,39 @@ public class UserDataLength extends ByteValue {
 <span class="fc" id="L32">        super(value);</span>
 <span class="fc" id="L33">    }</span>
 
-    private UserDataLength(ByteBuf byteBuf) {
-<span class="fc" id="L36">        this(byteBuf.readByte());</span>
+    private UserDataLength(byte[] value) {
+<span class="fc" id="L36">        super(value);</span>
 <span class="fc" id="L37">    }</span>
 
+    private UserDataLength(ByteBuf byteBuf) {
+<span class="fc" id="L40">        this(byteBuf.readByte());</span>
+<span class="fc" id="L41">    }</span>
+
     public static UserDataLength of(byte value) {
-<span class="fc" id="L40">        return new UserDataLength(value);</span>
+<span class="fc" id="L44">        return new UserDataLength(value);</span>
+    }
+
+    public static UserDataLength of(byte... value) {
+<span class="fc" id="L48">        return new UserDataLength(value);</span>
+    }
+
+    public static UserDataLength of(String value) {
+<span class="fc" id="L52">        return new UserDataLength(Byte.valueOf(value));</span>
     }
 
     public static UserDataLength of(ByteBuf byteBuf) {
-<span class="fc" id="L44">        return new UserDataLength(byteBuf);</span>
+<span class="fc" id="L56">        return new UserDataLength(byteBuf);</span>
     }
 
     public byte getAsByte() {
-<span class="fc" id="L48">        return value[0];</span>
+<span class="fc" id="L60">        return value[0];</span>
     }
 
     @Override
     public String toString() {
-<span class="fc" id="L53">        return super.toString() + &quot;{&quot; +</span>
-<span class="fc" id="L54">            &quot;byteValue=&quot; + (getAsByte() &amp; 0xFF) +</span>
-<span class="fc" id="L55">            &quot;,hexValue=0x&quot; + leftPad(toHexString(getAsByte() &amp; 0xFF), NUM_BYTES * 2, &quot;0&quot;) +</span>
+<span class="fc" id="L65">        return super.toString() + &quot;{&quot; +</span>
+<span class="fc" id="L66">            &quot;byteValue=&quot; + (getAsByte() &amp; 0xFF) +</span>
+<span class="fc" id="L67">            &quot;,hexValue=0x&quot; + leftPad(toHexString(getAsByte() &amp; 0xFF), NUM_BYTES * 2, &quot;0&quot;) +</span>
             &quot;}&quot;;
     }
 }

@@ -68,7 +68,7 @@ public class AmsHeader implements ByteReadable {
      */
     private final Invoke invokeId;
 
-    private final LengthSupplier dataLengthSupplier;
+    private final transient LengthSupplier dataLengthSupplier;
 
 <span class="fc" id="L73">    private AmsHeader(AmsNetId targetAmsNetId, AmsPort targetAmsPort, AmsNetId sourceAmsNetId, AmsPort sourceAmsPort, Command commandId, State stateFlags, DataLength dataLength, AmsError code, Invoke invokeId) {</span>
 <span class="fc" id="L74">        this.targetAmsNetId = requireNonNull(targetAmsNetId);</span>
@@ -157,57 +157,67 @@ public class AmsHeader implements ByteReadable {
 
     @Override
     public boolean equals(Object o) {
-<span class="pc bpc" id="L160" title="1 of 2 branches missed.">        if (this == o)</span>
+<span class="pc bpc" id="L160" title="1 of 2 branches missed.">        if (this == o) {</span>
 <span class="nc" id="L161">            return true;</span>
-<span class="pc bpc" id="L162" title="1 of 2 branches missed.">        if (!(o instanceof AmsHeader))</span>
-<span class="nc" id="L163">            return false;</span>
+        }
+<span class="pc bpc" id="L163" title="1 of 2 branches missed.">        if (!(o instanceof AmsHeader)) {</span>
+<span class="nc" id="L164">            return false;</span>
+        }
 
-<span class="fc" id="L165">        AmsHeader amsHeader = (AmsHeader) o;</span>
+<span class="fc" id="L167">        AmsHeader amsHeader = (AmsHeader) o;</span>
 
-<span class="pc bpc" id="L167" title="1 of 2 branches missed.">        if (!targetAmsNetId.equals(amsHeader.targetAmsNetId))</span>
-<span class="nc" id="L168">            return false;</span>
-<span class="pc bpc" id="L169" title="1 of 2 branches missed.">        if (!targetAmsPort.equals(amsHeader.targetAmsPort))</span>
+<span class="pc bpc" id="L169" title="1 of 2 branches missed.">        if (!targetAmsNetId.equals(amsHeader.targetAmsNetId)) {</span>
 <span class="nc" id="L170">            return false;</span>
-<span class="pc bpc" id="L171" title="1 of 2 branches missed.">        if (!sourceAmsNetId.equals(amsHeader.sourceAmsNetId))</span>
-<span class="nc" id="L172">            return false;</span>
-<span class="pc bpc" id="L173" title="1 of 2 branches missed.">        if (!sourceAmsPort.equals(amsHeader.sourceAmsPort))</span>
-<span class="nc" id="L174">            return false;</span>
-<span class="pc bpc" id="L175" title="1 of 2 branches missed.">        if (commandId != amsHeader.commandId)</span>
+        }
+<span class="pc bpc" id="L172" title="1 of 2 branches missed.">        if (!targetAmsPort.equals(amsHeader.targetAmsPort)) {</span>
+<span class="nc" id="L173">            return false;</span>
+        }
+<span class="pc bpc" id="L175" title="1 of 2 branches missed.">        if (!sourceAmsNetId.equals(amsHeader.sourceAmsNetId)) {</span>
 <span class="nc" id="L176">            return false;</span>
-<span class="pc bpc" id="L177" title="1 of 2 branches missed.">        if (!stateFlags.equals(amsHeader.stateFlags))</span>
-<span class="nc" id="L178">            return false;</span>
-<span class="pc bpc" id="L179" title="1 of 2 branches missed.">        if (!code.equals(amsHeader.code))</span>
-<span class="nc" id="L180">            return false;</span>
-<span class="pc bpc" id="L181" title="1 of 2 branches missed.">        if (!invokeId.equals(amsHeader.invokeId))</span>
+        }
+<span class="pc bpc" id="L178" title="1 of 2 branches missed.">        if (!sourceAmsPort.equals(amsHeader.sourceAmsPort)) {</span>
+<span class="nc" id="L179">            return false;</span>
+        }
+<span class="pc bpc" id="L181" title="1 of 2 branches missed.">        if (commandId != amsHeader.commandId) {</span>
 <span class="nc" id="L182">            return false;</span>
-        
-<span class="fc" id="L184">        return getDataLength().equals(((AmsHeader) o).getDataLength());</span>
+        }
+<span class="pc bpc" id="L184" title="1 of 2 branches missed.">        if (!stateFlags.equals(amsHeader.stateFlags)) {</span>
+<span class="nc" id="L185">            return false;</span>
+        }
+<span class="pc bpc" id="L187" title="1 of 2 branches missed.">        if (!code.equals(amsHeader.code)) {</span>
+<span class="nc" id="L188">            return false;</span>
+        }
+<span class="pc bpc" id="L190" title="1 of 2 branches missed.">        if (!invokeId.equals(amsHeader.invokeId)) {</span>
+<span class="nc" id="L191">            return false;</span>
+        }
+
+<span class="fc" id="L194">        return getDataLength().equals(((AmsHeader) o).getDataLength());</span>
     }
 
     @Override
     public int hashCode() {
-<span class="nc" id="L189">        int result = targetAmsNetId.hashCode();</span>
-<span class="nc" id="L190">        result = 31 * result + targetAmsPort.hashCode();</span>
-<span class="nc" id="L191">        result = 31 * result + sourceAmsNetId.hashCode();</span>
-<span class="nc" id="L192">        result = 31 * result + sourceAmsPort.hashCode();</span>
-<span class="nc" id="L193">        result = 31 * result + commandId.hashCode();</span>
-<span class="nc" id="L194">        result = 31 * result + stateFlags.hashCode();</span>
-<span class="nc" id="L195">        result = 31 * result + code.hashCode();</span>
-<span class="nc" id="L196">        result = 31 * result + invokeId.hashCode();</span>
-<span class="nc" id="L197">        result = 31 * result + getDataLength().hashCode();</span>
-<span class="nc" id="L198">        return result;</span>
+<span class="nc" id="L199">        int result = targetAmsNetId.hashCode();</span>
+<span class="nc" id="L200">        result = 31 * result + targetAmsPort.hashCode();</span>
+<span class="nc" id="L201">        result = 31 * result + sourceAmsNetId.hashCode();</span>
+<span class="nc" id="L202">        result = 31 * result + sourceAmsPort.hashCode();</span>
+<span class="nc" id="L203">        result = 31 * result + commandId.hashCode();</span>
+<span class="nc" id="L204">        result = 31 * result + stateFlags.hashCode();</span>
+<span class="nc" id="L205">        result = 31 * result + code.hashCode();</span>
+<span class="nc" id="L206">        result = 31 * result + invokeId.hashCode();</span>
+<span class="nc" id="L207">        result = 31 * result + getDataLength().hashCode();</span>
+<span class="nc" id="L208">        return result;</span>
     }
 
     @Override
     public String toString() {
-<span class="fc" id="L203">        return &quot;AmsHeader{&quot; +</span>
+<span class="fc" id="L213">        return &quot;AmsHeader{&quot; +</span>
             &quot;targetAmsNetId=&quot; + targetAmsNetId +
             &quot;, targetAmsPort=&quot; + targetAmsPort +
             &quot;, sourceAmsNetId=&quot; + sourceAmsNetId +
             &quot;, sourceAmsPort=&quot; + sourceAmsPort +
             &quot;, commandId=&quot; + commandId +
             &quot;, stateFlags=&quot; + stateFlags +
-<span class="fc" id="L210">            &quot;, dataLength=&quot; + getDataLength() +</span>
+<span class="fc" id="L220">            &quot;, dataLength=&quot; + getDataLength() +</span>
             &quot;, code=&quot; + code +
             &quot;, invokeId=&quot; + invokeId +
             '}';
