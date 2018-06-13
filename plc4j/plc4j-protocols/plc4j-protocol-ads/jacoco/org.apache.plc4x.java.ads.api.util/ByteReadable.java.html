@@ -24,30 +24,31 @@ import org.apache.commons.io.HexDump;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Arrays;
 
-public interface ByteReadable extends ByteBufSupplier, LengthSupplier {
+public interface ByteReadable extends ByteBufSupplier, LengthSupplier, Serializable {
 
     default byte[] getBytes() {
-<span class="fc" id="L32">        ByteBuf byteBuf = getByteBuf();</span>
-<span class="fc" id="L33">        byte[] result = new byte[byteBuf.writerIndex()];</span>
-<span class="fc" id="L34">        byteBuf.readBytes(result);</span>
-<span class="fc" id="L35">        return result;</span>
+<span class="fc" id="L33">        ByteBuf byteBuf = getByteBuf();</span>
+<span class="fc" id="L34">        byte[] result = new byte[byteBuf.writerIndex()];</span>
+<span class="fc" id="L35">        byteBuf.readBytes(result);</span>
+<span class="fc" id="L36">        return result;</span>
     }
 
     @Override
     default long getCalculatedLength() {
-<span class="fc" id="L40">        return getByteBuf().readableBytes();</span>
+<span class="fc" id="L41">        return getByteBuf().readableBytes();</span>
     }
 
     default ByteBuf buildByteBuff(ByteReadable... byteReadables) {
-<span class="fc" id="L44">        return Unpooled.wrappedBuffer(Arrays.stream(byteReadables).map(ByteReadable::getByteBuf).toArray(ByteBuf[]::new));</span>
+<span class="fc" id="L45">        return Unpooled.wrappedBuffer(Arrays.stream(byteReadables).map(ByteReadable::getByteBuf).toArray(ByteBuf[]::new));</span>
     }
 
     default String dump() throws IOException {
-<span class="fc" id="L48">        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {</span>
-<span class="fc" id="L49">            HexDump.dump(getBytes(), 0, byteArrayOutputStream, 0);</span>
-<span class="fc" id="L50">            return toString() + HexDump.EOL + byteArrayOutputStream.toString();</span>
+<span class="fc" id="L49">        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {</span>
+<span class="fc" id="L50">            HexDump.dump(getBytes(), 0, byteArrayOutputStream, 0);</span>
+<span class="fc" id="L51">            return toString() + HexDump.EOL + byteArrayOutputStream.toString();</span>
         }
     }
 }
