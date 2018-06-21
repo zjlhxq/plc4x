@@ -43,29 +43,37 @@
 <a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../org/apache/plc4x/java/ads/ManualPlc4XAdsTest.html">ManualPlc4XAdsTest</a> {
 <a class="jxr_linenumber" name="L36" href="#L36">36</a>  
 <a class="jxr_linenumber" name="L37" href="#L37">37</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> main(String... args) <strong class="jxr_keyword">throws</strong> Exception {
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>          <strong class="jxr_keyword">try</strong> (PlcConnection plcConnection = <strong class="jxr_keyword">new</strong> PlcDriverManager().getConnection(<span class="jxr_string">"ads:tcp://10.10.64.40/10.10.64.40.1.1:851/10.10.56.23.1.1:30000"</span>)) {
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>              System.out.println(<span class="jxr_string">"PlcConnection "</span> + plcConnection);
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>  
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>              PlcReader reader = plcConnection.getReader().orElseThrow(() -&gt; <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"No Reader found"</span>));
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>  
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>              Address address = plcConnection.parseAddress(<span class="jxr_string">"Allgemein_S2.Station"</span>);
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>              CompletableFuture&lt;TypeSafePlcReadResponse&lt;Integer&gt;&gt; response = reader
-<a class="jxr_linenumber" name="L45" href="#L45">45</a>                  .read(<strong class="jxr_keyword">new</strong> TypeSafePlcReadRequest&lt;&gt;(Integer.<strong class="jxr_keyword">class</strong>, address));
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>              TypeSafePlcReadResponse&lt;Integer&gt; readResponse = response.get();
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>              System.out.println(<span class="jxr_string">"Response "</span> + readResponse);
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>              ReadResponseItem&lt;Integer&gt; responseItem = readResponse.getResponseItem().orElseThrow(() -&gt; <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"No Item found"</span>));
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>              System.out.println(<span class="jxr_string">"ResponseItem "</span> + responseItem);
-<a class="jxr_linenumber" name="L50" href="#L50">50</a>              responseItem.getValues().stream().map(integer -&gt; <span class="jxr_string">"Value: "</span> + integer).forEach(System.out::println);
-<a class="jxr_linenumber" name="L51" href="#L51">51</a>  
-<a class="jxr_linenumber" name="L52" href="#L52">52</a>              Consumer&lt;PlcNotification&lt;Integer&gt;&gt; notificationConsumer = plcNotification -&gt; System.out.println(<span class="jxr_string">"Received notification "</span> + plcNotification);
-<a class="jxr_linenumber" name="L53" href="#L53">53</a>              PlcSubscriber plcSubscriber = plcConnection.getSubscriber().orElseThrow(() -&gt; <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"Subscribe not available"</span>));
-<a class="jxr_linenumber" name="L54" href="#L54">54</a>              plcSubscriber.subscribe(notificationConsumer, address, Integer.<strong class="jxr_keyword">class</strong>);
-<a class="jxr_linenumber" name="L55" href="#L55">55</a>              TimeUnit.SECONDS.sleep(5);
-<a class="jxr_linenumber" name="L56" href="#L56">56</a>              plcSubscriber.unsubscribe(notificationConsumer, address);
-<a class="jxr_linenumber" name="L57" href="#L57">57</a>          }
-<a class="jxr_linenumber" name="L58" href="#L58">58</a>          System.exit(0);
-<a class="jxr_linenumber" name="L59" href="#L59">59</a>      }
-<a class="jxr_linenumber" name="L60" href="#L60">60</a>  }
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>          String connectionUrl;
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>          <strong class="jxr_keyword">if</strong> (args.length &gt; 0 &amp;&amp; <span class="jxr_string">"serial"</span>.equalsIgnoreCase(args[0])) {
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>              System.out.println(<span class="jxr_string">"Using serial"</span>);
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>              connectionUrl = <span class="jxr_string">"ads:serial:///dev/ttys003/10.10.64.40.1.1:851/10.10.56.23.1.1:30000"</span>;
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>          } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>              System.out.println(<span class="jxr_string">"Using tcp"</span>);
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>              connectionUrl = <span class="jxr_string">"ads:tcp://10.10.64.40/10.10.64.40.1.1:851/10.10.56.23.1.1:30000"</span>;
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>          }
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>          <strong class="jxr_keyword">try</strong> (PlcConnection plcConnection = <strong class="jxr_keyword">new</strong> PlcDriverManager().getConnection(connectionUrl)) {
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>              System.out.println(<span class="jxr_string">"PlcConnection "</span> + plcConnection);
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>              PlcReader reader = plcConnection.getReader().orElseThrow(() -&gt; <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"No Reader found"</span>));
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>  
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>              Address address = plcConnection.parseAddress(<span class="jxr_string">"Allgemein_S2.Station"</span>);
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>              CompletableFuture&lt;TypeSafePlcReadResponse&lt;Integer&gt;&gt; response = reader
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>                  .read(<strong class="jxr_keyword">new</strong> TypeSafePlcReadRequest&lt;&gt;(Integer.<strong class="jxr_keyword">class</strong>, address));
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>              TypeSafePlcReadResponse&lt;Integer&gt; readResponse = response.get();
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>              System.out.println(<span class="jxr_string">"Response "</span> + readResponse);
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>              ReadResponseItem&lt;Integer&gt; responseItem = readResponse.getResponseItem().orElseThrow(() -&gt; <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"No Item found"</span>));
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>              System.out.println(<span class="jxr_string">"ResponseItem "</span> + responseItem);
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>              responseItem.getValues().stream().map(integer -&gt; <span class="jxr_string">"Value: "</span> + integer).forEach(System.out::println);
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>  
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>              Consumer&lt;PlcNotification&lt;Integer&gt;&gt; notificationConsumer = plcNotification -&gt; System.out.println(<span class="jxr_string">"Received notification "</span> + plcNotification);
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>              PlcSubscriber plcSubscriber = plcConnection.getSubscriber().orElseThrow(() -&gt; <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"Subscribe not available"</span>));
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>              plcSubscriber.subscribe(notificationConsumer, address, Integer.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>              TimeUnit.SECONDS.sleep(5);
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>              plcSubscriber.unsubscribe(notificationConsumer, address);
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>          }
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>          System.exit(0);
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>      }
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>  }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2017&#x2013;2018 <a href="https://www.apache.org/">The Apache Software Foundation</a>. All rights reserved.</div>
