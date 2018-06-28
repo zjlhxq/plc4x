@@ -53,7 +53,7 @@ public class Plc4XModbusProtocol extends MessageToMessageCodec&lt;ModbusTcpPaylo
     @Override
     protected void encode(ChannelHandlerContext ctx, PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; msg, List&lt;Object&gt; out) throws Exception {
 <span class="nc" id="L55">        LOGGER.trace(&quot;(&lt;--OUT): {}, {}, {}&quot;, ctx, msg, out);</span>
-        // Reset tranactionId on overflow
+        // Reset transactionId on overflow
 <span class="nc" id="L57">        transactionId.compareAndSet(Short.MAX_VALUE + 1, 0);</span>
 <span class="nc" id="L58">        PlcRequest request = msg.getRequest();</span>
 <span class="nc bnc" id="L59" title="All 2 branches missed.">        if (request instanceof PlcReadRequest) {</span>
@@ -137,85 +137,86 @@ public class Plc4XModbusProtocol extends MessageToMessageCodec&lt;ModbusTcpPaylo
     @Override
     protected void decode(ChannelHandlerContext ctx, ModbusTcpPayload msg, List&lt;Object&gt; out) throws Exception {
 <span class="nc" id="L139">        LOGGER.trace(&quot;(--&gt;IN): {}, {}, {}&quot;, ctx, msg, out);</span>
+<span class="nc" id="L140">        LOGGER.debug(&quot;{}: transactionId: {}, unitId: {}, modbusPdu:{}&quot;, msg, msg.getTransactionId(), msg.getUnitId(), msg.getModbusPdu());</span>
         // TODO: implement me
-<span class="nc" id="L141">        short transactionId = msg.getTransactionId();</span>
-<span class="nc" id="L142">        PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; plcRequestContainer = requestsMap.get(transactionId);</span>
-<span class="nc bnc" id="L143" title="All 2 branches missed.">        if (plcRequestContainer == null) {</span>
-<span class="nc" id="L144">            throw new PlcProtocolException(&quot;Unrelated payload received&quot; + msg);</span>
+<span class="nc" id="L142">        short transactionId = msg.getTransactionId();</span>
+<span class="nc" id="L143">        PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; plcRequestContainer = requestsMap.get(transactionId);</span>
+<span class="nc bnc" id="L144" title="All 2 branches missed.">        if (plcRequestContainer == null) {</span>
+<span class="nc" id="L145">            throw new PlcProtocolException(&quot;Unrelated payload received&quot; + msg);</span>
         }
 
         // TODO: only single Item supported for now
-<span class="nc" id="L148">        PlcRequest request = plcRequestContainer.getRequest();</span>
-<span class="nc" id="L149">        RequestItem requestItem = (RequestItem) request.getRequestItem().get();</span>
+<span class="nc" id="L149">        PlcRequest request = plcRequestContainer.getRequest();</span>
+<span class="nc" id="L150">        RequestItem requestItem = (RequestItem) request.getRequestItem().get();</span>
 
-<span class="nc" id="L151">        ModbusPdu modbusPdu = msg.getModbusPdu();</span>
-<span class="nc" id="L152">        short unitId = msg.getUnitId();</span>
+<span class="nc" id="L152">        ModbusPdu modbusPdu = msg.getModbusPdu();</span>
+<span class="nc" id="L153">        short unitId = msg.getUnitId();</span>
 
-<span class="nc bnc" id="L154" title="All 2 branches missed.">        if (modbusPdu instanceof WriteMultipleCoilsResponse) {</span>
+<span class="nc bnc" id="L155" title="All 2 branches missed.">        if (modbusPdu instanceof WriteMultipleCoilsResponse) {</span>
             // TODO: finish implementation
-<span class="nc" id="L156">            WriteMultipleCoilsResponse writeMultipleCoilsResponse = (WriteMultipleCoilsResponse) modbusPdu;</span>
-<span class="nc" id="L157">            LOGGER.debug(&quot;{}: address:{}, quantity:{}&quot;, writeMultipleCoilsResponse, writeMultipleCoilsResponse.getAddress(), writeMultipleCoilsResponse.getQuantity());</span>
-<span class="nc" id="L158">            plcRequestContainer.getResponseFuture().complete(new PlcWriteResponse((PlcWriteRequest) request, new WriteResponseItem&lt;&gt;((WriteRequestItem&lt;? extends Object&gt;) requestItem, ResponseCode.OK)));</span>
-<span class="nc bnc" id="L159" title="All 2 branches missed.">        } else if (modbusPdu instanceof WriteMultipleRegistersResponse) {</span>
+<span class="nc" id="L157">            WriteMultipleCoilsResponse writeMultipleCoilsResponse = (WriteMultipleCoilsResponse) modbusPdu;</span>
+<span class="nc" id="L158">            LOGGER.debug(&quot;{}: address:{}, quantity:{}&quot;, writeMultipleCoilsResponse, writeMultipleCoilsResponse.getAddress(), writeMultipleCoilsResponse.getQuantity());</span>
+<span class="nc" id="L159">            plcRequestContainer.getResponseFuture().complete(new PlcWriteResponse((PlcWriteRequest) request, new WriteResponseItem&lt;&gt;((WriteRequestItem&lt;? extends Object&gt;) requestItem, ResponseCode.OK)));</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">        } else if (modbusPdu instanceof WriteMultipleRegistersResponse) {</span>
             // TODO: finish implementation
-<span class="nc" id="L161">            WriteMultipleRegistersResponse writeMultipleRegistersResponse = (WriteMultipleRegistersResponse) modbusPdu;</span>
-<span class="nc" id="L162">            LOGGER.debug(&quot;{}: address:{}, quantity:{}&quot;, writeMultipleRegistersResponse, writeMultipleRegistersResponse.getAddress(), writeMultipleRegistersResponse.getQuantity());</span>
-<span class="nc" id="L163">            plcRequestContainer.getResponseFuture().complete(new PlcWriteResponse((PlcWriteRequest) request, new WriteResponseItem&lt;&gt;((WriteRequestItem&lt;? extends Object&gt;) requestItem, ResponseCode.OK)));</span>
-<span class="nc bnc" id="L164" title="All 2 branches missed.">        } else if (modbusPdu instanceof WriteSingleCoilResponse) {</span>
+<span class="nc" id="L162">            WriteMultipleRegistersResponse writeMultipleRegistersResponse = (WriteMultipleRegistersResponse) modbusPdu;</span>
+<span class="nc" id="L163">            LOGGER.debug(&quot;{}: address:{}, quantity:{}&quot;, writeMultipleRegistersResponse, writeMultipleRegistersResponse.getAddress(), writeMultipleRegistersResponse.getQuantity());</span>
+<span class="nc" id="L164">            plcRequestContainer.getResponseFuture().complete(new PlcWriteResponse((PlcWriteRequest) request, new WriteResponseItem&lt;&gt;((WriteRequestItem&lt;? extends Object&gt;) requestItem, ResponseCode.OK)));</span>
+<span class="nc bnc" id="L165" title="All 2 branches missed.">        } else if (modbusPdu instanceof WriteSingleCoilResponse) {</span>
             // TODO: finish implementation
-<span class="nc" id="L166">            WriteSingleCoilResponse writeSingleCoilResponse = (WriteSingleCoilResponse) modbusPdu;</span>
-<span class="nc" id="L167">            LOGGER.debug(&quot;{}: address:{}, value:{}&quot;, writeSingleCoilResponse, writeSingleCoilResponse.getAddress(), writeSingleCoilResponse.getValue());</span>
-<span class="nc" id="L168">            plcRequestContainer.getResponseFuture().complete(new PlcWriteResponse((PlcWriteRequest) request, new WriteResponseItem&lt;&gt;((WriteRequestItem&lt;? extends Object&gt;) requestItem, ResponseCode.OK)));</span>
-<span class="nc bnc" id="L169" title="All 2 branches missed.">        } else if (modbusPdu instanceof WriteSingleRegisterResponse) {</span>
+<span class="nc" id="L167">            WriteSingleCoilResponse writeSingleCoilResponse = (WriteSingleCoilResponse) modbusPdu;</span>
+<span class="nc" id="L168">            LOGGER.debug(&quot;{}: address:{}, value:{}&quot;, writeSingleCoilResponse, writeSingleCoilResponse.getAddress(), writeSingleCoilResponse.getValue());</span>
+<span class="nc" id="L169">            plcRequestContainer.getResponseFuture().complete(new PlcWriteResponse((PlcWriteRequest) request, new WriteResponseItem&lt;&gt;((WriteRequestItem&lt;? extends Object&gt;) requestItem, ResponseCode.OK)));</span>
+<span class="nc bnc" id="L170" title="All 2 branches missed.">        } else if (modbusPdu instanceof WriteSingleRegisterResponse) {</span>
             // TODO: finish implementation
-<span class="nc" id="L171">            WriteSingleRegisterResponse writeSingleRegisterResponse = (WriteSingleRegisterResponse) modbusPdu;</span>
-<span class="nc" id="L172">            LOGGER.debug(&quot;{}: address:{}, value:{}&quot;, writeSingleRegisterResponse, writeSingleRegisterResponse.getAddress(), writeSingleRegisterResponse.getValue());</span>
-<span class="nc" id="L173">            plcRequestContainer.getResponseFuture().complete(new PlcWriteResponse((PlcWriteRequest) request, new WriteResponseItem&lt;&gt;((WriteRequestItem&lt;? extends Object&gt;) requestItem, ResponseCode.OK)));</span>
-<span class="nc bnc" id="L174" title="All 2 branches missed.">        } else if (modbusPdu instanceof ReadCoilsResponse) {</span>
+<span class="nc" id="L172">            WriteSingleRegisterResponse writeSingleRegisterResponse = (WriteSingleRegisterResponse) modbusPdu;</span>
+<span class="nc" id="L173">            LOGGER.debug(&quot;{}: address:{}, value:{}&quot;, writeSingleRegisterResponse, writeSingleRegisterResponse.getAddress(), writeSingleRegisterResponse.getValue());</span>
+<span class="nc" id="L174">            plcRequestContainer.getResponseFuture().complete(new PlcWriteResponse((PlcWriteRequest) request, new WriteResponseItem&lt;&gt;((WriteRequestItem&lt;? extends Object&gt;) requestItem, ResponseCode.OK)));</span>
+<span class="nc bnc" id="L175" title="All 2 branches missed.">        } else if (modbusPdu instanceof ReadCoilsResponse) {</span>
             // TODO: finish implementation
-<span class="nc" id="L176">            ReadCoilsResponse readCoilsResponse = (ReadCoilsResponse) modbusPdu;</span>
-<span class="nc" id="L177">            LOGGER.debug(&quot;{}: Nothing&quot;, readCoilsResponse);</span>
-<span class="nc" id="L178">            ByteBuf byteBuf = readCoilsResponse.getCoilStatus();</span>
-<span class="nc" id="L179">            byte[] bytes = new byte[byteBuf.readableBytes()];</span>
-<span class="nc" id="L180">            byteBuf.readBytes(bytes);</span>
-<span class="nc" id="L181">            plcRequestContainer.getResponseFuture().complete(new PlcReadResponse((PlcReadRequest) request, new ReadResponseItem((ReadRequestItem&lt;? extends Object&gt;) requestItem, ResponseCode.OK, (Object) bytes)));</span>
-<span class="nc bnc" id="L182" title="All 2 branches missed.">        } else if (modbusPdu instanceof ReadDiscreteInputsResponse) {</span>
+<span class="nc" id="L177">            ReadCoilsResponse readCoilsResponse = (ReadCoilsResponse) modbusPdu;</span>
+<span class="nc" id="L178">            LOGGER.debug(&quot;{}: Nothing&quot;, readCoilsResponse);</span>
+<span class="nc" id="L179">            ByteBuf byteBuf = readCoilsResponse.getCoilStatus();</span>
+<span class="nc" id="L180">            byte[] bytes = new byte[byteBuf.readableBytes()];</span>
+<span class="nc" id="L181">            byteBuf.readBytes(bytes);</span>
+<span class="nc" id="L182">            plcRequestContainer.getResponseFuture().complete(new PlcReadResponse((PlcReadRequest) request, new ReadResponseItem((ReadRequestItem&lt;? extends Object&gt;) requestItem, ResponseCode.OK, (Object) bytes)));</span>
+<span class="nc bnc" id="L183" title="All 2 branches missed.">        } else if (modbusPdu instanceof ReadDiscreteInputsResponse) {</span>
             // TODO: finish implementation
-<span class="nc" id="L184">            ReadDiscreteInputsResponse readDiscreteInputsResponse = (ReadDiscreteInputsResponse) modbusPdu;</span>
-<span class="nc" id="L185">            LOGGER.debug(&quot;{}: Nothing&quot;, readDiscreteInputsResponse);</span>
-<span class="nc" id="L186">            ByteBuf byteBuf = readDiscreteInputsResponse.getInputStatus();</span>
-<span class="nc" id="L187">            byte[] bytes = new byte[byteBuf.readableBytes()];</span>
-<span class="nc" id="L188">            byteBuf.readBytes(bytes);</span>
-<span class="nc" id="L189">            plcRequestContainer.getResponseFuture().complete(new PlcReadResponse((PlcReadRequest) request, new ReadResponseItem((ReadRequestItem&lt;? extends Object&gt;) requestItem, ResponseCode.OK, (Object) bytes)));</span>
-<span class="nc bnc" id="L190" title="All 2 branches missed.">        } else if (modbusPdu instanceof ReadHoldingRegistersResponse) {</span>
+<span class="nc" id="L185">            ReadDiscreteInputsResponse readDiscreteInputsResponse = (ReadDiscreteInputsResponse) modbusPdu;</span>
+<span class="nc" id="L186">            LOGGER.debug(&quot;{}: Nothing&quot;, readDiscreteInputsResponse);</span>
+<span class="nc" id="L187">            ByteBuf byteBuf = readDiscreteInputsResponse.getInputStatus();</span>
+<span class="nc" id="L188">            byte[] bytes = new byte[byteBuf.readableBytes()];</span>
+<span class="nc" id="L189">            byteBuf.readBytes(bytes);</span>
+<span class="nc" id="L190">            plcRequestContainer.getResponseFuture().complete(new PlcReadResponse((PlcReadRequest) request, new ReadResponseItem((ReadRequestItem&lt;? extends Object&gt;) requestItem, ResponseCode.OK, (Object) bytes)));</span>
+<span class="nc bnc" id="L191" title="All 2 branches missed.">        } else if (modbusPdu instanceof ReadHoldingRegistersResponse) {</span>
             // TODO: finish implementation
-<span class="nc" id="L192">            ReadHoldingRegistersResponse readHoldingRegistersResponse = (ReadHoldingRegistersResponse) modbusPdu;</span>
-<span class="nc" id="L193">            LOGGER.debug(&quot;{}: Nothing&quot;, readHoldingRegistersResponse);</span>
-<span class="nc" id="L194">            ByteBuf byteBuf = readHoldingRegistersResponse.getRegisters();</span>
-<span class="nc" id="L195">            byte[] bytes = new byte[byteBuf.readableBytes()];</span>
-<span class="nc" id="L196">            byteBuf.readBytes(bytes);</span>
-<span class="nc" id="L197">            plcRequestContainer.getResponseFuture().complete(new PlcReadResponse((PlcReadRequest) request, new ReadResponseItem((ReadRequestItem&lt;? extends Object&gt;) requestItem, ResponseCode.OK, (Object) bytes)));</span>
-<span class="nc bnc" id="L198" title="All 2 branches missed.">        } else if (modbusPdu instanceof ReadInputRegistersResponse) {</span>
+<span class="nc" id="L193">            ReadHoldingRegistersResponse readHoldingRegistersResponse = (ReadHoldingRegistersResponse) modbusPdu;</span>
+<span class="nc" id="L194">            LOGGER.debug(&quot;{}: Nothing&quot;, readHoldingRegistersResponse);</span>
+<span class="nc" id="L195">            ByteBuf byteBuf = readHoldingRegistersResponse.getRegisters();</span>
+<span class="nc" id="L196">            byte[] bytes = new byte[byteBuf.readableBytes()];</span>
+<span class="nc" id="L197">            byteBuf.readBytes(bytes);</span>
+<span class="nc" id="L198">            plcRequestContainer.getResponseFuture().complete(new PlcReadResponse((PlcReadRequest) request, new ReadResponseItem((ReadRequestItem&lt;? extends Object&gt;) requestItem, ResponseCode.OK, (Object) bytes)));</span>
+<span class="nc bnc" id="L199" title="All 2 branches missed.">        } else if (modbusPdu instanceof ReadInputRegistersResponse) {</span>
             // TODO: finish implementation
-<span class="nc" id="L200">            ReadInputRegistersResponse readInputRegistersResponse = (ReadInputRegistersResponse) modbusPdu;</span>
-<span class="nc" id="L201">            LOGGER.debug(&quot;{}: Nothing&quot;, readInputRegistersResponse);</span>
-<span class="nc" id="L202">            ByteBuf byteBuf = readInputRegistersResponse.getRegisters();</span>
-<span class="nc" id="L203">            byte[] bytes = new byte[byteBuf.readableBytes()];</span>
-<span class="nc" id="L204">            byteBuf.readBytes(bytes);</span>
-<span class="nc" id="L205">            plcRequestContainer.getResponseFuture().complete(new PlcReadResponse((PlcReadRequest) request, new ReadResponseItem((ReadRequestItem&lt;? extends Object&gt;) requestItem, ResponseCode.OK, (Object) bytes)));</span>
-<span class="nc bnc" id="L206" title="All 2 branches missed.">        } else if (modbusPdu instanceof ExceptionResponse) {</span>
-<span class="nc" id="L207">            ExceptionResponse exceptionResponse = (ExceptionResponse) modbusPdu;</span>
-<span class="nc" id="L208">            throw new PlcProtocolException(&quot;Error received &quot; + exceptionResponse.getExceptionCode());</span>
+<span class="nc" id="L201">            ReadInputRegistersResponse readInputRegistersResponse = (ReadInputRegistersResponse) modbusPdu;</span>
+<span class="nc" id="L202">            LOGGER.debug(&quot;{}: Nothing&quot;, readInputRegistersResponse);</span>
+<span class="nc" id="L203">            ByteBuf byteBuf = readInputRegistersResponse.getRegisters();</span>
+<span class="nc" id="L204">            byte[] bytes = new byte[byteBuf.readableBytes()];</span>
+<span class="nc" id="L205">            byteBuf.readBytes(bytes);</span>
+<span class="nc" id="L206">            plcRequestContainer.getResponseFuture().complete(new PlcReadResponse((PlcReadRequest) request, new ReadResponseItem((ReadRequestItem&lt;? extends Object&gt;) requestItem, ResponseCode.OK, (Object) bytes)));</span>
+<span class="nc bnc" id="L207" title="All 2 branches missed.">        } else if (modbusPdu instanceof ExceptionResponse) {</span>
+<span class="nc" id="L208">            ExceptionResponse exceptionResponse = (ExceptionResponse) modbusPdu;</span>
+<span class="nc" id="L209">            throw new PlcProtocolException(&quot;Error received &quot; + exceptionResponse.getExceptionCode());</span>
         } else {
-<span class="nc" id="L210">            throw new PlcProtocolException(&quot;Unsupported messageTyp type&quot; + modbusPdu.getClass());</span>
+<span class="nc" id="L211">            throw new PlcProtocolException(&quot;Unsupported messageTyp type&quot; + modbusPdu.getClass());</span>
         }
-<span class="nc" id="L212">    }</span>
+<span class="nc" id="L213">    }</span>
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-<span class="nc" id="L216">        LOGGER.trace(&quot;(--&gt;ERR): {}&quot;, ctx, cause);</span>
-<span class="nc" id="L217">        super.exceptionCaught(ctx, cause);</span>
-<span class="nc" id="L218">    }</span>
+<span class="nc" id="L217">        LOGGER.trace(&quot;(--&gt;ERR): {}&quot;, ctx, cause);</span>
+<span class="nc" id="L218">        super.exceptionCaught(ctx, cause);</span>
+<span class="nc" id="L219">    }</span>
 
     ////////////////////////////////////////////////////////////////////////////////
     // Encoding helpers.
