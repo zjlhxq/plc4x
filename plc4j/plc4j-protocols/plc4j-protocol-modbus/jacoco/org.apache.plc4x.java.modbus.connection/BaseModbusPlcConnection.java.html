@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BaseModbusPlcConnection.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PLC4J: Protocol: Modbus</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.java.modbus.connection</a> &gt; <span class="el_source">BaseModbusPlcConnection.java</span></div><h1>BaseModbusPlcConnection.java</h1><pre class="source lang-java linenums">/*
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+&quot;License&quot;); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+&quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+*/
+package org.apache.plc4x.java.modbus.connection;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.plc4x.java.api.connection.PlcReader;
+import org.apache.plc4x.java.api.connection.PlcWriter;
+import org.apache.plc4x.java.api.messages.*;
+import org.apache.plc4x.java.api.model.Address;
+import org.apache.plc4x.java.base.connection.AbstractPlcConnection;
+import org.apache.plc4x.java.base.connection.ChannelFactory;
+import org.apache.plc4x.java.modbus.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.CompletableFuture;
+
+public abstract class BaseModbusPlcConnection extends AbstractPlcConnection implements PlcReader, PlcWriter {
+
+<span class="nc" id="L36">    private static final Logger logger = LoggerFactory.getLogger(BaseModbusPlcConnection.class);</span>
+
+    protected BaseModbusPlcConnection(ChannelFactory channelFactory, String params) {
+<span class="nc" id="L39">        super(channelFactory );</span>
+
+<span class="nc bnc" id="L41" title="All 2 branches missed.">        if (!StringUtils.isEmpty(params)) {</span>
+<span class="nc bnc" id="L42" title="All 2 branches missed.">            for (String param : params.split(&quot;&amp;&quot;)) {</span>
+<span class="nc" id="L43">                String[] paramElements = param.split(&quot;=&quot;);</span>
+<span class="nc" id="L44">                String paramName = paramElements[0];</span>
+<span class="nc bnc" id="L45" title="All 2 branches missed.">                if (paramElements.length == 2) {</span>
+<span class="nc" id="L46">                    String paramValue = paramElements[1];</span>
+<span class="nc" id="L47">                    switch (paramName) {</span>
+                        default:
+<span class="nc" id="L49">                            logger.debug(&quot;Unknown parameter {} with value {}&quot;, paramName, paramValue);</span>
+                    }
+<span class="nc" id="L51">                } else {</span>
+<span class="nc" id="L52">                    logger.debug(&quot;Unknown no-value parameter {}&quot;, paramName);</span>
+                }
+            }
+        }
+<span class="nc" id="L56">    }</span>
+
+    @Override
+    public Address parseAddress(String addressString) {
+<span class="nc bnc" id="L60" title="All 2 branches missed.">        if (MaskWriteRegisterModbusAddress.ADDRESS_PATTERN.matcher(addressString).matches()) {</span>
+<span class="nc" id="L61">            return MaskWriteRegisterModbusAddress.of(addressString);</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">        } else if (ReadCoilsModbusAddress.ADDRESS_PATTERN.matcher(addressString).matches()) {</span>
+<span class="nc" id="L63">            return ReadCoilsModbusAddress.of(addressString);</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">        } else if (ReadDiscreteInputsModbusAddress.ADDRESS_PATTERN.matcher(addressString).matches()) {</span>
+<span class="nc" id="L65">            return ReadDiscreteInputsModbusAddress.of(addressString);</span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">        } else if (ReadHoldingRegistersModbusAddress.ADDRESS_PATTERN.matcher(addressString).matches()) {</span>
+<span class="nc" id="L67">            return ReadHoldingRegistersModbusAddress.of(addressString);</span>
+<span class="nc bnc" id="L68" title="All 2 branches missed.">        } else if (ReadInputRegistersModbusAddress.ADDRESS_PATTERN.matcher(addressString).matches()) {</span>
+<span class="nc" id="L69">            return ReadInputRegistersModbusAddress.of(addressString);</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">        } else if (WriteMultipleCoilsModbusAddress.ADDRESS_PATTERN.matcher(addressString).matches()) {</span>
+<span class="nc" id="L71">            return WriteMultipleCoilsModbusAddress.of(addressString);</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">        } else if (WriteMultipleRegistersModbusAddress.ADDRESS_PATTERN.matcher(addressString).matches()) {</span>
+<span class="nc" id="L73">            return WriteMultipleRegistersModbusAddress.of(addressString);</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">        } else if (WriteSingleCoilModbusAddress.ADDRESS_PATTERN.matcher(addressString).matches()) {</span>
+<span class="nc" id="L75">            return WriteSingleCoilModbusAddress.of(addressString);</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">        } else if (WriteSingleRegisterModbusAddress.ADDRESS_PATTERN.matcher(addressString).matches()) {</span>
+<span class="nc" id="L77">            return WriteSingleRegisterModbusAddress.of(addressString);</span>
+        }
+<span class="nc" id="L79">        return null;</span>
+    }
+
+    @Override
+    public CompletableFuture&lt;PlcReadResponse&gt; read(PlcReadRequest readRequest) {
+<span class="nc" id="L84">        CompletableFuture&lt;PlcReadResponse&gt; readFuture = new CompletableFuture&lt;&gt;();</span>
+<span class="nc" id="L85">        PlcRequestContainer&lt;PlcReadRequest, PlcReadResponse&gt; container =</span>
+            new PlcRequestContainer&lt;&gt;(readRequest, readFuture);
+<span class="nc" id="L87">        channel.writeAndFlush(container);</span>
+<span class="nc" id="L88">        return readFuture;</span>
+    }
+
+    @Override
+    public CompletableFuture&lt;PlcWriteResponse&gt; write(PlcWriteRequest writeRequest) {
+<span class="nc" id="L93">        CompletableFuture&lt;PlcWriteResponse&gt; writeFuture = new CompletableFuture&lt;&gt;();</span>
+<span class="nc" id="L94">        PlcRequestContainer&lt;PlcWriteRequest, PlcWriteResponse&gt; container =</span>
+            new PlcRequestContainer&lt;&gt;(writeRequest, writeFuture);
+<span class="nc" id="L96">        channel.writeAndFlush(container);</span>
+<span class="nc" id="L97">        return writeFuture;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

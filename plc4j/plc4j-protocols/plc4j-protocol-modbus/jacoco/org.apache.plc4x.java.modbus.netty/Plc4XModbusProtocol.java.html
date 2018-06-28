@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Plc4XModbusProtocol.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PLC4J: Protocol: Modbus</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.java.modbus.netty</a> &gt; <span class="el_source">Plc4XModbusProtocol.java</span></div><h1>Plc4XModbusProtocol.java</h1><pre class="source lang-java linenums">/*
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+&quot;License&quot;); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+&quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+*/
+package org.apache.plc4x.java.modbus.netty;
+
+import com.digitalpetri.modbus.ModbusPdu;
+import com.digitalpetri.modbus.codec.ModbusTcpPayload;
+import com.digitalpetri.modbus.requests.*;
+import com.digitalpetri.modbus.responses.*;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.MessageToMessageCodec;
+import org.apache.plc4x.java.api.exceptions.PlcException;
+import org.apache.plc4x.java.api.exceptions.PlcProtocolException;
+import org.apache.plc4x.java.api.messages.*;
+import org.apache.plc4x.java.api.messages.items.*;
+import org.apache.plc4x.java.api.types.ResponseCode;
+import org.apache.plc4x.java.modbus.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
+
+public class Plc4XModbusProtocol extends MessageToMessageCodec&lt;ModbusTcpPayload, PlcRequestContainer&lt;PlcRequest, PlcResponse&gt;&gt; {
+
+<span class="nc" id="L44">    private static final Logger LOGGER = LoggerFactory.getLogger(Plc4XModbusProtocol.class);</span>
+
+<span class="nc" id="L46">    public final AtomicInteger transactionId = new AtomicInteger();</span>
+
+<span class="nc" id="L48">    private final ConcurrentMap&lt;Short, PlcRequestContainer&lt;PlcRequest, PlcResponse&gt;&gt; requestsMap = new ConcurrentHashMap&lt;&gt;();</span>
+
+<span class="nc" id="L50">    public Plc4XModbusProtocol() {</span>
+<span class="nc" id="L51">    }</span>
+
+    @Override
+    protected void encode(ChannelHandlerContext ctx, PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; msg, List&lt;Object&gt; out) throws Exception {
+<span class="nc" id="L55">        LOGGER.trace(&quot;(&lt;--OUT): {}, {}, {}&quot;, ctx, msg, out);</span>
+        // Reset tranactionId on overflow
+<span class="nc" id="L57">        transactionId.compareAndSet(Short.MAX_VALUE + 1, 0);</span>
+<span class="nc" id="L58">        PlcRequest request = msg.getRequest();</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">        if (request instanceof PlcReadRequest) {</span>
+<span class="nc" id="L60">            encodeReadRequest(msg, out);</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">        } else if (request instanceof PlcWriteRequest) {</span>
+<span class="nc" id="L62">            encodeWriteRequest(msg, out);</span>
+        }
+<span class="nc" id="L64">    }</span>
+
+    private void encodeWriteRequest(PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; msg, List&lt;Object&gt; out) throws PlcException {
+<span class="nc" id="L67">        PlcWriteRequest request = (PlcWriteRequest) msg.getRequest();</span>
+        // TODO: support multiple requests
+<span class="nc" id="L69">        WriteRequestItem&lt;?&gt; writeRequestItem = request.getRequestItem().get();</span>
+<span class="nc" id="L70">        short unitId = 0;</span>
+
+<span class="nc" id="L72">        ModbusAddress address = (ModbusAddress) writeRequestItem.getAddress();</span>
+        ModbusPdu modbusRequest;
+<span class="nc bnc" id="L74" title="All 2 branches missed.">        if (address instanceof WriteMultipleCoilsModbusAddress) {</span>
+<span class="nc" id="L75">            WriteMultipleCoilsModbusAddress writeMultipleCoilsModbusAddress = (WriteMultipleCoilsModbusAddress) address;</span>
+            // TODO: support multivalue
+<span class="nc" id="L77">            byte[] bytesToWrite = (byte[]) writeRequestItem.getValues().get(0);</span>
+<span class="nc" id="L78">            modbusRequest = new WriteMultipleCoilsRequest(writeMultipleCoilsModbusAddress.getAddress(), writeMultipleCoilsModbusAddress.getQuantity(), bytesToWrite);</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">        } else if (address instanceof WriteMultipleRegistersModbusAddress) {</span>
+<span class="nc" id="L80">            WriteMultipleRegistersModbusAddress writeMultipleRegistersModbusAddress = (WriteMultipleRegistersModbusAddress) address;</span>
+            // TODO: support multivalue
+<span class="nc" id="L82">            byte[] bytesToWrite = (byte[]) writeRequestItem.getValues().get(0);</span>
+<span class="nc" id="L83">            modbusRequest = new WriteMultipleRegistersRequest(writeMultipleRegistersModbusAddress.getAddress(), writeMultipleRegistersModbusAddress.getQuantity(), bytesToWrite);</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">        } else if (address instanceof WriteSingleCoilModbusAddress) {</span>
+<span class="nc" id="L85">            WriteSingleCoilModbusAddress writeSingleCoilModbusAddress = (WriteSingleCoilModbusAddress) address;</span>
+            // TODO: support multivalue
+<span class="nc" id="L87">            boolean booleanToWrite = (Boolean) writeRequestItem.getValues().get(0);</span>
+<span class="nc" id="L88">            modbusRequest = new WriteSingleCoilRequest(writeSingleCoilModbusAddress.getAddress(), booleanToWrite);</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">        } else if (address instanceof WriteSingleRegisterModbusAddress) {</span>
+<span class="nc" id="L90">            WriteSingleRegisterModbusAddress writeSingleRegisterModbusAddress = (WriteSingleRegisterModbusAddress) address;</span>
+            // TODO: support multivalue
+<span class="nc" id="L92">            int intToWrite = (Integer) writeRequestItem.getValues().get(0);</span>
+<span class="nc" id="L93">            modbusRequest = new WriteSingleRegisterRequest(writeSingleRegisterModbusAddress.getAddress(), intToWrite);</span>
+<span class="nc" id="L94">        } else {</span>
+<span class="nc" id="L95">            throw new PlcProtocolException(&quot;Unsupported address type&quot; + address.getClass());</span>
+        }
+<span class="nc" id="L97">        short transactionId = (short) this.transactionId.getAndIncrement();</span>
+<span class="nc" id="L98">        requestsMap.put(transactionId, msg);</span>
+<span class="nc" id="L99">        out.add(new ModbusTcpPayload(transactionId, unitId, modbusRequest));</span>
+<span class="nc" id="L100">    }</span>
+
+    private void encodeReadRequest(PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; msg, List&lt;Object&gt; out) throws PlcException {
+<span class="nc" id="L103">        PlcReadRequest request = (PlcReadRequest) msg.getRequest();</span>
+        // TODO: support multiple requests
+<span class="nc" id="L105">        ReadRequestItem&lt;?&gt; readRequestItem = request.getRequestItem().get();</span>
+<span class="nc" id="L106">        short unitId = 0;</span>
+
+<span class="nc" id="L108">        ModbusAddress address = (ModbusAddress) readRequestItem.getAddress();</span>
+        ModbusPdu modbusRequest;
+<span class="nc bnc" id="L110" title="All 2 branches missed.">        if (address instanceof ReadCoilsModbusAddress) {</span>
+<span class="nc" id="L111">            ReadCoilsModbusAddress readCoilsModbusAddress = (ReadCoilsModbusAddress) address;</span>
+<span class="nc" id="L112">            modbusRequest = new ReadCoilsRequest(readCoilsModbusAddress.getAddress(), readCoilsModbusAddress.getQuantity());</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">        } else if (address instanceof ReadDiscreteInputsModbusAddress) {</span>
+<span class="nc" id="L114">            ReadDiscreteInputsModbusAddress readDiscreteInputsModbusAddress = (ReadDiscreteInputsModbusAddress) address;</span>
+<span class="nc" id="L115">            modbusRequest = new ReadDiscreteInputsRequest(readDiscreteInputsModbusAddress.getAddress(), readDiscreteInputsModbusAddress.getQuantity());</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">        } else if (address instanceof ReadHoldingRegistersModbusAddress) {</span>
+<span class="nc" id="L117">            ReadHoldingRegistersModbusAddress readHoldingRegistersModbusAddress = (ReadHoldingRegistersModbusAddress) address;</span>
+<span class="nc" id="L118">            modbusRequest = new ReadHoldingRegistersRequest(readHoldingRegistersModbusAddress.getAddress(), readHoldingRegistersModbusAddress.getQuantity());</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">        } else if (address instanceof ReadInputRegistersModbusAddress) {</span>
+<span class="nc" id="L120">            ReadInputRegistersModbusAddress readInputRegistersModbusAddress = (ReadInputRegistersModbusAddress) address;</span>
+<span class="nc" id="L121">            modbusRequest = new ReadInputRegistersRequest(readInputRegistersModbusAddress.getAddress(), readInputRegistersModbusAddress.getQuantity());</span>
+<span class="nc" id="L122">        } else {</span>
+<span class="nc" id="L123">            throw new PlcProtocolException(&quot;Unsupported address type&quot; + address.getClass());</span>
+        }
+<span class="nc" id="L125">        short transactionId = (short) this.transactionId.getAndIncrement();</span>
+<span class="nc" id="L126">        requestsMap.put(transactionId, msg);</span>
+<span class="nc" id="L127">        out.add(new ModbusTcpPayload(transactionId, unitId, modbusRequest));</span>
+<span class="nc" id="L128">    }</span>
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    @Override
+    protected void decode(ChannelHandlerContext ctx, ModbusTcpPayload msg, List&lt;Object&gt; out) throws Exception {
+<span class="nc" id="L133">        LOGGER.trace(&quot;(--&gt;IN): {}, {}, {}&quot;, ctx, msg, out);</span>
+        // TODO: implement me
+<span class="nc" id="L135">        short transactionId = msg.getTransactionId();</span>
+<span class="nc" id="L136">        PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; plcRequestContainer = requestsMap.get(transactionId);</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">        if (plcRequestContainer == null) {</span>
+<span class="nc" id="L138">            throw new PlcProtocolException(&quot;Unrelated payload received&quot; + msg);</span>
+        }
+
+        // TODO: only single Item supported for now
+<span class="nc" id="L142">        PlcRequest request = plcRequestContainer.getRequest();</span>
+<span class="nc" id="L143">        RequestItem requestItem = (RequestItem) request.getRequestItem().get();</span>
+
+<span class="nc" id="L145">        ModbusPdu modbusPdu = msg.getModbusPdu();</span>
+<span class="nc" id="L146">        short unitId = msg.getUnitId();</span>
+
+<span class="nc bnc" id="L148" title="All 2 branches missed.">        if (modbusPdu instanceof WriteMultipleCoilsResponse) {</span>
+            // TODO: finish implementation
+<span class="nc" id="L150">            WriteMultipleCoilsResponse writeMultipleCoilsResponse = (WriteMultipleCoilsResponse) modbusPdu;</span>
+<span class="nc" id="L151">            plcRequestContainer.getResponseFuture().complete(new PlcWriteResponse((PlcWriteRequest) request, new WriteResponseItem&lt;&gt;((WriteRequestItem&lt;? extends Object&gt;) requestItem, ResponseCode.OK)));</span>
+<span class="nc bnc" id="L152" title="All 2 branches missed.">        } else if (modbusPdu instanceof WriteMultipleRegistersResponse) {</span>
+            // TODO: finish implementation
+<span class="nc" id="L154">            WriteMultipleRegistersResponse writeMultipleRegistersResponse = (WriteMultipleRegistersResponse) modbusPdu;</span>
+<span class="nc" id="L155">            plcRequestContainer.getResponseFuture().complete(new PlcWriteResponse((PlcWriteRequest) request, new WriteResponseItem&lt;&gt;((WriteRequestItem&lt;? extends Object&gt;) requestItem, ResponseCode.OK)));</span>
+<span class="nc bnc" id="L156" title="All 2 branches missed.">        } else if (modbusPdu instanceof WriteSingleCoilResponse) {</span>
+            // TODO: finish implementation
+<span class="nc" id="L158">            WriteSingleCoilResponse writeSingleCoilResponse = (WriteSingleCoilResponse) modbusPdu;</span>
+<span class="nc" id="L159">            plcRequestContainer.getResponseFuture().complete(new PlcWriteResponse((PlcWriteRequest) request, new WriteResponseItem&lt;&gt;((WriteRequestItem&lt;? extends Object&gt;) requestItem, ResponseCode.OK)));</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">        } else if (modbusPdu instanceof WriteSingleRegisterResponse) {</span>
+            // TODO: finish implementation
+<span class="nc" id="L162">            WriteSingleRegisterResponse writeSingleRegisterResponse = (WriteSingleRegisterResponse) modbusPdu;</span>
+<span class="nc" id="L163">            plcRequestContainer.getResponseFuture().complete(new PlcWriteResponse((PlcWriteRequest) request, new WriteResponseItem&lt;&gt;((WriteRequestItem&lt;? extends Object&gt;) requestItem, ResponseCode.OK)));</span>
+<span class="nc bnc" id="L164" title="All 2 branches missed.">        } else if (modbusPdu instanceof ReadCoilsResponse) {</span>
+            // TODO: finish implementation
+<span class="nc" id="L166">            ReadCoilsResponse readCoilsResponse = (ReadCoilsResponse) modbusPdu;</span>
+<span class="nc" id="L167">            ByteBuf byteBuf = readCoilsResponse.getCoilStatus();</span>
+<span class="nc" id="L168">            byte[] bytes = new byte[byteBuf.readableBytes()];</span>
+<span class="nc" id="L169">            byteBuf.readBytes(bytes);</span>
+<span class="nc" id="L170">            plcRequestContainer.getResponseFuture().complete(new PlcReadResponse((PlcReadRequest) request, new ReadResponseItem((ReadRequestItem&lt;? extends Object&gt;) requestItem, ResponseCode.OK, (Object) bytes)));</span>
+<span class="nc bnc" id="L171" title="All 2 branches missed.">        } else if (modbusPdu instanceof ReadDiscreteInputsResponse) {</span>
+            // TODO: finish implementation
+<span class="nc" id="L173">            ReadDiscreteInputsResponse readDiscreteInputsResponse = (ReadDiscreteInputsResponse) modbusPdu;</span>
+<span class="nc" id="L174">            ByteBuf byteBuf = readDiscreteInputsResponse.getInputStatus();</span>
+<span class="nc" id="L175">            byte[] bytes = new byte[byteBuf.readableBytes()];</span>
+<span class="nc" id="L176">            byteBuf.readBytes(bytes);</span>
+<span class="nc" id="L177">            plcRequestContainer.getResponseFuture().complete(new PlcReadResponse((PlcReadRequest) request, new ReadResponseItem((ReadRequestItem&lt;? extends Object&gt;) requestItem, ResponseCode.OK, (Object) bytes)));</span>
+<span class="nc bnc" id="L178" title="All 2 branches missed.">        } else if (modbusPdu instanceof ReadHoldingRegistersResponse) {</span>
+            // TODO: finish implementation
+<span class="nc" id="L180">            ReadHoldingRegistersResponse readHoldingRegistersResponse = (ReadHoldingRegistersResponse) modbusPdu;</span>
+<span class="nc" id="L181">            ByteBuf byteBuf = readHoldingRegistersResponse.getRegisters();</span>
+<span class="nc" id="L182">            byte[] bytes = new byte[byteBuf.readableBytes()];</span>
+<span class="nc" id="L183">            byteBuf.readBytes(bytes);</span>
+<span class="nc" id="L184">            plcRequestContainer.getResponseFuture().complete(new PlcReadResponse((PlcReadRequest) request, new ReadResponseItem((ReadRequestItem&lt;? extends Object&gt;) requestItem, ResponseCode.OK, (Object) bytes)));</span>
+<span class="nc bnc" id="L185" title="All 2 branches missed.">        } else if (modbusPdu instanceof ReadInputRegistersResponse) {</span>
+            // TODO: finish implementation
+<span class="nc" id="L187">            ReadInputRegistersResponse readInputRegistersResponse = (ReadInputRegistersResponse) modbusPdu;</span>
+<span class="nc" id="L188">            ByteBuf byteBuf = readInputRegistersResponse.getRegisters();</span>
+<span class="nc" id="L189">            byte[] bytes = new byte[byteBuf.readableBytes()];</span>
+<span class="nc" id="L190">            byteBuf.readBytes(bytes);</span>
+<span class="nc" id="L191">            plcRequestContainer.getResponseFuture().complete(new PlcReadResponse((PlcReadRequest) request, new ReadResponseItem((ReadRequestItem&lt;? extends Object&gt;) requestItem, ResponseCode.OK, (Object) bytes)));</span>
+<span class="nc bnc" id="L192" title="All 2 branches missed.">        } else if (modbusPdu instanceof ExceptionResponse) {</span>
+<span class="nc" id="L193">            ExceptionResponse exceptionResponse = (ExceptionResponse) modbusPdu;</span>
+<span class="nc" id="L194">            throw new PlcProtocolException(&quot;Error received &quot; + exceptionResponse.getExceptionCode());</span>
+        } else {
+<span class="nc" id="L196">            throw new PlcProtocolException(&quot;Unsupported messageTyp type&quot; + modbusPdu.getClass());</span>
+        }
+<span class="nc" id="L198">    }</span>
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+<span class="nc" id="L202">        LOGGER.trace(&quot;(--&gt;ERR): {}&quot;, ctx, cause);</span>
+<span class="nc" id="L203">        super.exceptionCaught(ctx, cause);</span>
+<span class="nc" id="L204">    }</span>
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Encoding helpers.
+    ////////////////////////////////////////////////////////////////////////////////
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Decoding helpers.
+    ////////////////////////////////////////////////////////////////////////////////
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
