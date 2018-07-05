@@ -70,7 +70,7 @@ public class Plc4XModbusProtocol extends MessageToMessageCodec&lt;ModbusTcpPaylo
     private void encodeWriteRequest(PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; msg, List&lt;Object&gt; out) throws PlcException {
 <span class="nc" id="L71">        PlcWriteRequest request = (PlcWriteRequest) msg.getRequest();</span>
         // TODO: support multiple requests
-<span class="nc" id="L73">        WriteRequestItem&lt;?&gt; writeRequestItem = request.getRequestItem().get();</span>
+<span class="nc" id="L73">        WriteRequestItem&lt;?&gt; writeRequestItem = request.getRequestItem().orElseThrow(() -&gt; new PlcProtocolException(&quot;Only single message supported for now&quot;));</span>
         // TODO: check if we can map like this. Implication is that we can only work with int, short, byte and boolean
         // TODO: for higher datatypes float, double etc we might need to split the bytes into chunks
 <span class="nc" id="L76">        int quantity = writeRequestItem.getSize();</span>
@@ -89,15 +89,15 @@ public class Plc4XModbusProtocol extends MessageToMessageCodec&lt;ModbusTcpPaylo
 <span class="nc" id="L89">                int intToWrite = register[0] &lt;&lt; 8 | register[1];</span>
 <span class="nc" id="L90">                modbusRequest = new WriteSingleRegisterRequest(registerAddress.getAddress(), intToWrite);</span>
             }
-<span class="nc bnc" id="L92" title="All 2 branches missed.">        } else if (address instanceof CoilAddress) {</span>
-<span class="nc" id="L93">            CoilAddress coilAddress = (CoilAddress) address;</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">        } else if (address instanceof CoilModbusAddress) {</span>
+<span class="nc" id="L93">            CoilModbusAddress coilModbusAddress = (CoilModbusAddress) address;</span>
 <span class="nc bnc" id="L94" title="All 2 branches missed.">            if (quantity &gt; 1) {</span>
 <span class="nc" id="L95">                byte[] bytesToWrite = produceCoilValue(writeRequestItem.getValues());</span>
-<span class="nc" id="L96">                modbusRequest = new WriteMultipleCoilsRequest(coilAddress.getAddress(), quantity, bytesToWrite);</span>
+<span class="nc" id="L96">                modbusRequest = new WriteMultipleCoilsRequest(coilModbusAddress.getAddress(), quantity, bytesToWrite);</span>
 <span class="nc" id="L97">            } else {</span>
 <span class="nc" id="L98">                byte[] coil = produceCoilValue(writeRequestItem.getValues());</span>
 <span class="nc bnc" id="L99" title="All 2 branches missed.">                boolean booleanToWrite = (coil[0] &gt;&gt; 8) == 1;</span>
-<span class="nc" id="L100">                modbusRequest = new WriteSingleCoilRequest(coilAddress.getAddress(), booleanToWrite);</span>
+<span class="nc" id="L100">                modbusRequest = new WriteSingleCoilRequest(coilModbusAddress.getAddress(), booleanToWrite);</span>
             }
 <span class="nc" id="L102">        } else {</span>
 <span class="nc" id="L103">            throw new PlcProtocolException(&quot;Unsupported address type&quot; + address.getClass());</span>
@@ -110,7 +110,7 @@ public class Plc4XModbusProtocol extends MessageToMessageCodec&lt;ModbusTcpPaylo
     private void encodeReadRequest(PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; msg, List&lt;Object&gt; out) throws PlcException {
 <span class="nc" id="L111">        PlcReadRequest request = (PlcReadRequest) msg.getRequest();</span>
         // TODO: support multiple requests
-<span class="nc" id="L113">        ReadRequestItem&lt;?&gt; readRequestItem = request.getRequestItem().get();</span>
+<span class="nc" id="L113">        ReadRequestItem&lt;?&gt; readRequestItem = request.getRequestItem().orElseThrow(() -&gt; new PlcProtocolException(&quot;Only single message supported for now&quot;));</span>
         // TODO: check if we can map like this. Implication is that we can only work with int, short, byte and boolean
         // TODO: for higher datatypes float, double etc we might need to split the bytes into chunks
 <span class="nc" id="L116">        int quantity = readRequestItem.getSize();</span>
@@ -119,9 +119,9 @@ public class Plc4XModbusProtocol extends MessageToMessageCodec&lt;ModbusTcpPaylo
 
 <span class="nc" id="L120">        ModbusAddress address = (ModbusAddress) readRequestItem.getAddress();</span>
         ModbusPdu modbusRequest;
-<span class="nc bnc" id="L122" title="All 2 branches missed.">        if (address instanceof CoilAddress) {</span>
-<span class="nc" id="L123">            CoilAddress coilAddress = (CoilAddress) address;</span>
-<span class="nc" id="L124">            modbusRequest = new ReadCoilsRequest(coilAddress.getAddress(), quantity);</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">        if (address instanceof CoilModbusAddress) {</span>
+<span class="nc" id="L123">            CoilModbusAddress coilModbusAddress = (CoilModbusAddress) address;</span>
+<span class="nc" id="L124">            modbusRequest = new ReadCoilsRequest(coilModbusAddress.getAddress(), quantity);</span>
 <span class="nc bnc" id="L125" title="All 2 branches missed.">        } else if (address instanceof RegisterAddress) {</span>
 <span class="nc" id="L126">            RegisterAddress registerAddress = (RegisterAddress) address;</span>
 <span class="nc" id="L127">            modbusRequest = new ReadHoldingRegistersRequest(registerAddress.getAddress(), quantity);</span>
@@ -155,8 +155,8 @@ public class Plc4XModbusProtocol extends MessageToMessageCodec&lt;ModbusTcpPaylo
         }
 
         // TODO: only single Item supported for now
-<span class="nc" id="L158">        PlcRequest request = plcRequestContainer.getRequest();</span>
-<span class="nc" id="L159">        RequestItem requestItem = (RequestItem) request.getRequestItem().get();</span>
+<span class="nc" id="L158">        PlcRequest&lt;?&gt; request = plcRequestContainer.getRequest();</span>
+<span class="nc" id="L159">        RequestItem requestItem = request.getRequestItem().orElseThrow(() -&gt; new PlcProtocolException(&quot;Only single message supported for now&quot;));</span>
 <span class="nc" id="L160">        Class datatype = requestItem.getDatatype();</span>
 
 <span class="nc" id="L162">        ModbusPdu modbusPdu = msg.getModbusPdu();</span>
