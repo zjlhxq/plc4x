@@ -38,26 +38,27 @@ import java.util.Map;
 <span class="fc" id="L38">    DBREAD((byte) 0xb0),</span>
 <span class="fc" id="L39">    SYM1200((byte) 0xb2); /* Renamed from &quot;1200SYM&quot; */</span>
 
-<span class="fc" id="L41">    private static Map&lt;Byte, VariableAddressingMode&gt; map = null;</span>
-    
     private final byte code;
 
-<span class="fc" id="L45">    VariableAddressingMode(byte code) {</span>
-<span class="fc" id="L46">        this.code = code;</span>
-<span class="fc" id="L47">    }</span>
+<span class="fc" id="L43">    VariableAddressingMode(byte code) {</span>
+<span class="fc" id="L44">        this.code = code;</span>
+<span class="fc" id="L45">    }</span>
 
     public byte getCode() {
-<span class="fc" id="L50">        return code;</span>
+<span class="fc" id="L48">        return code;</span>
     }
 
-    public static VariableAddressingMode valueOf(byte code) {
-<span class="pc bpc" id="L54" title="1 of 2 branches missed.">        if (map == null) {</span>
-<span class="fc" id="L55">            map = new HashMap&lt;&gt;();</span>
-<span class="fc bfc" id="L56" title="All 2 branches covered.">            for (VariableAddressingMode variableAddressingMode : VariableAddressingMode.values()) {</span>
-<span class="fc" id="L57">                map.put(variableAddressingMode.code, variableAddressingMode);</span>
-            }
+    private final static Map&lt;Byte, VariableAddressingMode&gt; map;
+
+    static {
+<span class="fc" id="L54">        map = new HashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L55" title="All 2 branches covered.">        for (VariableAddressingMode variableAddressingMode : VariableAddressingMode.values()) {</span>
+<span class="fc" id="L56">            map.put(variableAddressingMode.code, variableAddressingMode);</span>
         }
-<span class="fc" id="L60">        return map.get(code);</span>
+<span class="fc" id="L58">    }</span>
+
+    public static VariableAddressingMode valueOf(byte code) {
+<span class="fc" id="L61">        return map.get(code);</span>
     }
 
 }

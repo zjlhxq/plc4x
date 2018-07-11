@@ -27,26 +27,27 @@ import java.util.Map;
 <span class="nc" id="L27">    INVALID_TPDU_TYPE((byte) 0x02),</span>
 <span class="nc" id="L28">    INVALID_PARAMETER_TYPE((byte) 0x03);</span>
 
-<span class="nc" id="L30">    private static Map&lt;Byte, RejectCause&gt; map = null;</span>
-
     private final byte code;
 
-<span class="nc" id="L34">    RejectCause(byte code) {</span>
-<span class="nc" id="L35">        this.code = code;</span>
-<span class="nc" id="L36">    }</span>
+<span class="nc" id="L32">    RejectCause(byte code) {</span>
+<span class="nc" id="L33">        this.code = code;</span>
+<span class="nc" id="L34">    }</span>
 
     public byte getCode() {
-<span class="nc" id="L39">        return code;</span>
+<span class="nc" id="L37">        return code;</span>
     }
 
-    public static RejectCause valueOf(byte code) {
-<span class="nc bnc" id="L43" title="All 2 branches missed.">        if (map == null) {</span>
-<span class="nc" id="L44">            map = new HashMap&lt;&gt;();</span>
-<span class="nc bnc" id="L45" title="All 2 branches missed.">            for (RejectCause rejectCause : RejectCause.values()) {</span>
-<span class="nc" id="L46">                map.put(rejectCause.code, rejectCause);</span>
-            }
+    private final static Map&lt;Byte, RejectCause&gt; map;
+
+    static {
+<span class="nc" id="L43">        map = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L44" title="All 2 branches missed.">        for (RejectCause rejectCause : RejectCause.values()) {</span>
+<span class="nc" id="L45">            map.put(rejectCause.code, rejectCause);</span>
         }
-<span class="nc" id="L49">        return map.get(code);</span>
+<span class="nc" id="L47">    }</span>
+
+    public static RejectCause valueOf(byte code) {
+<span class="nc" id="L50">        return map.get(code);</span>
     }
 
 }

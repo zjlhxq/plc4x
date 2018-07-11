@@ -30,26 +30,27 @@ import java.util.Map;
 <span class="fc" id="L30">    ERROR_ON_SUPPLIES((byte) 0x85),</span>
 <span class="fc" id="L31">    ACCESS_ERROR((byte) 0x87);</span>
 
-<span class="fc" id="L33">    private static Map&lt;Byte, HeaderErrorClass&gt; map = null;</span>
-
     private final byte code;
 
-<span class="fc" id="L37">    HeaderErrorClass(byte code) {</span>
-<span class="fc" id="L38">        this.code = code;</span>
-<span class="fc" id="L39">    }</span>
+<span class="fc" id="L35">    HeaderErrorClass(byte code) {</span>
+<span class="fc" id="L36">        this.code = code;</span>
+<span class="fc" id="L37">    }</span>
 
     public byte getCode() {
-<span class="fc" id="L42">        return code;</span>
+<span class="fc" id="L40">        return code;</span>
     }
 
-    public static HeaderErrorClass valueOf(byte code) {
-<span class="pc bpc" id="L46" title="1 of 2 branches missed.">        if (map == null) {</span>
-<span class="fc" id="L47">            map = new HashMap&lt;&gt;();</span>
-<span class="fc bfc" id="L48" title="All 2 branches covered.">            for (HeaderErrorClass headerErrorClass : HeaderErrorClass.values()) {</span>
-<span class="fc" id="L49">                map.put(headerErrorClass.code, headerErrorClass);</span>
-            }
+    private final static Map&lt;Byte, HeaderErrorClass&gt; map;
+
+    static {
+<span class="fc" id="L46">        map = new HashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L47" title="All 2 branches covered.">        for (HeaderErrorClass headerErrorClass : HeaderErrorClass.values()) {</span>
+<span class="fc" id="L48">            map.put(headerErrorClass.code, headerErrorClass);</span>
         }
-<span class="fc" id="L52">        return map.get(code);</span>
+<span class="fc" id="L50">    }</span>
+
+    public static HeaderErrorClass valueOf(byte code) {
+<span class="fc" id="L53">        return map.get(code);</span>
     }
 
 }

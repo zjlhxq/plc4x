@@ -43,32 +43,33 @@ import java.util.Map;
 <span class="fc" id="L43">    IEC_COUNTER((byte) 0x1F, -1),</span>
 <span class="fc" id="L44">    HS_COUNTER((byte) 0x20, -1);</span>
 
-<span class="fc" id="L46">    private static Map&lt;Byte, TransportSize&gt; map = null;</span>
-    
     private final byte code;
     private final int sizeInBytes;
 
-<span class="fc" id="L51">    TransportSize(byte code, int sizeInBytes) {</span>
-<span class="fc" id="L52">        this.code = code;</span>
-<span class="fc" id="L53">        this.sizeInBytes = sizeInBytes;</span>
-<span class="fc" id="L54">    }</span>
+<span class="fc" id="L49">    TransportSize(byte code, int sizeInBytes) {</span>
+<span class="fc" id="L50">        this.code = code;</span>
+<span class="fc" id="L51">        this.sizeInBytes = sizeInBytes;</span>
+<span class="fc" id="L52">    }</span>
 
     public byte getCode() {
-<span class="fc" id="L57">        return code;</span>
+<span class="fc" id="L55">        return code;</span>
     }
 
     public int getSizeInBytes() {
-<span class="fc" id="L61">        return sizeInBytes;</span>
+<span class="fc" id="L59">        return sizeInBytes;</span>
     }
 
-    public static TransportSize valueOf(byte code) {
-<span class="pc bpc" id="L65" title="1 of 2 branches missed.">        if (map == null) {</span>
-<span class="fc" id="L66">            map = new HashMap&lt;&gt;();</span>
-<span class="fc bfc" id="L67" title="All 2 branches covered.">            for (TransportSize transportSize : TransportSize.values()) {</span>
-<span class="fc" id="L68">                map.put(transportSize.code, transportSize);</span>
-            }
+    private final static Map&lt;Byte, TransportSize&gt; map;
+
+    static {
+<span class="fc" id="L65">        map = new HashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L66" title="All 2 branches covered.">        for (TransportSize transportSize : TransportSize.values()) {</span>
+<span class="fc" id="L67">            map.put(transportSize.code, transportSize);</span>
         }
-<span class="fc" id="L71">        return map.get(code);</span>
+<span class="fc" id="L69">    }</span>
+
+    public static TransportSize valueOf(byte code) {
+<span class="fc" id="L72">        return map.get(code);</span>
     }
 
 }

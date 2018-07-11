@@ -35,50 +35,51 @@ import java.util.Map;
 <span class="nc" id="L35">    REAL((byte) 0x07, false),</span>
 <span class="nc" id="L36">    OCTET_STRING((byte) 0x09, false);</span>
 
-<span class="nc" id="L38">    private static Map&lt;Byte, DataTransportSize&gt; map = null;</span>
-    
     private final byte code;
     private final boolean sizeInBits;
 
-<span class="nc" id="L43">    DataTransportSize(byte code, boolean sizeInBits) {</span>
-<span class="nc" id="L44">        this.code = code;</span>
-<span class="nc" id="L45">        this.sizeInBits = sizeInBits;</span>
-<span class="nc" id="L46">    }</span>
+<span class="nc" id="L41">    DataTransportSize(byte code, boolean sizeInBits) {</span>
+<span class="nc" id="L42">        this.code = code;</span>
+<span class="nc" id="L43">        this.sizeInBits = sizeInBits;</span>
+<span class="nc" id="L44">    }</span>
 
     public byte getCode() {
-<span class="nc" id="L49">        return code;</span>
+<span class="nc" id="L47">        return code;</span>
     }
 
     public boolean isSizeInBits() {
-<span class="nc" id="L53">        return sizeInBits;</span>
+<span class="nc" id="L51">        return sizeInBits;</span>
     }
 
-    public static DataTransportSize valueOf(byte code) {
-<span class="nc bnc" id="L57" title="All 2 branches missed.">        if (map == null) {</span>
-<span class="nc" id="L58">            map = new HashMap&lt;&gt;();</span>
-<span class="nc bnc" id="L59" title="All 2 branches missed.">            for (DataTransportSize dataTransportSize : DataTransportSize.values()) {</span>
-<span class="nc" id="L60">                map.put(dataTransportSize.code, dataTransportSize);</span>
-            }
+    private final static Map&lt;Byte, DataTransportSize&gt; map;
+
+    static {
+<span class="nc" id="L57">        map = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">        for (DataTransportSize dataTransportSize : DataTransportSize.values()) {</span>
+<span class="nc" id="L59">            map.put(dataTransportSize.code, dataTransportSize);</span>
         }
-<span class="nc" id="L63">        return map.get(code);</span>
+<span class="nc" id="L61">    }</span>
+
+    public static DataTransportSize valueOf(byte code) {
+<span class="nc" id="L64">        return map.get(code);</span>
     }
 
     public static DataTransportSize getForTransportSize(TransportSize transportSize) {
-<span class="nc bnc" id="L67" title="All 7 branches missed.">        switch (transportSize) {</span>
+<span class="nc bnc" id="L68" title="All 7 branches missed.">        switch (transportSize) {</span>
             case BIT:
-<span class="nc" id="L69">                return BIT;</span>
+<span class="nc" id="L70">                return BIT;</span>
             case INT:
-<span class="nc" id="L71">                return INTEGER;</span>
+<span class="nc" id="L72">                return INTEGER;</span>
             case DINT:
-<span class="nc" id="L73">                return DINTEGER;</span>
+<span class="nc" id="L74">                return DINTEGER;</span>
             case BYTE:
             case WORD:
             case DWORD:
-<span class="nc" id="L77">                return BYTE_WORD_DWORD;</span>
+<span class="nc" id="L78">                return BYTE_WORD_DWORD;</span>
             case CHAR:
-<span class="nc" id="L79">                return OCTET_STRING;</span>
+<span class="nc" id="L80">                return OCTET_STRING;</span>
             case REAL:
-<span class="nc" id="L81">                return REAL;</span>
+<span class="nc" id="L82">                return REAL;</span>
             case TIME:
             case TOD:
             case TIMER:
@@ -89,7 +90,7 @@ import java.util.Map;
             case IEC_COUNTER:
             case DATE_AND_TIME:
             default:
-<span class="nc" id="L92">                return null;</span>
+<span class="nc" id="L93">                return null;</span>
         }
     }
 

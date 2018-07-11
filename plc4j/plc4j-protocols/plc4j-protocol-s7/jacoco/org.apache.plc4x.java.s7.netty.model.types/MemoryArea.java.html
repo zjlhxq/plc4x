@@ -41,27 +41,28 @@ import java.util.Map;
 <span class="fc" id="L41">    S7_200_OUTPUTS((byte) 0x07), /* Renamed from &quot;System outputs of 200 family&quot; */</span>
 <span class="fc" id="L42">    S7_200_IEC_COUNTERS((byte) 0x1E), /* Renamed from &quot;IEC counters (200 family)&quot; */</span>
 <span class="fc" id="L43">    S7_200_IEC_TIMERS((byte) 0x1F); /* Renamed from &quot;IEC timers (200 family)&quot; */</span>
-    
-<span class="fc" id="L45">    private static Map&lt;Byte, MemoryArea&gt; map = null;</span>
 
     private final byte code;
 
-<span class="fc" id="L49">    MemoryArea(byte code) {</span>
-<span class="fc" id="L50">        this.code = code;</span>
-<span class="fc" id="L51">    }</span>
+<span class="fc" id="L47">    MemoryArea(byte code) {</span>
+<span class="fc" id="L48">        this.code = code;</span>
+<span class="fc" id="L49">    }</span>
 
     public byte getCode() {
-<span class="fc" id="L54">        return code;</span>
+<span class="fc" id="L52">        return code;</span>
     }
 
-    public static MemoryArea valueOf(byte code) {
-<span class="fc bfc" id="L58" title="All 2 branches covered.">        if (map == null) {</span>
-<span class="fc" id="L59">            map = new HashMap&lt;&gt;();</span>
-<span class="fc bfc" id="L60" title="All 2 branches covered.">            for (MemoryArea memoryArea : MemoryArea.values()) {</span>
-<span class="fc" id="L61">                map.put(memoryArea.code, memoryArea);</span>
-            }
+    private final static Map&lt;Byte, MemoryArea&gt; map;
+
+    static {
+<span class="fc" id="L58">        map = new HashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L59" title="All 2 branches covered.">        for (MemoryArea memoryArea : MemoryArea.values()) {</span>
+<span class="fc" id="L60">            map.put(memoryArea.code, memoryArea);</span>
         }
-<span class="fc" id="L64">        return map.get(code);</span>
+<span class="fc" id="L62">    }</span>
+
+    public static MemoryArea valueOf(byte code) {
+<span class="fc" id="L65">        return map.get(code);</span>
     }
 
 }

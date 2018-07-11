@@ -50,26 +50,27 @@ import java.util.Map;
 <span class="fc" id="L50">    PREFERRED_MAX_PDU_SIZE((byte) 0xF0),</span>
 <span class="fc" id="L51">    INACTIVITY_TIMER((byte) 0xF2);</span>
 
-<span class="fc" id="L53">    private static Map&lt;Byte, ParameterCode&gt; map = null;</span>
-    
     private final byte code;
 
-<span class="fc" id="L57">    ParameterCode(byte code) {</span>
-<span class="fc" id="L58">        this.code = code;</span>
-<span class="fc" id="L59">    }</span>
+<span class="fc" id="L55">    ParameterCode(byte code) {</span>
+<span class="fc" id="L56">        this.code = code;</span>
+<span class="fc" id="L57">    }</span>
 
     public byte getCode() {
-<span class="fc" id="L62">        return code;</span>
+<span class="fc" id="L60">        return code;</span>
     }
 
-    public static ParameterCode valueOf(byte code) {
-<span class="fc bfc" id="L66" title="All 2 branches covered.">        if (map == null) {</span>
-<span class="fc" id="L67">            map = new HashMap&lt;&gt;();</span>
-<span class="fc bfc" id="L68" title="All 2 branches covered.">            for (ParameterCode parameterCode : ParameterCode.values()) {</span>
-<span class="fc" id="L69">                map.put(parameterCode.code, parameterCode);</span>
-            }
+    private final static Map&lt;Byte, ParameterCode&gt; map;
+
+    static {
+<span class="fc" id="L66">        map = new HashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">        for (ParameterCode parameterCode : ParameterCode.values()) {</span>
+<span class="fc" id="L68">            map.put(parameterCode.code, parameterCode);</span>
         }
-<span class="fc" id="L72">        return map.get(code);</span>
+<span class="fc" id="L70">    }</span>
+
+    public static ParameterCode valueOf(byte code) {
+<span class="fc" id="L73">        return map.get(code);</span>
     }
 
 }

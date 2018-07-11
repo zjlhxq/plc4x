@@ -33,29 +33,30 @@ import java.util.Map;
 
 <span class="nc" id="L34">    private static final Logger logger = LoggerFactory.getLogger(DataTransportErrorCode.class);</span>
 
-<span class="nc" id="L36">    private static Map&lt;Byte, DataTransportErrorCode&gt; map = null;</span>
-    
     private byte code;
 
-<span class="nc" id="L40">    DataTransportErrorCode(byte code) {</span>
-<span class="nc" id="L41">        this.code = code;</span>
-<span class="nc" id="L42">    }</span>
+<span class="nc" id="L38">    DataTransportErrorCode(byte code) {</span>
+<span class="nc" id="L39">        this.code = code;</span>
+<span class="nc" id="L40">    }</span>
 
     public byte getCode() {
-<span class="nc" id="L45">        return code;</span>
+<span class="nc" id="L43">        return code;</span>
     }
 
+    private final static Map&lt;Byte, DataTransportErrorCode&gt; map;
+
+    static {
+<span class="nc" id="L49">        map = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L50" title="All 2 branches missed.">        for (DataTransportErrorCode dataTransportErrorCode : DataTransportErrorCode.values()) {</span>
+<span class="nc" id="L51">            map.put(dataTransportErrorCode.code, dataTransportErrorCode);</span>
+        }
+<span class="nc" id="L53">    }</span>
+
     public static DataTransportErrorCode valueOf(byte code) {
-<span class="nc bnc" id="L49" title="All 2 branches missed.">        if (map == null) {</span>
-<span class="nc" id="L50">            map = new HashMap&lt;&gt;();</span>
-<span class="nc bnc" id="L51" title="All 2 branches missed.">            for (DataTransportErrorCode dataTransportErrorCode : DataTransportErrorCode.values()) {</span>
-<span class="nc" id="L52">                map.put(dataTransportErrorCode.code, dataTransportErrorCode);</span>
-            }
+<span class="nc bnc" id="L56" title="All 2 branches missed.">        if (!map.containsKey(code)) {</span>
+<span class="nc" id="L57">            logger.error(&quot;No DataTransportErrorCode for code {}&quot;, code);</span>
         }
-<span class="nc bnc" id="L55" title="All 2 branches missed.">        if (!map.containsKey(code)) {</span>
-<span class="nc" id="L56">            logger.error(&quot;No DataTransportErrorCode for code {}&quot;, code);</span>
-        }
-<span class="nc" id="L58">        return map.get(code);</span>
+<span class="nc" id="L59">        return map.get(code);</span>
     }
 
 }

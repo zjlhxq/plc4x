@@ -30,31 +30,38 @@ import java.util.Map;
 <span class="fc" id="L30">    SIZE_4096((byte) 0x0c, 4096),</span>
 <span class="fc" id="L31">    SIZE_8192((byte) 0x0d, 8192);</span>
 
-<span class="fc" id="L33">    private static Map&lt;Byte, TpduSize&gt; map = null;</span>
-    
     private final byte code;
     private final int value;
 
-<span class="fc" id="L38">    TpduSize(byte code, int value) {</span>
-<span class="fc" id="L39">        this.code = code;</span>
-<span class="fc" id="L40">        this.value = value;</span>
-<span class="fc" id="L41">    }</span>
+<span class="fc" id="L36">    TpduSize(byte code, int value) {</span>
+<span class="fc" id="L37">        this.code = code;</span>
+<span class="fc" id="L38">        this.value = value;</span>
+<span class="fc" id="L39">    }</span>
 
     public byte getCode() {
-<span class="fc" id="L44">        return code;</span>
+<span class="fc" id="L42">        return code;</span>
     }
 
     public int getValue() {
-<span class="fc" id="L48">        return value;</span>
+<span class="fc" id="L46">        return value;</span>
     }
 
-    public static TpduSize valueForGivenSize(int pduSize) {
-<span class="fc bfc" id="L52" title="All 2 branches covered.">        if(pduSize &lt;= 0) {</span>
-<span class="fc" id="L53">            throw new IllegalArgumentException(&quot;PduSize has to be greater than 0&quot;);</span>
+    private final static Map&lt;Byte, TpduSize&gt; map;
+
+    static {
+<span class="fc" id="L52">        map = new HashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L53" title="All 2 branches covered.">        for (TpduSize tpduSize : TpduSize.values()) {</span>
+<span class="fc" id="L54">            map.put(tpduSize.code, tpduSize);</span>
         }
-<span class="fc bfc" id="L55" title="All 2 branches covered.">        for (TpduSize tpduSize : values()) {</span>
-<span class="fc bfc" id="L56" title="All 2 branches covered.">            if(tpduSize.getValue() &gt;= pduSize) {</span>
-<span class="fc" id="L57">                return tpduSize;</span>
+<span class="fc" id="L56">    }</span>
+
+    public static TpduSize valueForGivenSize(int pduSize) {
+<span class="fc bfc" id="L59" title="All 2 branches covered.">        if(pduSize &lt;= 0) {</span>
+<span class="fc" id="L60">            throw new IllegalArgumentException(&quot;PduSize has to be greater than 0&quot;);</span>
+        }
+<span class="fc bfc" id="L62" title="All 2 branches covered.">        for (TpduSize tpduSize : values()) {</span>
+<span class="fc bfc" id="L63" title="All 2 branches covered.">            if(tpduSize.getValue() &gt;= pduSize) {</span>
+<span class="fc" id="L64">                return tpduSize;</span>
             }
         }
         // If the requested pdu size is greater than 8MB,
@@ -62,17 +69,11 @@ import java.util.Map;
         // requested size, if the remote responds with a
         // lower value the application has to live with
         // this anyway.
-<span class="fc" id="L65">        return SIZE_8192;</span>
+<span class="fc" id="L72">        return SIZE_8192;</span>
     }
 
     public static TpduSize valueOf(byte code) {
-<span class="fc bfc" id="L69" title="All 2 branches covered.">        if (map == null) {</span>
-<span class="fc" id="L70">            map = new HashMap&lt;&gt;();</span>
-<span class="fc bfc" id="L71" title="All 2 branches covered.">            for (TpduSize tpduSize : TpduSize.values()) {</span>
-<span class="fc" id="L72">                map.put(tpduSize.code, tpduSize);</span>
-            }
-        }
-<span class="fc" id="L75">        return map.get(code);</span>
+<span class="fc" id="L76">        return map.get(code);</span>
     }
 
 }
