@@ -198,24 +198,24 @@ public class AdsTcpPlcConnection extends AdsAbstractPlcConnection implements Plc
                 new SubscriptionResponseItem&lt;&gt;(subscriptionRequestItem, adsSubscriptionHandle, ResponseCode.OK))));
 
 <span class="fc" id="L200">            Consumer&lt;AdsDeviceNotificationRequest&gt; adsDeviceNotificationRequestConsumer =</span>
-<span class="fc" id="L201">                adsDeviceNotificationRequest -&gt; adsDeviceNotificationRequest.getAdsStampHeaders().forEach(adsStampHeader -&gt; {</span>
-<span class="fc" id="L202">                    Calendar timeStamp = Calendar.getInstance();</span>
-<span class="fc" id="L203">                    timeStamp.setTime(adsStampHeader.getTimeStamp().getAsDate());</span>
+<span class="nc" id="L201">                adsDeviceNotificationRequest -&gt; adsDeviceNotificationRequest.getAdsStampHeaders().forEach(adsStampHeader -&gt; {</span>
+<span class="nc" id="L202">                    Calendar timeStamp = Calendar.getInstance();</span>
+<span class="nc" id="L203">                    timeStamp.setTime(adsStampHeader.getTimeStamp().getAsDate());</span>
 
-<span class="fc" id="L205">                    adsStampHeader.getAdsNotificationSamples()</span>
-<span class="fc" id="L206">                        .forEach(adsNotificationSample -&gt; {</span>
-<span class="fc" id="L207">                            Data data = adsNotificationSample.getData();</span>
+<span class="nc" id="L205">                    adsStampHeader.getAdsNotificationSamples()</span>
+<span class="nc" id="L206">                        .forEach(adsNotificationSample -&gt; {</span>
+<span class="nc" id="L207">                            Data data = adsNotificationSample.getData();</span>
                             try {
                                 @SuppressWarnings(&quot;unchecked&quot;)
-<span class="fc" id="L210">                                List&lt;?&gt; decodeData = LittleEndianDecoder.decodeData(datatype, data.getBytes());</span>
-<span class="fc" id="L211">                                SubscriptionEventItem subscriptionEventItem =</span>
+<span class="nc" id="L210">                                List&lt;?&gt; decodeData = LittleEndianDecoder.decodeData(datatype, data.getBytes());</span>
+<span class="nc" id="L211">                                SubscriptionEventItem subscriptionEventItem =</span>
                                     new SubscriptionEventItem(subscriptionRequestItem, timeStamp, decodeData);
-<span class="fc" id="L213">                                subscriptionRequestItem.getConsumer().accept(subscriptionEventItem);</span>
+<span class="nc" id="L213">                                subscriptionRequestItem.getConsumer().accept(subscriptionEventItem);</span>
 <span class="nc" id="L214">                            } catch (PlcProtocolException | RuntimeException e) {</span>
 <span class="nc" id="L215">                                LOGGER.error(&quot;Can't decode {}&quot;, data, e);</span>
-<span class="fc" id="L216">                            }</span>
-<span class="fc" id="L217">                        });</span>
-<span class="fc" id="L218">                });</span>
+<span class="nc" id="L216">                            }</span>
+<span class="nc" id="L217">                        });</span>
+<span class="nc" id="L218">                });</span>
             // TODO: What's this for? Is this still needed if we use the consumers in the subscriptions?
 <span class="fc" id="L220">            getChannel().pipeline().get(Plc4x2AdsProtocol.class).addConsumer(adsDeviceNotificationRequestConsumer);</span>
         }
