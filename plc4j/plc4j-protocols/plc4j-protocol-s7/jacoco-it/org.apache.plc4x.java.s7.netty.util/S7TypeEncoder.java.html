@@ -18,6 +18,9 @@
  */
 package org.apache.plc4x.java.s7.netty.util;
 
+import org.apache.plc4x.java.api.exceptions.PlcNotImplementedException;
+import org.apache.plc4x.java.api.exceptions.PlcProtocolException;
+
 import java.util.Calendar;
 
 public class S7TypeEncoder {
@@ -26,104 +29,126 @@ public class S7TypeEncoder {
         // Utility class
     }
 
-    public static byte[] encodeData(Object[] values) {
-<span class="nc" id="L30">        final int length = values.length;</span>
-<span class="nc bnc" id="L31" title="All 2 branches missed.">        if (length == 0) {</span>
-<span class="nc" id="L32">            return new byte[]{};</span>
+    public static byte[] encodeData(Object[] values) throws PlcProtocolException {
+<span class="nc" id="L33">        final int length = values.length;</span>
+<span class="nc bnc" id="L34" title="All 2 branches missed.">        if (length == 0) {</span>
+<span class="nc" id="L35">            return new byte[]{};</span>
         }
-<span class="nc" id="L34">        byte[] result = null;</span>
-<span class="nc" id="L35">        Class valueType = values[0].getClass();</span>
-<span class="nc bnc" id="L36" title="All 2 branches missed.">        if (valueType == Boolean.class) {</span>
-<span class="nc" id="L37">            result = encodeBoolean(values, length);</span>
-<span class="nc bnc" id="L38" title="All 2 branches missed.">        } else if (valueType == Byte.class) {</span>
-<span class="nc" id="L39">            result = encodeByte(values, length);</span>
-<span class="nc bnc" id="L40" title="All 2 branches missed.">        } else if (valueType == Short.class) {</span>
-<span class="nc" id="L41">            result = encodeShort(values, length);</span>
-<span class="nc bnc" id="L42" title="All 2 branches missed.">        } else if (valueType == Integer.class) {</span>
-<span class="nc" id="L43">            result = encodeInteger(values, length);</span>
-<span class="nc bnc" id="L44" title="All 2 branches missed.">        } else if (valueType == Calendar.class) {</span>
+<span class="nc" id="L37">        byte[] result = null;</span>
+<span class="nc" id="L38">        Class valueType = values[0].getClass();</span>
+<span class="nc bnc" id="L39" title="All 2 branches missed.">        if (valueType == Boolean.class) {</span>
+<span class="nc" id="L40">            result = encodeBoolean(values, length);</span>
+<span class="nc bnc" id="L41" title="All 2 branches missed.">        } else if (valueType == Byte.class) {</span>
+<span class="nc" id="L42">            result = encodeByte(values, length);</span>
+<span class="nc bnc" id="L43" title="All 2 branches missed.">        } else if (valueType == Short.class) {</span>
+<span class="nc" id="L44">            result = encodeShort(values, length);</span>
+<span class="nc bnc" id="L45" title="All 2 branches missed.">        } else if (valueType == Integer.class) {</span>
+<span class="nc" id="L46">            result = encodeInteger(values, length);</span>
+<span class="nc bnc" id="L47" title="All 2 branches missed.">        } else if (valueType == Calendar.class) {</span>
             // TODO: Decide what to do here ...
-<span class="nc" id="L46">            result = null;</span>
-<span class="nc bnc" id="L47" title="All 2 branches missed.">        } else if (valueType == Float.class) {</span>
-<span class="nc" id="L48">            result = encodeFloat(values, length);</span>
-<span class="nc bnc" id="L49" title="All 2 branches missed.">        } else if (valueType == String.class) {</span>
-<span class="nc" id="L50">            result = encodeString(values, length);</span>
+<span class="nc" id="L49">            throw new PlcNotImplementedException(&quot;calender not yet implemented in s7&quot;);</span>
+<span class="nc bnc" id="L50" title="All 2 branches missed.">        } else if (valueType == Float.class) {</span>
+<span class="nc" id="L51">            result = encodeFloat(values, length);</span>
+<span class="nc bnc" id="L52" title="All 2 branches missed.">        } else if (valueType == Double.class) {</span>
+<span class="nc" id="L53">            result = encodeDouble(values, length);</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">        } else if (valueType == String.class) {</span>
+<span class="nc" id="L55">            result = encodeString(values, length);</span>
+        } else {
+<span class="nc" id="L57">            throw new PlcProtocolException(&quot;Unsupported data type &quot; + valueType);</span>
         }
-<span class="nc" id="L52">        return result;</span>
+<span class="nc" id="L59">        return result;</span>
     }
 
     public static byte[] encodeString(Object[] values, int length) {
         byte[] result;
-<span class="nc" id="L57">        int size = 0;</span>
-<span class="nc bnc" id="L58" title="All 2 branches missed.">        for (Object value : values) {</span>
-<span class="nc" id="L59">            size = size + ((String) value).length();</span>
+<span class="nc" id="L64">        int size = 0;</span>
+<span class="nc bnc" id="L65" title="All 2 branches missed.">        for (Object value : values) {</span>
+<span class="nc" id="L66">            size = size + ((String) value).length();</span>
         }
-<span class="nc" id="L61">        result = new byte[size + length];</span>
-<span class="nc" id="L62">        int j = 0;</span>
-<span class="nc bnc" id="L63" title="All 2 branches missed.">        for (Object value : values) {</span>
-<span class="nc" id="L64">            String str = (String) value;</span>
-<span class="nc bnc" id="L65" title="All 2 branches missed.">            for (int i = 0; i &lt; str.length(); i++) {</span>
-<span class="nc" id="L66">                result[j++] = (byte) str.charAt(i);</span>
+<span class="nc" id="L68">        result = new byte[size + length];</span>
+<span class="nc" id="L69">        int j = 0;</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">        for (Object value : values) {</span>
+<span class="nc" id="L71">            String str = (String) value;</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">            for (int i = 0; i &lt; str.length(); i++) {</span>
+<span class="nc" id="L73">                result[j++] = (byte) str.charAt(i);</span>
             }
-<span class="nc" id="L68">            result[j++] = (byte) 0x0;</span>
+<span class="nc" id="L75">            result[j++] = (byte) 0x0;</span>
         }
-<span class="nc" id="L70">        return result;</span>
+<span class="nc" id="L77">        return result;</span>
     }
 
     public static byte[] encodeFloat(Object[] values, int length) {
         byte[] result;
-<span class="nc" id="L75">        result = new byte[length * 4];</span>
-<span class="nc bnc" id="L76" title="All 2 branches missed.">        for (int i = 0; i &lt; length; i++) {</span>
-<span class="nc" id="L77">            float floatValue = (float) values[i];</span>
-<span class="nc" id="L78">            int intValue = Float.floatToIntBits(floatValue);</span>
-<span class="nc" id="L79">            result[i * 4] = (byte) ((intValue &amp; 0xff000000) &gt;&gt; 24);</span>
-<span class="nc" id="L80">            result[(i * 4) + 1] = (byte) ((intValue &amp; 0x00ff0000) &gt;&gt; 16);</span>
-<span class="nc" id="L81">            result[(i * 4) + 2] = (byte) ((intValue &amp; 0x0000ff00) &gt;&gt; 8);</span>
-<span class="nc" id="L82">            result[(i * 4) + 3] = (byte) (intValue &amp; 0xff);</span>
+<span class="nc" id="L82">        result = new byte[length * 4];</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">        for (int i = 0; i &lt; length; i++) {</span>
+<span class="nc" id="L84">            float floatValue = (float) values[i];</span>
+<span class="nc" id="L85">            int intValue = Float.floatToIntBits(floatValue);</span>
+<span class="nc" id="L86">            result[i * 4] = (byte) ((intValue &amp; 0xff000000) &gt;&gt; 24);</span>
+<span class="nc" id="L87">            result[(i * 4) + 1] = (byte) ((intValue &amp; 0x00ff0000) &gt;&gt; 16);</span>
+<span class="nc" id="L88">            result[(i * 4) + 2] = (byte) ((intValue &amp; 0x0000ff00) &gt;&gt; 8);</span>
+<span class="nc" id="L89">            result[(i * 4) + 3] = (byte) (intValue &amp; 0xff);</span>
         }
-<span class="nc" id="L84">        return result;</span>
+<span class="nc" id="L91">        return result;</span>
+    }
+
+    public static byte[] encodeDouble(Object[] values, int length) {
+        byte[] result;
+<span class="nc" id="L96">        result = new byte[length * 8];</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">        for (int i = 0; i &lt; length; i++) {</span>
+<span class="nc" id="L98">            double doubleValue = (double) values[i];</span>
+<span class="nc" id="L99">            long longValue = Double.doubleToLongBits(doubleValue);</span>
+<span class="nc" id="L100">            result[(i * 8)] =     (byte) ((longValue &amp; 0xFF000000_00000000L) &gt;&gt; 56);</span>
+<span class="nc" id="L101">            result[(i * 8) + 1] = (byte) ((longValue &amp; 0x00FF0000_00000000L) &gt;&gt; 48);</span>
+<span class="nc" id="L102">            result[(i * 8) + 2] = (byte) ((longValue &amp; 0x0000FF00_00000000L) &gt;&gt; 40);</span>
+<span class="nc" id="L103">            result[(i * 8) + 3] = (byte) ((longValue &amp; 0x000000FF_00000000L) &gt;&gt; 32);</span>
+<span class="nc" id="L104">            result[(i * 8) + 4] = (byte) ((longValue &amp; 0x00000000_FF000000L) &gt;&gt; 24);</span>
+<span class="nc" id="L105">            result[(i * 8) + 5] = (byte) ((longValue &amp; 0x00000000_00FF0000L) &gt;&gt; 16);</span>
+<span class="nc" id="L106">            result[(i * 8) + 6] = (byte) ((longValue &amp; 0x00000000_0000FF00L) &gt;&gt; 8);</span>
+<span class="nc" id="L107">            result[(i * 8) + 7] = (byte) (longValue &amp; 0x00000000_000000FFL);</span>
+        }
+<span class="nc" id="L109">        return result;</span>
     }
 
     public static byte[] encodeInteger(Object[] values, int length) {
         byte[] result;
-<span class="nc" id="L89">        result = new byte[length * 4];</span>
-<span class="nc bnc" id="L90" title="All 2 branches missed.">        for (int i = 0; i &lt; length; i++) {</span>
-<span class="nc" id="L91">            int intValue = (int) values[i];</span>
-<span class="nc" id="L92">            result[i * 4] = (byte) ((intValue &amp; 0xff000000) &gt;&gt; 24);</span>
-<span class="nc" id="L93">            result[(i * 4) + 1] = (byte) ((intValue &amp; 0x00ff0000) &gt;&gt; 16);</span>
-<span class="nc" id="L94">            result[(i * 4) + 2] = (byte) ((intValue &amp; 0x0000ff00) &gt;&gt; 8);</span>
-<span class="nc" id="L95">            result[(i * 4) + 3] = (byte) (intValue &amp; 0xff);</span>
+<span class="nc" id="L114">        result = new byte[length * 4];</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">        for (int i = 0; i &lt; length; i++) {</span>
+<span class="nc" id="L116">            int intValue = (int) values[i];</span>
+<span class="nc" id="L117">            result[i * 4] = (byte) ((intValue &amp; 0xff000000) &gt;&gt; 24);</span>
+<span class="nc" id="L118">            result[(i * 4) + 1] = (byte) ((intValue &amp; 0x00ff0000) &gt;&gt; 16);</span>
+<span class="nc" id="L119">            result[(i * 4) + 2] = (byte) ((intValue &amp; 0x0000ff00) &gt;&gt; 8);</span>
+<span class="nc" id="L120">            result[(i * 4) + 3] = (byte) (intValue &amp; 0xff);</span>
         }
-<span class="nc" id="L97">        return result;</span>
+<span class="nc" id="L122">        return result;</span>
     }
 
     public static byte[] encodeShort(Object[] values, int length) {
         byte[] result;
-<span class="nc" id="L102">        result = new byte[length * 2];</span>
-<span class="nc bnc" id="L103" title="All 2 branches missed.">        for (int i = 0; i &lt; length; i++) {</span>
-<span class="nc" id="L104">            short intValue = (short) values[i];</span>
-<span class="nc" id="L105">            result[i * 2] = (byte) ((intValue &amp; 0xff00) &gt;&gt; 8);</span>
-<span class="nc" id="L106">            result[(i * 2) + 1] = (byte) (intValue &amp; 0xff);</span>
+<span class="nc" id="L127">        result = new byte[length * 2];</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">        for (int i = 0; i &lt; length; i++) {</span>
+<span class="nc" id="L129">            short intValue = (short) values[i];</span>
+<span class="nc" id="L130">            result[i * 2] = (byte) ((intValue &amp; 0xff00) &gt;&gt; 8);</span>
+<span class="nc" id="L131">            result[(i * 2) + 1] = (byte) (intValue &amp; 0xff);</span>
         }
-<span class="nc" id="L108">        return result;</span>
+<span class="nc" id="L133">        return result;</span>
     }
 
     public static byte[] encodeByte(Object[] values, int length) {
         byte[] result;
-<span class="nc" id="L113">        result = new byte[length];</span>
-<span class="nc bnc" id="L114" title="All 2 branches missed.">        for (int i = 0; i &lt; length; i++) {</span>
-<span class="nc" id="L115">            result[i] = (byte) values[i];</span>
+<span class="nc" id="L138">        result = new byte[length];</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">        for (int i = 0; i &lt; length; i++) {</span>
+<span class="nc" id="L140">            result[i] = (byte) values[i];</span>
         }
-<span class="nc" id="L117">        return result;</span>
+<span class="nc" id="L142">        return result;</span>
     }
 
     public static byte[] encodeBoolean(Object[] values, int length) {
         byte[] result;// TODO: Check if this is true and the result is not Math.ceil(values.lenght / 8)
-<span class="nc" id="L122">        result = new byte[length];</span>
-<span class="nc bnc" id="L123" title="All 2 branches missed.">        for (int i = 0; i &lt; length; i++) {</span>
-<span class="nc bnc" id="L124" title="All 2 branches missed.">            result[i] = (byte) (((Boolean) values[i]) ? 0x01 : 0x00);</span>
+<span class="nc" id="L147">        result = new byte[length];</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">        for (int i = 0; i &lt; length; i++) {</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">            result[i] = (byte) (((Boolean) values[i]) ? 0x01 : 0x00);</span>
         }
-<span class="nc" id="L126">        return result;</span>
+<span class="nc" id="L151">        return result;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
