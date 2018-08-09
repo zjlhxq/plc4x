@@ -57,146 +57,152 @@ public class LittleEndianDecoder {
 
     @SuppressWarnings(&quot;unchecked&quot;)
     public static &lt;T&gt; List&lt;T&gt; decodeData(Class&lt;T&gt; datatype, byte[] adsData) throws PlcProtocolException {
-<span class="fc" id="L60">        List&lt;Object&gt; result = new LinkedList&lt;&gt;();</span>
-<span class="fc" id="L61">        int i = 0;</span>
-<span class="fc" id="L62">        final int length = adsData.length;</span>
+<span class="fc bfc" id="L60" title="All 2 branches covered.">        if (datatype == byte[].class) {</span>
+<span class="fc" id="L61">            return (List&lt;T&gt;) Collections.singletonList(adsData);</span>
+        }
+<span class="fc bfc" id="L63" title="All 2 branches covered.">        if (datatype == Byte[].class) {</span>
+<span class="fc" id="L64">            return (List&lt;T&gt;) Collections.singletonList(ArrayUtils.toObject(adsData));</span>
+        }
+<span class="fc" id="L66">        List&lt;Object&gt; result = new LinkedList&lt;&gt;();</span>
+<span class="fc" id="L67">        int i = 0;</span>
+<span class="fc" id="L68">        final int length = adsData.length;</span>
 
         // Expand arrays to avoid IndexOutOfBoundsException
         final byte[] safeLengthAdsData;
-<span class="fc bfc" id="L66" title="All 4 branches covered.">        if (datatype == Short.class &amp;&amp; length &lt; 2) {</span>
-<span class="fc" id="L67">            safeLengthAdsData = new byte[2];</span>
-<span class="fc" id="L68">            System.arraycopy(adsData, 0, safeLengthAdsData, 0, length);</span>
-<span class="fc bfc" id="L69" title="All 4 branches covered.">        } else if (datatype == Integer.class &amp;&amp; length &lt; 4) {</span>
-<span class="fc" id="L70">            safeLengthAdsData = new byte[4];</span>
-<span class="fc" id="L71">            System.arraycopy(adsData, 0, safeLengthAdsData, 0, length);</span>
-<span class="fc bfc" id="L72" title="All 4 branches covered.">        } else if (datatype == Float.class &amp;&amp; length &lt; 4) {</span>
-<span class="fc" id="L73">            safeLengthAdsData = new byte[4];</span>
+<span class="fc bfc" id="L72" title="All 4 branches covered.">        if (datatype == Short.class &amp;&amp; length &lt; 2) {</span>
+<span class="fc" id="L73">            safeLengthAdsData = new byte[2];</span>
 <span class="fc" id="L74">            System.arraycopy(adsData, 0, safeLengthAdsData, 0, length);</span>
-<span class="fc bfc" id="L75" title="All 4 branches covered.">        } else if (datatype == Double.class &amp;&amp; length &lt; 8) {</span>
-<span class="fc" id="L76">            safeLengthAdsData = new byte[8];</span>
+<span class="fc bfc" id="L75" title="All 4 branches covered.">        } else if (datatype == Integer.class &amp;&amp; length &lt; 4) {</span>
+<span class="fc" id="L76">            safeLengthAdsData = new byte[4];</span>
 <span class="fc" id="L77">            System.arraycopy(adsData, 0, safeLengthAdsData, 0, length);</span>
-<span class="fc bfc" id="L78" title="All 6 branches covered.">        } else if ((datatype == Calendar.class || Calendar.class.isAssignableFrom(datatype)) &amp;&amp; length &lt; 8) {</span>
-<span class="fc" id="L79">            safeLengthAdsData = new byte[8];</span>
+<span class="fc bfc" id="L78" title="All 4 branches covered.">        } else if (datatype == Float.class &amp;&amp; length &lt; 4) {</span>
+<span class="fc" id="L79">            safeLengthAdsData = new byte[4];</span>
 <span class="fc" id="L80">            System.arraycopy(adsData, 0, safeLengthAdsData, 0, length);</span>
+<span class="fc bfc" id="L81" title="All 4 branches covered.">        } else if (datatype == Double.class &amp;&amp; length &lt; 8) {</span>
+<span class="fc" id="L82">            safeLengthAdsData = new byte[8];</span>
+<span class="fc" id="L83">            System.arraycopy(adsData, 0, safeLengthAdsData, 0, length);</span>
+<span class="fc bfc" id="L84" title="All 6 branches covered.">        } else if ((datatype == Calendar.class || Calendar.class.isAssignableFrom(datatype)) &amp;&amp; length &lt; 8) {</span>
+<span class="fc" id="L85">            safeLengthAdsData = new byte[8];</span>
+<span class="fc" id="L86">            System.arraycopy(adsData, 0, safeLengthAdsData, 0, length);</span>
         } else {
-<span class="fc" id="L82">            safeLengthAdsData = adsData;</span>
+<span class="fc" id="L88">            safeLengthAdsData = adsData;</span>
         }
 
-<span class="fc bfc" id="L85" title="All 2 branches covered.">        while (i &lt; length) {</span>
-<span class="fc" id="L86">            byte byteOne = safeLengthAdsData[i];</span>
-<span class="fc bfc" id="L87" title="All 2 branches covered.">            if (datatype == String.class) {</span>
-<span class="fc" id="L88">                i = decodeString(safeLengthAdsData, i, length, result);</span>
-<span class="fc bfc" id="L89" title="All 2 branches covered.">            } else if (datatype == Boolean.class) {</span>
-<span class="fc bfc" id="L90" title="All 2 branches covered.">                result.add((byteOne &amp; 0x01) == 0x01);</span>
-<span class="fc" id="L91">                i += 1;</span>
-<span class="fc bfc" id="L92" title="All 2 branches covered.">            } else if (datatype == Byte.class) {</span>
-<span class="fc" id="L93">                result.add(byteOne);</span>
-<span class="fc" id="L94">                i += 1;</span>
-<span class="fc bfc" id="L95" title="All 2 branches covered.">            } else if (datatype == Short.class) {</span>
-<span class="fc" id="L96">                decodeShort(safeLengthAdsData, i, result);</span>
-<span class="fc" id="L97">                i += 2;</span>
-<span class="fc bfc" id="L98" title="All 2 branches covered.">            } else if (datatype == Integer.class) {</span>
-<span class="fc" id="L99">                decodeInteger(safeLengthAdsData, i, result);</span>
-<span class="fc" id="L100">                i += 4;</span>
-<span class="fc bfc" id="L101" title="All 2 branches covered.">            } else if (datatype == BigInteger.class) {</span>
-<span class="fc" id="L102">                decodeBigInteger(safeLengthAdsData, result);</span>
+<span class="fc bfc" id="L91" title="All 2 branches covered.">        while (i &lt; length) {</span>
+<span class="fc" id="L92">            byte byteOne = safeLengthAdsData[i];</span>
+<span class="fc bfc" id="L93" title="All 2 branches covered.">            if (datatype == String.class) {</span>
+<span class="fc" id="L94">                i = decodeString(safeLengthAdsData, i, length, result);</span>
+<span class="fc bfc" id="L95" title="All 2 branches covered.">            } else if (datatype == Boolean.class) {</span>
+<span class="fc bfc" id="L96" title="All 2 branches covered.">                result.add((byteOne &amp; 0x01) == 0x01);</span>
+<span class="fc" id="L97">                i += 1;</span>
+<span class="fc bfc" id="L98" title="All 2 branches covered.">            } else if (datatype == Byte.class) {</span>
+<span class="fc" id="L99">                result.add(byteOne);</span>
+<span class="fc" id="L100">                i += 1;</span>
+<span class="fc bfc" id="L101" title="All 2 branches covered.">            } else if (datatype == Short.class) {</span>
+<span class="fc" id="L102">                decodeShort(safeLengthAdsData, i, result);</span>
+<span class="fc" id="L103">                i += 2;</span>
+<span class="fc bfc" id="L104" title="All 2 branches covered.">            } else if (datatype == Integer.class) {</span>
+<span class="fc" id="L105">                decodeInteger(safeLengthAdsData, i, result);</span>
+<span class="fc" id="L106">                i += 4;</span>
+<span class="fc bfc" id="L107" title="All 2 branches covered.">            } else if (datatype == BigInteger.class) {</span>
+<span class="fc" id="L108">                decodeBigInteger(safeLengthAdsData, result);</span>
                 // A big integer can consume the whole stream
-<span class="fc" id="L104">                i = length;</span>
-<span class="fc bfc" id="L105" title="All 2 branches covered.">            } else if (datatype == Float.class) {</span>
-<span class="fc" id="L106">                decodeFloat(safeLengthAdsData, i, result);</span>
-<span class="fc" id="L107">                i += 4;</span>
-<span class="fc bfc" id="L108" title="All 2 branches covered.">            } else if (datatype == Double.class) {</span>
-<span class="fc" id="L109">                decodeDouble(safeLengthAdsData, i, result);</span>
-<span class="fc" id="L110">                i += 8;</span>
-<span class="fc bfc" id="L111" title="All 4 branches covered.">            } else if (datatype == Calendar.class || Calendar.class.isAssignableFrom(datatype)) {</span>
-<span class="fc" id="L112">                extractCalendar(safeLengthAdsData, i, result);</span>
-<span class="fc" id="L113">                i += 8;</span>
+<span class="fc" id="L110">                i = length;</span>
+<span class="fc bfc" id="L111" title="All 2 branches covered.">            } else if (datatype == Float.class) {</span>
+<span class="fc" id="L112">                decodeFloat(safeLengthAdsData, i, result);</span>
+<span class="fc" id="L113">                i += 4;</span>
+<span class="fc bfc" id="L114" title="All 2 branches covered.">            } else if (datatype == Double.class) {</span>
+<span class="fc" id="L115">                decodeDouble(safeLengthAdsData, i, result);</span>
+<span class="fc" id="L116">                i += 8;</span>
+<span class="fc bfc" id="L117" title="All 4 branches covered.">            } else if (datatype == Calendar.class || Calendar.class.isAssignableFrom(datatype)) {</span>
+<span class="fc" id="L118">                extractCalendar(safeLengthAdsData, i, result);</span>
+<span class="fc" id="L119">                i += 8;</span>
             } else {
-<span class="fc" id="L115">                throw new PlcProtocolException(&quot;Unsupported datatype &quot; + datatype.getSimpleName());</span>
+<span class="fc" id="L121">                throw new PlcProtocolException(&quot;Unsupported datatype &quot; + datatype.getSimpleName());</span>
             }
-<span class="fc" id="L117">        }</span>
-<span class="fc" id="L118">        return (List&lt;T&gt;) result;</span>
+<span class="fc" id="L123">        }</span>
+<span class="fc" id="L124">        return (List&lt;T&gt;) result;</span>
     }
 
     private static int decodeString(byte[] adsData, int i, int length, List&lt;Object&gt; result) throws PlcProtocolException {
-<span class="fc bfc" id="L122" title="All 2 branches covered.">        if (length &lt; 2) {</span>
-<span class="fc" id="L123">            throw new PlcProtocolException(&quot;String must be a null terminated byte array&quot;);</span>
+<span class="fc bfc" id="L128" title="All 2 branches covered.">        if (length &lt; 2) {</span>
+<span class="fc" id="L129">            throw new PlcProtocolException(&quot;String must be a null terminated byte array&quot;);</span>
         }
-<span class="fc" id="L125">        int pos = i;</span>
-<span class="fc" id="L126">        StringBuilder builder = new StringBuilder();</span>
+<span class="fc" id="L131">        int pos = i;</span>
+<span class="fc" id="L132">        StringBuilder builder = new StringBuilder();</span>
         // TODO: check if we have at least a 0x0 space
-<span class="fc bfc" id="L128" title="All 4 branches covered.">        while (pos &lt; length &amp;&amp; adsData[pos] != (byte) 0x0) {</span>
-<span class="fc" id="L129">            builder.append((char) adsData[pos]);</span>
-<span class="fc" id="L130">            pos++;</span>
+<span class="fc bfc" id="L134" title="All 4 branches covered.">        while (pos &lt; length &amp;&amp; adsData[pos] != (byte) 0x0) {</span>
+<span class="fc" id="L135">            builder.append((char) adsData[pos]);</span>
+<span class="fc" id="L136">            pos++;</span>
         }
-<span class="fc" id="L132">        pos++; // skip terminating character</span>
-<span class="fc" id="L133">        result.add(builder.toString());</span>
-<span class="fc" id="L134">        return pos;</span>
+<span class="fc" id="L138">        pos++; // skip terminating character</span>
+<span class="fc" id="L139">        result.add(builder.toString());</span>
+<span class="fc" id="L140">        return pos;</span>
     }
 
     private static void decodeShort(byte[] adsData, int i, List&lt;Object&gt; result) {
-<span class="fc" id="L138">        byte byteOne = adsData[i];</span>
-<span class="fc" id="L139">        byte byteTwo = adsData[i + 1];</span>
-<span class="fc" id="L140">        result.add((short) ((byteOne &amp; 0xff) | ((byteTwo &amp; 0xff) &lt;&lt; 8)));</span>
-<span class="fc" id="L141">    }</span>
-
-    private static void decodeInteger(byte[] adsData, int i, List&lt;Object&gt; result) {
 <span class="fc" id="L144">        byte byteOne = adsData[i];</span>
 <span class="fc" id="L145">        byte byteTwo = adsData[i + 1];</span>
-<span class="fc" id="L146">        byte byteThree = adsData[i + 2];</span>
-<span class="fc" id="L147">        byte byteFour = adsData[i + 3];</span>
-<span class="fc" id="L148">        result.add((byteOne &amp; 0xff) | ((byteTwo &amp; 0xff) &lt;&lt; 8) | ((byteThree &amp; 0xff) &lt;&lt; 16) | (byteFour &amp; 0xff) &lt;&lt; 24);</span>
-<span class="fc" id="L149">    }</span>
+<span class="fc" id="L146">        result.add((short) ((byteOne &amp; 0xff) | ((byteTwo &amp; 0xff) &lt;&lt; 8)));</span>
+<span class="fc" id="L147">    }</span>
+
+    private static void decodeInteger(byte[] adsData, int i, List&lt;Object&gt; result) {
+<span class="fc" id="L150">        byte byteOne = adsData[i];</span>
+<span class="fc" id="L151">        byte byteTwo = adsData[i + 1];</span>
+<span class="fc" id="L152">        byte byteThree = adsData[i + 2];</span>
+<span class="fc" id="L153">        byte byteFour = adsData[i + 3];</span>
+<span class="fc" id="L154">        result.add((byteOne &amp; 0xff) | ((byteTwo &amp; 0xff) &lt;&lt; 8) | ((byteThree &amp; 0xff) &lt;&lt; 16) | (byteFour &amp; 0xff) &lt;&lt; 24);</span>
+<span class="fc" id="L155">    }</span>
 
     private static void decodeBigInteger(byte[] adsData, List&lt;Object&gt; result) {
-<span class="fc" id="L152">        byte[] clone = ArrayUtils.clone(adsData);</span>
-<span class="fc" id="L153">        ArrayUtils.reverse(clone);</span>
-<span class="fc" id="L154">        byte[] bigIntegerByteArray = ArrayUtils.insert(0, clone, (byte) 0x0);</span>
-<span class="fc" id="L155">        result.add(new BigInteger(bigIntegerByteArray));</span>
-<span class="fc" id="L156">    }</span>
+<span class="fc" id="L158">        byte[] clone = ArrayUtils.clone(adsData);</span>
+<span class="fc" id="L159">        ArrayUtils.reverse(clone);</span>
+<span class="fc" id="L160">        byte[] bigIntegerByteArray = ArrayUtils.insert(0, clone, (byte) 0x0);</span>
+<span class="fc" id="L161">        result.add(new BigInteger(bigIntegerByteArray));</span>
+<span class="fc" id="L162">    }</span>
 
     private static void decodeFloat(byte[] adsData, int i, List&lt;Object&gt; result) {
-<span class="fc" id="L159">        byte byteOne = adsData[i];</span>
-<span class="fc" id="L160">        byte byteTwo = adsData[i + 1];</span>
-<span class="fc" id="L161">        byte byteThree = adsData[i + 2];</span>
-<span class="fc" id="L162">        byte byteFour = adsData[i + 3];</span>
+<span class="fc" id="L165">        byte byteOne = adsData[i];</span>
+<span class="fc" id="L166">        byte byteTwo = adsData[i + 1];</span>
+<span class="fc" id="L167">        byte byteThree = adsData[i + 2];</span>
+<span class="fc" id="L168">        byte byteFour = adsData[i + 3];</span>
         // TODO: check how ads expects this data
         // Description of the Real number format:
         // https://www.sps-lehrgang.de/zahlenformate-step7/#c144
         // https://de.wikipedia.org/wiki/IEEE_754
-<span class="fc" id="L167">        int intValue = (byteOne &amp; 0xff) | ((byteTwo &amp; 0xff) &lt;&lt; 8) | ((byteThree &amp; 0xff) &lt;&lt; 16) | ((byteFour &amp; 0xff) &lt;&lt; 24);</span>
-<span class="fc" id="L168">        result.add(Float.intBitsToFloat(intValue));</span>
-<span class="fc" id="L169">    }</span>
+<span class="fc" id="L173">        int intValue = (byteOne &amp; 0xff) | ((byteTwo &amp; 0xff) &lt;&lt; 8) | ((byteThree &amp; 0xff) &lt;&lt; 16) | ((byteFour &amp; 0xff) &lt;&lt; 24);</span>
+<span class="fc" id="L174">        result.add(Float.intBitsToFloat(intValue));</span>
+<span class="fc" id="L175">    }</span>
 
     private static void decodeDouble(byte[] adsData, int i, List&lt;Object&gt; result) {
-<span class="fc" id="L172">        byte byteOne = adsData[i];</span>
-<span class="fc" id="L173">        byte byteTwo = adsData[i + 1];</span>
-<span class="fc" id="L174">        byte byteThree = adsData[i + 2];</span>
-<span class="fc" id="L175">        byte byteFour = adsData[i + 3];</span>
-<span class="fc" id="L176">        byte byteFive = adsData[i + 4];</span>
-<span class="fc" id="L177">        byte byteSix = adsData[i + 5];</span>
-<span class="fc" id="L178">        byte byteSeven = adsData[i + 6];</span>
-<span class="fc" id="L179">        byte byteEigth = adsData[i + 7];</span>
+<span class="fc" id="L178">        byte byteOne = adsData[i];</span>
+<span class="fc" id="L179">        byte byteTwo = adsData[i + 1];</span>
+<span class="fc" id="L180">        byte byteThree = adsData[i + 2];</span>
+<span class="fc" id="L181">        byte byteFour = adsData[i + 3];</span>
+<span class="fc" id="L182">        byte byteFive = adsData[i + 4];</span>
+<span class="fc" id="L183">        byte byteSix = adsData[i + 5];</span>
+<span class="fc" id="L184">        byte byteSeven = adsData[i + 6];</span>
+<span class="fc" id="L185">        byte byteEigth = adsData[i + 7];</span>
         // TODO: check how ads expects this data
         // Description of the Real number format:
         // https://www.sps-lehrgang.de/zahlenformate-step7/#c144
         // https://de.wikipedia.org/wiki/IEEE_754
-<span class="fc" id="L184">        long longValue = (long) (byteOne &amp; 0xff) | ((long) (byteTwo &amp; 0xff) &lt;&lt; 8) | ((long) (byteThree &amp; 0xff) &lt;&lt; 16) | ((long) (byteFour &amp; 0xff) &lt;&lt; 24)</span>
+<span class="fc" id="L190">        long longValue = (long) (byteOne &amp; 0xff) | ((long) (byteTwo &amp; 0xff) &lt;&lt; 8) | ((long) (byteThree &amp; 0xff) &lt;&lt; 16) | ((long) (byteFour &amp; 0xff) &lt;&lt; 24)</span>
             | (long) (byteFive &amp; 0xff) &lt;&lt; 32 | ((long) (byteSix &amp; 0xff) &lt;&lt; 40) | ((long) (byteSeven &amp; 0xff) &lt;&lt; 48) | ((long) (byteEigth &amp; 0xff) &lt;&lt; 56);
-<span class="fc" id="L186">        result.add(Double.longBitsToDouble(longValue));</span>
-<span class="fc" id="L187">    }</span>
+<span class="fc" id="L192">        result.add(Double.longBitsToDouble(longValue));</span>
+<span class="fc" id="L193">    }</span>
 
     private static void extractCalendar(byte[] adsData, int i, List&lt;Object&gt; result) {
-<span class="fc" id="L190">        byte byteOne = adsData[i];</span>
-<span class="fc" id="L191">        byte byteTwo = adsData[i + 1];</span>
-<span class="fc" id="L192">        byte byteThree = adsData[i + 2];</span>
-<span class="fc" id="L193">        byte byteFour = adsData[i + 3];</span>
-<span class="fc" id="L194">        byte byteFive = adsData[i + 4];</span>
-<span class="fc" id="L195">        byte byteSix = adsData[i + 5];</span>
-<span class="fc" id="L196">        byte byteSeven = adsData[i + 6];</span>
-<span class="fc" id="L197">        byte byteEight = adsData[i + 7];</span>
-<span class="fc" id="L198">        Calendar calendar = Calendar.getInstance();</span>
-<span class="fc" id="L199">        calendar.setTime(new Date(TimeStamp.winTimeToJava(</span>
+<span class="fc" id="L196">        byte byteOne = adsData[i];</span>
+<span class="fc" id="L197">        byte byteTwo = adsData[i + 1];</span>
+<span class="fc" id="L198">        byte byteThree = adsData[i + 2];</span>
+<span class="fc" id="L199">        byte byteFour = adsData[i + 3];</span>
+<span class="fc" id="L200">        byte byteFive = adsData[i + 4];</span>
+<span class="fc" id="L201">        byte byteSix = adsData[i + 5];</span>
+<span class="fc" id="L202">        byte byteSeven = adsData[i + 6];</span>
+<span class="fc" id="L203">        byte byteEight = adsData[i + 7];</span>
+<span class="fc" id="L204">        Calendar calendar = Calendar.getInstance();</span>
+<span class="fc" id="L205">        calendar.setTime(new Date(TimeStamp.winTimeToJava(</span>
             new BigInteger(new byte[]{
                 // LE
                 byteEight,
@@ -207,8 +213,8 @@ public class LittleEndianDecoder {
                 byteThree,
                 byteTwo,
                 byteOne,
-<span class="fc" id="L210">            })).longValue()));</span>
-<span class="fc" id="L211">        result.add(calendar);</span>
-<span class="fc" id="L212">    }</span>
+<span class="fc" id="L216">            })).longValue()));</span>
+<span class="fc" id="L217">        result.add(calendar);</span>
+<span class="fc" id="L218">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

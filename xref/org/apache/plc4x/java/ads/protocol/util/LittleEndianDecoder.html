@@ -65,160 +65,166 @@
 <a class="jxr_linenumber" name="L57" href="#L57">57</a>  
 <a class="jxr_linenumber" name="L58" href="#L58">58</a>      @SuppressWarnings(<span class="jxr_string">"unchecked"</span>)
 <a class="jxr_linenumber" name="L59" href="#L59">59</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> &lt;T&gt; List&lt;T&gt; decodeData(Class&lt;T&gt; datatype, byte[] adsData) <strong class="jxr_keyword">throws</strong> PlcProtocolException {
-<a class="jxr_linenumber" name="L60" href="#L60">60</a>          List&lt;Object&gt; result = <strong class="jxr_keyword">new</strong> LinkedList&lt;&gt;();
-<a class="jxr_linenumber" name="L61" href="#L61">61</a>          <strong class="jxr_keyword">int</strong> i = 0;
-<a class="jxr_linenumber" name="L62" href="#L62">62</a>          <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> length = adsData.length;
-<a class="jxr_linenumber" name="L63" href="#L63">63</a>  
-<a class="jxr_linenumber" name="L64" href="#L64">64</a>          <em class="jxr_comment">// Expand arrays to avoid IndexOutOfBoundsException</em>
-<a class="jxr_linenumber" name="L65" href="#L65">65</a>          <strong class="jxr_keyword">final</strong> byte[] safeLengthAdsData;
-<a class="jxr_linenumber" name="L66" href="#L66">66</a>          <strong class="jxr_keyword">if</strong> (datatype == Short.<strong class="jxr_keyword">class</strong> &amp;&amp; length &lt; 2) {
-<a class="jxr_linenumber" name="L67" href="#L67">67</a>              safeLengthAdsData = <strong class="jxr_keyword">new</strong> byte[2];
-<a class="jxr_linenumber" name="L68" href="#L68">68</a>              System.arraycopy(adsData, 0, safeLengthAdsData, 0, length);
-<a class="jxr_linenumber" name="L69" href="#L69">69</a>          } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (datatype == Integer.<strong class="jxr_keyword">class</strong> &amp;&amp; length &lt; 4) {
-<a class="jxr_linenumber" name="L70" href="#L70">70</a>              safeLengthAdsData = <strong class="jxr_keyword">new</strong> byte[4];
-<a class="jxr_linenumber" name="L71" href="#L71">71</a>              System.arraycopy(adsData, 0, safeLengthAdsData, 0, length);
-<a class="jxr_linenumber" name="L72" href="#L72">72</a>          } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (datatype == Float.<strong class="jxr_keyword">class</strong> &amp;&amp; length &lt; 4) {
-<a class="jxr_linenumber" name="L73" href="#L73">73</a>              safeLengthAdsData = <strong class="jxr_keyword">new</strong> byte[4];
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>          <strong class="jxr_keyword">if</strong> (datatype == byte[].<strong class="jxr_keyword">class</strong>) {
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>              <strong class="jxr_keyword">return</strong> (List&lt;T&gt;) Collections.singletonList(adsData);
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>          }
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>          <strong class="jxr_keyword">if</strong> (datatype == Byte[].<strong class="jxr_keyword">class</strong>) {
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>              <strong class="jxr_keyword">return</strong> (List&lt;T&gt;) Collections.singletonList(ArrayUtils.toObject(adsData));
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>          }
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>          List&lt;Object&gt; result = <strong class="jxr_keyword">new</strong> LinkedList&lt;&gt;();
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>          <strong class="jxr_keyword">int</strong> i = 0;
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>          <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> length = adsData.length;
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>  
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>          <em class="jxr_comment">// Expand arrays to avoid IndexOutOfBoundsException</em>
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>          <strong class="jxr_keyword">final</strong> byte[] safeLengthAdsData;
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>          <strong class="jxr_keyword">if</strong> (datatype == Short.<strong class="jxr_keyword">class</strong> &amp;&amp; length &lt; 2) {
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>              safeLengthAdsData = <strong class="jxr_keyword">new</strong> byte[2];
 <a class="jxr_linenumber" name="L74" href="#L74">74</a>              System.arraycopy(adsData, 0, safeLengthAdsData, 0, length);
-<a class="jxr_linenumber" name="L75" href="#L75">75</a>          } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (datatype == Double.<strong class="jxr_keyword">class</strong> &amp;&amp; length &lt; 8) {
-<a class="jxr_linenumber" name="L76" href="#L76">76</a>              safeLengthAdsData = <strong class="jxr_keyword">new</strong> byte[8];
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>          } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (datatype == Integer.<strong class="jxr_keyword">class</strong> &amp;&amp; length &lt; 4) {
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>              safeLengthAdsData = <strong class="jxr_keyword">new</strong> byte[4];
 <a class="jxr_linenumber" name="L77" href="#L77">77</a>              System.arraycopy(adsData, 0, safeLengthAdsData, 0, length);
-<a class="jxr_linenumber" name="L78" href="#L78">78</a>          } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> ((datatype == Calendar.<strong class="jxr_keyword">class</strong> || Calendar.<strong class="jxr_keyword">class</strong>.isAssignableFrom(datatype)) &amp;&amp; length &lt; 8) {
-<a class="jxr_linenumber" name="L79" href="#L79">79</a>              safeLengthAdsData = <strong class="jxr_keyword">new</strong> byte[8];
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>          } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (datatype == Float.<strong class="jxr_keyword">class</strong> &amp;&amp; length &lt; 4) {
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>              safeLengthAdsData = <strong class="jxr_keyword">new</strong> byte[4];
 <a class="jxr_linenumber" name="L80" href="#L80">80</a>              System.arraycopy(adsData, 0, safeLengthAdsData, 0, length);
-<a class="jxr_linenumber" name="L81" href="#L81">81</a>          } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L82" href="#L82">82</a>              safeLengthAdsData = adsData;
-<a class="jxr_linenumber" name="L83" href="#L83">83</a>          }
-<a class="jxr_linenumber" name="L84" href="#L84">84</a>  
-<a class="jxr_linenumber" name="L85" href="#L85">85</a>          <strong class="jxr_keyword">while</strong> (i &lt; length) {
-<a class="jxr_linenumber" name="L86" href="#L86">86</a>              byte byteOne = safeLengthAdsData[i];
-<a class="jxr_linenumber" name="L87" href="#L87">87</a>              <strong class="jxr_keyword">if</strong> (datatype == String.<strong class="jxr_keyword">class</strong>) {
-<a class="jxr_linenumber" name="L88" href="#L88">88</a>                  i = decodeString(safeLengthAdsData, i, length, result);
-<a class="jxr_linenumber" name="L89" href="#L89">89</a>              } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (datatype == Boolean.<strong class="jxr_keyword">class</strong>) {
-<a class="jxr_linenumber" name="L90" href="#L90">90</a>                  result.add((byteOne &amp; 0x01) == 0x01);
-<a class="jxr_linenumber" name="L91" href="#L91">91</a>                  i += 1;
-<a class="jxr_linenumber" name="L92" href="#L92">92</a>              } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (datatype == Byte.<strong class="jxr_keyword">class</strong>) {
-<a class="jxr_linenumber" name="L93" href="#L93">93</a>                  result.add(byteOne);
-<a class="jxr_linenumber" name="L94" href="#L94">94</a>                  i += 1;
-<a class="jxr_linenumber" name="L95" href="#L95">95</a>              } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (datatype == Short.<strong class="jxr_keyword">class</strong>) {
-<a class="jxr_linenumber" name="L96" href="#L96">96</a>                  decodeShort(safeLengthAdsData, i, result);
-<a class="jxr_linenumber" name="L97" href="#L97">97</a>                  i += 2;
-<a class="jxr_linenumber" name="L98" href="#L98">98</a>              } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (datatype == Integer.<strong class="jxr_keyword">class</strong>) {
-<a class="jxr_linenumber" name="L99" href="#L99">99</a>                  decodeInteger(safeLengthAdsData, i, result);
-<a class="jxr_linenumber" name="L100" href="#L100">100</a>                 i += 4;
-<a class="jxr_linenumber" name="L101" href="#L101">101</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (datatype == BigInteger.<strong class="jxr_keyword">class</strong>) {
-<a class="jxr_linenumber" name="L102" href="#L102">102</a>                 decodeBigInteger(safeLengthAdsData, result);
-<a class="jxr_linenumber" name="L103" href="#L103">103</a>                 <em class="jxr_comment">// A big integer can consume the whole stream</em>
-<a class="jxr_linenumber" name="L104" href="#L104">104</a>                 i = length;
-<a class="jxr_linenumber" name="L105" href="#L105">105</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (datatype == Float.<strong class="jxr_keyword">class</strong>) {
-<a class="jxr_linenumber" name="L106" href="#L106">106</a>                 decodeFloat(safeLengthAdsData, i, result);
-<a class="jxr_linenumber" name="L107" href="#L107">107</a>                 i += 4;
-<a class="jxr_linenumber" name="L108" href="#L108">108</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (datatype == Double.<strong class="jxr_keyword">class</strong>) {
-<a class="jxr_linenumber" name="L109" href="#L109">109</a>                 decodeDouble(safeLengthAdsData, i, result);
-<a class="jxr_linenumber" name="L110" href="#L110">110</a>                 i += 8;
-<a class="jxr_linenumber" name="L111" href="#L111">111</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (datatype == Calendar.<strong class="jxr_keyword">class</strong> || Calendar.<strong class="jxr_keyword">class</strong>.isAssignableFrom(datatype)) {
-<a class="jxr_linenumber" name="L112" href="#L112">112</a>                 extractCalendar(safeLengthAdsData, i, result);
-<a class="jxr_linenumber" name="L113" href="#L113">113</a>                 i += 8;
-<a class="jxr_linenumber" name="L114" href="#L114">114</a>             } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L115" href="#L115">115</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../../org/apache/plc4x/java/api/exceptions/PlcProtocolException.html">PlcProtocolException</a>(<span class="jxr_string">"Unsupported datatype "</span> + datatype.getSimpleName());
-<a class="jxr_linenumber" name="L116" href="#L116">116</a>             }
-<a class="jxr_linenumber" name="L117" href="#L117">117</a>         }
-<a class="jxr_linenumber" name="L118" href="#L118">118</a>         <strong class="jxr_keyword">return</strong> (List&lt;T&gt;) result;
-<a class="jxr_linenumber" name="L119" href="#L119">119</a>     }
-<a class="jxr_linenumber" name="L120" href="#L120">120</a> 
-<a class="jxr_linenumber" name="L121" href="#L121">121</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">int</strong> decodeString(byte[] adsData, <strong class="jxr_keyword">int</strong> i, <strong class="jxr_keyword">int</strong> length, List&lt;Object&gt; result) <strong class="jxr_keyword">throws</strong> PlcProtocolException {
-<a class="jxr_linenumber" name="L122" href="#L122">122</a>         <strong class="jxr_keyword">if</strong> (length &lt; 2) {
-<a class="jxr_linenumber" name="L123" href="#L123">123</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../../org/apache/plc4x/java/api/exceptions/PlcProtocolException.html">PlcProtocolException</a>(<span class="jxr_string">"String must be a null terminated byte array"</span>);
-<a class="jxr_linenumber" name="L124" href="#L124">124</a>         }
-<a class="jxr_linenumber" name="L125" href="#L125">125</a>         <strong class="jxr_keyword">int</strong> pos = i;
-<a class="jxr_linenumber" name="L126" href="#L126">126</a>         StringBuilder builder = <strong class="jxr_keyword">new</strong> StringBuilder();
-<a class="jxr_linenumber" name="L127" href="#L127">127</a>         <em class="jxr_comment">// TODO: check if we have at least a 0x0 space</em>
-<a class="jxr_linenumber" name="L128" href="#L128">128</a>         <strong class="jxr_keyword">while</strong> (pos &lt; length &amp;&amp; adsData[pos] != (byte) 0x0) {
-<a class="jxr_linenumber" name="L129" href="#L129">129</a>             builder.append((<strong class="jxr_keyword">char</strong>) adsData[pos]);
-<a class="jxr_linenumber" name="L130" href="#L130">130</a>             pos++;
-<a class="jxr_linenumber" name="L131" href="#L131">131</a>         }
-<a class="jxr_linenumber" name="L132" href="#L132">132</a>         pos++; <em class="jxr_comment">// skip terminating character</em>
-<a class="jxr_linenumber" name="L133" href="#L133">133</a>         result.add(builder.toString());
-<a class="jxr_linenumber" name="L134" href="#L134">134</a>         <strong class="jxr_keyword">return</strong> pos;
-<a class="jxr_linenumber" name="L135" href="#L135">135</a>     }
-<a class="jxr_linenumber" name="L136" href="#L136">136</a> 
-<a class="jxr_linenumber" name="L137" href="#L137">137</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> decodeShort(byte[] adsData, <strong class="jxr_keyword">int</strong> i, List&lt;Object&gt; result) {
-<a class="jxr_linenumber" name="L138" href="#L138">138</a>         byte byteOne = adsData[i];
-<a class="jxr_linenumber" name="L139" href="#L139">139</a>         byte byteTwo = adsData[i + 1];
-<a class="jxr_linenumber" name="L140" href="#L140">140</a>         result.add((<strong class="jxr_keyword">short</strong>) ((byteOne &amp; 0xff) | ((byteTwo &amp; 0xff) &lt;&lt; 8)));
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>          } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (datatype == Double.<strong class="jxr_keyword">class</strong> &amp;&amp; length &lt; 8) {
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>              safeLengthAdsData = <strong class="jxr_keyword">new</strong> byte[8];
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>              System.arraycopy(adsData, 0, safeLengthAdsData, 0, length);
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>          } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> ((datatype == Calendar.<strong class="jxr_keyword">class</strong> || Calendar.<strong class="jxr_keyword">class</strong>.isAssignableFrom(datatype)) &amp;&amp; length &lt; 8) {
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>              safeLengthAdsData = <strong class="jxr_keyword">new</strong> byte[8];
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>              System.arraycopy(adsData, 0, safeLengthAdsData, 0, length);
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>          } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>              safeLengthAdsData = adsData;
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>          }
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>  
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>          <strong class="jxr_keyword">while</strong> (i &lt; length) {
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>              byte byteOne = safeLengthAdsData[i];
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>              <strong class="jxr_keyword">if</strong> (datatype == String.<strong class="jxr_keyword">class</strong>) {
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>                  i = decodeString(safeLengthAdsData, i, length, result);
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>              } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (datatype == Boolean.<strong class="jxr_keyword">class</strong>) {
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>                  result.add((byteOne &amp; 0x01) == 0x01);
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>                  i += 1;
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>              } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (datatype == Byte.<strong class="jxr_keyword">class</strong>) {
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>                  result.add(byteOne);
+<a class="jxr_linenumber" name="L100" href="#L100">100</a>                 i += 1;
+<a class="jxr_linenumber" name="L101" href="#L101">101</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (datatype == Short.<strong class="jxr_keyword">class</strong>) {
+<a class="jxr_linenumber" name="L102" href="#L102">102</a>                 decodeShort(safeLengthAdsData, i, result);
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>                 i += 2;
+<a class="jxr_linenumber" name="L104" href="#L104">104</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (datatype == Integer.<strong class="jxr_keyword">class</strong>) {
+<a class="jxr_linenumber" name="L105" href="#L105">105</a>                 decodeInteger(safeLengthAdsData, i, result);
+<a class="jxr_linenumber" name="L106" href="#L106">106</a>                 i += 4;
+<a class="jxr_linenumber" name="L107" href="#L107">107</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (datatype == BigInteger.<strong class="jxr_keyword">class</strong>) {
+<a class="jxr_linenumber" name="L108" href="#L108">108</a>                 decodeBigInteger(safeLengthAdsData, result);
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>                 <em class="jxr_comment">// A big integer can consume the whole stream</em>
+<a class="jxr_linenumber" name="L110" href="#L110">110</a>                 i = length;
+<a class="jxr_linenumber" name="L111" href="#L111">111</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (datatype == Float.<strong class="jxr_keyword">class</strong>) {
+<a class="jxr_linenumber" name="L112" href="#L112">112</a>                 decodeFloat(safeLengthAdsData, i, result);
+<a class="jxr_linenumber" name="L113" href="#L113">113</a>                 i += 4;
+<a class="jxr_linenumber" name="L114" href="#L114">114</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (datatype == Double.<strong class="jxr_keyword">class</strong>) {
+<a class="jxr_linenumber" name="L115" href="#L115">115</a>                 decodeDouble(safeLengthAdsData, i, result);
+<a class="jxr_linenumber" name="L116" href="#L116">116</a>                 i += 8;
+<a class="jxr_linenumber" name="L117" href="#L117">117</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (datatype == Calendar.<strong class="jxr_keyword">class</strong> || Calendar.<strong class="jxr_keyword">class</strong>.isAssignableFrom(datatype)) {
+<a class="jxr_linenumber" name="L118" href="#L118">118</a>                 extractCalendar(safeLengthAdsData, i, result);
+<a class="jxr_linenumber" name="L119" href="#L119">119</a>                 i += 8;
+<a class="jxr_linenumber" name="L120" href="#L120">120</a>             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L121" href="#L121">121</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../../org/apache/plc4x/java/api/exceptions/PlcProtocolException.html">PlcProtocolException</a>(<span class="jxr_string">"Unsupported datatype "</span> + datatype.getSimpleName());
+<a class="jxr_linenumber" name="L122" href="#L122">122</a>             }
+<a class="jxr_linenumber" name="L123" href="#L123">123</a>         }
+<a class="jxr_linenumber" name="L124" href="#L124">124</a>         <strong class="jxr_keyword">return</strong> (List&lt;T&gt;) result;
+<a class="jxr_linenumber" name="L125" href="#L125">125</a>     }
+<a class="jxr_linenumber" name="L126" href="#L126">126</a> 
+<a class="jxr_linenumber" name="L127" href="#L127">127</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">int</strong> decodeString(byte[] adsData, <strong class="jxr_keyword">int</strong> i, <strong class="jxr_keyword">int</strong> length, List&lt;Object&gt; result) <strong class="jxr_keyword">throws</strong> PlcProtocolException {
+<a class="jxr_linenumber" name="L128" href="#L128">128</a>         <strong class="jxr_keyword">if</strong> (length &lt; 2) {
+<a class="jxr_linenumber" name="L129" href="#L129">129</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../../org/apache/plc4x/java/api/exceptions/PlcProtocolException.html">PlcProtocolException</a>(<span class="jxr_string">"String must be a null terminated byte array"</span>);
+<a class="jxr_linenumber" name="L130" href="#L130">130</a>         }
+<a class="jxr_linenumber" name="L131" href="#L131">131</a>         <strong class="jxr_keyword">int</strong> pos = i;
+<a class="jxr_linenumber" name="L132" href="#L132">132</a>         StringBuilder builder = <strong class="jxr_keyword">new</strong> StringBuilder();
+<a class="jxr_linenumber" name="L133" href="#L133">133</a>         <em class="jxr_comment">// TODO: check if we have at least a 0x0 space</em>
+<a class="jxr_linenumber" name="L134" href="#L134">134</a>         <strong class="jxr_keyword">while</strong> (pos &lt; length &amp;&amp; adsData[pos] != (byte) 0x0) {
+<a class="jxr_linenumber" name="L135" href="#L135">135</a>             builder.append((<strong class="jxr_keyword">char</strong>) adsData[pos]);
+<a class="jxr_linenumber" name="L136" href="#L136">136</a>             pos++;
+<a class="jxr_linenumber" name="L137" href="#L137">137</a>         }
+<a class="jxr_linenumber" name="L138" href="#L138">138</a>         pos++; <em class="jxr_comment">// skip terminating character</em>
+<a class="jxr_linenumber" name="L139" href="#L139">139</a>         result.add(builder.toString());
+<a class="jxr_linenumber" name="L140" href="#L140">140</a>         <strong class="jxr_keyword">return</strong> pos;
 <a class="jxr_linenumber" name="L141" href="#L141">141</a>     }
 <a class="jxr_linenumber" name="L142" href="#L142">142</a> 
-<a class="jxr_linenumber" name="L143" href="#L143">143</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> decodeInteger(byte[] adsData, <strong class="jxr_keyword">int</strong> i, List&lt;Object&gt; result) {
+<a class="jxr_linenumber" name="L143" href="#L143">143</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> decodeShort(byte[] adsData, <strong class="jxr_keyword">int</strong> i, List&lt;Object&gt; result) {
 <a class="jxr_linenumber" name="L144" href="#L144">144</a>         byte byteOne = adsData[i];
 <a class="jxr_linenumber" name="L145" href="#L145">145</a>         byte byteTwo = adsData[i + 1];
-<a class="jxr_linenumber" name="L146" href="#L146">146</a>         byte byteThree = adsData[i + 2];
-<a class="jxr_linenumber" name="L147" href="#L147">147</a>         byte byteFour = adsData[i + 3];
-<a class="jxr_linenumber" name="L148" href="#L148">148</a>         result.add((byteOne &amp; 0xff) | ((byteTwo &amp; 0xff) &lt;&lt; 8) | ((byteThree &amp; 0xff) &lt;&lt; 16) | (byteFour &amp; 0xff) &lt;&lt; 24);
-<a class="jxr_linenumber" name="L149" href="#L149">149</a>     }
-<a class="jxr_linenumber" name="L150" href="#L150">150</a> 
-<a class="jxr_linenumber" name="L151" href="#L151">151</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> decodeBigInteger(byte[] adsData, List&lt;Object&gt; result) {
-<a class="jxr_linenumber" name="L152" href="#L152">152</a>         byte[] clone = ArrayUtils.clone(adsData);
-<a class="jxr_linenumber" name="L153" href="#L153">153</a>         ArrayUtils.reverse(clone);
-<a class="jxr_linenumber" name="L154" href="#L154">154</a>         byte[] bigIntegerByteArray = ArrayUtils.insert(0, clone, (byte) 0x0);
-<a class="jxr_linenumber" name="L155" href="#L155">155</a>         result.add(<strong class="jxr_keyword">new</strong> BigInteger(bigIntegerByteArray));
-<a class="jxr_linenumber" name="L156" href="#L156">156</a>     }
-<a class="jxr_linenumber" name="L157" href="#L157">157</a> 
-<a class="jxr_linenumber" name="L158" href="#L158">158</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> decodeFloat(byte[] adsData, <strong class="jxr_keyword">int</strong> i, List&lt;Object&gt; result) {
-<a class="jxr_linenumber" name="L159" href="#L159">159</a>         byte byteOne = adsData[i];
-<a class="jxr_linenumber" name="L160" href="#L160">160</a>         byte byteTwo = adsData[i + 1];
-<a class="jxr_linenumber" name="L161" href="#L161">161</a>         byte byteThree = adsData[i + 2];
-<a class="jxr_linenumber" name="L162" href="#L162">162</a>         byte byteFour = adsData[i + 3];
-<a class="jxr_linenumber" name="L163" href="#L163">163</a>         <em class="jxr_comment">// TODO: check how ads expects this data</em>
-<a class="jxr_linenumber" name="L164" href="#L164">164</a>         <em class="jxr_comment">// Description of the Real number format:</em>
-<a class="jxr_linenumber" name="L165" href="#L165">165</a>         <em class="jxr_comment">// https://www.sps-lehrgang.de/zahlenformate-step7/#c144</em>
-<a class="jxr_linenumber" name="L166" href="#L166">166</a>         <em class="jxr_comment">// https://de.wikipedia.org/wiki/IEEE_754</em>
-<a class="jxr_linenumber" name="L167" href="#L167">167</a>         <strong class="jxr_keyword">int</strong> intValue = (byteOne &amp; 0xff) | ((byteTwo &amp; 0xff) &lt;&lt; 8) | ((byteThree &amp; 0xff) &lt;&lt; 16) | ((byteFour &amp; 0xff) &lt;&lt; 24);
-<a class="jxr_linenumber" name="L168" href="#L168">168</a>         result.add(Float.intBitsToFloat(intValue));
-<a class="jxr_linenumber" name="L169" href="#L169">169</a>     }
-<a class="jxr_linenumber" name="L170" href="#L170">170</a> 
-<a class="jxr_linenumber" name="L171" href="#L171">171</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> decodeDouble(byte[] adsData, <strong class="jxr_keyword">int</strong> i, List&lt;Object&gt; result) {
-<a class="jxr_linenumber" name="L172" href="#L172">172</a>         byte byteOne = adsData[i];
-<a class="jxr_linenumber" name="L173" href="#L173">173</a>         byte byteTwo = adsData[i + 1];
-<a class="jxr_linenumber" name="L174" href="#L174">174</a>         byte byteThree = adsData[i + 2];
-<a class="jxr_linenumber" name="L175" href="#L175">175</a>         byte byteFour = adsData[i + 3];
-<a class="jxr_linenumber" name="L176" href="#L176">176</a>         byte byteFive = adsData[i + 4];
-<a class="jxr_linenumber" name="L177" href="#L177">177</a>         byte byteSix = adsData[i + 5];
-<a class="jxr_linenumber" name="L178" href="#L178">178</a>         byte byteSeven = adsData[i + 6];
-<a class="jxr_linenumber" name="L179" href="#L179">179</a>         byte byteEigth = adsData[i + 7];
-<a class="jxr_linenumber" name="L180" href="#L180">180</a>         <em class="jxr_comment">// TODO: check how ads expects this data</em>
-<a class="jxr_linenumber" name="L181" href="#L181">181</a>         <em class="jxr_comment">// Description of the Real number format:</em>
-<a class="jxr_linenumber" name="L182" href="#L182">182</a>         <em class="jxr_comment">// https://www.sps-lehrgang.de/zahlenformate-step7/#c144</em>
-<a class="jxr_linenumber" name="L183" href="#L183">183</a>         <em class="jxr_comment">// https://de.wikipedia.org/wiki/IEEE_754</em>
-<a class="jxr_linenumber" name="L184" href="#L184">184</a>         <strong class="jxr_keyword">long</strong> longValue = (<strong class="jxr_keyword">long</strong>) (byteOne &amp; 0xff) | ((<strong class="jxr_keyword">long</strong>) (byteTwo &amp; 0xff) &lt;&lt; 8) | ((<strong class="jxr_keyword">long</strong>) (byteThree &amp; 0xff) &lt;&lt; 16) | ((<strong class="jxr_keyword">long</strong>) (byteFour &amp; 0xff) &lt;&lt; 24)
-<a class="jxr_linenumber" name="L185" href="#L185">185</a>             | (<strong class="jxr_keyword">long</strong>) (byteFive &amp; 0xff) &lt;&lt; 32 | ((<strong class="jxr_keyword">long</strong>) (byteSix &amp; 0xff) &lt;&lt; 40) | ((<strong class="jxr_keyword">long</strong>) (byteSeven &amp; 0xff) &lt;&lt; 48) | ((<strong class="jxr_keyword">long</strong>) (byteEigth &amp; 0xff) &lt;&lt; 56);
-<a class="jxr_linenumber" name="L186" href="#L186">186</a>         result.add(Double.longBitsToDouble(longValue));
-<a class="jxr_linenumber" name="L187" href="#L187">187</a>     }
-<a class="jxr_linenumber" name="L188" href="#L188">188</a> 
-<a class="jxr_linenumber" name="L189" href="#L189">189</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> extractCalendar(byte[] adsData, <strong class="jxr_keyword">int</strong> i, List&lt;Object&gt; result) {
-<a class="jxr_linenumber" name="L190" href="#L190">190</a>         byte byteOne = adsData[i];
-<a class="jxr_linenumber" name="L191" href="#L191">191</a>         byte byteTwo = adsData[i + 1];
-<a class="jxr_linenumber" name="L192" href="#L192">192</a>         byte byteThree = adsData[i + 2];
-<a class="jxr_linenumber" name="L193" href="#L193">193</a>         byte byteFour = adsData[i + 3];
-<a class="jxr_linenumber" name="L194" href="#L194">194</a>         byte byteFive = adsData[i + 4];
-<a class="jxr_linenumber" name="L195" href="#L195">195</a>         byte byteSix = adsData[i + 5];
-<a class="jxr_linenumber" name="L196" href="#L196">196</a>         byte byteSeven = adsData[i + 6];
-<a class="jxr_linenumber" name="L197" href="#L197">197</a>         byte byteEight = adsData[i + 7];
-<a class="jxr_linenumber" name="L198" href="#L198">198</a>         Calendar calendar = Calendar.getInstance();
-<a class="jxr_linenumber" name="L199" href="#L199">199</a>         calendar.setTime(<strong class="jxr_keyword">new</strong> Date(TimeStamp.winTimeToJava(
-<a class="jxr_linenumber" name="L200" href="#L200">200</a>             <strong class="jxr_keyword">new</strong> BigInteger(<strong class="jxr_keyword">new</strong> byte[]{
-<a class="jxr_linenumber" name="L201" href="#L201">201</a>                 <em class="jxr_comment">// LE</em>
-<a class="jxr_linenumber" name="L202" href="#L202">202</a>                 byteEight,
-<a class="jxr_linenumber" name="L203" href="#L203">203</a>                 byteSeven,
-<a class="jxr_linenumber" name="L204" href="#L204">204</a>                 byteSix,
-<a class="jxr_linenumber" name="L205" href="#L205">205</a>                 byteFive,
-<a class="jxr_linenumber" name="L206" href="#L206">206</a>                 byteFour,
-<a class="jxr_linenumber" name="L207" href="#L207">207</a>                 byteThree,
-<a class="jxr_linenumber" name="L208" href="#L208">208</a>                 byteTwo,
-<a class="jxr_linenumber" name="L209" href="#L209">209</a>                 byteOne,
-<a class="jxr_linenumber" name="L210" href="#L210">210</a>             })).longValue()));
-<a class="jxr_linenumber" name="L211" href="#L211">211</a>         result.add(calendar);
-<a class="jxr_linenumber" name="L212" href="#L212">212</a>     }
-<a class="jxr_linenumber" name="L213" href="#L213">213</a> }
+<a class="jxr_linenumber" name="L146" href="#L146">146</a>         result.add((<strong class="jxr_keyword">short</strong>) ((byteOne &amp; 0xff) | ((byteTwo &amp; 0xff) &lt;&lt; 8)));
+<a class="jxr_linenumber" name="L147" href="#L147">147</a>     }
+<a class="jxr_linenumber" name="L148" href="#L148">148</a> 
+<a class="jxr_linenumber" name="L149" href="#L149">149</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> decodeInteger(byte[] adsData, <strong class="jxr_keyword">int</strong> i, List&lt;Object&gt; result) {
+<a class="jxr_linenumber" name="L150" href="#L150">150</a>         byte byteOne = adsData[i];
+<a class="jxr_linenumber" name="L151" href="#L151">151</a>         byte byteTwo = adsData[i + 1];
+<a class="jxr_linenumber" name="L152" href="#L152">152</a>         byte byteThree = adsData[i + 2];
+<a class="jxr_linenumber" name="L153" href="#L153">153</a>         byte byteFour = adsData[i + 3];
+<a class="jxr_linenumber" name="L154" href="#L154">154</a>         result.add((byteOne &amp; 0xff) | ((byteTwo &amp; 0xff) &lt;&lt; 8) | ((byteThree &amp; 0xff) &lt;&lt; 16) | (byteFour &amp; 0xff) &lt;&lt; 24);
+<a class="jxr_linenumber" name="L155" href="#L155">155</a>     }
+<a class="jxr_linenumber" name="L156" href="#L156">156</a> 
+<a class="jxr_linenumber" name="L157" href="#L157">157</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> decodeBigInteger(byte[] adsData, List&lt;Object&gt; result) {
+<a class="jxr_linenumber" name="L158" href="#L158">158</a>         byte[] clone = ArrayUtils.clone(adsData);
+<a class="jxr_linenumber" name="L159" href="#L159">159</a>         ArrayUtils.reverse(clone);
+<a class="jxr_linenumber" name="L160" href="#L160">160</a>         byte[] bigIntegerByteArray = ArrayUtils.insert(0, clone, (byte) 0x0);
+<a class="jxr_linenumber" name="L161" href="#L161">161</a>         result.add(<strong class="jxr_keyword">new</strong> BigInteger(bigIntegerByteArray));
+<a class="jxr_linenumber" name="L162" href="#L162">162</a>     }
+<a class="jxr_linenumber" name="L163" href="#L163">163</a> 
+<a class="jxr_linenumber" name="L164" href="#L164">164</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> decodeFloat(byte[] adsData, <strong class="jxr_keyword">int</strong> i, List&lt;Object&gt; result) {
+<a class="jxr_linenumber" name="L165" href="#L165">165</a>         byte byteOne = adsData[i];
+<a class="jxr_linenumber" name="L166" href="#L166">166</a>         byte byteTwo = adsData[i + 1];
+<a class="jxr_linenumber" name="L167" href="#L167">167</a>         byte byteThree = adsData[i + 2];
+<a class="jxr_linenumber" name="L168" href="#L168">168</a>         byte byteFour = adsData[i + 3];
+<a class="jxr_linenumber" name="L169" href="#L169">169</a>         <em class="jxr_comment">// TODO: check how ads expects this data</em>
+<a class="jxr_linenumber" name="L170" href="#L170">170</a>         <em class="jxr_comment">// Description of the Real number format:</em>
+<a class="jxr_linenumber" name="L171" href="#L171">171</a>         <em class="jxr_comment">// https://www.sps-lehrgang.de/zahlenformate-step7/#c144</em>
+<a class="jxr_linenumber" name="L172" href="#L172">172</a>         <em class="jxr_comment">// https://de.wikipedia.org/wiki/IEEE_754</em>
+<a class="jxr_linenumber" name="L173" href="#L173">173</a>         <strong class="jxr_keyword">int</strong> intValue = (byteOne &amp; 0xff) | ((byteTwo &amp; 0xff) &lt;&lt; 8) | ((byteThree &amp; 0xff) &lt;&lt; 16) | ((byteFour &amp; 0xff) &lt;&lt; 24);
+<a class="jxr_linenumber" name="L174" href="#L174">174</a>         result.add(Float.intBitsToFloat(intValue));
+<a class="jxr_linenumber" name="L175" href="#L175">175</a>     }
+<a class="jxr_linenumber" name="L176" href="#L176">176</a> 
+<a class="jxr_linenumber" name="L177" href="#L177">177</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> decodeDouble(byte[] adsData, <strong class="jxr_keyword">int</strong> i, List&lt;Object&gt; result) {
+<a class="jxr_linenumber" name="L178" href="#L178">178</a>         byte byteOne = adsData[i];
+<a class="jxr_linenumber" name="L179" href="#L179">179</a>         byte byteTwo = adsData[i + 1];
+<a class="jxr_linenumber" name="L180" href="#L180">180</a>         byte byteThree = adsData[i + 2];
+<a class="jxr_linenumber" name="L181" href="#L181">181</a>         byte byteFour = adsData[i + 3];
+<a class="jxr_linenumber" name="L182" href="#L182">182</a>         byte byteFive = adsData[i + 4];
+<a class="jxr_linenumber" name="L183" href="#L183">183</a>         byte byteSix = adsData[i + 5];
+<a class="jxr_linenumber" name="L184" href="#L184">184</a>         byte byteSeven = adsData[i + 6];
+<a class="jxr_linenumber" name="L185" href="#L185">185</a>         byte byteEigth = adsData[i + 7];
+<a class="jxr_linenumber" name="L186" href="#L186">186</a>         <em class="jxr_comment">// TODO: check how ads expects this data</em>
+<a class="jxr_linenumber" name="L187" href="#L187">187</a>         <em class="jxr_comment">// Description of the Real number format:</em>
+<a class="jxr_linenumber" name="L188" href="#L188">188</a>         <em class="jxr_comment">// https://www.sps-lehrgang.de/zahlenformate-step7/#c144</em>
+<a class="jxr_linenumber" name="L189" href="#L189">189</a>         <em class="jxr_comment">// https://de.wikipedia.org/wiki/IEEE_754</em>
+<a class="jxr_linenumber" name="L190" href="#L190">190</a>         <strong class="jxr_keyword">long</strong> longValue = (<strong class="jxr_keyword">long</strong>) (byteOne &amp; 0xff) | ((<strong class="jxr_keyword">long</strong>) (byteTwo &amp; 0xff) &lt;&lt; 8) | ((<strong class="jxr_keyword">long</strong>) (byteThree &amp; 0xff) &lt;&lt; 16) | ((<strong class="jxr_keyword">long</strong>) (byteFour &amp; 0xff) &lt;&lt; 24)
+<a class="jxr_linenumber" name="L191" href="#L191">191</a>             | (<strong class="jxr_keyword">long</strong>) (byteFive &amp; 0xff) &lt;&lt; 32 | ((<strong class="jxr_keyword">long</strong>) (byteSix &amp; 0xff) &lt;&lt; 40) | ((<strong class="jxr_keyword">long</strong>) (byteSeven &amp; 0xff) &lt;&lt; 48) | ((<strong class="jxr_keyword">long</strong>) (byteEigth &amp; 0xff) &lt;&lt; 56);
+<a class="jxr_linenumber" name="L192" href="#L192">192</a>         result.add(Double.longBitsToDouble(longValue));
+<a class="jxr_linenumber" name="L193" href="#L193">193</a>     }
+<a class="jxr_linenumber" name="L194" href="#L194">194</a> 
+<a class="jxr_linenumber" name="L195" href="#L195">195</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> extractCalendar(byte[] adsData, <strong class="jxr_keyword">int</strong> i, List&lt;Object&gt; result) {
+<a class="jxr_linenumber" name="L196" href="#L196">196</a>         byte byteOne = adsData[i];
+<a class="jxr_linenumber" name="L197" href="#L197">197</a>         byte byteTwo = adsData[i + 1];
+<a class="jxr_linenumber" name="L198" href="#L198">198</a>         byte byteThree = adsData[i + 2];
+<a class="jxr_linenumber" name="L199" href="#L199">199</a>         byte byteFour = adsData[i + 3];
+<a class="jxr_linenumber" name="L200" href="#L200">200</a>         byte byteFive = adsData[i + 4];
+<a class="jxr_linenumber" name="L201" href="#L201">201</a>         byte byteSix = adsData[i + 5];
+<a class="jxr_linenumber" name="L202" href="#L202">202</a>         byte byteSeven = adsData[i + 6];
+<a class="jxr_linenumber" name="L203" href="#L203">203</a>         byte byteEight = adsData[i + 7];
+<a class="jxr_linenumber" name="L204" href="#L204">204</a>         Calendar calendar = Calendar.getInstance();
+<a class="jxr_linenumber" name="L205" href="#L205">205</a>         calendar.setTime(<strong class="jxr_keyword">new</strong> Date(TimeStamp.winTimeToJava(
+<a class="jxr_linenumber" name="L206" href="#L206">206</a>             <strong class="jxr_keyword">new</strong> BigInteger(<strong class="jxr_keyword">new</strong> byte[]{
+<a class="jxr_linenumber" name="L207" href="#L207">207</a>                 <em class="jxr_comment">// LE</em>
+<a class="jxr_linenumber" name="L208" href="#L208">208</a>                 byteEight,
+<a class="jxr_linenumber" name="L209" href="#L209">209</a>                 byteSeven,
+<a class="jxr_linenumber" name="L210" href="#L210">210</a>                 byteSix,
+<a class="jxr_linenumber" name="L211" href="#L211">211</a>                 byteFive,
+<a class="jxr_linenumber" name="L212" href="#L212">212</a>                 byteFour,
+<a class="jxr_linenumber" name="L213" href="#L213">213</a>                 byteThree,
+<a class="jxr_linenumber" name="L214" href="#L214">214</a>                 byteTwo,
+<a class="jxr_linenumber" name="L215" href="#L215">215</a>                 byteOne,
+<a class="jxr_linenumber" name="L216" href="#L216">216</a>             })).longValue()));
+<a class="jxr_linenumber" name="L217" href="#L217">217</a>         result.add(calendar);
+<a class="jxr_linenumber" name="L218" href="#L218">218</a>     }
+<a class="jxr_linenumber" name="L219" href="#L219">219</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2017&#x2013;2018 <a href="https://www.apache.org/">The Apache Software Foundation</a>. All rights reserved.</div>
