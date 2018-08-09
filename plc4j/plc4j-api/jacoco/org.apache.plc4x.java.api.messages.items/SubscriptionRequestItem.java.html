@@ -21,6 +21,7 @@ package org.apache.plc4x.java.api.messages.items;
 import org.apache.plc4x.java.api.model.Address;
 import org.apache.plc4x.java.api.model.SubscriptionType;
 
+import java.util.Objects;
 import java.util.function.Consumer;
 
 public abstract class SubscriptionRequestItem&lt;T&gt; extends RequestItem&lt;T&gt; {
@@ -29,18 +30,46 @@ public abstract class SubscriptionRequestItem&lt;T&gt; extends RequestItem&lt;T&
     private Consumer&lt;SubscriptionEventItem&lt;T&gt;&gt; consumer;
 
     public SubscriptionRequestItem(Class&lt;T&gt; datatype, Address address, SubscriptionType subscriptionType, Consumer&lt;SubscriptionEventItem&lt;T&gt;&gt; consumer) {
-<span class="nc" id="L32">        super(datatype, address);</span>
-<span class="nc" id="L33">        this.subscriptionType = subscriptionType;</span>
-<span class="nc" id="L34">        this.consumer = consumer;</span>
-<span class="nc" id="L35">    }</span>
+<span class="nc" id="L33">        super(datatype, address);</span>
+<span class="nc" id="L34">        this.subscriptionType = subscriptionType;</span>
+<span class="nc" id="L35">        this.consumer = consumer;</span>
+<span class="nc" id="L36">    }</span>
 
     public SubscriptionType getSubscriptionType() {
-<span class="nc" id="L38">        return subscriptionType;</span>
+<span class="nc" id="L39">        return subscriptionType;</span>
     }
 
     public Consumer&lt;SubscriptionEventItem&lt;T&gt;&gt; getConsumer() {
-<span class="nc" id="L42">        return consumer;</span>
+<span class="nc" id="L43">        return consumer;</span>
     }
 
+    @Override
+    public String toString() {
+<span class="nc" id="L48">        return &quot;SubscriptionRequestItem{&quot; +</span>
+            &quot;subscriptionType=&quot; + subscriptionType +
+            &quot;, consumer=&quot; + consumer +
+<span class="nc" id="L51">            &quot;} &quot; + super.toString();</span>
+    }
+
+    @Override
+    public boolean equals(Object o) {
+<span class="nc bnc" id="L56" title="All 2 branches missed.">        if (this == o) {</span>
+<span class="nc" id="L57">            return true;</span>
+        }
+<span class="nc bnc" id="L59" title="All 2 branches missed.">        if (!(o instanceof SubscriptionRequestItem)) {</span>
+<span class="nc" id="L60">            return false;</span>
+        }
+<span class="nc bnc" id="L62" title="All 2 branches missed.">        if (!super.equals(o)) {</span>
+<span class="nc" id="L63">            return false;</span>
+        }
+<span class="nc" id="L65">        SubscriptionRequestItem&lt;?&gt; that = (SubscriptionRequestItem&lt;?&gt;) o;</span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">        return subscriptionType == that.subscriptionType &amp;&amp;</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">            Objects.equals(consumer, that.consumer);</span>
+    }
+
+    @Override
+    public int hashCode() {
+<span class="nc" id="L72">        return Objects.hash(super.hashCode(), subscriptionType, consumer);</span>
+    }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
