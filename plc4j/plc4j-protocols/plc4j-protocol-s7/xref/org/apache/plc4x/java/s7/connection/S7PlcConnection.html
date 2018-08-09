@@ -69,12 +69,12 @@
 <a class="jxr_linenumber" name="L61" href="#L61">61</a>  <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L62" href="#L62">62</a>  <em class="jxr_javadoccomment"> * Class implementing the Connection handling for Siemens S7.</em>
 <a class="jxr_linenumber" name="L63" href="#L63">63</a>  <em class="jxr_javadoccomment"> * The adressing of Values in S7 works as follows:</em>
-<a class="jxr_linenumber" name="L64" href="#L64">64</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>  <em class="jxr_javadoccomment"> * &lt;p&gt;</em>
 <a class="jxr_linenumber" name="L65" href="#L65">65</a>  <em class="jxr_javadoccomment"> * For adressing values from Datablocks the following syntax is used:</em>
 <a class="jxr_linenumber" name="L66" href="#L66">66</a>  <em class="jxr_javadoccomment"> * &lt;pre&gt;</em>
 <a class="jxr_linenumber" name="L67" href="#L67">67</a>  <em class="jxr_javadoccomment"> *     DATA_BLOCKS/{blockNumer}/{byteOffset}</em>
 <a class="jxr_linenumber" name="L68" href="#L68">68</a>  <em class="jxr_javadoccomment"> * &lt;/pre&gt;</em>
-<a class="jxr_linenumber" name="L69" href="#L69">69</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>  <em class="jxr_javadoccomment"> * &lt;p&gt;</em>
 <a class="jxr_linenumber" name="L70" href="#L70">70</a>  <em class="jxr_javadoccomment"> * For adressing data from other memory segments like I/O, Markers, ...</em>
 <a class="jxr_linenumber" name="L71" href="#L71">71</a>  <em class="jxr_javadoccomment"> * &lt;pre&gt;</em>
 <a class="jxr_linenumber" name="L72" href="#L72">72</a>  <em class="jxr_javadoccomment"> *     {memory area}/{byte offset}</em>
@@ -233,67 +233,66 @@
 <a class="jxr_linenumber" name="L225" href="#L225">225</a>             <em class="jxr_comment">// If the remote didn't close the connection within the given time-frame, we have to take</em>
 <a class="jxr_linenumber" name="L226" href="#L226">226</a>             <em class="jxr_comment">// care of closing the connection.</em>
 <a class="jxr_linenumber" name="L227" href="#L227">227</a>             <strong class="jxr_keyword">catch</strong> (TimeoutException e) {
-<a class="jxr_linenumber" name="L228" href="#L228">228</a>                 logger.info(<span class="jxr_string">"Remote didn't close connection within the configured timeout of "</span> +
-<a class="jxr_linenumber" name="L229" href="#L229">229</a>                     CLOSE_DEVICE_TIMEOUT_MS + <span class="jxr_string">"ms, shutting down actively."</span>);
-<a class="jxr_linenumber" name="L230" href="#L230">230</a>                 channel.close();
-<a class="jxr_linenumber" name="L231" href="#L231">231</a>             } <strong class="jxr_keyword">catch</strong> (InterruptedException e) {
-<a class="jxr_linenumber" name="L232" href="#L232">232</a>                 Thread.currentThread().interrupt();
-<a class="jxr_linenumber" name="L233" href="#L233">233</a>             } <strong class="jxr_keyword">catch</strong> (ExecutionException e) {
-<a class="jxr_linenumber" name="L234" href="#L234">234</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> PlcConnectionException(e);
-<a class="jxr_linenumber" name="L235" href="#L235">235</a>             }
-<a class="jxr_linenumber" name="L236" href="#L236">236</a> 
-<a class="jxr_linenumber" name="L237" href="#L237">237</a>             <em class="jxr_comment">// Do some additional cleanup operations ...</em>
-<a class="jxr_linenumber" name="L238" href="#L238">238</a>             <em class="jxr_comment">// In normal operation, the channels event loop has a parent, however when running with</em>
-<a class="jxr_linenumber" name="L239" href="#L239">239</a>             <em class="jxr_comment">// the embedded channel for unit tests, parent is null.</em>
-<a class="jxr_linenumber" name="L240" href="#L240">240</a>             <strong class="jxr_keyword">if</strong>(channel.eventLoop().parent() != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L241" href="#L241">241</a>                 channel.eventLoop().parent().shutdownGracefully();
-<a class="jxr_linenumber" name="L242" href="#L242">242</a>             }
-<a class="jxr_linenumber" name="L243" href="#L243">243</a>         }
-<a class="jxr_linenumber" name="L244" href="#L244">244</a>         <strong class="jxr_keyword">super</strong>.close();
-<a class="jxr_linenumber" name="L245" href="#L245">245</a>     }
+<a class="jxr_linenumber" name="L228" href="#L228">228</a>                 logger.info(<span class="jxr_string">"Remote didn't close connection within the configured timeout of {}ms, shutting down actively."</span>, CLOSE_DEVICE_TIMEOUT_MS, e);
+<a class="jxr_linenumber" name="L229" href="#L229">229</a>                 channel.close();
+<a class="jxr_linenumber" name="L230" href="#L230">230</a>             } <strong class="jxr_keyword">catch</strong> (InterruptedException e) {
+<a class="jxr_linenumber" name="L231" href="#L231">231</a>                 Thread.currentThread().interrupt();
+<a class="jxr_linenumber" name="L232" href="#L232">232</a>             } <strong class="jxr_keyword">catch</strong> (ExecutionException e) {
+<a class="jxr_linenumber" name="L233" href="#L233">233</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> PlcConnectionException(e);
+<a class="jxr_linenumber" name="L234" href="#L234">234</a>             }
+<a class="jxr_linenumber" name="L235" href="#L235">235</a> 
+<a class="jxr_linenumber" name="L236" href="#L236">236</a>             <em class="jxr_comment">// Do some additional cleanup operations ...</em>
+<a class="jxr_linenumber" name="L237" href="#L237">237</a>             <em class="jxr_comment">// In normal operation, the channels event loop has a parent, however when running with</em>
+<a class="jxr_linenumber" name="L238" href="#L238">238</a>             <em class="jxr_comment">// the embedded channel for unit tests, parent is null.</em>
+<a class="jxr_linenumber" name="L239" href="#L239">239</a>             <strong class="jxr_keyword">if</strong> (channel.eventLoop().parent() != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L240" href="#L240">240</a>                 channel.eventLoop().parent().shutdownGracefully();
+<a class="jxr_linenumber" name="L241" href="#L241">241</a>             }
+<a class="jxr_linenumber" name="L242" href="#L242">242</a>         }
+<a class="jxr_linenumber" name="L243" href="#L243">243</a>         <strong class="jxr_keyword">super</strong>.close();
+<a class="jxr_linenumber" name="L244" href="#L244">244</a>     }
+<a class="jxr_linenumber" name="L245" href="#L245">245</a> 
 <a class="jxr_linenumber" name="L246" href="#L246">246</a> 
-<a class="jxr_linenumber" name="L247" href="#L247">247</a> 
-<a class="jxr_linenumber" name="L248" href="#L248">248</a>     @Override
-<a class="jxr_linenumber" name="L249" href="#L249">249</a>     <strong class="jxr_keyword">public</strong> Address parseAddress(String addressString) <strong class="jxr_keyword">throws</strong> PlcException {
-<a class="jxr_linenumber" name="L250" href="#L250">250</a>         Matcher datablockAddressMatcher = S7_DATABLOCK_ADDRESS_PATTERN.matcher(addressString);
-<a class="jxr_linenumber" name="L251" href="#L251">251</a>         <strong class="jxr_keyword">if</strong> (datablockAddressMatcher.matches()) {
-<a class="jxr_linenumber" name="L252" href="#L252">252</a>             <strong class="jxr_keyword">int</strong> datablockNumber = Integer.parseInt(datablockAddressMatcher.group(<span class="jxr_string">"blockNumber"</span>));
-<a class="jxr_linenumber" name="L253" href="#L253">253</a>             <strong class="jxr_keyword">int</strong> datablockByteOffset = Integer.parseInt(datablockAddressMatcher.group(<span class="jxr_string">"byteOffset"</span>));
-<a class="jxr_linenumber" name="L254" href="#L254">254</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/s7/model/S7DataBlockAddress.html">S7DataBlockAddress</a>((<strong class="jxr_keyword">short</strong>) datablockNumber, (<strong class="jxr_keyword">short</strong>) datablockByteOffset);
-<a class="jxr_linenumber" name="L255" href="#L255">255</a>         }
-<a class="jxr_linenumber" name="L256" href="#L256">256</a>         Matcher addressMatcher = S7_ADDRESS_PATTERN.matcher(addressString);
-<a class="jxr_linenumber" name="L257" href="#L257">257</a>         <strong class="jxr_keyword">if</strong> (!addressMatcher.matches()) {
-<a class="jxr_linenumber" name="L258" href="#L258">258</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> PlcConnectionException(
-<a class="jxr_linenumber" name="L259" href="#L259">259</a>                 <span class="jxr_string">"Address string doesn't match the format '{area}/{offset}[/{bit-offset}]'"</span>);
-<a class="jxr_linenumber" name="L260" href="#L260">260</a>         }
-<a class="jxr_linenumber" name="L261" href="#L261">261</a>         <a href="../../../../../../org/apache/plc4x/java/s7/netty/model/types/MemoryArea.html">MemoryArea</a> memoryArea = MemoryArea.valueOf(addressMatcher.group(<span class="jxr_string">"memoryArea"</span>));
-<a class="jxr_linenumber" name="L262" href="#L262">262</a>         <strong class="jxr_keyword">int</strong> byteOffset = Integer.parseInt(addressMatcher.group(<span class="jxr_string">"byteOffset"</span>));
-<a class="jxr_linenumber" name="L263" href="#L263">263</a>         String bitOffset = addressMatcher.group(<span class="jxr_string">"bitOffset"</span>);
-<a class="jxr_linenumber" name="L264" href="#L264">264</a>         <strong class="jxr_keyword">if</strong> (bitOffset != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L265" href="#L265">265</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/s7/model/S7BitAddress.html">S7BitAddress</a>(memoryArea, (<strong class="jxr_keyword">short</strong>) byteOffset, Byte.valueOf(bitOffset));
-<a class="jxr_linenumber" name="L266" href="#L266">266</a>         }
-<a class="jxr_linenumber" name="L267" href="#L267">267</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/s7/model/S7Address.html">S7Address</a>(memoryArea, (<strong class="jxr_keyword">short</strong>) byteOffset);
-<a class="jxr_linenumber" name="L268" href="#L268">268</a>     }
-<a class="jxr_linenumber" name="L269" href="#L269">269</a> 
-<a class="jxr_linenumber" name="L270" href="#L270">270</a>     @Override
-<a class="jxr_linenumber" name="L271" href="#L271">271</a>     <strong class="jxr_keyword">public</strong> CompletableFuture&lt;PlcReadResponse&gt; read(PlcReadRequest readRequest) {
-<a class="jxr_linenumber" name="L272" href="#L272">272</a>         CompletableFuture&lt;PlcReadResponse&gt; readFuture = <strong class="jxr_keyword">new</strong> CompletableFuture&lt;&gt;();
-<a class="jxr_linenumber" name="L273" href="#L273">273</a>         PlcRequestContainer&lt;PlcReadRequest, PlcReadResponse&gt; container =
-<a class="jxr_linenumber" name="L274" href="#L274">274</a>             <strong class="jxr_keyword">new</strong> PlcRequestContainer&lt;&gt;(readRequest, readFuture);
-<a class="jxr_linenumber" name="L275" href="#L275">275</a>         channel.writeAndFlush(container);
-<a class="jxr_linenumber" name="L276" href="#L276">276</a>         <strong class="jxr_keyword">return</strong> readFuture;
-<a class="jxr_linenumber" name="L277" href="#L277">277</a>     }
-<a class="jxr_linenumber" name="L278" href="#L278">278</a> 
-<a class="jxr_linenumber" name="L279" href="#L279">279</a>     @Override
-<a class="jxr_linenumber" name="L280" href="#L280">280</a>     <strong class="jxr_keyword">public</strong> CompletableFuture&lt;PlcWriteResponse&gt; write(PlcWriteRequest writeRequest) {
-<a class="jxr_linenumber" name="L281" href="#L281">281</a>         CompletableFuture&lt;PlcWriteResponse&gt; writeFuture = <strong class="jxr_keyword">new</strong> CompletableFuture&lt;&gt;();
-<a class="jxr_linenumber" name="L282" href="#L282">282</a>         PlcRequestContainer&lt;PlcWriteRequest, PlcWriteResponse&gt; container =
-<a class="jxr_linenumber" name="L283" href="#L283">283</a>             <strong class="jxr_keyword">new</strong> PlcRequestContainer&lt;&gt;(writeRequest, writeFuture);
-<a class="jxr_linenumber" name="L284" href="#L284">284</a>         channel.writeAndFlush(container);
-<a class="jxr_linenumber" name="L285" href="#L285">285</a>         <strong class="jxr_keyword">return</strong> writeFuture;
-<a class="jxr_linenumber" name="L286" href="#L286">286</a>     }
-<a class="jxr_linenumber" name="L287" href="#L287">287</a> 
-<a class="jxr_linenumber" name="L288" href="#L288">288</a> }
+<a class="jxr_linenumber" name="L247" href="#L247">247</a>     @Override
+<a class="jxr_linenumber" name="L248" href="#L248">248</a>     <strong class="jxr_keyword">public</strong> Address parseAddress(String addressString) <strong class="jxr_keyword">throws</strong> PlcException {
+<a class="jxr_linenumber" name="L249" href="#L249">249</a>         Matcher datablockAddressMatcher = S7_DATABLOCK_ADDRESS_PATTERN.matcher(addressString);
+<a class="jxr_linenumber" name="L250" href="#L250">250</a>         <strong class="jxr_keyword">if</strong> (datablockAddressMatcher.matches()) {
+<a class="jxr_linenumber" name="L251" href="#L251">251</a>             <strong class="jxr_keyword">int</strong> datablockNumber = Integer.parseInt(datablockAddressMatcher.group(<span class="jxr_string">"blockNumber"</span>));
+<a class="jxr_linenumber" name="L252" href="#L252">252</a>             <strong class="jxr_keyword">int</strong> datablockByteOffset = Integer.parseInt(datablockAddressMatcher.group(<span class="jxr_string">"byteOffset"</span>));
+<a class="jxr_linenumber" name="L253" href="#L253">253</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/s7/model/S7DataBlockAddress.html">S7DataBlockAddress</a>((<strong class="jxr_keyword">short</strong>) datablockNumber, (<strong class="jxr_keyword">short</strong>) datablockByteOffset);
+<a class="jxr_linenumber" name="L254" href="#L254">254</a>         }
+<a class="jxr_linenumber" name="L255" href="#L255">255</a>         Matcher addressMatcher = S7_ADDRESS_PATTERN.matcher(addressString);
+<a class="jxr_linenumber" name="L256" href="#L256">256</a>         <strong class="jxr_keyword">if</strong> (!addressMatcher.matches()) {
+<a class="jxr_linenumber" name="L257" href="#L257">257</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> PlcConnectionException(
+<a class="jxr_linenumber" name="L258" href="#L258">258</a>                 <span class="jxr_string">"Address string doesn't match the format '{area}/{offset}[/{bit-offset}]'"</span>);
+<a class="jxr_linenumber" name="L259" href="#L259">259</a>         }
+<a class="jxr_linenumber" name="L260" href="#L260">260</a>         <a href="../../../../../../org/apache/plc4x/java/s7/netty/model/types/MemoryArea.html">MemoryArea</a> memoryArea = MemoryArea.valueOf(addressMatcher.group(<span class="jxr_string">"memoryArea"</span>));
+<a class="jxr_linenumber" name="L261" href="#L261">261</a>         <strong class="jxr_keyword">int</strong> byteOffset = Integer.parseInt(addressMatcher.group(<span class="jxr_string">"byteOffset"</span>));
+<a class="jxr_linenumber" name="L262" href="#L262">262</a>         String bitOffset = addressMatcher.group(<span class="jxr_string">"bitOffset"</span>);
+<a class="jxr_linenumber" name="L263" href="#L263">263</a>         <strong class="jxr_keyword">if</strong> (bitOffset != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L264" href="#L264">264</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/s7/model/S7BitAddress.html">S7BitAddress</a>(memoryArea, (<strong class="jxr_keyword">short</strong>) byteOffset, Byte.valueOf(bitOffset));
+<a class="jxr_linenumber" name="L265" href="#L265">265</a>         }
+<a class="jxr_linenumber" name="L266" href="#L266">266</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/s7/model/S7Address.html">S7Address</a>(memoryArea, (<strong class="jxr_keyword">short</strong>) byteOffset);
+<a class="jxr_linenumber" name="L267" href="#L267">267</a>     }
+<a class="jxr_linenumber" name="L268" href="#L268">268</a> 
+<a class="jxr_linenumber" name="L269" href="#L269">269</a>     @Override
+<a class="jxr_linenumber" name="L270" href="#L270">270</a>     <strong class="jxr_keyword">public</strong> CompletableFuture&lt;PlcReadResponse&gt; read(PlcReadRequest readRequest) {
+<a class="jxr_linenumber" name="L271" href="#L271">271</a>         CompletableFuture&lt;PlcReadResponse&gt; readFuture = <strong class="jxr_keyword">new</strong> CompletableFuture&lt;&gt;();
+<a class="jxr_linenumber" name="L272" href="#L272">272</a>         PlcRequestContainer&lt;PlcReadRequest, PlcReadResponse&gt; container =
+<a class="jxr_linenumber" name="L273" href="#L273">273</a>             <strong class="jxr_keyword">new</strong> PlcRequestContainer&lt;&gt;(readRequest, readFuture);
+<a class="jxr_linenumber" name="L274" href="#L274">274</a>         channel.writeAndFlush(container);
+<a class="jxr_linenumber" name="L275" href="#L275">275</a>         <strong class="jxr_keyword">return</strong> readFuture;
+<a class="jxr_linenumber" name="L276" href="#L276">276</a>     }
+<a class="jxr_linenumber" name="L277" href="#L277">277</a> 
+<a class="jxr_linenumber" name="L278" href="#L278">278</a>     @Override
+<a class="jxr_linenumber" name="L279" href="#L279">279</a>     <strong class="jxr_keyword">public</strong> CompletableFuture&lt;PlcWriteResponse&gt; write(PlcWriteRequest writeRequest) {
+<a class="jxr_linenumber" name="L280" href="#L280">280</a>         CompletableFuture&lt;PlcWriteResponse&gt; writeFuture = <strong class="jxr_keyword">new</strong> CompletableFuture&lt;&gt;();
+<a class="jxr_linenumber" name="L281" href="#L281">281</a>         PlcRequestContainer&lt;PlcWriteRequest, PlcWriteResponse&gt; container =
+<a class="jxr_linenumber" name="L282" href="#L282">282</a>             <strong class="jxr_keyword">new</strong> PlcRequestContainer&lt;&gt;(writeRequest, writeFuture);
+<a class="jxr_linenumber" name="L283" href="#L283">283</a>         channel.writeAndFlush(container);
+<a class="jxr_linenumber" name="L284" href="#L284">284</a>         <strong class="jxr_keyword">return</strong> writeFuture;
+<a class="jxr_linenumber" name="L285" href="#L285">285</a>     }
+<a class="jxr_linenumber" name="L286" href="#L286">286</a> 
+<a class="jxr_linenumber" name="L287" href="#L287">287</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2017&#x2013;2018 <a href="https://www.apache.org/">The Apache Software Foundation</a>. All rights reserved.</div>
