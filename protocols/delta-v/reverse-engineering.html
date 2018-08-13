@@ -81,7 +81,7 @@
     <ul class="dropdown-menu">
                 <li ><a href="../features.html" title="Features"    >Features</a></li>
                 <li ><a href="../ads/index.html" title="ADS"    >ADS</a></li>
-                <li ><a href="index.html" title="DelataV"    >DelataV</a></li>
+                <li ><a href="index.html" title="DeltaV"    >DeltaV</a></li>
                 <li ><a href="../ethernet-ip/index.html" title="EtherNet/IP"    >EtherNet/IP</a></li>
                 <li ><a href="../modbus/index.html" title="Modbus"    >Modbus</a></li>
                 <li ><a href="../opc-ua/index.html" title="OPC-UA"    >OPC-UA</a></li>
@@ -244,7 +244,7 @@
     <p>Therefore we were able to change a few things without fearing to break anything important.</p> 
    </div> 
    <div class="paragraph"> 
-    <p>This system consisted of tree DeltaV controllers, two Operator-System instances So in general there were three types of systems involved:</p> 
+    <p>This system consisted of three DeltaV controllers, two Operator-System instances So in general there were three types of systems involved:</p> 
    </div> 
    <div class="olist arabic"> 
     <ol class="arabic"> 
@@ -379,10 +379,20 @@
    <div class="sect3"> 
     <h4 id="connecting">Connecting</h4> 
     <div class="paragraph"> 
-     <p>When an OS is booted, the following communication could be observed: 1. The OS sends a wrapper-protocol type <code>0x0003</code> to the controller. 2. The controller responds with a <code>0x0004</code> message back to the controller. 3. After receiving the <code>0x0004</code> message, the OS sends a type <code>0x0002</code> message with a wrapped type <code>0x0501</code> 4. This packet is acknowledged by the controller 5. The controller sends a very similar packet as the <code>0x0501</code> packet back to the OS 6. The OS acknowledges this packet back to the controller</p> 
+     <p>When an OS is booted, the following communication could be observed:</p> 
+    </div> 
+    <div class="olist arabic"> 
+     <ol class="arabic"> 
+      <li> <p>The OS sends a wrapper-protocol type <code>0x0003</code> to the controller.</p> </li> 
+      <li> <p>The controller responds with a <code>0x0004</code> message back to the controller.</p> </li> 
+      <li> <p>After receiving the <code>0x0004</code> message, the OS sends a type <code>0x0002</code> message with a wrapped type <code>0x0501</code></p> </li> 
+      <li> <p>This packet is acknowledged by the controller</p> </li> 
+      <li> <p>The controller sends a very similar packet as the <code>0x0501</code> packet back to the OS</p> </li> 
+      <li> <p>The OS acknowledges this packet back to the controller</p> </li> 
+     </ol> 
     </div> 
     <div class="paragraph"> 
-     <p>From looking at the packet in WireSharks byte and ASCII view, we could see ASCII characters that seem to relate to test strings. A quick consultation of the guy in charge of these systems made us realize that these strings refer to parts of the controllers software. Digging even deeper made us realize that the 4 byte values relate to unix timestamps - at least we could decode the byte values to absolutely sensible dates. So it seems that In these packets each participant compares it’s software state in order to know all are using compatible versions.</p> 
+     <p>From looking at the packet in WireShark’s byte and ASCII view, we could see ASCII characters that seem to relate to test strings. A quick consultation of the guy in charge of these systems made us realize that these strings refer to parts of the controllers software. Digging even deeper made us realize that the 4 byte values relate to unix timestamps - at least we could decode the byte values to absolutely sensible dates. So it seems that In these packets each participant compares it’s software state in order to know all are using compatible versions.</p> 
     </div> 
     <div class="paragraph"> 
      <p>This does make sense. When connecting to a remote system, checking the version compatibility is surely an important thing to do.</p> 
@@ -421,7 +431,7 @@
      <p>Next we created some captures that contain all sorts of documented value changes. So we started with the value 0 and incremented that in steps of 1 till 20 and then in steps of 10 up to 200, going back to 0 and then down to the minimum value of -40.</p> 
     </div> 
     <div class="paragraph"> 
-     <p>And we could see that there were certain parts of the packet that seem to change when changing values, most of the packet remaining constant. When changing a value back to the original value, the packets payload was identical in this part. As the packets didn’t all have the same content and some times blocksp were added and left away in regular intervals, lead us to the impression, that these packets too consist of a fixed packet header followed by blocks. In our case the changing blocks all had two indicator bytes <code>0x0b08</code> with the 4 bytes after that changing according to the input. Some times a block of bytes was added before this block, then the entire content was just pushed back.</p> 
+     <p>And we could see that there were certain parts of the packet that seem to change when changing values, most of the packet remaining constant. When changing a value back to the original value, the packets payload was identical in this part. As the packets didn’t all have the same content and some times blocks were added and left away in regular intervals, lead us to the impression, that these packets too consist of a fixed packet header followed by blocks. In our case the changing blocks all had two indicator bytes <code>0x0b08</code> with the 4 bytes after that changing according to the input. Sometimes a block of bytes was added before this block, then the entire content was just pushed back.</p> 
     </div> 
     <div class="paragraph"> 
      <p>The last of such blocks would always be a sequence of 9 bytes: <code>0x01000000000000000000</code>, so we assume this is sort of the <code>terminating block</code> of such a packet.</p> 
@@ -442,7 +452,7 @@
      <p>However when using what we learnt on the old captures we did, it turned out that unfortunately we could no longer find these <code>0x0b08</code> sequences, however we did find a lot of <code>0x08</code> followed by a 32 bit floating point value. So it seems that <code>0x08</code> indicates the type of an <code>signed 32 bit IEE 754 floating point value</code>. Eventually the <code>0x0b</code> part referred to some sort subscription-id.</p> 
     </div> 
     <div class="paragraph"> 
-     <p>As we seem to be doing a subscription based communication, the OS has to tell the controller what information he is interested in.</p> 
+     <p>As we seem to be doing a subscription based communication, the OS has to tell the controller what information it is interested in.</p> 
     </div> 
     <div class="paragraph"> 
      <p>Right now we are assuming that in one of the other <code>0x04</code> packets a subscription is initiated and assigned with some sort of id and this id is used to identify which value is actually changed.</p> 
@@ -500,7 +510,7 @@
     <a href="../ads/index.html" title="ADS"    >ADS</a>
 </li>
     <li >
-    <a href="index.html" title="DelataV"    >DelataV</a>
+    <a href="index.html" title="DeltaV"    >DeltaV</a>
 </li>
     <li >
     <a href="../ethernet-ip/index.html" title="EtherNet/IP"    >EtherNet/IP</a>
