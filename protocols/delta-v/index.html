@@ -246,6 +246,9 @@
    <div class="paragraph"> 
     <p>Due to this uncertainty we are only implementing a <code>promiscuous mode</code> driver, which will be able to read ongoing traffic without the ability to actively interact with the system.</p> 
    </div> 
+   <div class="paragraph"> 
+    <p>Read <a href="reverse-engineering.html">here</a> for a document on how we proceeded with reverse engineering this protocol.</p> 
+   </div> 
   </div> 
   <div class="sect2"> 
    <h3 id="the_wrapper_protocol">The Wrapper Protocol</h3> 
@@ -258,25 +261,9 @@
    <div class="paragraph"> 
     <p>The general structure of such a wrapper packet seems to look like this:</p> 
    </div> 
-   <div class="listingblock"> 
+   <div class="imageblock"> 
     <div class="content"> 
-     <pre>Failed to generate image: packetdiag failed: ERROR: Got unexpected token at line 13 column 22
-
-{
-    colwidth = 32
-
-    * Header\n(Constant = 0xFACE) [len = 16]
-    * Payload Length [len = 16]
-    * Type [len = 16]
-    * Message Id [len = 16]
-    * Sender Id [len = 16]
-    * Timestamp [len = 24]
-    * 0x80/0x00 [len = 8]
-    * 0x04 [len = 8]
-    * 0x00 [len = 8]
-    * Payload [len = ?]
-    * Checksum [len = 16]
-}</pre> 
+     <img src="../../img/deltav-wrapper-packet.svg" alt="deltav wrapper packet" width="896" height="400" /> 
     </div> 
    </div> 
    <div class="paragraph"> 
@@ -292,7 +279,7 @@
     <p>We have observed every unit to have a unique <code>Sender Id</code>, however a controller has been seen to have a differing id when communicating with a different operator system. What we did notice however, was that controllers usually had numerical ids while the OSes had hexadecimal letters. So an id of <code>0x0002</code> would probably imply a controller and an id of <code>0x000d</code> would imply an operator system. But we could be wrong with this assumption and this just being a result of convention.</p> 
    </div> 
    <div class="paragraph"> 
-    <p>The 3 bytes after the id seem to relate to a timestamp. Inspecting the packets and correlating this to the timestamps in our packet captures, lead us to the assumption that this timestamp uses the first 14 bits for encoding seconds and the last 10 bits for encoding the sub-second fraction. While a 3 byte timestamp is only able to measure a 10 minute time-slot and is probably not usable for absolute time measuring, it might be useful to measure transfer times. For this a 4 byte value would have been a waste of network capacity and a 2 byte value wouldn’t be able to measure more than 16 seconds, which might be too short when taking into account packet resending and network timeouts. So for now we are assuming this format is used.</p> 
+    <p>The 3 bytes after the id seem to relate to a timestamp. Inspecting the packets and correlating this to the timestamps in our packet captures, lead us to the assumption that this timestamp uses the first 14 bits for encoding seconds and the last 10 bits for encoding the sub-second fraction. While a 3 byte timestamp is only able to measure a 10 minute time-slot and is probably not usable for absolute time measuring, it might be useful to measure transfer times. For this a 4 byte value would have been a waste of network capacity and a 2 byte value wouldn’t be able to measure more than 60 seconds, which might be too short when taking into account packet resending and network timeouts. So for now we are assuming this format is used.</p> 
    </div> 
    <div class="paragraph"> 
     <p>The following 3 bytes seem to have a constant value of <code>0x800400</code> for most packets, except the ones with a type of <code>0x03</code> and <code>0x04</code>. For these two types the value seems to be <code>0x004400</code>. Here we currently can’t make an assumption on the meaning of these fields. However as the <code>0x003</code> and <code>0x004</code> seem to be the first packets used for establishing the connection between the OS and the controller, these could somehow relate to the connection state.</p> 
@@ -316,7 +303,7 @@
     <h4 id="connecting_an_os_to_a_controller">Connecting an OS to a Controller</h4> 
     <div class="imageblock"> 
      <div class="content"> 
-      <img src="deltav-connect.png" alt="deltav connect" width="656" height="364" /> 
+      <img src="../../img/deltav-connect.png" alt="deltav connect" width="656" height="364" /> 
      </div> 
     </div> 
    </div> 
@@ -339,7 +326,7 @@
     </div> 
     <div class="imageblock"> 
      <div class="content"> 
-      <img src="deltav-sync.png" alt="deltav sync" width="656" height="188" /> 
+      <img src="../../img/deltav-sync.png" alt="deltav sync" width="656" height="188" /> 
      </div> 
     </div> 
    </div> 
@@ -353,7 +340,7 @@
     </div> 
     <div class="imageblock"> 
      <div class="content"> 
-      <img src="deltav-data.png" alt="deltav data" width="656" height="188" /> 
+      <img src="../../img/deltav-data.png" alt="deltav data" width="656" height="188" /> 
      </div> 
     </div> 
    </div> 
@@ -364,7 +351,7 @@
     </div> 
     <div class="imageblock"> 
      <div class="content"> 
-      <img src="deltav-alarm.png" alt="deltav alarm" width="656" height="188" /> 
+      <img src="../../img/deltav-alarm.png" alt="deltav alarm" width="656" height="188" /> 
      </div> 
     </div> 
    </div> 
