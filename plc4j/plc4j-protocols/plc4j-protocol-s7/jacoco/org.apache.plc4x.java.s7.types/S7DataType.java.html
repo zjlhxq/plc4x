@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>S7DataType.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PLC4J: Protocol: S7</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.java.s7.types</a> &gt; <span class="el_source">S7DataType.java</span></div><h1>S7DataType.java</h1><pre class="source lang-java linenums">/*
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+&quot;License&quot;); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+&quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+*/
+package org.apache.plc4x.java.s7.types;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
+<span class="pc bpc" id="L25" title="1 of 2 branches missed.">public enum S7DataType {</span>
+
+    /**
+     * TODO: For the types with code 0x00 we need to put some additional effort in reverse engineering the codes for these types.
+     */
+<span class="fc" id="L30">    BOOL(0x01, &quot;X&quot;, null, S7ControllerType.S7_ANY),</span>
+
+<span class="fc" id="L32">    BYTE(0x02, &quot;B&quot;, null, S7ControllerType.S7_ANY),</span>
+
+<span class="fc" id="L34">    CHAR(0x03, &quot;B&quot;, null, S7ControllerType.S7_ANY),</span>
+
+<span class="fc" id="L36">    WORD(0x04, &quot;W&quot;, null, S7ControllerType.S7_ANY),</span>
+<span class="fc" id="L37">    DWORD(0x06, &quot;D&quot;, WORD, S7ControllerType.S7_ANY),</span>
+    // Only got a basic TIA license (S7-1500 needed to find this out)
+<span class="fc" id="L39">    LWORD(0x00, null, null, S7ControllerType.S7_1200, S7ControllerType.S7_1500),</span>
+
+<span class="fc" id="L41">    INT(0x05, &quot;W&quot;, null, S7ControllerType.S7_ANY),</span>
+    // Double Precision Int
+<span class="fc" id="L43">    DINT(0x07, &quot;D&quot;, INT, S7ControllerType.S7_ANY),</span>
+    // Unsigned Small Int
+<span class="fc" id="L45">    USINT(0x00, &quot;B&quot;, INT, S7ControllerType.S7_1200, S7ControllerType.S7_1500),</span>
+    // (Signed) Small Int
+<span class="fc" id="L47">    SINT(0x00, &quot;B&quot;, INT, S7ControllerType.S7_1200, S7ControllerType.S7_1500),</span>
+    // Unsigned Int
+<span class="fc" id="L49">    UINT(0x00, &quot;W&quot;, INT, S7ControllerType.S7_1200, S7ControllerType.S7_1500),</span>
+    // Unsigned Double Precision Int
+<span class="fc" id="L51">    UDINT(0x00, &quot;D&quot;, INT, S7ControllerType.S7_1200, S7ControllerType.S7_1500),</span>
+    // Only got a basic TIA license (S7-1500 needed to find this out)
+<span class="fc" id="L53">    UDLINT(0x00, null, INT, S7ControllerType.S7_1500),</span>
+    // Only got a basic TIA license (S7-1500 needed to find this out)
+<span class="fc" id="L55">    LINT(0x00, null, INT, S7ControllerType.S7_1500),</span>
+
+<span class="fc" id="L57">    REAL(0x08, &quot;D&quot;, null, S7ControllerType.S7_ANY),</span>
+    // Ok ... this is strange ...
+<span class="fc" id="L59">    LREAL(0x00, &quot;X&quot;, REAL, S7ControllerType.S7_1200, S7ControllerType.S7_1500);</span>
+
+    /* TO BE CONTINUED */
+
+    private byte typeCode;
+    private String sizeCode;
+    private Set&lt;S7ControllerType&gt; supportedControllerTypes;
+    private S7DataType baseType;
+
+<span class="fc" id="L68">    S7DataType(int typeCode, String sizeCode, S7DataType baseType, S7ControllerType... supportedControllerTypes) {</span>
+<span class="fc" id="L69">        this.typeCode = (byte) typeCode;</span>
+<span class="fc" id="L70">        this.sizeCode = sizeCode;</span>
+<span class="fc" id="L71">        this.supportedControllerTypes = new HashSet&lt;&gt;(Arrays.asList(supportedControllerTypes));</span>
+<span class="fc" id="L72">        this.baseType = baseType;</span>
+<span class="fc" id="L73">    }</span>
+
+    byte getTypeCode() {
+<span class="nc" id="L76">        return typeCode;</span>
+    }
+
+    public String getSizeCode() {
+<span class="fc" id="L80">        return sizeCode;</span>
+    }
+
+    boolean isBaseType() {
+<span class="fc bfc" id="L84" title="All 2 branches covered.">        return baseType == null;</span>
+    }
+
+    S7DataType getBaseType() {
+        // If this is a base-type itself, the baseType is null, in all
+        // other cases it is set.
+<span class="nc bnc" id="L90" title="All 2 branches missed.">        if (baseType == null) {</span>
+<span class="nc" id="L91">            return this;</span>
+        } else {
+<span class="nc" id="L93">            return baseType;</span>
+        }
+    }
+
+    S7DataType getSubType(String sizeCode) {
+        // Try to find a sub-type with this base type for which the size code matches.
+<span class="fc bfc" id="L99" title="All 2 branches covered.">        for (S7DataType value : values()) {</span>
+<span class="fc bfc" id="L100" title="All 6 branches covered.">            if ((value.baseType == this) &amp;&amp; (value.sizeCode != null) &amp;&amp; (value.sizeCode.equals(sizeCode))) {</span>
+<span class="fc" id="L101">                return value;</span>
+            }
+        }
+<span class="fc" id="L104">        return null;</span>
+    }
+
+    boolean isControllerTypeSupported(S7ControllerType controllerType) {
+<span class="nc" id="L108">        return supportedControllerTypes.contains(controllerType);</span>
+    }
+
+    /**
+     * This finder method tries to find the correct sub-type for given input.
+     * The algorithm how types are selected is the following:
+     * - If the user provided just a type and no size-code, this type is returned.
+     * - If the user provided a base-type and a size-code, then the algorithm first checks if maybe the base-type
+     * was intentionally requested. Otherwise all sub-types for the same base-type are scanned in search for one
+     * that matches the provided size-code.
+     * - If a sub-type was provided, all we do, is check if the size-code matches
+     *
+     * @param javaType java type used in the request item
+     * @param s7Type   type or sub-type provided (optional)
+     * @param sizeCode size-code provided (optional)
+     * @return best matching type.
+     * @throws IllegalArgumentException no type with matching type and size-code was found.
+     */
+    static S7DataType findMatchingType(Class&lt;?&gt; javaType, S7DataType s7Type, String sizeCode) throws IllegalArgumentException {
+<span class="pc bpc" id="L127" title="2 of 4 branches missed.">        assert s7Type != null;</span>
+
+<span class="pc bpc" id="L129" title="1 of 2 branches missed.">        if (javaType != null) {</span>
+
+<span class="fc bfc" id="L131" title="All 2 branches covered.">            if (sizeCode != null) {</span>
+                // If this is a base type, we will try to check if we can select a better fitting sub-type.
+<span class="fc bfc" id="L133" title="All 2 branches covered.">                if (s7Type.isBaseType()) {</span>
+<span class="fc" id="L134">                    S7DataType subType = s7Type.getSubType(sizeCode);</span>
+<span class="fc bfc" id="L135" title="All 2 branches covered.">                    if (subType == null) {</span>
+<span class="fc" id="L136">                        throw new IllegalArgumentException(String.format(</span>
+                            &quot;Selected base type %s does not have a sub-type for provided size code %s&quot;, s7Type, sizeCode));
+                    }
+<span class="fc" id="L139">                    s7Type = subType;</span>
+<span class="fc" id="L140">                }</span>
+                // If this is not a base type, we have to check if the sizeCode matches the selected sub-type.
+                else {
+<span class="pc bpc" id="L143" title="1 of 2 branches missed.">                    if (!s7Type.getSizeCode().equals(sizeCode)) {</span>
+<span class="nc" id="L144">                        throw new IllegalArgumentException(</span>
+<span class="nc" id="L145">                            String.format(&quot;Selected data type %s does not match provided size code %s&quot;, s7Type, sizeCode));</span>
+                    }
+                }
+            }
+
+        }
+        // TODO: Check compatibility with the java-type.
+<span class="fc" id="L152">        return s7Type;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
