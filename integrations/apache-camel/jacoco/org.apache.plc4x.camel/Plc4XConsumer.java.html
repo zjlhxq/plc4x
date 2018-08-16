@@ -29,7 +29,10 @@ import org.apache.plc4x.java.api.exceptions.PlcException;
 import org.apache.plc4x.java.api.messages.PlcSubscriptionRequest;
 import org.apache.plc4x.java.api.messages.PlcSubscriptionResponse;
 import org.apache.plc4x.java.api.messages.PlcUnsubscriptionRequest;
-import org.apache.plc4x.java.api.messages.items.*;
+import org.apache.plc4x.java.api.messages.items.SubscriptionEventItem;
+import org.apache.plc4x.java.api.messages.items.SubscriptionRequestCyclicItem;
+import org.apache.plc4x.java.api.messages.items.SubscriptionResponseItem;
+import org.apache.plc4x.java.api.messages.items.UnsubscriptionRequestItem;
 import org.apache.plc4x.java.api.model.Address;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public class Plc4XConsumer extends ServiceSupport implements Consumer, java.util.function.Consumer&lt;SubscriptionEventItem&gt; {
-<span class="fc" id="L44">    private static final Logger LOGGER = LoggerFactory.getLogger(Plc4XConsumer.class);</span>
+<span class="fc" id="L47">    private static final Logger LOGGER = LoggerFactory.getLogger(Plc4XConsumer.class);</span>
 
     private Plc4XEndpoint endpoint;
     private AsyncProcessor processor;
@@ -52,80 +55,82 @@ public class Plc4XConsumer extends ServiceSupport implements Consumer, java.util
     private PlcSubscriptionResponse subscriptionResponse;
 
 
-<span class="fc" id="L55">    public Plc4XConsumer(Plc4XEndpoint endpoint, Processor processor) throws PlcException {</span>
-<span class="fc" id="L56">        this.endpoint = endpoint;</span>
-<span class="fc" id="L57">        this.dataType = endpoint.getDataType();</span>
-<span class="fc" id="L58">        this.processor = AsyncProcessorConverterHelper.convert(processor);</span>
-<span class="fc" id="L59">        this.exceptionHandler = new LoggingExceptionHandler(endpoint.getCamelContext(), getClass());</span>
-<span class="fc" id="L60">        String plc4xURI = endpoint.getEndpointUri().replaceFirst(&quot;plc4x:/?/?&quot;, &quot;&quot;);</span>
-<span class="fc" id="L61">        this.plcConnection = endpoint.getPlcDriverManager().getConnection(plc4xURI);</span>
-<span class="fc" id="L62">        this.address = plcConnection.parseAddress(endpoint.getAddress());</span>
-<span class="fc" id="L63">    }</span>
+<span class="fc" id="L58">    public Plc4XConsumer(Plc4XEndpoint endpoint, Processor processor) throws PlcException {</span>
+<span class="fc" id="L59">        this.endpoint = endpoint;</span>
+<span class="fc" id="L60">        this.dataType = endpoint.getDataType();</span>
+<span class="fc" id="L61">        this.processor = AsyncProcessorConverterHelper.convert(processor);</span>
+<span class="fc" id="L62">        this.exceptionHandler = new LoggingExceptionHandler(endpoint.getCamelContext(), getClass());</span>
+<span class="fc" id="L63">        String plc4xURI = endpoint.getEndpointUri().replaceFirst(&quot;plc4x:/?/?&quot;, &quot;&quot;);</span>
+<span class="fc" id="L64">        this.plcConnection = endpoint.getPlcDriverManager().getConnection(plc4xURI);</span>
+<span class="fc" id="L65">        this.address = plcConnection.parseAddress(endpoint.getAddress());</span>
+<span class="fc" id="L66">    }</span>
 
     @Override
     public String toString() {
-<span class="fc" id="L67">        return &quot;Plc4XConsumer[&quot; + endpoint + &quot;]&quot;;</span>
+<span class="fc" id="L70">        return &quot;Plc4XConsumer[&quot; + endpoint + &quot;]&quot;;</span>
     }
 
     @Override
     public Endpoint getEndpoint() {
-<span class="fc" id="L72">        return endpoint;</span>
+<span class="fc" id="L75">        return endpoint;</span>
     }
 
     public ExceptionHandler getExceptionHandler() {
-<span class="nc" id="L76">        return exceptionHandler;</span>
+<span class="nc" id="L79">        return exceptionHandler;</span>
     }
 
     public void setExceptionHandler(ExceptionHandler exceptionHandler) {
-<span class="nc" id="L80">        this.exceptionHandler = exceptionHandler;</span>
-<span class="nc" id="L81">    }</span>
+<span class="nc" id="L83">        this.exceptionHandler = exceptionHandler;</span>
+<span class="nc" id="L84">    }</span>
 
     @Override
     protected void doStart() throws InterruptedException, ExecutionException, TimeoutException {
-<span class="fc" id="L85">        PlcSubscriptionRequest request = new PlcSubscriptionRequest();</span>
-<span class="fc" id="L86">        request.addItem(new SubscriptionRequestCyclicItem(dataType, address, this, TimeUnit.SECONDS, 3));</span>
-<span class="fc" id="L87">        CompletableFuture&lt;PlcSubscriptionResponse&gt; subscriptionFuture = getSubscriber().subscribe(request);</span>
-<span class="fc" id="L88">        subscriptionResponse = subscriptionFuture.get(5, TimeUnit.SECONDS);</span>
-<span class="fc" id="L89">    }</span>
+<span class="fc" id="L88">        PlcSubscriptionRequest request = new PlcSubscriptionRequest();</span>
+        @SuppressWarnings(&quot;unchecked&quot;)
+<span class="fc" id="L90">        SubscriptionRequestCyclicItem subscriptionRequestCyclicItem = new SubscriptionRequestCyclicItem(dataType, address, TimeUnit.SECONDS, 3, this);</span>
+<span class="fc" id="L91">        request.addItem(subscriptionRequestCyclicItem);</span>
+<span class="fc" id="L92">        CompletableFuture&lt;PlcSubscriptionResponse&gt; subscriptionFuture = getSubscriber().subscribe(request);</span>
+<span class="fc" id="L93">        subscriptionResponse = subscriptionFuture.get(5, TimeUnit.SECONDS);</span>
+<span class="fc" id="L94">    }</span>
 
     @Override
     protected void doStop() {
-<span class="fc" id="L93">        PlcUnsubscriptionRequest request = new PlcUnsubscriptionRequest();</span>
-<span class="fc" id="L94">        subscriptionResponse.getResponseItems().stream()</span>
-<span class="fc" id="L95">            .map(SubscriptionResponseItem::getSubscriptionHandle)</span>
-<span class="fc" id="L96">            .map(UnsubscriptionRequestItem::new)</span>
-<span class="fc" id="L97">            .forEach(request::addItem);</span>
+<span class="fc" id="L98">        PlcUnsubscriptionRequest request = new PlcUnsubscriptionRequest();</span>
+<span class="fc" id="L99">        subscriptionResponse.getResponseItems().stream()</span>
+<span class="fc" id="L100">            .map(SubscriptionResponseItem::getSubscriptionHandle)</span>
+<span class="fc" id="L101">            .map(UnsubscriptionRequestItem::new)</span>
+<span class="fc" id="L102">            .forEach(request::addItem);</span>
         try {
-<span class="fc" id="L99">            plcConnection.close();</span>
-<span class="nc" id="L100">        } catch (Exception e) {</span>
-<span class="nc" id="L101">            LOGGER.error(&quot;Error closing connection&quot;, e);</span>
-<span class="fc" id="L102">        }</span>
-<span class="fc" id="L103">    }</span>
+<span class="fc" id="L104">            plcConnection.close();</span>
+<span class="nc" id="L105">        } catch (Exception e) {</span>
+<span class="nc" id="L106">            LOGGER.error(&quot;Error closing connection&quot;, e);</span>
+<span class="fc" id="L107">        }</span>
+<span class="fc" id="L108">    }</span>
 
     private PlcSubscriber getSubscriber() {
-<span class="pc" id="L106">        return plcConnection.getSubscriber().orElseThrow(() -&gt; new RuntimeException(&quot;No subscriber available&quot;));</span>
+<span class="pc" id="L111">        return plcConnection.getSubscriber().orElseThrow(() -&gt; new RuntimeException(&quot;No subscriber available&quot;));</span>
     }
 
     @Override
     public void accept(SubscriptionEventItem subscriptionEventItem) {
-<span class="fc" id="L111">        LOGGER.debug(&quot;Received {}&quot;, subscriptionEventItem);</span>
+<span class="fc" id="L116">        LOGGER.debug(&quot;Received {}&quot;, subscriptionEventItem);</span>
         try {
-<span class="fc" id="L113">            Exchange exchange = endpoint.createExchange();</span>
-<span class="fc" id="L114">            exchange.getIn().setBody(unwrapIfSingle(subscriptionEventItem.getValues()));</span>
-<span class="fc" id="L115">            processor.process(exchange);</span>
-<span class="nc" id="L116">        } catch (Exception e) {</span>
-<span class="nc" id="L117">            exceptionHandler.handleException(e);</span>
-<span class="fc" id="L118">        }</span>
-<span class="fc" id="L119">    }</span>
+<span class="fc" id="L118">            Exchange exchange = endpoint.createExchange();</span>
+<span class="fc" id="L119">            exchange.getIn().setBody(unwrapIfSingle(subscriptionEventItem.getValues()));</span>
+<span class="fc" id="L120">            processor.process(exchange);</span>
+<span class="nc" id="L121">        } catch (Exception e) {</span>
+<span class="nc" id="L122">            exceptionHandler.handleException(e);</span>
+<span class="fc" id="L123">        }</span>
+<span class="fc" id="L124">    }</span>
 
     private Object unwrapIfSingle(List list) {
-<span class="pc bpc" id="L122" title="1 of 2 branches missed.">        if (list.isEmpty()) {</span>
-<span class="nc" id="L123">            return null;</span>
+<span class="pc bpc" id="L127" title="1 of 2 branches missed.">        if (list.isEmpty()) {</span>
+<span class="nc" id="L128">            return null;</span>
         }
-<span class="pc bpc" id="L125" title="1 of 2 branches missed.">        if (list.size() == 1) {</span>
-<span class="fc" id="L126">            return list.get(0);</span>
+<span class="pc bpc" id="L130" title="1 of 2 branches missed.">        if (list.size() == 1) {</span>
+<span class="fc" id="L131">            return list.get(0);</span>
         }
-<span class="nc" id="L128">        return list;</span>
+<span class="nc" id="L133">        return list;</span>
     }
 
 }

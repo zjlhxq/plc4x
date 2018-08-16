@@ -22,10 +22,14 @@ import io.netty.channel.ChannelFuture;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.plc4x.java.api.connection.PlcReader;
 import org.apache.plc4x.java.api.connection.PlcWriter;
-import org.apache.plc4x.java.api.messages.*;
+import org.apache.plc4x.java.api.messages.PlcReadRequest;
+import org.apache.plc4x.java.api.messages.PlcReadResponse;
+import org.apache.plc4x.java.api.messages.PlcWriteRequest;
+import org.apache.plc4x.java.api.messages.PlcWriteResponse;
 import org.apache.plc4x.java.api.model.Address;
 import org.apache.plc4x.java.base.connection.AbstractPlcConnection;
 import org.apache.plc4x.java.base.connection.ChannelFactory;
+import org.apache.plc4x.java.base.messages.PlcRequestContainer;
 import org.apache.plc4x.java.modbus.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,68 +38,68 @@ import java.util.concurrent.CompletableFuture;
 
 public abstract class BaseModbusPlcConnection extends AbstractPlcConnection implements PlcReader, PlcWriter {
 
-<span class="fc" id="L37">    private static final Logger logger = LoggerFactory.getLogger(BaseModbusPlcConnection.class);</span>
+<span class="fc" id="L41">    private static final Logger logger = LoggerFactory.getLogger(BaseModbusPlcConnection.class);</span>
 
     protected BaseModbusPlcConnection(ChannelFactory channelFactory, String params) {
-<span class="fc" id="L40">        super(channelFactory);</span>
+<span class="fc" id="L44">        super(channelFactory);</span>
 
-<span class="fc bfc" id="L42" title="All 2 branches covered.">        if (!StringUtils.isEmpty(params)) {</span>
-<span class="fc bfc" id="L43" title="All 2 branches covered.">            for (String param : params.split(&quot;&amp;&quot;)) {</span>
-<span class="fc" id="L44">                String[] paramElements = param.split(&quot;=&quot;);</span>
-<span class="fc" id="L45">                String paramName = paramElements[0];</span>
-<span class="pc bpc" id="L46" title="1 of 2 branches missed.">                if (paramElements.length == 2) {</span>
-<span class="nc" id="L47">                    String paramValue = paramElements[1];</span>
-<span class="nc" id="L48">                    switch (paramName) {</span>
+<span class="fc bfc" id="L46" title="All 2 branches covered.">        if (!StringUtils.isEmpty(params)) {</span>
+<span class="fc bfc" id="L47" title="All 2 branches covered.">            for (String param : params.split(&quot;&amp;&quot;)) {</span>
+<span class="fc" id="L48">                String[] paramElements = param.split(&quot;=&quot;);</span>
+<span class="fc" id="L49">                String paramName = paramElements[0];</span>
+<span class="pc bpc" id="L50" title="1 of 2 branches missed.">                if (paramElements.length == 2) {</span>
+<span class="nc" id="L51">                    String paramValue = paramElements[1];</span>
+<span class="nc" id="L52">                    switch (paramName) {</span>
                         default:
-<span class="nc" id="L50">                            logger.debug(&quot;Unknown parameter {} with value {}&quot;, paramName, paramValue);</span>
+<span class="nc" id="L54">                            logger.debug(&quot;Unknown parameter {} with value {}&quot;, paramName, paramValue);</span>
                     }
-<span class="nc" id="L52">                } else {</span>
-<span class="fc" id="L53">                    logger.debug(&quot;Unknown no-value parameter {}&quot;, paramName);</span>
+<span class="nc" id="L56">                } else {</span>
+<span class="fc" id="L57">                    logger.debug(&quot;Unknown no-value parameter {}&quot;, paramName);</span>
                 }
             }
         }
-<span class="fc" id="L57">    }</span>
+<span class="fc" id="L61">    }</span>
 
     @Override
     public Address parseAddress(String addressString) {
-<span class="fc bfc" id="L61" title="All 2 branches covered.">        if (MaskWriteRegisterModbusAddress.ADDRESS_PATTERN.matcher(addressString).matches()) {</span>
-<span class="fc" id="L62">            return MaskWriteRegisterModbusAddress.of(addressString);</span>
-<span class="fc bfc" id="L63" title="All 2 branches covered.">        } else if (ReadDiscreteInputsModbusAddress.ADDRESS_PATTERN.matcher(addressString).matches()) {</span>
-<span class="fc" id="L64">            return ReadDiscreteInputsModbusAddress.of(addressString);</span>
-<span class="fc bfc" id="L65" title="All 2 branches covered.">        } else if (ReadHoldingRegistersModbusAddress.ADDRESS_PATTERN.matcher(addressString).matches()) {</span>
-<span class="fc" id="L66">            return ReadHoldingRegistersModbusAddress.of(addressString);</span>
-<span class="fc bfc" id="L67" title="All 2 branches covered.">        } else if (ReadInputRegistersModbusAddress.ADDRESS_PATTERN.matcher(addressString).matches()) {</span>
-<span class="fc" id="L68">            return ReadInputRegistersModbusAddress.of(addressString);</span>
-<span class="fc bfc" id="L69" title="All 2 branches covered.">        } else if (CoilModbusAddress.ADDRESS_PATTERN.matcher(addressString).matches()) {</span>
-<span class="fc" id="L70">            return CoilModbusAddress.of(addressString);</span>
-<span class="fc bfc" id="L71" title="All 2 branches covered.">        } else if (RegisterModbusAddress.ADDRESS_PATTERN.matcher(addressString).matches()) {</span>
-<span class="fc" id="L72">            return RegisterModbusAddress.of(addressString);</span>
+<span class="fc bfc" id="L65" title="All 2 branches covered.">        if (MaskWriteRegisterModbusAddress.ADDRESS_PATTERN.matcher(addressString).matches()) {</span>
+<span class="fc" id="L66">            return MaskWriteRegisterModbusAddress.of(addressString);</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">        } else if (ReadDiscreteInputsModbusAddress.ADDRESS_PATTERN.matcher(addressString).matches()) {</span>
+<span class="fc" id="L68">            return ReadDiscreteInputsModbusAddress.of(addressString);</span>
+<span class="fc bfc" id="L69" title="All 2 branches covered.">        } else if (ReadHoldingRegistersModbusAddress.ADDRESS_PATTERN.matcher(addressString).matches()) {</span>
+<span class="fc" id="L70">            return ReadHoldingRegistersModbusAddress.of(addressString);</span>
+<span class="fc bfc" id="L71" title="All 2 branches covered.">        } else if (ReadInputRegistersModbusAddress.ADDRESS_PATTERN.matcher(addressString).matches()) {</span>
+<span class="fc" id="L72">            return ReadInputRegistersModbusAddress.of(addressString);</span>
+<span class="fc bfc" id="L73" title="All 2 branches covered.">        } else if (CoilModbusAddress.ADDRESS_PATTERN.matcher(addressString).matches()) {</span>
+<span class="fc" id="L74">            return CoilModbusAddress.of(addressString);</span>
+<span class="fc bfc" id="L75" title="All 2 branches covered.">        } else if (RegisterModbusAddress.ADDRESS_PATTERN.matcher(addressString).matches()) {</span>
+<span class="fc" id="L76">            return RegisterModbusAddress.of(addressString);</span>
         }
-<span class="fc" id="L74">        return null;</span>
+<span class="fc" id="L78">        return null;</span>
     }
 
     @Override
     public CompletableFuture&lt;PlcReadResponse&gt; read(PlcReadRequest readRequest) {
-<span class="fc" id="L79">        CompletableFuture&lt;PlcReadResponse&gt; readFuture = new CompletableFuture&lt;&gt;();</span>
-<span class="fc" id="L80">        ChannelFuture channelFuture = channel.writeAndFlush(new PlcRequestContainer&lt;&gt;(readRequest, readFuture));</span>
-<span class="fc" id="L81">        channelFuture.addListener(future -&gt; {</span>
-<span class="pc bpc" id="L82" title="1 of 2 branches missed.">            if (!future.isSuccess()) {</span>
-<span class="fc" id="L83">                readFuture.completeExceptionally(future.cause());</span>
+<span class="fc" id="L83">        CompletableFuture&lt;PlcReadResponse&gt; readFuture = new CompletableFuture&lt;&gt;();</span>
+<span class="fc" id="L84">        ChannelFuture channelFuture = channel.writeAndFlush(new PlcRequestContainer&lt;&gt;(readRequest, readFuture));</span>
+<span class="fc" id="L85">        channelFuture.addListener(future -&gt; {</span>
+<span class="pc bpc" id="L86" title="1 of 2 branches missed.">            if (!future.isSuccess()) {</span>
+<span class="fc" id="L87">                readFuture.completeExceptionally(future.cause());</span>
             }
-<span class="fc" id="L85">        });</span>
-<span class="fc" id="L86">        return readFuture;</span>
+<span class="fc" id="L89">        });</span>
+<span class="fc" id="L90">        return readFuture;</span>
     }
 
     @Override
     public CompletableFuture&lt;PlcWriteResponse&gt; write(PlcWriteRequest writeRequest) {
-<span class="fc" id="L91">        CompletableFuture&lt;PlcWriteResponse&gt; writeFuture = new CompletableFuture&lt;&gt;();</span>
-<span class="fc" id="L92">        ChannelFuture channelFuture = channel.writeAndFlush(new PlcRequestContainer&lt;&gt;(writeRequest, writeFuture));</span>
-<span class="fc" id="L93">        channelFuture.addListener(future -&gt; {</span>
-<span class="pc bpc" id="L94" title="1 of 2 branches missed.">            if (!future.isSuccess()) {</span>
-<span class="fc" id="L95">                writeFuture.completeExceptionally(future.cause());</span>
+<span class="fc" id="L95">        CompletableFuture&lt;PlcWriteResponse&gt; writeFuture = new CompletableFuture&lt;&gt;();</span>
+<span class="fc" id="L96">        ChannelFuture channelFuture = channel.writeAndFlush(new PlcRequestContainer&lt;&gt;(writeRequest, writeFuture));</span>
+<span class="fc" id="L97">        channelFuture.addListener(future -&gt; {</span>
+<span class="pc bpc" id="L98" title="1 of 2 branches missed.">            if (!future.isSuccess()) {</span>
+<span class="fc" id="L99">                writeFuture.completeExceptionally(future.cause());</span>
             }
-<span class="fc" id="L97">        });</span>
-<span class="fc" id="L98">        return writeFuture;</span>
+<span class="fc" id="L101">        });</span>
+<span class="fc" id="L102">        return writeFuture;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

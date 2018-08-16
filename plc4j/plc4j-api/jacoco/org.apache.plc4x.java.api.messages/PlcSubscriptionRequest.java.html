@@ -18,13 +18,62 @@ specific language governing permissions and limitations
 under the License.
 */
 
-import org.apache.plc4x.java.api.messages.items.SubscriptionRequestItem;
+import org.apache.plc4x.java.api.messages.items.*;
+import org.apache.plc4x.java.api.model.Address;
 
-<span class="fc" id="L23">public class PlcSubscriptionRequest extends PlcRequest&lt;SubscriptionRequestItem&lt;?&gt;&gt; {</span>
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+
+<span class="fc" id="L27">public class PlcSubscriptionRequest extends PlcRequest&lt;SubscriptionRequestItem&lt;?&gt;&gt; {</span>
+
+    public static PlcSubscriptionRequest.Builder builder() {
+<span class="nc" id="L30">        return new PlcSubscriptionRequest.Builder();</span>
+    }
+
+<span class="nc" id="L33">    public static class Builder extends PlcRequest.Builder&lt;SubscriptionRequestItem&gt; {</span>
+
+        public final &lt;T&gt; Builder addChangeOfStateItem(Class&lt;T&gt; dataType, Address address, Consumer&lt;SubscriptionEventItem&lt;T&gt;&gt; consumer) {
+            // As we don't get a list as response rather we have individual consumers we don't need type checking here.
+            //checkType(dataType);
+<span class="nc" id="L38">            requests.add(new SubscriptionRequestChangeOfStateItem&lt;&gt;(dataType, address, consumer));</span>
+<span class="nc" id="L39">            return this;</span>
+        }
+
+        public final &lt;T&gt; Builder addCyclicItem(Class&lt;T&gt; dataType, Address address, Consumer&lt;SubscriptionEventItem&lt;T&gt;&gt; consumer, TimeUnit timeUnit, int period) {
+            // As we don't get a list as response rather we have individual consumers we don't need type checking here.
+            //checkType(dataType);
+<span class="nc" id="L45">            requests.add(new SubscriptionRequestCyclicItem&lt;&gt;(dataType, address, timeUnit, period, consumer));</span>
+<span class="nc" id="L46">            return this;</span>
+        }
+
+        public final &lt;T&gt; Builder addEventItem(Class&lt;T&gt; dataType, Address address, Consumer&lt;SubscriptionEventItem&lt;T&gt;&gt; consumer) {
+            // As we don't get a list as response rather we have individual consumers we don't need type checking here.
+            //checkType(dataType);
+<span class="nc" id="L52">            requests.add(new SubscriptionRequestEventItem&lt;&gt;(dataType, address, consumer));</span>
+<span class="nc" id="L53">            return this;</span>
+        }
+
+        public final Builder addItem(SubscriptionRequestItem subscriptionRequestItem) {
+<span class="nc" id="L57">            requests.add(subscriptionRequestItem);</span>
+<span class="nc" id="L58">            return this;</span>
+        }
+
+        public final PlcSubscriptionRequest build() {
+<span class="nc bnc" id="L62" title="All 2 branches missed.">            if (requests.isEmpty()) {</span>
+<span class="nc" id="L63">                throw new IllegalStateException(&quot;No requests added&quot;);</span>
+            }
+<span class="nc" id="L65">            PlcSubscriptionRequest plcSubscriptionRequest = new PlcSubscriptionRequest();</span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">            for (SubscriptionRequestItem request : requests) {</span>
+<span class="nc" id="L67">                plcSubscriptionRequest.addItem(request);</span>
+<span class="nc" id="L68">            }</span>
+<span class="nc" id="L69">            return plcSubscriptionRequest;</span>
+        }
+
+    }
 
     @Override
     public String toString() {
-<span class="fc" id="L27">        return &quot;PlcSubscriptionRequest{} &quot; + super.toString();</span>
+<span class="fc" id="L76">        return &quot;PlcSubscriptionRequest{} &quot; + super.toString();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

@@ -30,60 +30,66 @@
 <a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.connection.PlcConnection;
 <a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.connection.PlcReader;
 <a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.connection.PlcSubscriber;
-<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.messages.*;
-<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.messages.items.*;
-<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.messages.specific.TypeSafePlcReadRequest;
-<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.messages.specific.TypeSafePlcReadResponse;
-<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.model.Address;
-<a class="jxr_linenumber" name="L30" href="#L30">30</a>  
-<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.CompletableFuture;
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.TimeUnit;
-<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <strong class="jxr_keyword">import</strong> java.util.function.Consumer;
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>  
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../org/apache/plc4x/java/ads/ManualPlc4XAdsTest.html">ManualPlc4XAdsTest</a> {
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.messages.PlcSubscriptionRequest;
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.messages.PlcUnsubscriptionRequest;
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.messages.PlcUnsubscriptionResponse;
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.messages.items.ReadResponseItem;
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.messages.items.SubscriptionResponseItem;
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.messages.specific.TypeSafePlcReadRequest;
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.messages.specific.TypeSafePlcReadResponse;
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.model.Address;
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.CompletableFuture;
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.TimeUnit;
 <a class="jxr_linenumber" name="L36" href="#L36">36</a>  
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> main(String... args) <strong class="jxr_keyword">throws</strong> Exception {
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>          String connectionUrl;
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>          <strong class="jxr_keyword">if</strong> (args.length &gt; 0 &amp;&amp; <span class="jxr_string">"serial"</span>.equalsIgnoreCase(args[0])) {
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>              System.out.println(<span class="jxr_string">"Using serial"</span>);
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>              connectionUrl = <span class="jxr_string">"ads:serial:///dev/ttys003/10.10.64.40.1.1:851/10.10.56.23.1.1:30000"</span>;
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>          } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>              System.out.println(<span class="jxr_string">"Using tcp"</span>);
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>              connectionUrl = <span class="jxr_string">"ads:tcp://10.10.64.40/10.10.64.40.1.1:851/192.168.113.1.1.1:30000"</span>;
-<a class="jxr_linenumber" name="L45" href="#L45">45</a>          }
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>          <strong class="jxr_keyword">try</strong> (PlcConnection plcConnection = <strong class="jxr_keyword">new</strong> PlcDriverManager().getConnection(connectionUrl)) {
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>              System.out.println(<span class="jxr_string">"PlcConnection "</span> + plcConnection);
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>  
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>              PlcReader reader = plcConnection.getReader().orElseThrow(() -&gt; <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"No Reader found"</span>));
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../org/apache/plc4x/java/ads/ManualPlc4XAdsTest.html">ManualPlc4XAdsTest</a> {
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> main(String... args) <strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>          String connectionUrl;
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>          <strong class="jxr_keyword">if</strong> (args.length &gt; 0 &amp;&amp; <span class="jxr_string">"serial"</span>.equalsIgnoreCase(args[0])) {
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>              System.out.println(<span class="jxr_string">"Using serial"</span>);
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>              connectionUrl = <span class="jxr_string">"ads:serial:///dev/ttys003/10.10.64.40.1.1:851/10.10.56.23.1.1:30000"</span>;
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>          } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>              System.out.println(<span class="jxr_string">"Using tcp"</span>);
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>              connectionUrl = <span class="jxr_string">"ads:tcp://10.10.64.40/10.10.64.40.1.1:851/192.168.113.1.1.1:30000"</span>;
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>          }
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>          <strong class="jxr_keyword">try</strong> (PlcConnection plcConnection = <strong class="jxr_keyword">new</strong> PlcDriverManager().getConnection(connectionUrl)) {
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>              System.out.println(<span class="jxr_string">"PlcConnection "</span> + plcConnection);
 <a class="jxr_linenumber" name="L50" href="#L50">50</a>  
-<a class="jxr_linenumber" name="L51" href="#L51">51</a>              Address address = plcConnection.parseAddress(<span class="jxr_string">"Allgemein_S2.Station"</span>);
-<a class="jxr_linenumber" name="L52" href="#L52">52</a>              CompletableFuture&lt;TypeSafePlcReadResponse&lt;Integer&gt;&gt; response = reader
-<a class="jxr_linenumber" name="L53" href="#L53">53</a>                  .read(<strong class="jxr_keyword">new</strong> TypeSafePlcReadRequest&lt;&gt;(Integer.<strong class="jxr_keyword">class</strong>, address));
-<a class="jxr_linenumber" name="L54" href="#L54">54</a>              TypeSafePlcReadResponse&lt;Integer&gt; readResponse = response.get();
-<a class="jxr_linenumber" name="L55" href="#L55">55</a>              System.out.println(<span class="jxr_string">"Response "</span> + readResponse);
-<a class="jxr_linenumber" name="L56" href="#L56">56</a>              ReadResponseItem&lt;Integer&gt; responseItem = readResponse.getResponseItem().orElseThrow(() -&gt; <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"No Item found"</span>));
-<a class="jxr_linenumber" name="L57" href="#L57">57</a>              System.out.println(<span class="jxr_string">"ResponseItem "</span> + responseItem);
-<a class="jxr_linenumber" name="L58" href="#L58">58</a>              responseItem.getValues().stream().map(integer -&gt; <span class="jxr_string">"Value: "</span> + integer).forEach(System.out::println);
-<a class="jxr_linenumber" name="L59" href="#L59">59</a>  
-<a class="jxr_linenumber" name="L60" href="#L60">60</a>              Consumer&lt;SubscriptionEventItem&lt;Integer&gt;&gt; notificationConsumer = plcNotification -&gt; System.out.println(<span class="jxr_string">"Received notification "</span> + plcNotification);
-<a class="jxr_linenumber" name="L61" href="#L61">61</a>              PlcSubscriber plcSubscriber = plcConnection.getSubscriber().orElseThrow(() -&gt; <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"Subscribe not available"</span>));
-<a class="jxr_linenumber" name="L62" href="#L62">62</a>              PlcSubscriptionRequest subscriptionRequest = <strong class="jxr_keyword">new</strong> PlcSubscriptionRequest();
-<a class="jxr_linenumber" name="L63" href="#L63">63</a>              subscriptionRequest.addItem(<strong class="jxr_keyword">new</strong> SubscriptionRequestChangeOfStateItem(Integer.<strong class="jxr_keyword">class</strong>, address, notificationConsumer));
-<a class="jxr_linenumber" name="L64" href="#L64">64</a>              CompletableFuture&lt;PlcSubscriptionResponse&gt; subscriptionFuture = plcSubscriber.subscribe(subscriptionRequest);
-<a class="jxr_linenumber" name="L65" href="#L65">65</a>              PlcSubscriptionResponse subscriptionResponse = subscriptionFuture.get(5, TimeUnit.SECONDS);
-<a class="jxr_linenumber" name="L66" href="#L66">66</a>              SubscriptionResponseItem subscriptionResponseItem = subscriptionResponse.getResponseItem().get();
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>              PlcReader reader = plcConnection.getReader().orElseThrow(() -&gt; <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"No Reader found"</span>));
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>  
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>              Address address = plcConnection.parseAddress(<span class="jxr_string">"Allgemein_S2.Station"</span>);
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>              CompletableFuture&lt;TypeSafePlcReadResponse&lt;Integer&gt;&gt; response = reader
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>                  .read(<strong class="jxr_keyword">new</strong> TypeSafePlcReadRequest&lt;&gt;(Integer.<strong class="jxr_keyword">class</strong>, address));
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>              TypeSafePlcReadResponse&lt;Integer&gt; readResponse = response.get();
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>              System.out.println(<span class="jxr_string">"Response "</span> + readResponse);
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>              ReadResponseItem&lt;Integer&gt; responseItem = readResponse.getResponseItem().orElseThrow(() -&gt; <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"No Item found"</span>));
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>              System.out.println(<span class="jxr_string">"ResponseItem "</span> + responseItem);
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>              responseItem.getValues().stream().map(integer -&gt; <span class="jxr_string">"Value: "</span> + integer).forEach(System.out::println);
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>  
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>              PlcSubscriber plcSubscriber = plcConnection.getSubscriber().orElseThrow(() -&gt; <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"Subscribe not available"</span>));
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>  
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>              PlcSubscriptionRequest subscriptionRequest = PlcSubscriptionRequest.builder()
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>                  .addChangeOfStateItem(Integer.<strong class="jxr_keyword">class</strong>, address, plcNotification -&gt; System.out.println(<span class="jxr_string">"Received notification "</span> + plcNotification))
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>                  .build();
 <a class="jxr_linenumber" name="L67" href="#L67">67</a>  
-<a class="jxr_linenumber" name="L68" href="#L68">68</a>              PlcUnsubscriptionRequest unsubscriptionRequest = <strong class="jxr_keyword">new</strong> PlcUnsubscriptionRequest();
-<a class="jxr_linenumber" name="L69" href="#L69">69</a>              unsubscriptionRequest.addItem(
-<a class="jxr_linenumber" name="L70" href="#L70">70</a>                  <strong class="jxr_keyword">new</strong> UnsubscriptionRequestItem(subscriptionResponseItem.getSubscriptionHandle()));
-<a class="jxr_linenumber" name="L71" href="#L71">71</a>              CompletableFuture&lt;PlcUnsubscriptionResponse&gt; unsubscriptionFuture =
-<a class="jxr_linenumber" name="L72" href="#L72">72</a>                  plcSubscriber.unsubscribe(unsubscriptionRequest);
-<a class="jxr_linenumber" name="L73" href="#L73">73</a>              PlcUnsubscriptionResponse unsubscriptionResponse = unsubscriptionFuture.get(5, TimeUnit.SECONDS);
-<a class="jxr_linenumber" name="L74" href="#L74">74</a>              System.out.println(unsubscriptionResponse);
-<a class="jxr_linenumber" name="L75" href="#L75">75</a>          }
-<a class="jxr_linenumber" name="L76" href="#L76">76</a>          System.exit(0);
-<a class="jxr_linenumber" name="L77" href="#L77">77</a>      }
-<a class="jxr_linenumber" name="L78" href="#L78">78</a>  }
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>              SubscriptionResponseItem subscriptionResponseItem = plcSubscriber.subscribe(subscriptionRequest)
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>                  .get(5, TimeUnit.SECONDS)
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>                  .getResponseItem().orElseThrow(() -&gt; <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"response not available"</span>));
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>  
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>              TimeUnit.SECONDS.sleep(5);
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>  
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>              PlcUnsubscriptionRequest unsubscriptionRequest = PlcUnsubscriptionRequest.builder()
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>                  .addHandle(subscriptionResponseItem)
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>                  .build();
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>  
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>              PlcUnsubscriptionResponse unsubscriptionResponse = plcSubscriber.unsubscribe(unsubscriptionRequest)
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>                  .get(5, TimeUnit.SECONDS);
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>              System.out.println(unsubscriptionResponse);
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>          }
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>          System.exit(0);
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>      }
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>  }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2017&#x2013;2018 <a href="https://www.apache.org/">The Apache Software Foundation</a>. All rights reserved.</div>
