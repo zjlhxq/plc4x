@@ -18,13 +18,16 @@ specific language governing permissions and limitations
 under the License.
 */
 
+import org.apache.plc4x.java.s7.netty.model.params.CpuServicesRequestParameter;
 import org.apache.plc4x.java.s7.netty.model.params.S7Parameter;
 import org.apache.plc4x.java.s7.netty.model.params.VarParameter;
 import org.apache.plc4x.java.s7.netty.model.params.items.S7AnyVarParameterItem;
 import org.apache.plc4x.java.s7.netty.model.params.items.VarParameterItem;
+import org.apache.plc4x.java.s7.netty.model.payloads.CpuServicesPayload;
 import org.apache.plc4x.java.s7.netty.model.payloads.S7Payload;
 import org.apache.plc4x.java.s7.netty.model.payloads.VarPayload;
 import org.apache.plc4x.java.s7.netty.model.payloads.items.VarPayloadItem;
+import org.apache.plc4x.java.s7.netty.model.payloads.ssls.SslDataRecord;
 import org.apache.plc4x.java.s7.netty.model.types.VariableAddressingMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,90 +36,107 @@ import java.util.List;
 
 public class S7SizeHelper {
 
-<span class="fc" id="L36">    private static final Logger logger = LoggerFactory.getLogger(S7SizeHelper.class);</span>
+<span class="fc" id="L39">    private static final Logger logger = LoggerFactory.getLogger(S7SizeHelper.class);</span>
 
     private S7SizeHelper() {
         // We don't want this to be instantiated.
     }
 
     public static short getParametersLength(List&lt;S7Parameter&gt; parameters) {
-<span class="fc" id="L43">        short l = 0;</span>
-<span class="fc bfc" id="L44" title="All 2 branches covered.">        if (parameters != null) {</span>
-<span class="fc bfc" id="L45" title="All 2 branches covered.">            for (S7Parameter parameter : parameters) {</span>
-<span class="fc" id="L46">                l += getParameterLength(parameter);</span>
-<span class="fc" id="L47">            }</span>
+<span class="fc" id="L46">        short l = 0;</span>
+<span class="fc bfc" id="L47" title="All 2 branches covered.">        if (parameters != null) {</span>
+<span class="fc bfc" id="L48" title="All 2 branches covered.">            for (S7Parameter parameter : parameters) {</span>
+<span class="fc" id="L49">                l += getParameterLength(parameter);</span>
+<span class="fc" id="L50">            }</span>
         }
-<span class="fc" id="L49">        return l;</span>
+<span class="fc" id="L52">        return l;</span>
     }
 
     public static short getPayloadsLength(List&lt;S7Payload&gt; payloads) {
-<span class="fc" id="L53">        short l = 0;</span>
-<span class="fc bfc" id="L54" title="All 2 branches covered.">        if (payloads == null) {</span>
-<span class="fc" id="L55">            return 0;</span>
+<span class="fc" id="L56">        short l = 0;</span>
+<span class="fc bfc" id="L57" title="All 2 branches covered.">        if (payloads == null) {</span>
+<span class="fc" id="L58">            return 0;</span>
         }
 
-<span class="fc bfc" id="L58" title="All 2 branches covered.">        for (S7Payload payload : payloads) {</span>
-<span class="pc bpc" id="L59" title="1 of 2 branches missed.">            if(payload instanceof VarPayload) {</span>
-<span class="fc" id="L60">                VarPayload varPayload = (VarPayload) payload;</span>
-<span class="fc bfc" id="L61" title="All 2 branches covered.">                for (VarPayloadItem payloadItem : varPayload.getItems()) {</span>
-<span class="fc" id="L62">                    l += getPayloadLength(payloadItem);</span>
-<span class="fc" id="L63">                }</span>
+<span class="fc bfc" id="L61" title="All 2 branches covered.">        for (S7Payload payload : payloads) {</span>
+<span class="pc bpc" id="L62" title="1 of 2 branches missed.">            if(payload instanceof VarPayload) {</span>
+<span class="fc" id="L63">                VarPayload varPayload = (VarPayload) payload;</span>
+<span class="fc bfc" id="L64" title="All 2 branches covered.">                for (VarPayloadItem payloadItem : varPayload.getItems()) {</span>
+<span class="fc" id="L65">                    l += getPayloadLength(payloadItem);</span>
+<span class="fc" id="L66">                }</span>
+<span class="pc bnc" id="L67" title="All 2 branches missed.">            } else if(payload instanceof CpuServicesPayload) {</span>
+<span class="nc" id="L68">                CpuServicesPayload cpuServicesPayload = (CpuServicesPayload) payload;</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">                if(cpuServicesPayload.getSslDataRecords().isEmpty()) {</span>
+<span class="nc" id="L70">                    return 8;</span>
+                } else {
+<span class="nc" id="L72">                    short length = 0;</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">                    for (SslDataRecord sslDataRecord : cpuServicesPayload.getSslDataRecords()) {</span>
+<span class="nc" id="L74">                        length += sslDataRecord.getLengthInWords() * 2;</span>
+<span class="nc" id="L75">                    }</span>
+<span class="nc" id="L76">                    return length;</span>
+                }
             }
-<span class="fc" id="L65">        }</span>
-<span class="fc" id="L66">        return l;</span>
+<span class="fc" id="L79">        }</span>
+<span class="fc" id="L80">        return l;</span>
     }
 
     public static short getParameterLength(S7Parameter parameter) {
-<span class="pc bpc" id="L70" title="1 of 2 branches missed.">        if (parameter == null) {</span>
-<span class="nc" id="L71">            return 0;</span>
+<span class="pc bpc" id="L84" title="1 of 2 branches missed.">        if (parameter == null) {</span>
+<span class="nc" id="L85">            return 0;</span>
         }
 
-<span class="pc bfc" id="L74" title="All 3 branches covered.">        switch (parameter.getType()) {</span>
+<span class="pc bpc" id="L88" title="1 of 4 branches missed.">        switch (parameter.getType()) {</span>
             case READ_VAR:
             case WRITE_VAR:
-<span class="fc" id="L77">                return getReadWriteVarParameterLength((VarParameter) parameter);</span>
+<span class="fc" id="L91">                return getReadWriteVarParameterLength((VarParameter) parameter);</span>
             case SETUP_COMMUNICATION:
-<span class="fc" id="L79">                return 8;</span>
+<span class="fc" id="L93">                return 8;</span>
+            case CPU_SERVICES:
+<span class="pc bpc" id="L95" title="1 of 2 branches missed.">                if(parameter instanceof CpuServicesRequestParameter) {</span>
+<span class="fc" id="L96">                    return 8;</span>
+                } else {
+<span class="nc" id="L98">                    return 12;</span>
+                }
             default:
-<span class="fc" id="L81">                logger.error(&quot;Not implemented&quot;);</span>
-<span class="fc" id="L82">                return 0;</span>
+<span class="nc" id="L101">                logger.error(&quot;Not implemented&quot;);</span>
+<span class="nc" id="L102">                return 0;</span>
         }
     }
 
     public static short getReadWriteVarParameterLength(VarParameter parameter) {
-<span class="fc" id="L87">        short length = 2;</span>
-<span class="fc bfc" id="L88" title="All 2 branches covered.">        for (VarParameterItem varParameterItem : parameter.getItems()) {</span>
-<span class="fc" id="L89">            VariableAddressingMode addressMode = varParameterItem.getAddressingMode();</span>
+<span class="fc" id="L107">        short length = 2;</span>
+<span class="fc bfc" id="L108" title="All 2 branches covered.">        for (VarParameterItem varParameterItem : parameter.getItems()) {</span>
+<span class="fc" id="L109">            VariableAddressingMode addressMode = varParameterItem.getAddressingMode();</span>
 
-<span class="pc bpc" id="L91" title="1 of 2 branches missed.">            if (addressMode == VariableAddressingMode.S7ANY) {</span>
-<span class="fc" id="L92">                length += 12;</span>
+<span class="pc bpc" id="L111" title="1 of 2 branches missed.">            if (addressMode == VariableAddressingMode.S7ANY) {</span>
+<span class="fc" id="L112">                length += 12;</span>
             } else {
-<span class="nc" id="L94">                logger.error(&quot;Not implemented&quot;);</span>
+<span class="nc" id="L114">                logger.error(&quot;Not implemented&quot;);</span>
             }
-<span class="fc" id="L96">        }</span>
-<span class="fc" id="L97">        return length;</span>
+<span class="fc" id="L116">        }</span>
+<span class="fc" id="L117">        return length;</span>
     }
 
     public static short getPayloadLength(VarParameterItem parameterItem) {
-<span class="pc bpc" id="L101" title="1 of 2 branches missed.">        if (parameterItem == null) {</span>
-<span class="nc" id="L102">            return 0;</span>
+<span class="pc bpc" id="L121" title="1 of 2 branches missed.">        if (parameterItem == null) {</span>
+<span class="nc" id="L122">            return 0;</span>
         }
 
-<span class="pc bpc" id="L105" title="1 of 2 branches missed.">        if(parameterItem instanceof S7AnyVarParameterItem) {</span>
-<span class="fc" id="L106">            S7AnyVarParameterItem anyVarParameterItem = (S7AnyVarParameterItem) parameterItem;</span>
-<span class="fc" id="L107">            return (short) (4 + (((int) anyVarParameterItem.getNumElements()) * anyVarParameterItem.getTransportSize().getSizeInBytes()));</span>
+<span class="pc bpc" id="L125" title="1 of 2 branches missed.">        if(parameterItem instanceof S7AnyVarParameterItem) {</span>
+<span class="fc" id="L126">            S7AnyVarParameterItem anyVarParameterItem = (S7AnyVarParameterItem) parameterItem;</span>
+<span class="fc" id="L127">            return (short) (4 + (((int) anyVarParameterItem.getNumElements()) * anyVarParameterItem.getTransportSize().getSizeInBytes()));</span>
         } else {
-<span class="nc" id="L109">            logger.error(&quot;Not implemented&quot;);</span>
-<span class="nc" id="L110">            return 0;</span>
+<span class="nc" id="L129">            logger.error(&quot;Not implemented&quot;);</span>
+<span class="nc" id="L130">            return 0;</span>
         }
     }
 
     public static short getPayloadLength(VarPayloadItem payloadItem) {
-<span class="pc bpc" id="L115" title="1 of 2 branches missed.">        if (payloadItem == null) {</span>
-<span class="nc" id="L116">            return 0;</span>
+<span class="pc bpc" id="L135" title="1 of 2 branches missed.">        if (payloadItem == null) {</span>
+<span class="nc" id="L136">            return 0;</span>
         }
 
-<span class="fc" id="L119">        return (short) (4 + payloadItem.getData().length);</span>
+<span class="fc" id="L139">        return (short) (4 + payloadItem.getData().length);</span>
     }
 
 }
