@@ -18,6 +18,7 @@
  */
 package org.apache.plc4x.java.ads.model;
 
+import org.apache.plc4x.java.api.exceptions.PlcInvalidAddressException;
 import org.apache.plc4x.java.api.model.Address;
 
 import java.util.Objects;
@@ -28,19 +29,18 @@ import java.util.regex.Pattern;
  * ADS address witch is defined by symbolic name (e.g. {@code Main.items[0]}).
  */
 public class SymbolicAdsAddress implements Address {
-<span class="fc" id="L31">    private static final Pattern SYMBOLIC_ADDRESS_PATTERN = Pattern.compile(&quot;^(?&lt;symbolicAddress&gt;.+)&quot;);</span>
+<span class="fc" id="L32">    private static final Pattern SYMBOLIC_ADDRESS_PATTERN = Pattern.compile(&quot;^(?&lt;symbolicAddress&gt;.+)&quot;);</span>
 
     private final String symbolicAddress;
 
-<span class="fc" id="L35">    private SymbolicAdsAddress(String symbolicAddress) {</span>
-<span class="fc" id="L36">        this.symbolicAddress = Objects.requireNonNull(symbolicAddress);</span>
-<span class="fc" id="L37">    }</span>
+<span class="fc" id="L36">    private SymbolicAdsAddress(String symbolicAddress) {</span>
+<span class="fc" id="L37">        this.symbolicAddress = Objects.requireNonNull(symbolicAddress);</span>
+<span class="fc" id="L38">    }</span>
 
-    public static SymbolicAdsAddress of(String address) {
-<span class="fc" id="L40">        Matcher matcher = SYMBOLIC_ADDRESS_PATTERN.matcher(address);</span>
-<span class="fc bfc" id="L41" title="All 2 branches covered.">        if (!matcher.matches()) {</span>
-<span class="fc" id="L42">            throw new IllegalArgumentException(</span>
-                &quot;address &quot; + address + &quot; doesn't match '{address}' RAW:&quot; + SYMBOLIC_ADDRESS_PATTERN);
+    public static SymbolicAdsAddress of(String address) throws PlcInvalidAddressException {
+<span class="fc" id="L41">        Matcher matcher = SYMBOLIC_ADDRESS_PATTERN.matcher(address);</span>
+<span class="pc bpc" id="L42" title="1 of 2 branches missed.">        if (!matcher.matches()) {</span>
+<span class="nc" id="L43">            throw new PlcInvalidAddressException(address, SYMBOLIC_ADDRESS_PATTERN, &quot;{address}&quot;);</span>
         }
 <span class="fc" id="L45">        String symbolicAddress = matcher.group(&quot;symbolicAddress&quot;);</span>
 
@@ -48,7 +48,7 @@ public class SymbolicAdsAddress implements Address {
     }
 
     public static boolean matches(String address) {
-<span class="nc" id="L51">        return SYMBOLIC_ADDRESS_PATTERN.matcher(address).matches();</span>
+<span class="fc" id="L51">        return SYMBOLIC_ADDRESS_PATTERN.matcher(address).matches();</span>
     }
 
     public String getSymbolicAddress() {

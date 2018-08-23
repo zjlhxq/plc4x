@@ -18,7 +18,7 @@
  */
 package org.apache.plc4x.java.modbus.model;
 
-import org.apache.plc4x.java.api.exceptions.PlcRuntimeException;
+import org.apache.plc4x.java.api.exceptions.PlcInvalidAddressException;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -31,10 +31,10 @@ public class ReadInputRegistersModbusAddress extends ModbusAddress {
 <span class="fc" id="L31">        super(address);</span>
 <span class="fc" id="L32">    }</span>
 
-    public static ReadInputRegistersModbusAddress of(String addressString) {
+    public static ReadInputRegistersModbusAddress of(String addressString) throws PlcInvalidAddressException {
 <span class="fc" id="L35">        Matcher matcher = ADDRESS_PATTERN.matcher(addressString);</span>
 <span class="pc bpc" id="L36" title="1 of 2 branches missed.">        if (!matcher.matches()) {</span>
-<span class="nc" id="L37">            throw new PlcRuntimeException(addressString + &quot; doesn't match &quot; + ADDRESS_PATTERN);</span>
+<span class="nc" id="L37">            throw new PlcInvalidAddressException(addressString, ADDRESS_PATTERN);</span>
         }
 <span class="fc" id="L39">        int address = Integer.parseInt(matcher.group(&quot;address&quot;));</span>
 <span class="fc" id="L40">        return new ReadInputRegistersModbusAddress(address);</span>
