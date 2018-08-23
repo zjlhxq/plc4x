@@ -30,7 +30,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.plc4x.java.api.exceptions.PlcException;
 import org.apache.plc4x.java.api.exceptions.PlcNotImplementedException;
 import org.apache.plc4x.java.api.exceptions.PlcProtocolException;
-import org.apache.plc4x.java.api.exceptions.PlcRuntimeException;
+import org.apache.plc4x.java.api.exceptions.PlcUnsupportedDataTypeException;
 import org.apache.plc4x.java.api.messages.*;
 import org.apache.plc4x.java.api.messages.items.*;
 import org.apache.plc4x.java.api.types.ResponseCode;
@@ -311,7 +311,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 <span class="pc bpc" id="L311" title="1 of 2 branches missed.">            } else if (value.getClass() == Double.class) {</span>
 <span class="fc" id="L312">                coilSet = value.equals(1.0d);</span>
             } else {
-<span class="nc" id="L314">                throw new PlcRuntimeException(&quot;Unsupported datatype detected &quot; + value.getClass());</span>
+<span class="nc" id="L314">                throw new PlcUnsupportedDataTypeException(value.getClass());</span>
             }
 <span class="pc bpc" id="L316" title="1 of 2 branches missed.">            byte coilToSet = coilSet ? (byte) 1 : (byte) 0;</span>
 <span class="fc" id="L317">            actualCoil = (byte) (actualCoil &amp; 0xff | coilToSet &lt;&lt; i);</span>
@@ -404,7 +404,7 @@ import java.util.concurrent.atomic.AtomicInteger;
                 }
 <span class="fc" id="L405">                buffer.writeShort((int) Math.round((double) value));</span>
             } else {
-<span class="nc" id="L407">                throw new PlcRuntimeException(&quot;Unsupported datatype detected &quot; + value.getClass());</span>
+<span class="nc" id="L407">                throw new PlcUnsupportedDataTypeException(value.getClass());</span>
             }
 <span class="fc" id="L409">        }</span>
 <span class="fc" id="L410">        byte[] result = new byte[buffer.writerIndex()];</span>
@@ -468,7 +468,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 <span class="fc" id="L468">                T itemToBeAdded = (T) Double.valueOf(coilFlag);</span>
 <span class="fc" id="L469">                data.add(itemToBeAdded);</span>
 <span class="fc" id="L470">            } else {</span>
-<span class="nc" id="L471">                throw new PlcRuntimeException(&quot;Unsupported datatype detected &quot; + dataType);</span>
+<span class="nc" id="L471">                throw new PlcUnsupportedDataTypeException(dataType);</span>
             }
 <span class="fc" id="L473">            bitIndex++;</span>
 <span class="fc" id="L474">        }</span>
@@ -541,7 +541,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 <span class="fc" id="L541">                T itemToBeAdded = (T) new Double(intValue);</span>
 <span class="fc" id="L542">                data.add(itemToBeAdded);</span>
 <span class="fc" id="L543">            } else {</span>
-<span class="nc" id="L544">                throw new PlcRuntimeException(&quot;Unsupported datatype detected &quot; + dataType);</span>
+<span class="nc" id="L544">                throw new PlcUnsupportedDataTypeException(dataType);</span>
             }
         }
 <span class="fc" id="L547">        return data;</span>

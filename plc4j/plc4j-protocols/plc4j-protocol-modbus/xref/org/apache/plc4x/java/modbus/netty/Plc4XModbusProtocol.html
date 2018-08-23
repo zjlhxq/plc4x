@@ -38,7 +38,7 @@
 <a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.exceptions.PlcException;
 <a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.exceptions.PlcNotImplementedException;
 <a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.exceptions.PlcProtocolException;
-<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.exceptions.PlcRuntimeException;
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.exceptions.PlcUnsupportedDataTypeException;
 <a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.messages.*;
 <a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.messages.items.*;
 <a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.types.ResponseCode;
@@ -319,7 +319,7 @@
 <a class="jxr_linenumber" name="L311" href="#L311">311</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (value.getClass() == Double.<strong class="jxr_keyword">class</strong>) {
 <a class="jxr_linenumber" name="L312" href="#L312">312</a>                 coilSet = value.equals(1.0d);
 <a class="jxr_linenumber" name="L313" href="#L313">313</a>             } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L314" href="#L314">314</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> PlcRuntimeException(<span class="jxr_string">"Unsupported datatype detected "</span> + value.getClass());
+<a class="jxr_linenumber" name="L314" href="#L314">314</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> PlcUnsupportedDataTypeException(value.getClass());
 <a class="jxr_linenumber" name="L315" href="#L315">315</a>             }
 <a class="jxr_linenumber" name="L316" href="#L316">316</a>             byte coilToSet = coilSet ? (byte) 1 : (byte) 0;
 <a class="jxr_linenumber" name="L317" href="#L317">317</a>             actualCoil = (byte) (actualCoil &amp; 0xff | coilToSet &lt;&lt; i);
@@ -412,7 +412,7 @@
 <a class="jxr_linenumber" name="L404" href="#L404">404</a>                 }
 <a class="jxr_linenumber" name="L405" href="#L405">405</a>                 buffer.writeShort((<strong class="jxr_keyword">int</strong>) Math.round((<strong class="jxr_keyword">double</strong>) value));
 <a class="jxr_linenumber" name="L406" href="#L406">406</a>             } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L407" href="#L407">407</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> PlcRuntimeException(<span class="jxr_string">"Unsupported datatype detected "</span> + value.getClass());
+<a class="jxr_linenumber" name="L407" href="#L407">407</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> PlcUnsupportedDataTypeException(value.getClass());
 <a class="jxr_linenumber" name="L408" href="#L408">408</a>             }
 <a class="jxr_linenumber" name="L409" href="#L409">409</a>         }
 <a class="jxr_linenumber" name="L410" href="#L410">410</a>         byte[] result = <strong class="jxr_keyword">new</strong> byte[buffer.writerIndex()];
@@ -476,7 +476,7 @@
 <a class="jxr_linenumber" name="L468" href="#L468">468</a>                 T itemToBeAdded = (T) Double.valueOf(coilFlag);
 <a class="jxr_linenumber" name="L469" href="#L469">469</a>                 data.add(itemToBeAdded);
 <a class="jxr_linenumber" name="L470" href="#L470">470</a>             } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L471" href="#L471">471</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> PlcRuntimeException(<span class="jxr_string">"Unsupported datatype detected "</span> + dataType);
+<a class="jxr_linenumber" name="L471" href="#L471">471</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> PlcUnsupportedDataTypeException(dataType);
 <a class="jxr_linenumber" name="L472" href="#L472">472</a>             }
 <a class="jxr_linenumber" name="L473" href="#L473">473</a>             bitIndex++;
 <a class="jxr_linenumber" name="L474" href="#L474">474</a>         }
@@ -549,7 +549,7 @@
 <a class="jxr_linenumber" name="L541" href="#L541">541</a>                 T itemToBeAdded = (T) <strong class="jxr_keyword">new</strong> Double(intValue);
 <a class="jxr_linenumber" name="L542" href="#L542">542</a>                 data.add(itemToBeAdded);
 <a class="jxr_linenumber" name="L543" href="#L543">543</a>             } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L544" href="#L544">544</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> PlcRuntimeException(<span class="jxr_string">"Unsupported datatype detected "</span> + dataType);
+<a class="jxr_linenumber" name="L544" href="#L544">544</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> PlcUnsupportedDataTypeException(dataType);
 <a class="jxr_linenumber" name="L545" href="#L545">545</a>             }
 <a class="jxr_linenumber" name="L546" href="#L546">546</a>         }
 <a class="jxr_linenumber" name="L547" href="#L547">547</a>         <strong class="jxr_keyword">return</strong> data;

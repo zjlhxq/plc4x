@@ -25,7 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.plc4x.java.api.connection.PlcReader;
 import org.apache.plc4x.java.api.connection.PlcWriter;
 import org.apache.plc4x.java.api.exceptions.PlcConnectionException;
-import org.apache.plc4x.java.api.exceptions.PlcException;
+import org.apache.plc4x.java.api.exceptions.PlcInvalidAddress;
 import org.apache.plc4x.java.api.messages.PlcReadRequest;
 import org.apache.plc4x.java.api.messages.PlcReadResponse;
 import org.apache.plc4x.java.api.messages.PlcWriteRequest;
@@ -249,7 +249,7 @@ public class S7PlcConnection extends AbstractPlcConnection implements PlcReader,
 
 
     @Override
-    public Address parseAddress(String addressString) throws PlcException {
+    public Address parseAddress(String addressString) throws PlcInvalidAddress {
 <span class="nc" id="L253">        Matcher datablockAddressMatcher = S7_DATABLOCK_ADDRESS_PATTERN.matcher(addressString);</span>
 <span class="nc bnc" id="L254" title="All 2 branches missed.">        if (datablockAddressMatcher.matches()) {</span>
 <span class="nc" id="L255">            int datablockNumber = Integer.parseInt(datablockAddressMatcher.group(&quot;blockNumber&quot;));</span>
@@ -258,34 +258,33 @@ public class S7PlcConnection extends AbstractPlcConnection implements PlcReader,
         }
 <span class="nc" id="L259">        Matcher addressMatcher = S7_ADDRESS_PATTERN.matcher(addressString);</span>
 <span class="nc bnc" id="L260" title="All 2 branches missed.">        if (!addressMatcher.matches()) {</span>
-<span class="nc" id="L261">            throw new PlcConnectionException(</span>
-                &quot;Address string doesn't match the format '{area}/{offset}[/{bit-offset}]'&quot;);
+<span class="nc" id="L261">            throw new PlcInvalidAddress(addressString, S7_ADDRESS_PATTERN, &quot;{area}/{offset}[/{bit-offset}]&quot;);</span>
         }
-<span class="nc" id="L264">        MemoryArea memoryArea = MemoryArea.valueOf(addressMatcher.group(&quot;memoryArea&quot;));</span>
-<span class="nc" id="L265">        int byteOffset = Integer.parseInt(addressMatcher.group(&quot;byteOffset&quot;));</span>
-<span class="nc" id="L266">        String bitOffset = addressMatcher.group(&quot;bitOffset&quot;);</span>
-<span class="nc bnc" id="L267" title="All 2 branches missed.">        if (bitOffset != null) {</span>
-<span class="nc" id="L268">            return new S7BitAddress(memoryArea, (short) byteOffset, Byte.valueOf(bitOffset));</span>
+<span class="nc" id="L263">        MemoryArea memoryArea = MemoryArea.valueOf(addressMatcher.group(&quot;memoryArea&quot;));</span>
+<span class="nc" id="L264">        int byteOffset = Integer.parseInt(addressMatcher.group(&quot;byteOffset&quot;));</span>
+<span class="nc" id="L265">        String bitOffset = addressMatcher.group(&quot;bitOffset&quot;);</span>
+<span class="nc bnc" id="L266" title="All 2 branches missed.">        if (bitOffset != null) {</span>
+<span class="nc" id="L267">            return new S7BitAddress(memoryArea, (short) byteOffset, Byte.valueOf(bitOffset));</span>
         }
-<span class="nc" id="L270">        return new S7Address(memoryArea, (short) byteOffset);</span>
+<span class="nc" id="L269">        return new S7Address(memoryArea, (short) byteOffset);</span>
     }
 
     @Override
     public CompletableFuture&lt;PlcReadResponse&gt; read(PlcReadRequest readRequest) {
-<span class="nc" id="L275">        CompletableFuture&lt;PlcReadResponse&gt; readFuture = new CompletableFuture&lt;&gt;();</span>
-<span class="nc" id="L276">        PlcRequestContainer&lt;PlcReadRequest, PlcReadResponse&gt; container =</span>
+<span class="nc" id="L274">        CompletableFuture&lt;PlcReadResponse&gt; readFuture = new CompletableFuture&lt;&gt;();</span>
+<span class="nc" id="L275">        PlcRequestContainer&lt;PlcReadRequest, PlcReadResponse&gt; container =</span>
             new PlcRequestContainer&lt;&gt;(readRequest, readFuture);
-<span class="nc" id="L278">        channel.writeAndFlush(container);</span>
-<span class="nc" id="L279">        return readFuture;</span>
+<span class="nc" id="L277">        channel.writeAndFlush(container);</span>
+<span class="nc" id="L278">        return readFuture;</span>
     }
 
     @Override
     public CompletableFuture&lt;PlcWriteResponse&gt; write(PlcWriteRequest writeRequest) {
-<span class="nc" id="L284">        CompletableFuture&lt;PlcWriteResponse&gt; writeFuture = new CompletableFuture&lt;&gt;();</span>
-<span class="nc" id="L285">        PlcRequestContainer&lt;PlcWriteRequest, PlcWriteResponse&gt; container =</span>
+<span class="nc" id="L283">        CompletableFuture&lt;PlcWriteResponse&gt; writeFuture = new CompletableFuture&lt;&gt;();</span>
+<span class="nc" id="L284">        PlcRequestContainer&lt;PlcWriteRequest, PlcWriteResponse&gt; container =</span>
             new PlcRequestContainer&lt;&gt;(writeRequest, writeFuture);
-<span class="nc" id="L287">        channel.writeAndFlush(container);</span>
-<span class="nc" id="L288">        return writeFuture;</span>
+<span class="nc" id="L286">        channel.writeAndFlush(container);</span>
+<span class="nc" id="L287">        return writeFuture;</span>
     }
 
 }
