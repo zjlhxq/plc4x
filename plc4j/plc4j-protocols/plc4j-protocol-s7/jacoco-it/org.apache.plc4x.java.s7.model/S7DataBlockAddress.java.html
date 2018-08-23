@@ -18,19 +18,40 @@ under the License.
 */
 package org.apache.plc4x.java.s7.model;
 
+import org.apache.plc4x.java.api.exceptions.PlcInvalidAddressException;
 import org.apache.plc4x.java.s7.netty.model.types.MemoryArea;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class S7DataBlockAddress extends S7Address {
+
+<span class="nc" id="L29">    private static final Pattern ADDRESS_PATTERN =</span>
+<span class="nc" id="L30">        Pattern.compile(&quot;^DATA_BLOCKS/(?&lt;blockNumber&gt;\\d{1,4})/(?&lt;byteOffset&gt;\\d{1,4})&quot;);</span>
+
+    public static boolean matches(String addressString) {
+<span class="nc" id="L33">        return ADDRESS_PATTERN.matcher(addressString).matches();</span>
+    }
+
+    public static S7DataBlockAddress of(String addressString) throws PlcInvalidAddressException {
+<span class="nc" id="L37">        Matcher matcher = ADDRESS_PATTERN.matcher(addressString);</span>
+<span class="nc bnc" id="L38" title="All 2 branches missed.">        if (!matcher.matches()) {</span>
+<span class="nc" id="L39">            throw new PlcInvalidAddressException(addressString, ADDRESS_PATTERN);</span>
+        }
+<span class="nc" id="L41">        int datablockNumber = Integer.parseInt(matcher.group(&quot;blockNumber&quot;));</span>
+<span class="nc" id="L42">        int datablockByteOffset = Integer.parseInt(matcher.group(&quot;byteOffset&quot;));</span>
+<span class="nc" id="L43">        return new S7DataBlockAddress((short) datablockNumber, (short) datablockByteOffset);</span>
+    }
 
     private final short dataBlockNumber;
 
     public S7DataBlockAddress(short dataBlockNumber, short byteOffset) {
-<span class="nc" id="L28">        super(MemoryArea.DATA_BLOCKS, byteOffset);</span>
-<span class="nc" id="L29">        this.dataBlockNumber = dataBlockNumber;</span>
-<span class="nc" id="L30">    }</span>
+<span class="nc" id="L49">        super(MemoryArea.DATA_BLOCKS, byteOffset);</span>
+<span class="nc" id="L50">        this.dataBlockNumber = dataBlockNumber;</span>
+<span class="nc" id="L51">    }</span>
 
     public short getDataBlockNumber() {
-<span class="nc" id="L33">        return dataBlockNumber;</span>
+<span class="nc" id="L54">        return dataBlockNumber;</span>
     }
 
 }

@@ -18,25 +18,46 @@ under the License.
 */
 package org.apache.plc4x.java.s7.model;
 
+import org.apache.plc4x.java.api.exceptions.PlcInvalidAddressException;
 import org.apache.plc4x.java.api.model.Address;
 import org.apache.plc4x.java.s7.netty.model.types.MemoryArea;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class S7Address implements Address {
+
+<span class="fc" id="L30">    private static final Pattern ADDRESS_PATTERN =</span>
+<span class="fc" id="L31">        Pattern.compile(&quot;^(?&lt;memoryArea&gt;.*?)/(?&lt;byteOffset&gt;\\d{1,4})?&quot;);</span>
+
+    public static boolean matches(String addressString) {
+<span class="fc" id="L34">        return ADDRESS_PATTERN.matcher(addressString).matches();</span>
+    }
+
+    public static S7Address of(String addressString) throws PlcInvalidAddressException {
+<span class="fc" id="L38">        Matcher matcher = ADDRESS_PATTERN.matcher(addressString);</span>
+<span class="pc bpc" id="L39" title="1 of 2 branches missed.">        if (!matcher.matches()) {</span>
+<span class="nc" id="L40">            throw new PlcInvalidAddressException(addressString, ADDRESS_PATTERN);</span>
+        }
+<span class="fc" id="L42">        MemoryArea memoryArea = MemoryArea.valueOf(matcher.group(&quot;memoryArea&quot;));</span>
+<span class="fc" id="L43">        short byteOffset = Short.parseShort(matcher.group(&quot;byteOffset&quot;));</span>
+<span class="fc" id="L44">        return new S7Address(memoryArea, byteOffset);</span>
+    }
 
     private final MemoryArea memoryArea;
     private final short byteOffset;
 
-<span class="fc" id="L29">    public S7Address(MemoryArea memoryArea, short byteOffset) {</span>
-<span class="fc" id="L30">        this.memoryArea = memoryArea;</span>
-<span class="fc" id="L31">        this.byteOffset = byteOffset;</span>
-<span class="fc" id="L32">    }</span>
+<span class="fc" id="L50">    public S7Address(MemoryArea memoryArea, short byteOffset) {</span>
+<span class="fc" id="L51">        this.memoryArea = memoryArea;</span>
+<span class="fc" id="L52">        this.byteOffset = byteOffset;</span>
+<span class="fc" id="L53">    }</span>
 
     public MemoryArea getMemoryArea() {
-<span class="fc" id="L35">        return memoryArea;</span>
+<span class="fc" id="L56">        return memoryArea;</span>
     }
 
     public short getByteOffset() {
-<span class="fc" id="L39">        return byteOffset;</span>
+<span class="fc" id="L60">        return byteOffset;</span>
     }
 
 }

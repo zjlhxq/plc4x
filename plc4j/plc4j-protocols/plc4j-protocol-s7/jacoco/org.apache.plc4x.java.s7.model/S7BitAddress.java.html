@@ -18,19 +18,41 @@ under the License.
 */
 package org.apache.plc4x.java.s7.model;
 
+import org.apache.plc4x.java.api.exceptions.PlcInvalidAddressException;
 import org.apache.plc4x.java.s7.netty.model.types.MemoryArea;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class S7BitAddress extends S7Address {
+
+<span class="fc" id="L29">    private static final Pattern ADDRESS_PATTERN =</span>
+<span class="fc" id="L30">        Pattern.compile(&quot;^(?&lt;memoryArea&gt;.*?)/(?&lt;byteOffset&gt;\\d{1,4})/(?&lt;bitOffset&gt;\\d)&quot;);</span>
+
+    public static boolean matches(String addressString) {
+<span class="fc" id="L33">        return ADDRESS_PATTERN.matcher(addressString).matches();</span>
+    }
+
+    public static S7BitAddress of(String addressString) throws PlcInvalidAddressException {
+<span class="fc" id="L37">        Matcher matcher = ADDRESS_PATTERN.matcher(addressString);</span>
+<span class="pc bpc" id="L38" title="1 of 2 branches missed.">        if (!matcher.matches()) {</span>
+<span class="nc" id="L39">            throw new PlcInvalidAddressException(addressString, ADDRESS_PATTERN);</span>
+        }
+<span class="fc" id="L41">        MemoryArea memoryArea = MemoryArea.valueOf(matcher.group(&quot;memoryArea&quot;));</span>
+<span class="fc" id="L42">        short byteOffset = Short.parseShort(matcher.group(&quot;byteOffset&quot;));</span>
+<span class="fc" id="L43">        byte bitOffset = Byte.valueOf(matcher.group(&quot;bitOffset&quot;));</span>
+<span class="fc" id="L44">        return new S7BitAddress(memoryArea, byteOffset, bitOffset);</span>
+    }
 
     private final byte bitOffset;
 
     public S7BitAddress(MemoryArea memoryArea, short byteOffset, byte bitOffset) {
-<span class="fc" id="L28">        super(memoryArea, byteOffset);</span>
-<span class="fc" id="L29">        this.bitOffset = bitOffset;</span>
-<span class="fc" id="L30">    }</span>
+<span class="fc" id="L50">        super(memoryArea, byteOffset);</span>
+<span class="fc" id="L51">        this.bitOffset = bitOffset;</span>
+<span class="fc" id="L52">    }</span>
 
     public byte getBitOffset() {
-<span class="fc" id="L33">        return bitOffset;</span>
+<span class="fc" id="L55">        return bitOffset;</span>
     }
 
 }
