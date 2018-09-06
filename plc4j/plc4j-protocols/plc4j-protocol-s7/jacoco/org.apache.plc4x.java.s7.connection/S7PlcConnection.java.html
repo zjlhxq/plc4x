@@ -256,20 +256,24 @@ public class S7PlcConnection extends AbstractPlcConnection implements PlcReader,
 
     @Override
     public CompletableFuture&lt;PlcReadResponse&gt; read(PlcReadRequest readRequest) {
-<span class="nc" id="L259">        CompletableFuture&lt;PlcReadResponse&gt; readFuture = new CompletableFuture&lt;&gt;();</span>
+<span class="nc" id="L259">        CompletableFuture&lt;PlcReadResponse&gt; future = new CompletableFuture&lt;&gt;();</span>
 <span class="nc" id="L260">        PlcRequestContainer&lt;PlcReadRequest, PlcReadResponse&gt; container =</span>
-            new PlcRequestContainer&lt;&gt;(readRequest, readFuture);
-<span class="nc" id="L262">        channel.writeAndFlush(container);</span>
-<span class="nc" id="L263">        return readFuture;</span>
+            new PlcRequestContainer&lt;&gt;(readRequest, future);
+<span class="nc" id="L262">        channel.writeAndFlush(container).addListener(f -&gt; {</span>
+<span class="nc bnc" id="L263" title="All 2 branches missed.">            if (!f.isSuccess()) future.completeExceptionally(f.cause());</span>
+<span class="nc" id="L264">        });</span>
+<span class="nc" id="L265">        return future;</span>
     }
 
     @Override
     public CompletableFuture&lt;PlcWriteResponse&gt; write(PlcWriteRequest writeRequest) {
-<span class="nc" id="L268">        CompletableFuture&lt;PlcWriteResponse&gt; writeFuture = new CompletableFuture&lt;&gt;();</span>
-<span class="nc" id="L269">        PlcRequestContainer&lt;PlcWriteRequest, PlcWriteResponse&gt; container =</span>
-            new PlcRequestContainer&lt;&gt;(writeRequest, writeFuture);
-<span class="nc" id="L271">        channel.writeAndFlush(container);</span>
-<span class="nc" id="L272">        return writeFuture;</span>
+<span class="nc" id="L270">        CompletableFuture&lt;PlcWriteResponse&gt; future = new CompletableFuture&lt;&gt;();</span>
+<span class="nc" id="L271">        PlcRequestContainer&lt;PlcWriteRequest, PlcWriteResponse&gt; container =</span>
+            new PlcRequestContainer&lt;&gt;(writeRequest, future);
+<span class="nc" id="L273">        channel.writeAndFlush(container).addListener(f -&gt; {</span>
+<span class="nc bnc" id="L274" title="All 2 branches missed.">            if (!f.isSuccess()) future.completeExceptionally(f.cause());</span>
+<span class="nc" id="L275">        });</span>
+<span class="nc" id="L276">        return future;</span>
     }
 
 }
