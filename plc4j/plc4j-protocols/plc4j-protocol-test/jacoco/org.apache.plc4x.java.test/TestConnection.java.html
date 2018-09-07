@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TestConnection.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PLC4J: Protocol: TEST</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.java.test</a> &gt; <span class="el_source">TestConnection.java</span></div><h1>TestConnection.java</h1><pre class="source lang-java linenums">/*
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+&quot;License&quot;); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+&quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+*/
+package org.apache.plc4x.java.test;
+
+import org.apache.plc4x.java.api.connection.*;
+import org.apache.plc4x.java.api.exceptions.PlcInvalidAddressException;
+import org.apache.plc4x.java.api.messages.PlcReadRequest;
+import org.apache.plc4x.java.api.messages.PlcReadResponse;
+import org.apache.plc4x.java.api.messages.PlcWriteRequest;
+import org.apache.plc4x.java.api.messages.PlcWriteResponse;
+import org.apache.plc4x.java.api.messages.items.ReadRequestItem;
+import org.apache.plc4x.java.api.messages.items.ReadResponseItem;
+import org.apache.plc4x.java.api.messages.items.WriteRequestItem;
+import org.apache.plc4x.java.api.messages.items.WriteResponseItem;
+import org.apache.plc4x.java.api.messages.specific.TypeSafePlcReadRequest;
+import org.apache.plc4x.java.api.messages.specific.TypeSafePlcReadResponse;
+import org.apache.plc4x.java.api.messages.specific.TypeSafePlcWriteRequest;
+import org.apache.plc4x.java.api.messages.specific.TypeSafePlcWriteResponse;
+import org.apache.plc4x.java.api.model.Address;
+import org.apache.plc4x.java.api.types.ResponseCode;
+
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+
+/**
+ * Connection to a test device.
+ * This class is not thread-safe.
+ */
+class TestConnection implements PlcConnection, PlcReader, PlcWriter {
+    private final TestDevice device;
+<span class="nc" id="L50">    private boolean connected = false;</span>
+
+<span class="nc" id="L52">    TestConnection(TestDevice device) {</span>
+<span class="nc" id="L53">        this.device = device;</span>
+<span class="nc" id="L54">    }</span>
+
+    @Override
+    public void connect() {
+<span class="nc" id="L58">        connected = true;</span>
+<span class="nc" id="L59">    }</span>
+
+    @Override
+    public boolean isConnected() {
+<span class="nc" id="L63">        return connected;</span>
+    }
+
+    @Override
+    public void close() {
+<span class="nc" id="L68">        connected = false;</span>
+<span class="nc" id="L69">    }</span>
+
+    @Override
+    public Address parseAddress(String addressString) throws PlcInvalidAddressException {
+<span class="nc bnc" id="L73" title="All 2 branches missed.">        if (!TestAddress.isValid(addressString)) {</span>
+<span class="nc" id="L74">            throw new PlcInvalidAddressException(&quot;Address must contain a single word.&quot;);</span>
+        }
+
+<span class="nc" id="L77">        return TestAddress.of(addressString);</span>
+    }
+
+    @Override
+    public Optional&lt;PlcLister&gt; getLister() {
+<span class="nc" id="L82">        return Optional.empty();</span>
+    }
+
+    @Override
+    public Optional&lt;PlcReader&gt; getReader() {
+<span class="nc" id="L87">        return Optional.of(this);</span>
+    }
+
+    @Override
+    public Optional&lt;PlcWriter&gt; getWriter() {
+<span class="nc" id="L92">        return Optional.of(this);</span>
+    }
+
+    @Override
+    public Optional&lt;PlcSubscriber&gt; getSubscriber() {
+<span class="nc" id="L97">        return Optional.empty(); // TODO: implement this</span>
+    }
+
+    @Override
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public CompletableFuture&lt;? extends PlcReadResponse&gt; read(PlcReadRequest readRequest) {
+<span class="nc" id="L103">        List&lt;ReadResponseItem&lt;?&gt;&gt; responseItems = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">        for (ReadRequestItem&lt;?&gt; requestItem : readRequest.getRequestItems()) {</span>
+<span class="nc" id="L105">            TestAddress address = (TestAddress) requestItem.getAddress();</span>
+<span class="nc" id="L106">            Optional&lt;?&gt; value = device.get(requestItem.getDatatype(), address);</span>
+            ReadResponseItem&lt;?&gt; responseItem;
+<span class="nc bnc" id="L108" title="All 2 branches missed.">            if (value.isPresent()) {</span>
+<span class="nc" id="L109">                responseItem = new ReadResponseItem(requestItem, ResponseCode.OK, Collections.singletonList(value.get()));</span>
+            } else {
+<span class="nc" id="L111">                responseItem = new ReadResponseItem(requestItem, ResponseCode.NOT_FOUND, Collections.emptyList());</span>
+            }
+<span class="nc" id="L113">            responseItems.add(responseItem);</span>
+<span class="nc" id="L114">        }</span>
+<span class="nc" id="L115">        PlcReadResponse response = new PlcReadResponse(readRequest, responseItems);</span>
+<span class="nc" id="L116">        return CompletableFuture.completedFuture(response);</span>
+    }
+
+    @Override
+    public &lt;T&gt; CompletableFuture&lt;TypeSafePlcReadResponse&lt;T&gt;&gt; read(TypeSafePlcReadRequest&lt;T&gt; readRequest) {
+<span class="nc" id="L121">        return null; // TODO: implement this</span>
+    }
+
+    @Override
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public CompletableFuture&lt;? extends PlcWriteResponse&gt; write(PlcWriteRequest writeRequest) {
+<span class="nc" id="L127">        List&lt;WriteResponseItem&lt;?&gt;&gt; responseItems = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">        for (WriteRequestItem&lt;?&gt; requestItem : writeRequest.getRequestItems()) {</span>
+<span class="nc" id="L129">            TestAddress address = (TestAddress) requestItem.getAddress();</span>
+<span class="nc" id="L130">            Object value = requestItem.getValues().get(0);</span>
+<span class="nc" id="L131">            device.set(address, value);</span>
+<span class="nc" id="L132">            WriteResponseItem&lt;?&gt; responseItem = new WriteResponseItem(requestItem, ResponseCode.OK);</span>
+<span class="nc" id="L133">            responseItems.add(responseItem);</span>
+<span class="nc" id="L134">        }</span>
+<span class="nc" id="L135">        PlcWriteResponse response = new PlcWriteResponse(writeRequest, responseItems);</span>
+<span class="nc" id="L136">        return CompletableFuture.completedFuture(response);</span>
+    }
+
+    @Override
+    public &lt;T&gt; CompletableFuture&lt;TypeSafePlcWriteResponse&lt;T&gt;&gt; write(TypeSafePlcWriteRequest&lt;T&gt; writeRequest) {
+<span class="nc" id="L141">        return null; // TODO: implement this</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="nc" id="L146">        return String.format(&quot;test:%s&quot;, device);</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

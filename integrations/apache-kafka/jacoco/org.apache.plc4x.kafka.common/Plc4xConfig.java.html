@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Plc4xConfig.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Integrations: Apache Kafka</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.kafka.common</a> &gt; <span class="el_source">Plc4xConfig.java</span></div><h1>Plc4xConfig.java</h1><pre class="source lang-java linenums">/*
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+&quot;License&quot;); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+&quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+*/
+package org.apache.plc4x.kafka.common;
+
+import org.apache.kafka.common.config.AbstractConfig;
+import org.apache.kafka.common.config.ConfigDef;
+import org.apache.kafka.common.config.ConfigDef.Importance;
+import org.apache.kafka.common.config.ConfigDef.Type;
+import org.apache.kafka.common.config.ConfigException;
+
+import java.util.Map;
+
+
+public class Plc4xConfig extends AbstractConfig {
+
+    public static final String PLC_CONNECTION_STRING_CONFIG = &quot;my.setting&quot;;
+    public static final String PLC_CONNECTION_STRING_DISPLAY = &quot;PLC Connection String&quot;;
+    public static final String PLC_CONNECTION_STRING_DOC = &quot;Connection string used by PLC4X to connect to the PLC.&quot;;
+
+    public static final String PLC_TOPIC = &quot;topic&quot;;
+    public static final String PLC_TOPIC_DOC = &quot;Kafka topic to publish messages to.&quot;;
+
+    public static final String PLC_DATATYPE_CONFIG = &quot;type&quot;;
+    public static final String PLC_DATATYPE_DOC = &quot;Data type of values sent or received by PLC.&quot;;
+
+    public static final String PLC_ADDRESS = &quot;address&quot;;
+    public static final String PLC_ADDRESS_DOC = &quot;PLC address to sent to or receive data from.&quot;;
+
+    public static ConfigDef baseConfigDef() {
+<span class="fc" id="L46">        ConfigDef config = new ConfigDef();</span>
+<span class="fc" id="L47">        addPlcOptions(config);</span>
+<span class="fc" id="L48">        return config;</span>
+    }
+
+    private static final void addPlcOptions(ConfigDef config) {
+<span class="fc" id="L52">        config.define(</span>
+            PLC_CONNECTION_STRING_CONFIG,
+            Type.STRING,
+            Importance.HIGH,
+            PLC_CONNECTION_STRING_DOC)
+<span class="fc" id="L57">        .define(</span>
+            PLC_DATATYPE_CONFIG,
+            Type.CLASS,
+            Importance.HIGH,
+            PLC_DATATYPE_DOC)
+<span class="fc" id="L62">        .define(</span>
+            PLC_TOPIC,
+            Type.STRING,
+            Importance.HIGH,
+            PLC_TOPIC_DOC)
+<span class="fc" id="L67">        .define(</span>
+            PLC_ADDRESS,
+            Type.STRING,
+            Importance.HIGH,
+            PLC_ADDRESS_DOC);
+<span class="fc" id="L72">    }</span>
+
+<span class="fc" id="L74">    public static final ConfigDef CONFIG_DEF = baseConfigDef();</span>
+
+    public Plc4xConfig(ConfigDef config, Map&lt;String, String&gt; parsedConfig) {
+<span class="nc" id="L77">        super(config, parsedConfig);</span>
+<span class="nc" id="L78">        String plcConnectionString = getString(PLC_CONNECTION_STRING_CONFIG);</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">        if (plcConnectionString == null) {</span>
+<span class="nc" id="L80">            throw new ConfigException(&quot;'PLC Connection String' must be specified&quot;);</span>
+        }
+<span class="nc" id="L82">    }</span>
+
+    public Plc4xConfig(Map&lt;String, String&gt; parsedConfig) {
+<span class="nc" id="L85">        this(CONFIG_DEF, parsedConfig);</span>
+<span class="nc" id="L86">    }</span>
+
+    public String getPlcConnectionString() {
+<span class="nc" id="L89">        return this.getString(PLC_CONNECTION_STRING_CONFIG);</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
