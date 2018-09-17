@@ -26,71 +26,86 @@
 <a class="jxr_linenumber" name="L18" href="#L18">18</a>  <em class="jxr_comment"> */</em>
 <a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">package</strong> org.apache.plc4x.java.ads.protocol.util;
 <a class="jxr_linenumber" name="L20" href="#L20">20</a>  
-<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.exceptions.PlcProtocolException;
-<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.exceptions.PlcUnsupportedDataTypeException;
-<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> org.junit.Test;
-<a class="jxr_linenumber" name="L24" href="#L24">24</a>  
-<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> java.util.Calendar;
-<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> java.util.Date;
-<a class="jxr_linenumber" name="L27" href="#L27">27</a>  
-<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> java.util.Arrays.asList;
-<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> java.util.Collections.singletonList;
-<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.apache.plc4x.java.base.util.Junit5Backport.assertThrows;
-<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.junit.Assert.assertEquals;
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>  
-<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../../../org/apache/plc4x/java/ads/protocol/util/LittleEndianDecoderTest.html">LittleEndianDecoderTest</a> {
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>  
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>      @Test
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> getLengthFor() {
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>          assertEquals(LittleEndianDecoder.getLengthFor(Boolean.<strong class="jxr_keyword">class</strong>, 0), 1);
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>          assertEquals(LittleEndianDecoder.getLengthFor(Byte.<strong class="jxr_keyword">class</strong>, 0), 1);
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>          assertEquals(LittleEndianDecoder.getLengthFor(Short.<strong class="jxr_keyword">class</strong>, 0), 2);
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>          assertEquals(LittleEndianDecoder.getLengthFor(Integer.<strong class="jxr_keyword">class</strong>, 0), 4);
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>          assertEquals(LittleEndianDecoder.getLengthFor(Float.<strong class="jxr_keyword">class</strong>, 0), 4);
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>          assertEquals(LittleEndianDecoder.getLengthFor(Double.<strong class="jxr_keyword">class</strong>, 0), 8);
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>          assertEquals(LittleEndianDecoder.getLengthFor(Calendar.<strong class="jxr_keyword">class</strong>, 0), 8);
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>          assertEquals(LittleEndianDecoder.getLengthFor(LittleEndianDecoderTest.<strong class="jxr_keyword">class</strong>, 666), 666);
-<a class="jxr_linenumber" name="L45" href="#L45">45</a>      }
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>  
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>      @Test
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> decodeData() <strong class="jxr_keyword">throws</strong> Exception {
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>          assertEquals(asList(<strong class="jxr_keyword">true</strong>, false), LittleEndianDecoder.decodeData(Boolean.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x1, 0x0}));
-<a class="jxr_linenumber" name="L50" href="#L50">50</a>  
-<a class="jxr_linenumber" name="L51" href="#L51">51</a>          assertEquals(asList((byte) 0x1, (byte) 0x0), LittleEndianDecoder.decodeData(Byte.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x1, 0x0}));
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> org.apache.commons.lang3.reflect.MethodUtils;
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.ads.model.AdsDataType;
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.exceptions.PlcProtocolException;
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.exceptions.PlcUnsupportedDataTypeException;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.base.messages.items.FieldItem;
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> org.junit.jupiter.api.Disabled;
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> org.junit.jupiter.api.Test;
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> org.junit.jupiter.params.ParameterizedTest;
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> org.junit.jupiter.params.provider.Arguments;
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> org.junit.jupiter.params.provider.MethodSource;
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> org.slf4j.Logger;
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> org.slf4j.LoggerFactory;
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> java.lang.reflect.Method;
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> java.util.*;
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> java.util.stream.Stream;
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> java.util.Arrays.asList;
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> java.util.Collections.singletonList;
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.junit.jupiter.api.Assertions.assertEquals;
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.junit.jupiter.api.Assertions.assertThrows;
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  @Disabled(<span class="jxr_string">"needs finishing"</span>)
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../../../org/apache/plc4x/java/ads/protocol/util/LittleEndianDecoderTest.html">LittleEndianDecoderTest</a> {
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> Logger LOG = LoggerFactory.getLogger(LittleEndianDecoderTest.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>      @ParameterizedTest
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>      @MethodSource(<span class="jxr_string">"createAdsDataTypePears"</span>)
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> decodeData(AdsDataType adsDataType, Collection expectedTypes, Class&lt;?&gt; clazz, byte[] adsData) <strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>          FieldItem&lt;?&gt; fieldItem = LittleEndianDecoder.decodeData(adsDataType, adsData);
 <a class="jxr_linenumber" name="L52" href="#L52">52</a>  
-<a class="jxr_linenumber" name="L53" href="#L53">53</a>          assertEquals(singletonList((<strong class="jxr_keyword">short</strong>) 1), LittleEndianDecoder.decodeData(Short.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x1}));
-<a class="jxr_linenumber" name="L54" href="#L54">54</a>          assertEquals(singletonList((<strong class="jxr_keyword">short</strong>) 256), LittleEndianDecoder.decodeData(Short.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x0, 0x1}));
-<a class="jxr_linenumber" name="L55" href="#L55">55</a>          assertEquals(asList((<strong class="jxr_keyword">short</strong>) 256, (<strong class="jxr_keyword">short</strong>) 256), LittleEndianDecoder.decodeData(Short.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x0, 0x1, 0x0, 0x1}));
-<a class="jxr_linenumber" name="L56" href="#L56">56</a>  
-<a class="jxr_linenumber" name="L57" href="#L57">57</a>          assertEquals(singletonList(1), LittleEndianDecoder.decodeData(Integer.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x1}));
-<a class="jxr_linenumber" name="L58" href="#L58">58</a>          assertEquals(singletonList(16777216), LittleEndianDecoder.decodeData(Integer.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x0, 0x0, 0x0, 0x1}));
-<a class="jxr_linenumber" name="L59" href="#L59">59</a>          assertEquals(asList(16777216, 16777216), LittleEndianDecoder.decodeData(Integer.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x0, 0x0, 0x0, 0x1, 0x0, 0x0, 0x0, 0x1}));
-<a class="jxr_linenumber" name="L60" href="#L60">60</a>  
-<a class="jxr_linenumber" name="L61" href="#L61">61</a>          assertEquals(singletonList(1.4E-45f), LittleEndianDecoder.decodeData(Float.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x1}));
-<a class="jxr_linenumber" name="L62" href="#L62">62</a>          assertEquals(singletonList(2.3509887E-38f), LittleEndianDecoder.decodeData(Float.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x0, 0x0, 0x0, 0x1}));
-<a class="jxr_linenumber" name="L63" href="#L63">63</a>          assertEquals(asList(2.3509887E-38f, 2.3509887E-38f), LittleEndianDecoder.decodeData(Float.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x0, 0x0, 0x0, 0x1, 0x0, 0x0, 0x0, 0x1}));
-<a class="jxr_linenumber" name="L64" href="#L64">64</a>  
-<a class="jxr_linenumber" name="L65" href="#L65">65</a>          assertEquals(singletonList(4.9E-324), LittleEndianDecoder.decodeData(Double.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x1}));
-<a class="jxr_linenumber" name="L66" href="#L66">66</a>          assertEquals(singletonList(7.2911220195563975E-304), LittleEndianDecoder.decodeData(Double.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1}));
-<a class="jxr_linenumber" name="L67" href="#L67">67</a>          assertEquals(asList(7.2911220195563975E-304, 7.2911220195563975E-304), LittleEndianDecoder.decodeData(Double.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1}));
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>          Method getterMethod = MethodUtils.getAccessibleMethod(FieldItem.<strong class="jxr_keyword">class</strong>, <span class="jxr_string">"get"</span> + clazz.getSimpleName(), <strong class="jxr_keyword">int</strong>.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>          LOG.info(<span class="jxr_string">"Using {} to map"</span>, getterMethod);
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>  
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>          List&lt;? <strong class="jxr_keyword">super</strong> Object&gt; actualTypes = <strong class="jxr_keyword">new</strong> LinkedList&lt;&gt;();
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>          <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; fieldItem.getNumberOfValues(); i++) {
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>              actualTypes.add(getterMethod.invoke(fieldItem, i));
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>          }
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>          assertEquals(expectedTypes, actualTypes);
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>      }
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>  
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>      @Test
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> negativeTest() {
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>          assertThrows(PlcProtocolException.<strong class="jxr_keyword">class</strong>, () -&gt; LittleEndianDecoder.decodeData(AdsDataType.STRING, <strong class="jxr_keyword">new</strong> byte[]{0x01}));
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>          assertThrows(PlcUnsupportedDataTypeException.<strong class="jxr_keyword">class</strong>, () -&gt; LittleEndianDecoder.decodeData(AdsDataType.UNKNOWN, <strong class="jxr_keyword">new</strong> byte[10]));
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>      }
 <a class="jxr_linenumber" name="L68" href="#L68">68</a>  
-<a class="jxr_linenumber" name="L69" href="#L69">69</a>          Calendar calendar1 = Calendar.getInstance();
-<a class="jxr_linenumber" name="L70" href="#L70">70</a>          calendar1.setTime(<strong class="jxr_keyword">new</strong> Date(-11644473600000L));
-<a class="jxr_linenumber" name="L71" href="#L71">71</a>          assertEquals(singletonList(calendar1), LittleEndianDecoder.decodeData(Calendar.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x1}));
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> Stream&lt;Arguments&gt; createAdsDataTypePears() {
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>          Calendar calendar1 = Calendar.getInstance();
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>          calendar1.setTime(<strong class="jxr_keyword">new</strong> Date(-11644473600000L));
 <a class="jxr_linenumber" name="L72" href="#L72">72</a>          Calendar calendar0x0001 = Calendar.getInstance();
 <a class="jxr_linenumber" name="L73" href="#L73">73</a>          calendar0x0001.setTime(<strong class="jxr_keyword">new</strong> Date(-4438714196208L));
-<a class="jxr_linenumber" name="L74" href="#L74">74</a>          assertEquals(singletonList(calendar0x0001), LittleEndianDecoder.decodeData(Calendar.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1}));
-<a class="jxr_linenumber" name="L75" href="#L75">75</a>          assertEquals(asList(calendar0x0001, calendar0x0001), LittleEndianDecoder.decodeData(Calendar.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1}));
-<a class="jxr_linenumber" name="L76" href="#L76">76</a>  
-<a class="jxr_linenumber" name="L77" href="#L77">77</a>          assertEquals(singletonList(<span class="jxr_string">"plc4x"</span>), LittleEndianDecoder.decodeData(String.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x70, 0x6c, 0x63, 0x34, 0x78, 0x0}));
-<a class="jxr_linenumber" name="L78" href="#L78">78</a>          assertEquals(singletonList(<span class="jxr_string">"plc4xplc4x"</span>), LittleEndianDecoder.decodeData(String.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x70, 0x6c, 0x63, 0x34, 0x78, 0x70, 0x6c, 0x63, 0x34, 0x78, 0x0}));
-<a class="jxr_linenumber" name="L79" href="#L79">79</a>          assertEquals(asList(<span class="jxr_string">"plc4x"</span>, <span class="jxr_string">"plc4x"</span>), LittleEndianDecoder.decodeData(String.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x70, 0x6c, 0x63, 0x34, 0x78, 0x0, 0x70, 0x6c, 0x63, 0x34, 0x78, 0x0}));
-<a class="jxr_linenumber" name="L80" href="#L80">80</a>  
-<a class="jxr_linenumber" name="L81" href="#L81">81</a>          assertThrows(PlcProtocolException.<strong class="jxr_keyword">class</strong>, () -&gt; LittleEndianDecoder.decodeData(String.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x01}));
-<a class="jxr_linenumber" name="L82" href="#L82">82</a>          assertThrows(PlcUnsupportedDataTypeException.<strong class="jxr_keyword">class</strong>, () -&gt; LittleEndianDecoder.decodeData(<strong class="jxr_keyword">this</strong>.getClass(), <strong class="jxr_keyword">new</strong> byte[10]));
-<a class="jxr_linenumber" name="L83" href="#L83">83</a>      }
-<a class="jxr_linenumber" name="L84" href="#L84">84</a>  
-<a class="jxr_linenumber" name="L85" href="#L85">85</a>  }
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>  
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>          <strong class="jxr_keyword">return</strong> Arrays.stream(AdsDataType.values())
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>              .filter(adsDataType -&gt; adsDataType != AdsDataType.UNKNOWN)
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>              .flatMap(adsDataType -&gt; Stream.of(
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>                  Arguments.of(asList(<strong class="jxr_keyword">true</strong>, false), Boolean.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x1, 0x0}),
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>                  Arguments.of(asList((byte) 0x1, (byte) 0x0), Byte.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x1, 0x0}),
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>                  Arguments.of(singletonList((<strong class="jxr_keyword">short</strong>) 1), Short.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x1}),
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>                  Arguments.of(singletonList((<strong class="jxr_keyword">short</strong>) 256), Short.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x0, 0x1}),
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>                  Arguments.of(asList((<strong class="jxr_keyword">short</strong>) 256, (<strong class="jxr_keyword">short</strong>) 256), Short.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x0, 0x1, 0x0, 0x1}),
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>                  Arguments.of(singletonList(1), Integer.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x1}),
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>                  Arguments.of(singletonList(16777216), Integer.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x0, 0x0, 0x0, 0x1}),
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>                  Arguments.of(asList(16777216, 16777216), Integer.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x0, 0x0, 0x0, 0x1, 0x0, 0x0, 0x0, 0x1}),
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>                  Arguments.of(singletonList(1.4E-45f), Float.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x1}),
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>                  Arguments.of(singletonList(2.3509887E-38f), Float.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x0, 0x0, 0x0, 0x1}),
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>                  Arguments.of(asList(2.3509887E-38f, 2.3509887E-38f), Float.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x0, 0x0, 0x0, 0x1, 0x0, 0x0, 0x0, 0x1}),
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>                  Arguments.of(singletonList(4.9E-324), Double.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x1}),
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>                  Arguments.of(singletonList(7.2911220195563975E-304), Double.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1}),
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>                  Arguments.of(asList(7.2911220195563975E-304, 7.2911220195563975E-304), Double.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1}),
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>                  Arguments.of(singletonList(calendar1), Calendar.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x1}),
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>                  Arguments.of(singletonList(calendar0x0001), Calendar.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1}),
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>                  Arguments.of(asList(calendar0x0001, calendar0x0001), Calendar.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1}),
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>                  Arguments.of(singletonList(<span class="jxr_string">"plc4x"</span>), String.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x70, 0x6c, 0x63, 0x34, 0x78, 0x0}),
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>                  Arguments.of(singletonList(<span class="jxr_string">"plc4xplc4x"</span>), String.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x70, 0x6c, 0x63, 0x34, 0x78, 0x70, 0x6c, 0x63, 0x34, 0x78, 0x0}),
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>                  Arguments.of(asList(<span class="jxr_string">"plc4x"</span>, <span class="jxr_string">"plc4x"</span>), String.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">new</strong> byte[]{0x70, 0x6c, 0x63, 0x34, 0x78, 0x0, 0x70, 0x6c, 0x63, 0x34, 0x78, 0x0})
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>              ).map(arguments -&gt; Arguments.of(adsDataType, arguments.get()[0], arguments.get()[1], arguments.get()[2])));
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>      }
+<a class="jxr_linenumber" name="L100" href="#L100">100</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2017&#x2013;2018 <a href="https://www.apache.org/">The Apache Software Foundation</a>. All rights reserved.</div>

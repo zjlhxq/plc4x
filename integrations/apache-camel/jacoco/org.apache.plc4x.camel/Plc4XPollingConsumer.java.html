@@ -29,33 +29,33 @@ import org.apache.plc4x.java.api.connection.PlcReader;
 import org.apache.plc4x.java.api.exceptions.PlcException;
 import org.apache.plc4x.java.api.messages.PlcReadRequest;
 import org.apache.plc4x.java.api.messages.PlcReadResponse;
-import org.apache.plc4x.java.api.model.Address;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public class Plc4XPollingConsumer extends ServiceSupport implements PollingConsumer {
-<span class="nc" id="L43">    private static final Logger LOGGER = LoggerFactory.getLogger(Plc4XPollingConsumer.class);</span>
+<span class="nc" id="L42">    private static final Logger LOGGER = LoggerFactory.getLogger(Plc4XPollingConsumer.class);</span>
 
     private Plc4XEndpoint endpoint;
     private ExceptionHandler exceptionHandler;
     private PlcConnection plcConnection;
-    private Address address;
+    private PlcReader plcReader;
+    private PlcReadRequest readRequest;
     private Class dataType;
 
-
-<span class="nc" id="L52">    public Plc4XPollingConsumer(Plc4XEndpoint endpoint) throws PlcException {</span>
-<span class="nc" id="L53">        this.endpoint = endpoint;</span>
-<span class="nc" id="L54">        this.dataType = endpoint.getDataType();</span>
-<span class="nc" id="L55">        this.exceptionHandler = new LoggingExceptionHandler(endpoint.getCamelContext(), getClass());</span>
-<span class="nc" id="L56">        String plc4xURI = endpoint.getEndpointUri().replaceFirst(&quot;plc4x:/?/?&quot;, &quot;&quot;);</span>
-<span class="nc" id="L57">        this.plcConnection = endpoint.getPlcDriverManager().getConnection(plc4xURI);</span>
-<span class="nc" id="L58">        this.address = plcConnection.parseAddress(endpoint.getAddress());</span>
+<span class="nc" id="L51">    public Plc4XPollingConsumer(Plc4XEndpoint endpoint) throws PlcException {</span>
+<span class="nc" id="L52">        this.endpoint = endpoint;</span>
+<span class="nc" id="L53">        this.dataType = endpoint.getDataType();</span>
+<span class="nc" id="L54">        this.exceptionHandler = new LoggingExceptionHandler(endpoint.getCamelContext(), getClass());</span>
+<span class="nc" id="L55">        String plc4xURI = endpoint.getEndpointUri().replaceFirst(&quot;plc4x:/?/?&quot;, &quot;&quot;);</span>
+<span class="nc" id="L56">        this.plcConnection = endpoint.getPlcDriverManager().getConnection(plc4xURI);</span>
+<span class="nc" id="L57">        this.plcReader = plcConnection.getReader().orElseThrow(() -&gt; new PlcException(&quot;This connection doesn't support reading.&quot;));</span>
+<span class="nc" id="L58">        readRequest = plcReader.readRequestBuilder().addItem(&quot;default&quot;, endpoint.getAddress()).build();</span>
 <span class="nc" id="L59">    }</span>
 
     @Override
@@ -79,10 +79,10 @@ public class Plc4XPollingConsumer extends ServiceSupport implements PollingConsu
     @Override
     public Exchange receive() {
 <span class="nc" id="L81">        Exchange exchange = endpoint.createExchange();</span>
-<span class="nc" id="L82">        CompletableFuture&lt;? extends PlcReadResponse&gt; read = getReader().read(new PlcReadRequest(dataType, address));</span>
+<span class="nc" id="L82">        CompletableFuture&lt;? extends PlcReadResponse&gt; read = plcReader.read(readRequest);</span>
         try {
 <span class="nc" id="L84">            PlcReadResponse plcReadResponse = read.get();</span>
-<span class="nc" id="L85">            exchange.getIn().setBody(unwrapIfSingle(plcReadResponse.getResponseItems()));</span>
+<span class="nc" id="L85">            exchange.getIn().setBody(unwrapIfSingle(plcReadResponse.getAllObjects(&quot;default&quot;)));</span>
 <span class="nc" id="L86">        } catch (InterruptedException | ExecutionException e) {</span>
 <span class="nc" id="L87">            exchange.setException(e);</span>
 <span class="nc" id="L88">        }</span>
@@ -97,42 +97,38 @@ public class Plc4XPollingConsumer extends ServiceSupport implements PollingConsu
     @Override
     public Exchange receive(long timeout) {
 <span class="nc" id="L99">        Exchange exchange = endpoint.createExchange();</span>
-<span class="nc" id="L100">        CompletableFuture&lt;? extends PlcReadResponse&gt; read = getReader().read(new PlcReadRequest(dataType, address));</span>
+<span class="nc" id="L100">        CompletableFuture&lt;? extends PlcReadResponse&gt; read = plcReader.read(readRequest);</span>
         try {
 <span class="nc" id="L102">            PlcReadResponse plcReadResponse = read.get(timeout, TimeUnit.MILLISECONDS);</span>
-<span class="nc" id="L103">            exchange.getIn().setBody(unwrapIfSingle(plcReadResponse.getResponseItems()));</span>
+<span class="nc" id="L103">            exchange.getIn().setBody(unwrapIfSingle(plcReadResponse.getAllObjects(&quot;default&quot;)));</span>
 <span class="nc" id="L104">        } catch (InterruptedException | ExecutionException | TimeoutException e) {</span>
 <span class="nc" id="L105">            exchange.setException(e);</span>
 <span class="nc" id="L106">        }</span>
 <span class="nc" id="L107">        return exchange;</span>
     }
 
-    public PlcReader getReader() {
-<span class="nc" id="L111">        return plcConnection.getReader().orElseThrow(() -&gt; new RuntimeException(&quot;No reader avaiable&quot;));</span>
-    }
-
     @Override
     protected void doStart() {
         // We don't seem to need to do anything special here.
-<span class="nc" id="L117">    }</span>
+<span class="nc" id="L113">    }</span>
 
     @Override
     protected void doStop() {
         try {
-<span class="nc" id="L122">            plcConnection.close();</span>
-<span class="nc" id="L123">        } catch (Exception e) {</span>
-<span class="nc" id="L124">            LOGGER.error(&quot;Error closing connection&quot;, e);</span>
-<span class="nc" id="L125">        }</span>
-<span class="nc" id="L126">    }</span>
+<span class="nc" id="L118">            plcConnection.close();</span>
+<span class="nc" id="L119">        } catch (Exception e) {</span>
+<span class="nc" id="L120">            LOGGER.error(&quot;Error closing connection&quot;, e);</span>
+<span class="nc" id="L121">        }</span>
+<span class="nc" id="L122">    }</span>
 
-    private Object unwrapIfSingle(List list) {
-<span class="nc bnc" id="L129" title="All 2 branches missed.">        if (list.isEmpty()) {</span>
-<span class="nc" id="L130">            return null;</span>
+    private Object unwrapIfSingle(Collection collection) {
+<span class="nc bnc" id="L125" title="All 2 branches missed.">        if (collection.isEmpty()) {</span>
+<span class="nc" id="L126">            return null;</span>
         }
-<span class="nc bnc" id="L132" title="All 2 branches missed.">        if (list.size() == 1) {</span>
-<span class="nc" id="L133">            return list.get(0);</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">        if (collection.size() == 1) {</span>
+<span class="nc" id="L129">            return collection.iterator().next();</span>
         }
-<span class="nc" id="L135">        return list;</span>
+<span class="nc" id="L131">        return collection;</span>
     }
 
 }

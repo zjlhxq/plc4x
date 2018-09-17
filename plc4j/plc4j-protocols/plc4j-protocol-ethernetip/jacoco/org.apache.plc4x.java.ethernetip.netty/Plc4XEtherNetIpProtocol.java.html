@@ -29,53 +29,57 @@ import com.digitalpetri.enip.cpf.*;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.plc4x.java.api.exceptions.PlcProtocolException;
 import org.apache.plc4x.java.api.messages.*;
-import org.apache.plc4x.java.api.messages.items.ReadRequestItem;
-import org.apache.plc4x.java.api.messages.items.ReadResponseItem;
-import org.apache.plc4x.java.api.model.Address;
-import org.apache.plc4x.java.api.types.ResponseCode;
+import org.apache.plc4x.java.api.model.PlcField;
+import org.apache.plc4x.java.api.types.PlcResponseCode;
 import org.apache.plc4x.java.base.events.ConnectEvent;
 import org.apache.plc4x.java.base.events.ConnectedEvent;
-import org.apache.plc4x.java.base.messages.PlcRequestContainer;
-import org.apache.plc4x.java.ethernetip.model.EtherNetIpAddress;
+import org.apache.plc4x.java.base.messages.*;
+import org.apache.plc4x.java.base.messages.items.DefaultIntegerFieldItem;
+import org.apache.plc4x.java.base.messages.items.FieldItem;
+import org.apache.plc4x.java.ethernetip.model.EtherNetIpField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class Plc4XEtherNetIpProtocol extends MessageToMessageCodec&lt;EnipPacket, PlcRequestContainer&lt;PlcRequest, PlcResponse&gt;&gt; {
+public class Plc4XEtherNetIpProtocol extends MessageToMessageCodec&lt;EnipPacket, PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt;&gt; {
 
-<span class="nc" id="L52">    private static final Logger LOGGER = LoggerFactory.getLogger(Plc4XEtherNetIpProtocol.class);</span>
+<span class="nc" id="L56">    private static final Logger LOGGER = LoggerFactory.getLogger(Plc4XEtherNetIpProtocol.class);</span>
 
     private static final int SERVICE_COMMUNICATIONS_TYPE_CODE = 0x0100;
 
-<span class="nc" id="L56">    private long sessionHandle = 0;</span>
-<span class="nc" id="L57">    private static final AtomicLong messageId = new AtomicLong();</span>
+<span class="nc" id="L60">    private long sessionHandle = 0;</span>
+<span class="nc" id="L61">    private static final AtomicLong messageId = new AtomicLong();</span>
 
     // General information about the remote communication endpoint.
     private CipIdentityItem identityItem;
     // Flag to signal, if the remote communication endpoint supports encapsulation of CIP data.
-<span class="nc" id="L62">    private boolean supportsCipEncapsulation = false;</span>
+<span class="nc" id="L66">    private boolean supportsCipEncapsulation = false;</span>
     // Flag to indicate, if implicit IO (subscription) is generally supported by the remote communication endpoint.
     // This is handled via separate UDP socket, which would have to be established in parallel.
-<span class="nc" id="L65">    private boolean supportsClass0Or1UdpConnections = false;</span>
+<span class="nc" id="L69">    private boolean supportsClass0Or1UdpConnections = false;</span>
     // Map of non-cip interfaces, that might be used for specialized IO in future versions.
-<span class="nc" id="L67">    private Map&lt;String, Integer&gt; nonCipInterfaces = null;</span>
+<span class="nc" id="L71">    private Map&lt;String, Integer&gt; nonCipInterfaces = null;</span>
     // In CIP we are doing explicit connected messaging, this requires every used address to be registered at the
     // remote server and to use that Addresses connectionId for accessing data. We are saving the references to
     // these here.
     // REMARK: Eventually we should add a timeout to these so we unregister them after not being used
     // for quire some time. Hereby freeing resources on both client and server.
-<span class="nc" id="L73">    private Map&lt;Address, Long&gt; addressConnectionMap = new ConcurrentHashMap&lt;&gt;();</span>
+<span class="nc" id="L77">    private Map&lt;PlcField, Long&gt; fieldConnectionMap = new ConcurrentHashMap&lt;&gt;();</span>
 
-<span class="nc" id="L75">    private final Map&lt;Long, PlcRequestContainer&lt;PlcRequest, PlcResponse&gt;&gt; requestsMap = new ConcurrentHashMap&lt;&gt;();</span>
+<span class="nc" id="L79">    private final Map&lt;Long, PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt;&gt; requestsMap = new ConcurrentHashMap&lt;&gt;();</span>
 
-<span class="nc" id="L77">    public Plc4XEtherNetIpProtocol() {</span>
-<span class="nc" id="L78">    }</span>
+<span class="nc" id="L81">    public Plc4XEtherNetIpProtocol() {</span>
+<span class="nc" id="L82">    }</span>
 
     /**
      * If the IsoTP protocol is used on top of the ISO on TCP protocol, then as soon as the pipeline receives the
@@ -89,51 +93,51 @@ public class Plc4XEtherNetIpProtocol extends MessageToMessageCodec&lt;EnipPacket
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         // If the connection has just been established, start setting up the connection
         // by sending a connection request to the plc.
-<span class="nc bnc" id="L92" title="All 2 branches missed.">        if (evt instanceof ConnectEvent) {</span>
-<span class="nc" id="L93">            LOGGER.debug(&quot;EtherNet/IP Protocol Sending Connection Request&quot;);</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">        if (evt instanceof ConnectEvent) {</span>
+<span class="nc" id="L97">            LOGGER.debug(&quot;EtherNet/IP Protocol Sending Connection Request&quot;);</span>
 
-<span class="nc" id="L95">            EnipPacket packet = new EnipPacket(CommandCode.RegisterSession, 0, EnipStatus.EIP_SUCCESS,</span>
-<span class="nc" id="L96">                messageId.getAndIncrement(), new RegisterSession());</span>
+<span class="nc" id="L99">            EnipPacket packet = new EnipPacket(CommandCode.RegisterSession, 0, EnipStatus.EIP_SUCCESS,</span>
+<span class="nc" id="L100">                messageId.getAndIncrement(), new RegisterSession());</span>
 
-<span class="nc" id="L98">            ctx.channel().writeAndFlush(packet);</span>
-<span class="nc" id="L99">        } else {</span>
-<span class="nc" id="L100">            super.userEventTriggered(ctx, evt);</span>
+<span class="nc" id="L102">            ctx.channel().writeAndFlush(packet);</span>
+<span class="nc" id="L103">        } else {</span>
+<span class="nc" id="L104">            super.userEventTriggered(ctx, evt);</span>
         }
-<span class="nc" id="L102">    }</span>
+<span class="nc" id="L106">    }</span>
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-<span class="nc" id="L106">        LOGGER.trace(&quot;(--&gt;ERR): {}&quot;, ctx, cause);</span>
-<span class="nc" id="L107">        super.exceptionCaught(ctx, cause);</span>
-<span class="nc" id="L108">    }</span>
+<span class="nc" id="L110">        LOGGER.trace(&quot;(--&gt;ERR): {}&quot;, ctx, cause);</span>
+<span class="nc" id="L111">        super.exceptionCaught(ctx, cause);</span>
+<span class="nc" id="L112">    }</span>
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Encoding
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override
-    protected void encode(ChannelHandlerContext ctx, PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; msg, List&lt;Object&gt; out) {
-<span class="nc" id="L116">        LOGGER.trace(&quot;(&lt;--OUT): {}, {}, {}&quot;, ctx, msg, out);</span>
+    protected void encode(ChannelHandlerContext ctx, PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; msg, List&lt;Object&gt; out) {
+<span class="nc" id="L120">        LOGGER.trace(&quot;(&lt;--OUT): {}, {}, {}&quot;, ctx, msg, out);</span>
         // Reset transactionId on overflow
-<span class="nc" id="L118">        messageId.compareAndSet(Short.MAX_VALUE + 1, 0);</span>
-<span class="nc" id="L119">        PlcRequest request = msg.getRequest();</span>
-<span class="nc bnc" id="L120" title="All 2 branches missed.">        if (request instanceof PlcReadRequest) {</span>
-<span class="nc" id="L121">            encodeReadRequest(msg, out);</span>
-<span class="nc bnc" id="L122" title="All 2 branches missed.">        } else if (request instanceof PlcWriteRequest) {</span>
-<span class="nc" id="L123">            encodeWriteRequest(msg, out);</span>
+<span class="nc" id="L122">        messageId.compareAndSet(Short.MAX_VALUE + 1, 0);</span>
+<span class="nc" id="L123">        PlcRequest request = msg.getRequest();</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">        if (request instanceof PlcReadRequest) {</span>
+<span class="nc" id="L125">            encodeReadRequest(msg, out);</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">        } else if (request instanceof PlcWriteRequest) {</span>
+<span class="nc" id="L127">            encodeWriteRequest(msg, out);</span>
         } /*else if(request instanceof PlcSubscriptionRequest) {
             encodeSubscriptionRequest(msg, out);
         } else if(request instanceof PlcUnsubscriptionRequest) {
             TODO: Implement this and refactor PlcUnsubscriptionRequest first ...
         }*/
-<span class="nc" id="L129">    }</span>
+<span class="nc" id="L133">    }</span>
 
-    private void encodeWriteRequest(PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; msg, List&lt;Object&gt; out) {
-<span class="nc bnc" id="L132" title="All 2 branches missed.">        if(!supportsCipEncapsulation) {</span>
-<span class="nc" id="L133">            LOGGER.warn(&quot;CIP Encapsulation not supported by remote, payload encapsulation must be handled by target and originator&quot;);</span>
+    private void encodeWriteRequest(PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; msg, List&lt;Object&gt; out) {
+<span class="nc bnc" id="L136" title="All 2 branches missed.">        if (!supportsCipEncapsulation) {</span>
+<span class="nc" id="L137">            LOGGER.warn(&quot;CIP Encapsulation not supported by remote, payload encapsulation must be handled by target and originator&quot;);</span>
         }
 
-<span class="nc" id="L136">        PlcWriteRequest request = (PlcWriteRequest) msg.getRequest();</span>
+<span class="nc" id="L140">        PlcWriteRequest request = (PlcWriteRequest) msg.getRequest();</span>
 
         // Create a ForwardOpen CIP request
 
@@ -168,37 +172,36 @@ public class Plc4XEtherNetIpProtocol extends MessageToMessageCodec&lt;EnipPacket
             else future.completeExceptionally(ex);
         });*/
 
-<span class="nc" id="L171">    }</span>
+<span class="nc" id="L175">    }</span>
 
-    private void encodeReadRequest(PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; msg, List&lt;Object&gt; out) {
-<span class="nc bnc" id="L174" title="All 2 branches missed.">        if(!supportsCipEncapsulation) {</span>
-<span class="nc" id="L175">            LOGGER.warn(&quot;CIP Encapsulation not supported by remote, payload encapsulation must be handled by target and originator&quot;);</span>
+    private void encodeReadRequest(PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; msg, List&lt;Object&gt; out) {
+<span class="nc bnc" id="L178" title="All 2 branches missed.">        if (!supportsCipEncapsulation) {</span>
+<span class="nc" id="L179">            LOGGER.warn(&quot;CIP Encapsulation not supported by remote, payload encapsulation must be handled by target and originator&quot;);</span>
         }
 
-<span class="nc" id="L178">        PlcReadRequest request = (PlcReadRequest) msg.getRequest();</span>
+<span class="nc" id="L182">        InternalPlcReadRequest request = (InternalPlcReadRequest) msg.getRequest();</span>
+<span class="nc bnc" id="L183" title="All 2 branches missed.">        for (String fieldName : request.getFieldNames()) {</span>
+<span class="nc" id="L184">            PlcField field = request.getField(fieldName);</span>
 
-        // Here we assume it's only one request item.
-<span class="nc" id="L181">        ReadRequestItem&lt;?&gt; requestItem = request.getRequestItem()</span>
-<span class="nc" id="L182">            .orElseThrow(() -&gt; new RuntimeException(&quot;Only single item requests allowed&quot;));</span>
+            // CIP Part
+<span class="nc" id="L187">            EtherNetIpField enipField = (EtherNetIpField) field;</span>
+<span class="nc" id="L188">            EPath.PaddedEPath path = new EPath.PaddedEPath(new LogicalSegment.ClassId(enipField.getObjectNumber()),</span>
+<span class="nc" id="L189">                new LogicalSegment.InstanceId(enipField.getInstanceNumber()),</span>
+<span class="nc" id="L190">                new LogicalSegment.AttributeId(enipField.getAttributeNumber()));</span>
+<span class="nc" id="L191">            GetAttributeSingleService service = new GetAttributeSingleService(path);</span>
 
-        // CIP Part
-<span class="nc" id="L185">        EtherNetIpAddress enipAddress = (EtherNetIpAddress) requestItem.getAddress();</span>
-<span class="nc" id="L186">        EPath.PaddedEPath path = new EPath.PaddedEPath(new LogicalSegment.ClassId(enipAddress.getObjectNumber()),</span>
-<span class="nc" id="L187">            new LogicalSegment.InstanceId(enipAddress.getInstanceNumber()),</span>
-<span class="nc" id="L188">            new LogicalSegment.AttributeId(enipAddress.getAttributeNumber()));</span>
-<span class="nc" id="L189">        GetAttributeSingleService service = new GetAttributeSingleService(path);</span>
+            // ENIP Part
+<span class="nc" id="L194">            EnipPacket packet = new EnipPacket(CommandCode.SendRRData, sessionHandle, EnipStatus.EIP_SUCCESS,</span>
+<span class="nc" id="L195">                messageId.getAndIncrement(), new SendRRData(new CpfPacket(</span>
+                new NullAddressItem(),
+                new UnconnectedDataItemRequest(service::encodeRequest)
+            )));
 
-        // ENIP Part
-<span class="nc" id="L192">        EnipPacket packet = new EnipPacket(CommandCode.SendRRData, sessionHandle, EnipStatus.EIP_SUCCESS,</span>
-<span class="nc" id="L193">            messageId.getAndIncrement(), new SendRRData(new CpfPacket(</span>
-            new NullAddressItem(),
-            new UnconnectedDataItemRequest(service::encodeRequest)
-        )));
+<span class="nc" id="L200">            requestsMap.put(packet.getSenderContext(), msg);</span>
 
-<span class="nc" id="L198">        requestsMap.put(packet.getSenderContext(), msg);</span>
-
-<span class="nc" id="L200">        out.add(packet);</span>
-<span class="nc" id="L201">    }</span>
+<span class="nc" id="L202">            out.add(packet);</span>
+<span class="nc" id="L203">        }</span>
+<span class="nc" id="L204">    }</span>
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Decoding
@@ -207,67 +210,67 @@ public class Plc4XEtherNetIpProtocol extends MessageToMessageCodec&lt;EnipPacket
     @SuppressWarnings(&quot;unchecked&quot;)
     @Override
     protected void decode(ChannelHandlerContext ctx, EnipPacket msg, List&lt;Object&gt; out) {
-<span class="nc" id="L210">        LOGGER.trace(&quot;(--&gt;IN): {}, {}, {}&quot;, ctx, msg, out);</span>
-<span class="nc" id="L211">        LOGGER.debug(&quot;{}: session handle: {}, sender context: {}, EtherNetIPPacket:{}&quot;, msg, msg.getSessionHandle(), msg.getSenderContext(), msg);</span>
+<span class="nc" id="L213">        LOGGER.trace(&quot;(--&gt;IN): {}, {}, {}&quot;, ctx, msg, out);</span>
+<span class="nc" id="L214">        LOGGER.debug(&quot;{}: session handle: {}, sender context: {}, EtherNetIPPacket:{}&quot;, msg, msg.getSessionHandle(), msg.getSenderContext(), msg);</span>
 
-<span class="nc" id="L213">        EnipPacket packet = null;</span>
-<span class="nc bnc" id="L214" title="All 8 branches missed.">        switch (msg.getCommandCode()) {</span>
+<span class="nc" id="L216">        EnipPacket packet = null;</span>
+<span class="nc bnc" id="L217" title="All 8 branches missed.">        switch (msg.getCommandCode()) {</span>
             case RegisterSession:
-<span class="nc" id="L216">                handleRegisterSession(ctx, msg);</span>
+<span class="nc" id="L219">                handleRegisterSession(ctx, msg);</span>
 
                 // Now try getting some detailed information about the remote.
-<span class="nc" id="L219">                packet = new EnipPacket(CommandCode.ListIdentity, sessionHandle, EnipStatus.EIP_SUCCESS,</span>
-<span class="nc" id="L220">                    messageId.getAndIncrement(), new ListIdentity());</span>
-<span class="nc" id="L221">                break;</span>
+<span class="nc" id="L222">                packet = new EnipPacket(CommandCode.ListIdentity, sessionHandle, EnipStatus.EIP_SUCCESS,</span>
+<span class="nc" id="L223">                    messageId.getAndIncrement(), new ListIdentity());</span>
+<span class="nc" id="L224">                break;</span>
 
             case UnRegisterSession:
-<span class="nc" id="L224">                handleUnregisterSession(ctx, msg);</span>
+<span class="nc" id="L227">                handleUnregisterSession(ctx, msg);</span>
 
                 // Spec: The receiver shall initiate a close of the underlying
                 // TCP/IP connection when it receives this command.
-<span class="nc" id="L228">                ctx.channel().disconnect();</span>
-<span class="nc" id="L229">                break;</span>
+<span class="nc" id="L231">                ctx.channel().disconnect();</span>
+<span class="nc" id="L232">                break;</span>
 
             case ListIdentity:
-<span class="nc" id="L232">                handleListIdentity(ctx, msg);</span>
+<span class="nc" id="L235">                handleListIdentity(ctx, msg);</span>
 
                 // Now try listing the services the remote has to offer.
-<span class="nc" id="L235">                packet = new EnipPacket(CommandCode.ListServices, sessionHandle, EnipStatus.EIP_SUCCESS,</span>
-<span class="nc" id="L236">                    messageId.getAndIncrement(), new ListServices());</span>
-<span class="nc" id="L237">                break;</span>
+<span class="nc" id="L238">                packet = new EnipPacket(CommandCode.ListServices, sessionHandle, EnipStatus.EIP_SUCCESS,</span>
+<span class="nc" id="L239">                    messageId.getAndIncrement(), new ListServices());</span>
+<span class="nc" id="L240">                break;</span>
 
             case ListInterfaces:
-<span class="nc" id="L240">                handleListInterfaces(ctx, msg);</span>
+<span class="nc" id="L243">                handleListInterfaces(ctx, msg);</span>
 
                 // Here we're done connecting.
-<span class="nc" id="L243">                ctx.channel().pipeline().fireUserEventTriggered(new ConnectedEvent());</span>
-<span class="nc" id="L244">                break;</span>
+<span class="nc" id="L246">                ctx.channel().pipeline().fireUserEventTriggered(new ConnectedEvent());</span>
+<span class="nc" id="L247">                break;</span>
 
             case ListServices:
-<span class="nc" id="L247">                handleListServices(ctx, msg);</span>
+<span class="nc" id="L250">                handleListServices(ctx, msg);</span>
 
                 // Now try listing the interfaces the remote has to offer.
-<span class="nc" id="L250">                packet = new EnipPacket(CommandCode.ListInterfaces, sessionHandle, EnipStatus.EIP_SUCCESS,</span>
-<span class="nc" id="L251">                    messageId.getAndIncrement(), new ListInterfaces());</span>
-<span class="nc" id="L252">                break;</span>
+<span class="nc" id="L253">                packet = new EnipPacket(CommandCode.ListInterfaces, sessionHandle, EnipStatus.EIP_SUCCESS,</span>
+<span class="nc" id="L254">                    messageId.getAndIncrement(), new ListInterfaces());</span>
+<span class="nc" id="L255">                break;</span>
 
             case Nop:
-<span class="nc" id="L255">                handleNop(ctx, msg);</span>
-<span class="nc" id="L256">                break;</span>
+<span class="nc" id="L258">                handleNop(ctx, msg);</span>
+<span class="nc" id="L259">                break;</span>
 
             case SendRRData:
-<span class="nc" id="L259">                handleSendRRDataResponse(ctx, msg);</span>
-<span class="nc" id="L260">                break;</span>
+<span class="nc" id="L262">                handleSendRRDataResponse(ctx, msg);</span>
+<span class="nc" id="L263">                break;</span>
 
             case SendUnitData:
                 // This might be where the connected data is sent (eventually publish/subscribe communication)
                 break;
         }
 
-<span class="nc bnc" id="L267" title="All 2 branches missed.">        if(packet != null) {</span>
-<span class="nc" id="L268">            ctx.channel().writeAndFlush(packet);</span>
+<span class="nc bnc" id="L270" title="All 2 branches missed.">        if (packet != null) {</span>
+<span class="nc" id="L271">            ctx.channel().writeAndFlush(packet);</span>
         }
-<span class="nc" id="L270">    }</span>
+<span class="nc" id="L273">    }</span>
 
     /**
      * In order to do explicit connected messaging, the client has to register a session with the server.
@@ -278,14 +281,14 @@ public class Plc4XEtherNetIpProtocol extends MessageToMessageCodec&lt;EnipPacket
      * @param msg the packet received from the server.
      */
     private void handleRegisterSession(ChannelHandlerContext ctx, EnipPacket msg) {
-<span class="nc bnc" id="L281" title="All 2 branches missed.">        if(msg.getStatus() == EnipStatus.EIP_SUCCESS) {</span>
-<span class="nc" id="L282">            sessionHandle = msg.getSessionHandle();</span>
+<span class="nc bnc" id="L284" title="All 2 branches missed.">        if (msg.getStatus() == EnipStatus.EIP_SUCCESS) {</span>
+<span class="nc" id="L285">            sessionHandle = msg.getSessionHandle();</span>
 
-<span class="nc" id="L284">            LOGGER.info(&quot;EtherNet/IP session registered session-handle {}&quot;, sessionHandle);</span>
+<span class="nc" id="L287">            LOGGER.info(&quot;EtherNet/IP session registered session-handle {}&quot;, sessionHandle);</span>
         } else {
-<span class="nc" id="L286">            ctx.channel().pipeline().fireExceptionCaught(new PlcProtocolException(&quot;Got a non-success response.&quot;));</span>
+<span class="nc" id="L289">            ctx.channel().pipeline().fireExceptionCaught(new PlcProtocolException(&quot;Got a non-success response.&quot;));</span>
         }
-<span class="nc" id="L288">    }</span>
+<span class="nc" id="L291">    }</span>
 
     /**
      * As connected operations allocate resources on the server and the client, when receiving a
@@ -298,17 +301,17 @@ public class Plc4XEtherNetIpProtocol extends MessageToMessageCodec&lt;EnipPacket
      * @param msg the packet received from the server.
      */
     private void handleUnregisterSession(ChannelHandlerContext ctx, EnipPacket msg) {
-<span class="nc bnc" id="L301" title="All 2 branches missed.">        if (msg.getStatus() == EnipStatus.EIP_SUCCESS) {</span>
+<span class="nc bnc" id="L304" title="All 2 branches missed.">        if (msg.getStatus() == EnipStatus.EIP_SUCCESS) {</span>
             // Reset all internal variables.
-<span class="nc" id="L303">            identityItem = null;</span>
-<span class="nc" id="L304">            supportsCipEncapsulation = false;</span>
-<span class="nc" id="L305">            supportsClass0Or1UdpConnections = false;</span>
-<span class="nc" id="L306">            nonCipInterfaces = null;</span>
-<span class="nc" id="L307">            addressConnectionMap = null;</span>
+<span class="nc" id="L306">            identityItem = null;</span>
+<span class="nc" id="L307">            supportsCipEncapsulation = false;</span>
+<span class="nc" id="L308">            supportsClass0Or1UdpConnections = false;</span>
+<span class="nc" id="L309">            nonCipInterfaces = null;</span>
+<span class="nc" id="L310">            fieldConnectionMap = null;</span>
         } else {
-<span class="nc" id="L309">            ctx.channel().pipeline().fireExceptionCaught(new PlcProtocolException(&quot;Got a non-success response.&quot;));</span>
+<span class="nc" id="L312">            ctx.channel().pipeline().fireExceptionCaught(new PlcProtocolException(&quot;Got a non-success response.&quot;));</span>
         }
-<span class="nc" id="L311">    }</span>
+<span class="nc" id="L314">    }</span>
 
     /**
      * The response to a {@link ListIdentity} command contains a lot of information about the
@@ -318,21 +321,21 @@ public class Plc4XEtherNetIpProtocol extends MessageToMessageCodec&lt;EnipPacket
      * @param msg the packet received from the server.
      */
     private void handleListIdentity(ChannelHandlerContext ctx, EnipPacket msg) {
-<span class="nc bnc" id="L321" title="All 2 branches missed.">        if(msg.getStatus() == EnipStatus.EIP_SUCCESS) {</span>
-<span class="nc" id="L322">            ListIdentity listIdentityResponse = (ListIdentity) msg.getCommand();</span>
-<span class="nc bnc" id="L323" title="All 2 branches missed.">            if(listIdentityResponse != null) {</span>
-<span class="nc" id="L324">                identityItem = listIdentityResponse.getIdentity().orElse(null);</span>
-<span class="nc bnc" id="L325" title="All 2 branches missed.">                if(identityItem != null) {</span>
-<span class="nc" id="L326">                    LOGGER.info(&quot;Connected to: \n - product name: {} \n - serial number: {} &quot;,</span>
-<span class="nc" id="L327">                        identityItem.getProductName().trim(), identityItem.getSerialNumber());</span>
+<span class="nc bnc" id="L324" title="All 2 branches missed.">        if (msg.getStatus() == EnipStatus.EIP_SUCCESS) {</span>
+<span class="nc" id="L325">            ListIdentity listIdentityResponse = (ListIdentity) msg.getCommand();</span>
+<span class="nc bnc" id="L326" title="All 2 branches missed.">            if (listIdentityResponse != null) {</span>
+<span class="nc" id="L327">                identityItem = listIdentityResponse.getIdentity().orElse(null);</span>
+<span class="nc bnc" id="L328" title="All 2 branches missed.">                if (identityItem != null) {</span>
+<span class="nc" id="L329">                    LOGGER.info(&quot;Connected to: \n - product name: {} \n - serial number: {} &quot;,</span>
+<span class="nc" id="L330">                        identityItem.getProductName().trim(), identityItem.getSerialNumber());</span>
                 }
             } else {
-<span class="nc" id="L330">                identityItem = null;</span>
+<span class="nc" id="L333">                identityItem = null;</span>
             }
-<span class="nc" id="L332">        } else {</span>
-<span class="nc" id="L333">            ctx.channel().pipeline().fireExceptionCaught(new PlcProtocolException(&quot;Got a non-success response.&quot;));</span>
+<span class="nc" id="L335">        } else {</span>
+<span class="nc" id="L336">            ctx.channel().pipeline().fireExceptionCaught(new PlcProtocolException(&quot;Got a non-success response.&quot;));</span>
         }
-<span class="nc" id="L335">    }</span>
+<span class="nc" id="L338">    }</span>
 
     /**
      * Some times EtherNet/IP devices support other devices than the default one.
@@ -344,27 +347,27 @@ public class Plc4XEtherNetIpProtocol extends MessageToMessageCodec&lt;EnipPacket
      * @param msg the packet received from the server.
      */
     private void handleListInterfaces(ChannelHandlerContext ctx, EnipPacket msg) {
-<span class="nc bnc" id="L347" title="All 2 branches missed.">        if(msg.getStatus() == EnipStatus.EIP_SUCCESS) {</span>
-<span class="nc" id="L348">            ListInterfaces listInterfaces = (ListInterfaces) msg.getCommand();</span>
-<span class="nc bnc" id="L349" title="All 2 branches missed.">            if(listInterfaces != null) {</span>
+<span class="nc bnc" id="L350" title="All 2 branches missed.">        if (msg.getStatus() == EnipStatus.EIP_SUCCESS) {</span>
+<span class="nc" id="L351">            ListInterfaces listInterfaces = (ListInterfaces) msg.getCommand();</span>
+<span class="nc bnc" id="L352" title="All 2 branches missed.">            if (listInterfaces != null) {</span>
                 // If the device supports non-CIP interfaces, this array is not empty.
                 // In this case build a map so we can access the information when sending
                 // data in RR-Requests (Request-Response).
-<span class="nc bnc" id="L353" title="All 2 branches missed.">                if(listInterfaces.getInterfaces().length &gt; 0) {</span>
-<span class="nc" id="L354">                    nonCipInterfaces = new HashMap&lt;&gt;();</span>
-<span class="nc bnc" id="L355" title="All 2 branches missed.">                    for (ListInterfaces.InterfaceInformation interfaceInformation : listInterfaces.getInterfaces()) {</span>
-<span class="nc" id="L356">                        String interfaceName = new String(</span>
-<span class="nc" id="L357">                            interfaceInformation.getData(), Charset.forName(&quot;US-ASCII&quot;)).trim();</span>
-<span class="nc" id="L358">                        nonCipInterfaces.put(interfaceName, interfaceInformation.hashCode());</span>
+<span class="nc bnc" id="L356" title="All 2 branches missed.">                if (listInterfaces.getInterfaces().length &gt; 0) {</span>
+<span class="nc" id="L357">                    nonCipInterfaces = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L358" title="All 2 branches missed.">                    for (ListInterfaces.InterfaceInformation interfaceInformation : listInterfaces.getInterfaces()) {</span>
+<span class="nc" id="L359">                        String interfaceName = new String(</span>
+<span class="nc" id="L360">                            interfaceInformation.getData(), Charset.forName(&quot;US-ASCII&quot;)).trim();</span>
+<span class="nc" id="L361">                        nonCipInterfaces.put(interfaceName, interfaceInformation.hashCode());</span>
                     }
                 } else {
-<span class="nc" id="L361">                    nonCipInterfaces = null;</span>
+<span class="nc" id="L364">                    nonCipInterfaces = null;</span>
                 }
             }
-<span class="nc" id="L364">        } else {</span>
-<span class="nc" id="L365">            ctx.channel().pipeline().fireExceptionCaught(new PlcProtocolException(&quot;Got a non-success response.&quot;));</span>
+<span class="nc" id="L367">        } else {</span>
+<span class="nc" id="L368">            ctx.channel().pipeline().fireExceptionCaught(new PlcProtocolException(&quot;Got a non-success response.&quot;));</span>
         }
-<span class="nc" id="L367">    }</span>
+<span class="nc" id="L370">    }</span>
 
     /**
      * Each EtherNet/IP device can support one or more so-called `services`. At least the `Communications`
@@ -379,25 +382,25 @@ public class Plc4XEtherNetIpProtocol extends MessageToMessageCodec&lt;EnipPacket
      * @param msg the packet received from the server.
      */
     private void handleListServices(ChannelHandlerContext ctx, EnipPacket msg) {
-<span class="nc bnc" id="L382" title="All 2 branches missed.">        if (msg.getStatus() == EnipStatus.EIP_SUCCESS) {</span>
-<span class="nc" id="L383">            ListServices listServices = (ListServices) msg.getCommand();</span>
-<span class="nc bnc" id="L384" title="All 2 branches missed.">            if(listServices != null) {</span>
-<span class="nc bnc" id="L385" title="All 2 branches missed.">                for (ListServices.ServiceInformation service : listServices.getServices()) {</span>
+<span class="nc bnc" id="L385" title="All 2 branches missed.">        if (msg.getStatus() == EnipStatus.EIP_SUCCESS) {</span>
+<span class="nc" id="L386">            ListServices listServices = (ListServices) msg.getCommand();</span>
+<span class="nc bnc" id="L387" title="All 2 branches missed.">            if (listServices != null) {</span>
+<span class="nc bnc" id="L388" title="All 2 branches missed.">                for (ListServices.ServiceInformation service : listServices.getServices()) {</span>
                     // Check if the type code matches the communications service and if bit 5 of the
                     // capability flags is set.
-<span class="nc bnc" id="L388" title="All 2 branches missed.">                    if (service.getTypeCode() == SERVICE_COMMUNICATIONS_TYPE_CODE) {</span>
-<span class="nc bnc" id="L389" title="All 2 branches missed.">                        supportsCipEncapsulation = (service.getCapabilityFlags() &amp; 32) != 0;</span>
-<span class="nc bnc" id="L390" title="All 2 branches missed.">                        supportsClass0Or1UdpConnections = (service.getCapabilityFlags() &amp; 256) != 0;</span>
+<span class="nc bnc" id="L391" title="All 2 branches missed.">                    if (service.getTypeCode() == SERVICE_COMMUNICATIONS_TYPE_CODE) {</span>
+<span class="nc bnc" id="L392" title="All 2 branches missed.">                        supportsCipEncapsulation = (service.getCapabilityFlags() &amp; 32) != 0;</span>
+<span class="nc bnc" id="L393" title="All 2 branches missed.">                        supportsClass0Or1UdpConnections = (service.getCapabilityFlags() &amp; 256) != 0;</span>
                     }
                 }
             } else {
-<span class="nc" id="L394">                supportsCipEncapsulation = false;</span>
-<span class="nc" id="L395">                supportsClass0Or1UdpConnections = false;</span>
+<span class="nc" id="L397">                supportsCipEncapsulation = false;</span>
+<span class="nc" id="L398">                supportsClass0Or1UdpConnections = false;</span>
             }
-<span class="nc" id="L397">        } else {</span>
-<span class="nc" id="L398">            ctx.channel().pipeline().fireExceptionCaught(new PlcProtocolException(&quot;Got a non-success response.&quot;));</span>
+<span class="nc" id="L400">        } else {</span>
+<span class="nc" id="L401">            ctx.channel().pipeline().fireExceptionCaught(new PlcProtocolException(&quot;Got a non-success response.&quot;));</span>
         }
-<span class="nc" id="L400">    }</span>
+<span class="nc" id="L403">    }</span>
 
     /**
      * NOP request/responses are simple no-payload messages used to check if a connection is still
@@ -408,14 +411,14 @@ public class Plc4XEtherNetIpProtocol extends MessageToMessageCodec&lt;EnipPacket
      * @param msg the packet received from the server.
      */
     private void handleNop(ChannelHandlerContext ctx, EnipPacket msg) {
-<span class="nc bnc" id="L411" title="All 2 branches missed.">        if(msg.getStatus() == EnipStatus.EIP_SUCCESS) {</span>
-<span class="nc" id="L412">            Nop nop = (Nop) msg.getCommand();</span>
+<span class="nc bnc" id="L414" title="All 2 branches missed.">        if (msg.getStatus() == EnipStatus.EIP_SUCCESS) {</span>
+<span class="nc" id="L415">            Nop nop = (Nop) msg.getCommand();</span>
             // TODO: Reset some sort of timer ...
-<span class="nc" id="L414">        } else {</span>
-<span class="nc" id="L415">            ctx.channel().pipeline().fireExceptionCaught(</span>
+<span class="nc" id="L417">        } else {</span>
+<span class="nc" id="L418">            ctx.channel().pipeline().fireExceptionCaught(</span>
                 new PlcProtocolException(&quot;Got a non-success flagged request.&quot;));
         }
-<span class="nc" id="L418">    }</span>
+<span class="nc" id="L421">    }</span>
 
     /**
      * As RR Data is Request Response data and the server will not issue a request to
@@ -427,55 +430,62 @@ public class Plc4XEtherNetIpProtocol extends MessageToMessageCodec&lt;EnipPacket
      */
     private void handleSendRRDataResponse(ChannelHandlerContext ctx, EnipPacket msg) {
         // This is where the typical request/response stuff is handled.
-<span class="nc" id="L430">        long senderContext = msg.getSenderContext();</span>
-<span class="nc" id="L431">        PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; plcRequestContainer = requestsMap.get(senderContext);</span>
-<span class="nc bnc" id="L432" title="All 2 branches missed.">        if (plcRequestContainer == null) {</span>
-<span class="nc" id="L433">            ctx.channel().pipeline().fireExceptionCaught(</span>
+<span class="nc" id="L433">        long senderContext = msg.getSenderContext();</span>
+<span class="nc" id="L434">        PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; plcRequestContainer = requestsMap.get(senderContext);</span>
+<span class="nc bnc" id="L435" title="All 2 branches missed.">        if (plcRequestContainer == null) {</span>
+<span class="nc" id="L436">            ctx.channel().pipeline().fireExceptionCaught(</span>
                 new PlcProtocolException(&quot;Unrelated payload received for message &quot; + msg));
-<span class="nc" id="L435">            return;</span>
+<span class="nc" id="L438">            return;</span>
         }
 
-<span class="nc bnc" id="L438" title="All 2 branches missed.">        if(!(plcRequestContainer.getRequest() instanceof PlcReadRequest)) {</span>
-<span class="nc" id="L439">            ctx.fireExceptionCaught(new PlcProtocolException(&quot;Expecting a PlcReadRequest here.&quot;));</span>
+<span class="nc bnc" id="L441" title="All 2 branches missed.">        if (!(plcRequestContainer.getRequest() instanceof PlcReadRequest)) {</span>
+<span class="nc" id="L442">            ctx.fireExceptionCaught(new PlcProtocolException(&quot;Expecting a PlcReadRequest here.&quot;));</span>
+<span class="nc" id="L443">            return;</span>
         }
-<span class="nc" id="L441">        PlcReadRequest request = (PlcReadRequest) plcRequestContainer.getRequest();</span>
-        ResponseCode responseCode;
-<span class="nc bnc" id="L443" title="All 2 branches missed.">        if(msg.getStatus() != EnipStatus.EIP_SUCCESS) {</span>
-<span class="nc" id="L444">            responseCode = ResponseCode.NOT_FOUND;</span>
+<span class="nc" id="L445">        InternalPlcReadRequest request = (InternalPlcReadRequest) plcRequestContainer.getRequest();</span>
+        PlcResponseCode responseCode;
+<span class="nc bnc" id="L447" title="All 2 branches missed.">        if (msg.getStatus() != EnipStatus.EIP_SUCCESS) {</span>
+<span class="nc" id="L448">            responseCode = PlcResponseCode.NOT_FOUND;</span>
         } else {
-<span class="nc" id="L446">            responseCode = ResponseCode.OK;</span>
+<span class="nc" id="L450">            responseCode = PlcResponseCode.OK;</span>
         }
 
-<span class="nc" id="L449">        SendRRData sendRRDataCommand = (SendRRData) msg.getCommand();</span>
-<span class="nc bnc" id="L450" title="All 2 branches missed.">        if(sendRRDataCommand == null) {</span>
-<span class="nc" id="L451">            ctx.fireExceptionCaught(new PlcProtocolException(&quot;Expecting a SendRRData command here.&quot;));</span>
+<span class="nc" id="L453">        SendRRData sendRRDataCommand = (SendRRData) msg.getCommand();</span>
+<span class="nc bnc" id="L454" title="All 2 branches missed.">        if (sendRRDataCommand == null) {</span>
+<span class="nc" id="L455">            ctx.fireExceptionCaught(new PlcProtocolException(&quot;Expecting a SendRRData command here.&quot;));</span>
+<span class="nc" id="L456">            return;</span>
         }
-<span class="nc" id="L453">        CpfItem[] items = sendRRDataCommand.getPacket().getItems();</span>
-<span class="nc bnc" id="L454" title="All 2 branches missed.">        if (items.length != 2) {</span>
-<span class="nc" id="L455">            ctx.fireExceptionCaught(new PlcProtocolException(&quot;Expecting 2 items here.&quot;));</span>
+<span class="nc" id="L458">        CpfItem[] items = sendRRDataCommand.getPacket().getItems();</span>
+<span class="nc bnc" id="L459" title="All 2 branches missed.">        if (items.length != 2) {</span>
+<span class="nc" id="L460">            ctx.fireExceptionCaught(new PlcProtocolException(&quot;Expecting 2 items here.&quot;));</span>
+<span class="nc" id="L461">            return;</span>
         }
-<span class="nc" id="L457">        CpfItem payload = items[1];</span>
-<span class="nc bnc" id="L458" title="All 2 branches missed.">        if (!(payload instanceof UnconnectedDataItemResponse)) {</span>
-<span class="nc" id="L459">            ctx.fireExceptionCaught(new PlcProtocolException(&quot;Item[1] should be of type UnconnectedDataItemResponse&quot;));</span>
+<span class="nc" id="L463">        CpfItem payload = items[1];</span>
+<span class="nc bnc" id="L464" title="All 2 branches missed.">        if (!(payload instanceof UnconnectedDataItemResponse)) {</span>
+<span class="nc" id="L465">            ctx.fireExceptionCaught(new PlcProtocolException(&quot;Item[1] should be of type UnconnectedDataItemResponse&quot;));</span>
+<span class="nc" id="L466">            return;</span>
         }
-<span class="nc" id="L461">        UnconnectedDataItemResponse enipResponse = (UnconnectedDataItemResponse) payload;</span>
-<span class="nc" id="L462">        ByteBuf data = enipResponse.getData();</span>
-<span class="nc bnc" id="L463" title="All 2 branches missed.">        if (data.readableBytes() &gt; 0) {</span>
-<span class="nc" id="L464">            MessageRouterResponse cipResponse = MessageRouterResponse.decode(data);</span>
-<span class="nc" id="L465">            ReadRequestItem requestItem = request.getRequestItem().orElse(null);</span>
-            Short value;
-<span class="nc bnc" id="L467" title="All 2 branches missed.">            if(cipResponse.getData().readableBytes() &gt;= 2) {</span>
-<span class="nc" id="L468">                value = cipResponse.getData().readShort();</span>
-            } else {
-<span class="nc" id="L470">                value = -1;</span>
-            }
-            // TODO: This is not quite correct as we assume everything is an integer.
-<span class="nc" id="L473">            ReadResponseItem&lt;Integer&gt; responseItem = new ReadResponseItem&lt;Integer&gt;(requestItem, responseCode, value.intValue());</span>
-<span class="nc" id="L474">            PlcReadResponse response = new PlcReadResponse(request, responseItem);</span>
-
-<span class="nc" id="L476">            plcRequestContainer.getResponseFuture().complete(response);</span>
+<span class="nc" id="L468">        UnconnectedDataItemResponse enipResponse = (UnconnectedDataItemResponse) payload;</span>
+<span class="nc" id="L469">        ByteBuf data = enipResponse.getData();</span>
+<span class="nc bnc" id="L470" title="All 2 branches missed.">        if (data.readableBytes() &gt; 0) {</span>
+<span class="nc" id="L471">            Map&lt;String, Pair&lt;PlcResponseCode, FieldItem&gt;&gt; values = new HashMap&lt;&gt;();</span>
+            // TODO: This is not quite correct as this will probalby not work when requesting more than one item.
+<span class="nc bnc" id="L473" title="All 2 branches missed.">            for (String fieldName : request.getFieldNames()) {</span>
+<span class="nc" id="L474">                MessageRouterResponse cipResponse = MessageRouterResponse.decode(data);</span>
+                short value;
+                // TODO: This is not quite correct as we assume everything is an integer.
+<span class="nc bnc" id="L477" title="All 2 branches missed.">                if (cipResponse.getData().readableBytes() &gt;= 2) {</span>
+<span class="nc" id="L478">                    value = cipResponse.getData().readShort();</span>
+                } else {
+<span class="nc" id="L480">                    value = -1;</span>
+                }
+<span class="nc" id="L482">                DefaultIntegerFieldItem fieldItem = new DefaultIntegerFieldItem((long) value);</span>
+<span class="nc" id="L483">                values.put(fieldName, new ImmutablePair&lt;&gt;(responseCode, fieldItem));</span>
+<span class="nc" id="L484">            }</span>
+<span class="nc" id="L485">            InternalPlcReadResponse response = new DefaultPlcReadResponse(request, values);</span>
+<span class="nc" id="L486">            plcRequestContainer.getResponseFuture().complete(response);</span>
         }
-<span class="nc" id="L478">    }</span>
+<span class="nc" id="L488">    }</span>
 
     ////////////////////////////////////////////////////////////////////////////////
     // Encoding helpers.

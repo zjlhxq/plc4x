@@ -20,6 +20,7 @@ package org.apache.plc4x.java.ads.protocol.util;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.plc4x.java.ads.api.commands.types.TimeStamp;
+import org.apache.plc4x.java.ads.model.AdsDataType;
 import org.apache.plc4x.java.api.exceptions.PlcProtocolException;
 import org.apache.plc4x.java.api.exceptions.PlcRuntimeException;
 import org.apache.plc4x.java.api.exceptions.PlcUnsupportedDataTypeException;
@@ -41,162 +42,191 @@ public class LittleEndianEncoder {
     }
 
     // TODO: add bound checking
-    public static byte[] encodeData(Class&lt;?&gt; valueType, Object... values) throws PlcProtocolException {
-<span class="pc bpc" id="L45" title="1 of 2 branches missed.">        if (values.length == 0) {</span>
-<span class="nc" id="L46">            return new byte[]{};</span>
+    public static byte[] encodeData(AdsDataType adsDataType, Object... values) throws PlcProtocolException {
+<span class="pc bpc" id="L46" title="1 of 2 branches missed.">        if (values.length == 0) {</span>
+<span class="nc" id="L47">            return new byte[]{};</span>
         }
+<span class="fc" id="L49">        Class&lt;?&gt; valueType = values[0].getClass();</span>
         Stream&lt;byte[]&gt; result;
-<span class="fc bfc" id="L49" title="All 2 branches covered.">        if (valueType == Boolean.class) {</span>
-<span class="fc" id="L50">            result = encodeBoolean(Arrays.stream(values).map(Boolean.class::cast));</span>
-<span class="fc bfc" id="L51" title="All 2 branches covered.">        } else if (valueType == Byte.class) {</span>
-<span class="fc" id="L52">            result = encodeByte(Arrays.stream(values).map(Byte.class::cast));</span>
-<span class="fc bfc" id="L53" title="All 2 branches covered.">        } else if (valueType == Short.class) {</span>
-<span class="fc" id="L54">            result = encodeShort(Arrays.stream(values).map(Short.class::cast));</span>
-<span class="fc bfc" id="L55" title="All 2 branches covered.">        } else if (valueType == Integer.class) {</span>
-<span class="fc" id="L56">            result = encodeInteger(Arrays.stream(values).map(Integer.class::cast));</span>
-<span class="fc bfc" id="L57" title="All 2 branches covered.">        } else if (valueType == BigInteger.class) {</span>
-<span class="fc" id="L58">            result = encodeBigInteger(Arrays.stream(values).map(BigInteger.class::cast));</span>
-<span class="fc bfc" id="L59" title="All 4 branches covered.">        } else if (valueType == Calendar.class || Calendar.class.isAssignableFrom(valueType)) {</span>
-<span class="fc" id="L60">            result = encodeCalendar(Arrays.stream(values).map(Calendar.class::cast));</span>
-<span class="fc bfc" id="L61" title="All 2 branches covered.">        } else if (valueType == Float.class) {</span>
-<span class="fc" id="L62">            result = encodeFloat(Arrays.stream(values).map(Float.class::cast));</span>
-<span class="fc bfc" id="L63" title="All 2 branches covered.">        } else if (valueType == Double.class) {</span>
-<span class="fc" id="L64">            result = encodeDouble(Arrays.stream(values).map(Double.class::cast));</span>
-<span class="fc bfc" id="L65" title="All 2 branches covered.">        } else if (valueType == String.class) {</span>
-<span class="fc" id="L66">            result = encodeString(Arrays.stream(values).map(String.class::cast));</span>
-<span class="fc bfc" id="L67" title="All 2 branches covered.">        } else if (valueType == byte[].class) {</span>
-<span class="fc" id="L68">            result = encodeByteArray(Arrays.stream(values).map(byte[].class::cast));</span>
-<span class="fc bfc" id="L69" title="All 2 branches covered.">        } else if (valueType == Byte[].class) {</span>
-<span class="fc" id="L70">            result = encodeBigByteArray(Arrays.stream(values).map(Byte[].class::cast));</span>
+<span class="fc bfc" id="L51" title="All 2 branches covered.">        if (valueType == Boolean.class) {</span>
+<span class="fc" id="L52">            result = encodeBoolean(adsDataType, Arrays.stream(values).map(Boolean.class::cast));</span>
+<span class="pc bpc" id="L53" title="1 of 2 branches missed.">        } else if (valueType == Byte.class) {</span>
+<span class="nc" id="L54">            result = encodeByte(adsDataType, Arrays.stream(values).map(Byte.class::cast));</span>
+<span class="pc bpc" id="L55" title="1 of 2 branches missed.">        } else if (valueType == Short.class) {</span>
+<span class="nc" id="L56">            result = encodeShort(adsDataType, Arrays.stream(values).map(Short.class::cast));</span>
+<span class="pc bpc" id="L57" title="1 of 2 branches missed.">        } else if (valueType == Integer.class) {</span>
+<span class="nc" id="L58">            result = encodeInteger(adsDataType, Arrays.stream(values).map(Integer.class::cast));</span>
+<span class="fc bfc" id="L59" title="All 2 branches covered.">        } else if (valueType == Long.class) {</span>
+<span class="fc" id="L60">            result = encodeLong(adsDataType, Arrays.stream(values).map(Long.class::cast));</span>
+<span class="pc bpc" id="L61" title="1 of 2 branches missed.">        } else if (valueType == BigInteger.class) {</span>
+<span class="nc" id="L62">            result = encodeBigInteger(adsDataType, Arrays.stream(values).map(BigInteger.class::cast));</span>
+<span class="pc bpc" id="L63" title="2 of 4 branches missed.">        } else if (valueType == Calendar.class || Calendar.class.isAssignableFrom(valueType)) {</span>
+<span class="nc" id="L64">            result = encodeCalendar(adsDataType, Arrays.stream(values).map(Calendar.class::cast));</span>
+<span class="pc bpc" id="L65" title="1 of 2 branches missed.">        } else if (valueType == Float.class) {</span>
+<span class="nc" id="L66">            result = encodeFloat(adsDataType, Arrays.stream(values).map(Float.class::cast));</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">        } else if (valueType == Double.class) {</span>
+<span class="fc" id="L68">            result = encodeDouble(adsDataType, Arrays.stream(values).map(Double.class::cast));</span>
+<span class="pc bpc" id="L69" title="1 of 2 branches missed.">        } else if (valueType == String.class) {</span>
+<span class="fc" id="L70">            result = encodeString(adsDataType, Arrays.stream(values).map(String.class::cast));</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">        } else if (valueType == byte[].class) {</span>
+<span class="nc" id="L72">            result = encodeByteArray(adsDataType, Arrays.stream(values).map(byte[].class::cast));</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">        } else if (valueType == Byte[].class) {</span>
+<span class="nc" id="L74">            result = encodeBigByteArray(adsDataType, Arrays.stream(values).map(Byte[].class::cast));</span>
         } else {
-<span class="fc" id="L72">            throw new PlcUnsupportedDataTypeException(valueType);</span>
+<span class="nc" id="L76">            throw new PlcUnsupportedDataTypeException(valueType);</span>
         }
 
         // TODO: maybe we can replace this by a smarter flatmap
         try {
-<span class="fc" id="L77">            return result.collect(</span>
+<span class="fc" id="L81">            return result.collect(</span>
                 ByteArrayOutputStream::new,
                 (bos, byteValue) -&gt; {
                     try {
-<span class="fc" id="L81">                        bos.write(byteValue);</span>
-<span class="nc" id="L82">                    } catch (IOException e) {</span>
-<span class="nc" id="L83">                        throw new PlcRuntimeException(e);</span>
-<span class="fc" id="L84">                    }</span>
-<span class="fc" id="L85">                },</span>
+<span class="fc" id="L85">                        bos.write(byteValue);</span>
+<span class="nc" id="L86">                    } catch (IOException e) {</span>
+<span class="nc" id="L87">                        throw new PlcRuntimeException(e);</span>
+<span class="fc" id="L88">                    }</span>
+<span class="fc" id="L89">                },</span>
                 (a, b) -&gt; {
-<span class="pc" id="L87">                }).toByteArray();</span>
-<span class="nc" id="L88">        } catch (PlcRuntimeException e) {</span>
-<span class="nc" id="L89">            throw new PlcProtocolException(&quot;Error encoding data&quot;, e);</span>
+<span class="pc" id="L91">                }).toByteArray();</span>
+<span class="nc" id="L92">        } catch (PlcRuntimeException e) {</span>
+<span class="nc" id="L93">            throw new PlcProtocolException(&quot;Error encoding data&quot;, e);</span>
         }
     }
 
-    private static Stream&lt;byte[]&gt; encodeString(Stream&lt;String&gt; stringStream) {
+    private static Stream&lt;byte[]&gt; encodeString(AdsDataType adsDataType, Stream&lt;String&gt; stringStream) {
+        // TODO: add boundchecks and add optional extension
         // TODO: what do we do with utf-8 values with 2 bytes? what is the charset here?
-<span class="fc" id="L95">        return stringStream</span>
-<span class="fc" id="L96">            .map(s -&gt; s.getBytes(Charset.defaultCharset()))</span>
+<span class="fc" id="L100">        return stringStream</span>
+<span class="fc" id="L101">            .map(s -&gt; s.getBytes(Charset.defaultCharset()))</span>
             // TODO: this 0 termination is from s7 but might be completly wrong in ads. Guess its a terminator
-<span class="fc" id="L98">            .map(bytes -&gt; ArrayUtils.add(bytes, (byte) 0x0));</span>
+<span class="fc" id="L103">            .map(bytes -&gt; ArrayUtils.add(bytes, (byte) 0x0));</span>
     }
 
-    private static Stream&lt;byte[]&gt; encodeByteArray(Stream&lt;byte[]&gt; byteArrayStream) {
-<span class="fc" id="L102">        return byteArrayStream;</span>
+    private static Stream&lt;byte[]&gt; encodeByteArray(AdsDataType adsDataType, Stream&lt;byte[]&gt; byteArrayStream) {
+        // TODO: add boundchecks and add optional extension
+<span class="nc" id="L108">        return byteArrayStream;</span>
     }
 
-    private static Stream&lt;byte[]&gt; encodeBigByteArray(Stream&lt;Byte[]&gt; byteArrayStream) {
-<span class="fc" id="L106">        return byteArrayStream.map(ArrayUtils::toPrimitive);</span>
+    private static Stream&lt;byte[]&gt; encodeBigByteArray(AdsDataType adsDataType, Stream&lt;Byte[]&gt; byteArrayStream) {
+        // TODO: add boundchecks and add optional extension
+<span class="nc" id="L113">        return byteArrayStream.map(ArrayUtils::toPrimitive);</span>
     }
 
-    private static Stream&lt;byte[]&gt; encodeFloat(Stream&lt;Float&gt; floatStream) {
-<span class="fc" id="L110">        return floatStream</span>
+    private static Stream&lt;byte[]&gt; encodeFloat(AdsDataType adsDataType, Stream&lt;Float&gt; floatStream) {
+        // TODO: add boundchecks and add optional extension
+<span class="nc" id="L118">        return floatStream</span>
             // TODO: check how ads expects this data
-<span class="fc" id="L112">            .map(Float::floatToIntBits)</span>
-<span class="fc" id="L113">            .map(intValue -&gt; new byte[]{</span>
-<span class="fc" id="L114">                (byte) (intValue &amp; 0x000000ff),</span>
-<span class="fc" id="L115">                (byte) ((intValue &amp; 0x0000ff00) &gt;&gt; 8),</span>
-<span class="fc" id="L116">                (byte) ((intValue &amp; 0x00ff0000) &gt;&gt; 16),</span>
-<span class="fc" id="L117">                (byte) ((intValue &amp; 0xff000000) &gt;&gt; 24),</span>
+<span class="nc" id="L120">            .map(Float::floatToIntBits)</span>
+<span class="nc" id="L121">            .map(intValue -&gt; new byte[]{</span>
+<span class="nc" id="L122">                (byte) (intValue &amp; 0x000000ff),</span>
+<span class="nc" id="L123">                (byte) ((intValue &amp; 0x0000ff00) &gt;&gt; 8),</span>
+<span class="nc" id="L124">                (byte) ((intValue &amp; 0x00ff0000) &gt;&gt; 16),</span>
+<span class="nc" id="L125">                (byte) ((intValue &amp; 0xff000000) &gt;&gt; 24),</span>
             });
     }
 
-    private static Stream&lt;byte[]&gt; encodeDouble(Stream&lt;Double&gt; doubleStream) {
-<span class="fc" id="L122">        return doubleStream</span>
+    private static Stream&lt;byte[]&gt; encodeDouble(AdsDataType adsDataType, Stream&lt;Double&gt; doubleStream) {
+        // TODO: add boundchecks and add optional extension
+<span class="fc" id="L131">        return doubleStream</span>
             // TODO: check how ads expects this data
-<span class="fc" id="L124">            .map(Double::doubleToLongBits)</span>
-<span class="fc" id="L125">            .map(longValue -&gt; new byte[]{</span>
-<span class="fc" id="L126">                (byte) (longValue &amp; 0x00000000_000000ffL),</span>
-<span class="fc" id="L127">                (byte) ((longValue &amp; 0x00000000_0000ff00L) &gt;&gt; 8),</span>
-<span class="fc" id="L128">                (byte) ((longValue &amp; 0x00000000_00ff0000L) &gt;&gt; 16),</span>
-<span class="fc" id="L129">                (byte) ((longValue &amp; 0x00000000_ff000000L) &gt;&gt; 24),</span>
-<span class="fc" id="L130">                (byte) ((longValue &amp; 0x000000ff_00000000L) &gt;&gt; 32),</span>
-<span class="fc" id="L131">                (byte) ((longValue &amp; 0x0000ff00_00000000L) &gt;&gt; 40),</span>
-<span class="fc" id="L132">                (byte) ((longValue &amp; 0x00ff0000_00000000L) &gt;&gt; 48),</span>
-<span class="fc" id="L133">                (byte) ((longValue &amp; 0xff000000_00000000L) &gt;&gt; 56),</span>
+<span class="fc" id="L133">            .map(Double::doubleToLongBits)</span>
+<span class="fc" id="L134">            .map(longValue -&gt; new byte[]{</span>
+<span class="fc" id="L135">                (byte) (longValue &amp; 0x00000000_000000ffL),</span>
+<span class="fc" id="L136">                (byte) ((longValue &amp; 0x00000000_0000ff00L) &gt;&gt; 8),</span>
+<span class="fc" id="L137">                (byte) ((longValue &amp; 0x00000000_00ff0000L) &gt;&gt; 16),</span>
+<span class="fc" id="L138">                (byte) ((longValue &amp; 0x00000000_ff000000L) &gt;&gt; 24),</span>
+<span class="fc" id="L139">                (byte) ((longValue &amp; 0x000000ff_00000000L) &gt;&gt; 32),</span>
+<span class="fc" id="L140">                (byte) ((longValue &amp; 0x0000ff00_00000000L) &gt;&gt; 40),</span>
+<span class="fc" id="L141">                (byte) ((longValue &amp; 0x00ff0000_00000000L) &gt;&gt; 48),</span>
+<span class="fc" id="L142">                (byte) ((longValue &amp; 0xff000000_00000000L) &gt;&gt; 56),</span>
             });
     }
 
-    private static Stream&lt;byte[]&gt; encodeInteger(Stream&lt;Integer&gt; integerStream) {
-<span class="fc" id="L138">        return integerStream</span>
-<span class="fc" id="L139">            .map(intValue -&gt; new byte[]{</span>
-<span class="fc" id="L140">                (byte) (intValue &amp; 0x000000ff),</span>
-<span class="fc" id="L141">                (byte) ((intValue &amp; 0x0000ff00) &gt;&gt; 8),</span>
-<span class="fc" id="L142">                (byte) ((intValue &amp; 0x00ff0000) &gt;&gt; 16),</span>
-<span class="fc" id="L143">                (byte) ((intValue &amp; 0xff000000) &gt;&gt; 24),</span>
+    private static Stream&lt;byte[]&gt; encodeInteger(AdsDataType adsDataType, Stream&lt;Integer&gt; integerStream) {
+        // TODO: add boundchecks and add optional extension
+<span class="nc" id="L148">        return integerStream</span>
+<span class="nc" id="L149">            .map(intValue -&gt; new byte[]{</span>
+<span class="nc" id="L150">                (byte) (intValue &amp; 0x000000ff),</span>
+<span class="nc" id="L151">                (byte) ((intValue &amp; 0x0000ff00) &gt;&gt; 8),</span>
+<span class="nc" id="L152">                (byte) ((intValue &amp; 0x00ff0000) &gt;&gt; 16),</span>
+<span class="nc" id="L153">                (byte) ((intValue &amp; 0xff000000) &gt;&gt; 24),</span>
             });
     }
 
-    private static Stream&lt;byte[]&gt; encodeBigInteger(Stream&lt;BigInteger&gt; bigIntegerStream) {
-<span class="fc" id="L148">        return bigIntegerStream</span>
-<span class="fc" id="L149">            .map(bigIntValue -&gt; {</span>
-<span class="fc" id="L150">                byte[] bytes = bigIntValue.toByteArray();</span>
-<span class="pc bpc" id="L151" title="1 of 2 branches missed.">                if (bytes[0] == 0x0) {</span>
-<span class="nc" id="L152">                    byte[] subArray = ArrayUtils.subarray(bytes, 1, bytes.length);</span>
-<span class="nc" id="L153">                    ArrayUtils.reverse(subArray);</span>
-<span class="nc" id="L154">                    return subArray;</span>
+    private static Stream&lt;byte[]&gt; encodeLong(AdsDataType adsDataType, Stream&lt;Long&gt; integerStream) {
+        // TODO: add boundchecks and add optional extension
+<span class="fc" id="L159">        return integerStream</span>
+<span class="fc" id="L160">            .map(longValue -&gt; new byte[]{</span>
+<span class="fc" id="L161">                (byte) (longValue &amp; 0x00000000_000000ffL),</span>
+<span class="fc" id="L162">                (byte) ((longValue &amp; 0x00000000_0000ff00L) &gt;&gt; 8),</span>
+<span class="fc" id="L163">                (byte) ((longValue &amp; 0x00000000_00ff0000L) &gt;&gt; 16),</span>
+<span class="fc" id="L164">                (byte) ((longValue &amp; 0x00000000_ff000000L) &gt;&gt; 24),</span>
+<span class="fc" id="L165">                (byte) ((longValue &amp; 0x000000ff_00000000L) &gt;&gt; 32),</span>
+<span class="fc" id="L166">                (byte) ((longValue &amp; 0x0000ff00_00000000L) &gt;&gt; 40),</span>
+<span class="fc" id="L167">                (byte) ((longValue &amp; 0x00ff0000_00000000L) &gt;&gt; 48),</span>
+<span class="fc" id="L168">                (byte) ((longValue &amp; 0xff000000_00000000L) &gt;&gt; 56),</span>
+            });
+    }
+
+    private static Stream&lt;byte[]&gt; encodeBigInteger(AdsDataType adsDataType, Stream&lt;BigInteger&gt; bigIntegerStream) {
+        // TODO: add boundchecks and add optional extension
+<span class="nc" id="L174">        return bigIntegerStream</span>
+<span class="nc" id="L175">            .map(bigIntValue -&gt; {</span>
+<span class="nc" id="L176">                byte[] bytes = bigIntValue.toByteArray();</span>
+<span class="nc bnc" id="L177" title="All 2 branches missed.">                if (bytes[0] == 0x0) {</span>
+<span class="nc" id="L178">                    byte[] subArray = ArrayUtils.subarray(bytes, 1, bytes.length);</span>
+<span class="nc" id="L179">                    ArrayUtils.reverse(subArray);</span>
+<span class="nc" id="L180">                    return subArray;</span>
                 } else {
-<span class="fc" id="L156">                    ArrayUtils.reverse(bytes);</span>
-<span class="fc" id="L157">                    return bytes;</span>
+<span class="nc" id="L182">                    ArrayUtils.reverse(bytes);</span>
+<span class="nc" id="L183">                    return bytes;</span>
                 }
             });
     }
 
-    private static Stream&lt;byte[]&gt; encodeCalendar(Stream&lt;Calendar&gt; calendarStream) {
-<span class="fc" id="L163">        return calendarStream</span>
-<span class="fc" id="L164">            .map(Calendar.class::cast)</span>
-<span class="fc" id="L165">            .map(Calendar::getTime)</span>
-<span class="fc" id="L166">            .map(Date::getTime)</span>
-<span class="fc" id="L167">            .map(BigInteger::valueOf)</span>
-<span class="fc" id="L168">            .map(TimeStamp::javaToWinTime)</span>
-<span class="fc" id="L169">            .map(BigInteger::longValue)</span>
-<span class="fc" id="L170">            .map(time -&gt; new byte[]{</span>
-<span class="fc" id="L171">                (byte) (time &amp; 0x00000000_000000ffL),</span>
-<span class="fc" id="L172">                (byte) ((time &amp; 0x00000000_0000ff00L) &gt;&gt; 8),</span>
-<span class="fc" id="L173">                (byte) ((time &amp; 0x00000000_00ff0000L) &gt;&gt; 16),</span>
-<span class="fc" id="L174">                (byte) ((time &amp; 0x00000000_ff000000L) &gt;&gt; 24),</span>
+    private static Stream&lt;byte[]&gt; encodeCalendar(AdsDataType adsDataType, Stream&lt;Calendar&gt; calendarStream) {
+        // TODO: add boundchecks and add optional extension
+<span class="nc" id="L190">        return calendarStream</span>
+<span class="nc" id="L191">            .map(Calendar.class::cast)</span>
+<span class="nc" id="L192">            .map(Calendar::getTime)</span>
+<span class="nc" id="L193">            .map(Date::getTime)</span>
+<span class="nc" id="L194">            .map(BigInteger::valueOf)</span>
+<span class="nc" id="L195">            .map(TimeStamp::javaToWinTime)</span>
+<span class="nc" id="L196">            .map(BigInteger::longValue)</span>
+<span class="nc" id="L197">            .map(time -&gt; new byte[]{</span>
+<span class="nc" id="L198">                (byte) (time &amp; 0x00000000_000000ffL),</span>
+<span class="nc" id="L199">                (byte) ((time &amp; 0x00000000_0000ff00L) &gt;&gt; 8),</span>
+<span class="nc" id="L200">                (byte) ((time &amp; 0x00000000_00ff0000L) &gt;&gt; 16),</span>
+<span class="nc" id="L201">                (byte) ((time &amp; 0x00000000_ff000000L) &gt;&gt; 24),</span>
 
-<span class="fc" id="L176">                (byte) ((time &amp; 0x000000ff_00000000L) &gt;&gt; 32),</span>
-<span class="fc" id="L177">                (byte) ((time &amp; 0x0000ff00_00000000L) &gt;&gt; 40),</span>
-<span class="fc" id="L178">                (byte) ((time &amp; 0x00ff0000_00000000L) &gt;&gt; 48),</span>
-<span class="fc" id="L179">                (byte) ((time &amp; 0xff000000_00000000L) &gt;&gt; 56),</span>
+<span class="nc" id="L203">                (byte) ((time &amp; 0x000000ff_00000000L) &gt;&gt; 32),</span>
+<span class="nc" id="L204">                (byte) ((time &amp; 0x0000ff00_00000000L) &gt;&gt; 40),</span>
+<span class="nc" id="L205">                (byte) ((time &amp; 0x00ff0000_00000000L) &gt;&gt; 48),</span>
+<span class="nc" id="L206">                (byte) ((time &amp; 0xff000000_00000000L) &gt;&gt; 56),</span>
             });
     }
 
 
-    private static Stream&lt;byte[]&gt; encodeShort(Stream&lt;Short&gt; shortStream) {
-<span class="fc" id="L185">        return shortStream</span>
-<span class="fc" id="L186">            .map(shortValue -&gt; new byte[]{</span>
-<span class="fc" id="L187">                (byte) (shortValue &amp; 0x00ff),</span>
-<span class="fc" id="L188">                (byte) ((shortValue &amp; 0xff00) &gt;&gt; 8),</span>
+    private static Stream&lt;byte[]&gt; encodeShort(AdsDataType adsDataType, Stream&lt;Short&gt; shortStream) {
+        // TODO: add boundchecks and add optional extension
+<span class="nc" id="L213">        return shortStream</span>
+<span class="nc" id="L214">            .map(shortValue -&gt; new byte[]{</span>
+<span class="nc" id="L215">                (byte) (shortValue &amp; 0x00ff),</span>
+<span class="nc" id="L216">                (byte) ((shortValue &amp; 0xff00) &gt;&gt; 8),</span>
             });
     }
 
-    private static Stream&lt;byte[]&gt; encodeByte(Stream&lt;Byte&gt; byteStream) {
-<span class="fc" id="L193">        return byteStream</span>
-<span class="fc" id="L194">            .map(aByte -&gt; new byte[]{aByte});</span>
+    private static Stream&lt;byte[]&gt; encodeByte(AdsDataType adsDataType, Stream&lt;Byte&gt; byteStream) {
+        // TODO: add boundchecks and add optional extension
+<span class="nc" id="L222">        return byteStream</span>
+<span class="nc" id="L223">            .map(aByte -&gt; new byte[]{aByte});</span>
     }
 
-    private static Stream&lt;byte[]&gt; encodeBoolean(Stream&lt;Boolean&gt; booleanStream) {
-<span class="fc" id="L198">        return booleanStream</span>
-<span class="fc bfc" id="L199" title="All 2 branches covered.">            .map(booleanValue -&gt; new byte[]{booleanValue ? (byte) 0x01 : (byte) 0x00});</span>
+    private static Stream&lt;byte[]&gt; encodeBoolean(AdsDataType adsDataType, Stream&lt;Boolean&gt; booleanStream) {
+        // TODO: add boundchecks and add optional extension
+<span class="fc" id="L228">        return booleanStream</span>
+<span class="pc bpc" id="L229" title="1 of 2 branches missed.">            .map(booleanValue -&gt; new byte[]{booleanValue ? (byte) 0x01 : (byte) 0x00});</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

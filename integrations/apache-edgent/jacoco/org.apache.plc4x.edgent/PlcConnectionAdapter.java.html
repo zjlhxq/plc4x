@@ -18,8 +18,7 @@ under the License.
 */
 package org.apache.plc4x.edgent;
 
-import java.util.Calendar;
-
+import com.google.gson.JsonObject;
 import org.apache.edgent.function.Consumer;
 import org.apache.edgent.function.Function;
 import org.apache.edgent.function.Supplier;
@@ -31,13 +30,14 @@ import org.apache.plc4x.java.api.exceptions.PlcException;
 import org.apache.plc4x.java.api.messages.PlcReadRequest;
 import org.apache.plc4x.java.api.messages.PlcReadResponse;
 import org.apache.plc4x.java.api.messages.PlcWriteRequest;
-import org.apache.plc4x.java.api.messages.specific.TypeSafePlcReadRequest;
-import org.apache.plc4x.java.api.messages.specific.TypeSafePlcWriteRequest;
-import org.apache.plc4x.java.api.model.Address;
+import org.apache.plc4x.java.api.model.PlcField;
+import org.apache.plc4x.java.api.types.PlcClientDatatype;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.JsonObject;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 /**
  * PlcConnectionAdapter encapsulates a plc4x {@link PlcConnection}.
@@ -65,169 +65,265 @@ import com.google.gson.JsonObject;
 public class PlcConnectionAdapter implements AutoCloseable {
 
 <span class="fc" id="L67">    private static final Logger logger = LoggerFactory.getLogger(PlcConnectionAdapter.class);</span>
-<span class="fc" id="L68">    private static final Class&lt;?&gt;[] allowedDataTypes = new Class[]{Boolean.class, Byte.class, Short.class, Integer.class, Float.class,  String.class, Calendar.class};</span>
-    
+
+    private static final String FIELD_NAME = &quot;default&quot;;
+
     private String plcConnectionUrl;
     private PlcConnection plcConnection;
 
     /*
-   * NOTES:
-   * - if we get to the point of the application needing some feedback (possibly control)
-   *   of read or write errors, my thinking is to enhance the PlcConnectionAdapter
-   *   to enable the app to register an error callback handler or such.
-   */
+     * NOTES:
+     * - if we get to the point of the application needing some feedback (possibly control)
+     *   of read or write errors, my thinking is to enhance the PlcConnectionAdapter
+     *   to enable the app to register an error callback handler or such.
+     */
 
-<span class="fc" id="L80">    public PlcConnectionAdapter(PlcConnection plcConnection) {</span>
-<span class="fc" id="L81">        this.plcConnection = plcConnection;</span>
-<span class="fc" id="L82">    }</span>
+<span class="fc" id="L81">    public PlcConnectionAdapter(PlcConnection plcConnection) {</span>
+<span class="fc" id="L82">        this.plcConnection = plcConnection;</span>
+<span class="fc" id="L83">    }</span>
 
-<span class="fc" id="L84">    public PlcConnectionAdapter(String plcConnectionUrl) {</span>
-<span class="fc" id="L85">        this.plcConnectionUrl = plcConnectionUrl;</span>
-<span class="fc" id="L86">    }</span>
+<span class="fc" id="L85">    public PlcConnectionAdapter(String plcConnectionUrl) {</span>
+<span class="fc" id="L86">        this.plcConnectionUrl = plcConnectionUrl;</span>
+<span class="fc" id="L87">    }</span>
 
     PlcConnection getConnection() throws PlcException {
-<span class="fc" id="L89">        synchronized (this) {</span>
-<span class="fc bfc" id="L90" title="All 2 branches covered.">            if (plcConnection == null) {</span>
-<span class="fc" id="L91">                plcConnection = new PlcDriverManager().getConnection(plcConnectionUrl);</span>
+<span class="fc" id="L90">        synchronized (this) {</span>
+<span class="fc bfc" id="L91" title="All 2 branches covered.">            if (plcConnection == null) {</span>
+<span class="fc" id="L92">                plcConnection = new PlcDriverManager().getConnection(plcConnectionUrl);</span>
             }
-<span class="fc" id="L93">            return plcConnection;</span>
+<span class="fc" id="L94">            return plcConnection;</span>
         }
     }
 
     @Override
     public void close() throws Exception {
         // only close a connection this instance created/connected
-<span class="pc bpc" id="L100" title="1 of 4 branches missed.">        if (plcConnectionUrl != null &amp;&amp; plcConnection != null) {</span>
-<span class="fc" id="L101">            plcConnection.close();</span>
+<span class="pc bpc" id="L101" title="1 of 4 branches missed.">        if (plcConnectionUrl != null &amp;&amp; plcConnection != null) {</span>
+<span class="fc" id="L102">            plcConnection.close();</span>
         }
-<span class="fc" id="L103">    }</span>
+<span class="fc" id="L104">    }</span>
 
-    public Address parseAddress(String addressString) throws PlcException {
-<span class="nc" id="L106">        return getConnection().parseAddress(addressString);</span>
+    public PlcReadRequest.Builder readRequestBuilder() throws PlcException {
+<span class="fc" id="L107">        return getConnection().getReader().orElseThrow(</span>
+<span class="pc" id="L108">            () -&gt; new PlcException(&quot;This connection doesn't support reading&quot;)).readRequestBuilder();</span>
     }
 
-    &lt;T&gt; Supplier&lt;T&gt; newSupplier(Class&lt;T&gt; datatype, String addressStr) {
-<span class="fc" id="L110">        PlcConnectionAdapter.checkDatatype(datatype);</span>
-        // satisfy sonar's &quot;Reduce number of anonymous class lines&quot; code smell
-<span class="fc" id="L112">        return new MySupplier&lt;&gt;(datatype, addressStr);</span>
-    }
-    
-    private class MySupplier&lt;T&gt; implements Supplier&lt;T&gt; {
-        private static final long serialVersionUID = 1L;
-        private Class&lt;T&gt; datatype;
-        private String addressStr;
-      
-<span class="fc" id="L120">        MySupplier(Class&lt;T&gt; datatype, String addressStr) {</span>
-<span class="fc" id="L121">            this.datatype = datatype;</span>
-<span class="fc" id="L122">            this.addressStr = addressStr;</span>
-<span class="fc" id="L123">        }</span>
-
-        @Override
-        public T get() {
-<span class="fc" id="L127">            PlcConnection connection = null;</span>
-<span class="fc" id="L128">            Address address = null;</span>
-            try {
-<span class="fc" id="L130">                connection = getConnection();</span>
-<span class="fc" id="L131">                address = connection.parseAddress(addressStr);</span>
-<span class="fc" id="L132">                PlcReader reader = connection.getReader()</span>
-<span class="pc" id="L133">                  .orElseThrow(() -&gt; new NullPointerException(&quot;No reader available&quot;));</span>
-<span class="fc" id="L134">                TypeSafePlcReadRequest&lt;T&gt; readRequest = PlcConnectionAdapter.newPlcReadRequest(datatype, address);</span>
-<span class="fc" id="L135">                return reader.read(readRequest).get().getResponseItem()</span>
-<span class="pc" id="L136">                  .orElseThrow(() -&gt; new IllegalStateException(&quot;No response available&quot;))</span>
-<span class="fc" id="L137">                  .getValues().get(0);</span>
-<span class="fc" id="L138">            } catch (Exception e) {</span>
-<span class="fc" id="L139">                logger.error(&quot;reading from plc device {} {} failed&quot;, connection, address, e);</span>
-<span class="fc" id="L140">                return null;</span>
-            }
-        }
-    }
-
-    Supplier&lt;PlcReadResponse&gt; newSupplier(PlcReadRequest readRequest) {
-<span class="nc" id="L146">        return new Supplier&lt;PlcReadResponse&gt;() {</span>
+    Supplier&lt;PlcReadResponse&lt;?&gt;&gt; newSupplier(PlcReadRequest readRequest) {
+<span class="nc" id="L112">        return new Supplier&lt;PlcReadResponse&lt;?&gt;&gt;() {</span>
             private static final long serialVersionUID = 1L;
 
             @Override
             public PlcReadResponse get() {
-<span class="nc" id="L151">                PlcConnection connection = null;</span>
+<span class="nc" id="L117">                PlcConnection connection = null;</span>
                 try {
-<span class="nc" id="L153">                    connection = getConnection();</span>
-<span class="nc" id="L154">                    PlcReader reader = connection.getReader()</span>
-<span class="nc" id="L155">                        .orElseThrow(() -&gt; new NullPointerException(&quot;No reader available&quot;));</span>
-<span class="nc" id="L156">                    return reader.read(readRequest).get();</span>
-<span class="nc" id="L157">                } catch (Exception e) {</span>
-<span class="nc" id="L158">                    logger.error(&quot;reading from plc device {} {} failed&quot;, connection, readRequest, e);</span>
-<span class="nc" id="L159">                    return null;</span>
+<span class="nc" id="L119">                    connection = getConnection();</span>
+<span class="nc" id="L120">                    PlcReader reader = connection.getReader()</span>
+<span class="nc" id="L121">                        .orElseThrow(() -&gt; new PlcException(&quot;This connection doesn't support reading&quot;));</span>
+<span class="nc" id="L122">                    return reader.read(readRequest).get();</span>
+<span class="nc" id="L123">                } catch (Exception e) {</span>
+<span class="nc" id="L124">                    logger.error(&quot;reading from plc device {} {} failed&quot;, connection, readRequest, e);</span>
+<span class="nc" id="L125">                    return null;</span>
                 }
             }
         };
     }
 
-    &lt;T&gt; Consumer&lt;T&gt; newConsumer(Class&lt;T&gt; datatype, String addressStr) {
-<span class="fc" id="L166">        PlcConnectionAdapter.checkDatatype(datatype);</span>
-<span class="fc" id="L167">        return new Consumer&lt;T&gt;() {</span>
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void accept(T arg0) {
-<span class="fc" id="L172">                PlcConnection connection = null;</span>
-<span class="fc" id="L173">                Address address = null;</span>
-                try {
-<span class="fc" id="L175">                    connection = getConnection();</span>
-<span class="fc" id="L176">                    address = connection.parseAddress(addressStr);</span>
-<span class="fc" id="L177">                    PlcWriter writer = connection.getWriter()</span>
-<span class="pc" id="L178">                        .orElseThrow(() -&gt; new NullPointerException(&quot;No writer available&quot;));</span>
-<span class="fc" id="L179">                    PlcWriteRequest writeReq = PlcConnectionAdapter.newPlcWriteRequest(address, arg0);</span>
-<span class="fc" id="L180">                    writer.write(writeReq).get();</span>
-<span class="fc" id="L181">                } catch (Exception e) {</span>
-<span class="fc" id="L182">                    logger.error(&quot;writing to plc device {} {} failed&quot;, connection, address, e);</span>
-<span class="fc" id="L183">                }</span>
-<span class="fc" id="L184">            }</span>
-
-        };
+    &lt;T&gt; Supplier&lt;T&gt; newSupplier(Class&lt;T&gt; genericDatatype, PlcClientDatatype clientDatatype, String fieldQuery) {
+        // satisfy sonar's &quot;Reduce number of anonymous class lines&quot; code smell
+<span class="fc" id="L133">        return new MySupplier&lt;&gt;(genericDatatype, clientDatatype, fieldQuery);</span>
     }
 
-    &lt;T&gt; Consumer&lt;JsonObject&gt; newConsumer(Class&lt;T&gt; datatype, Function&lt;JsonObject, String&gt; addressFn, Function&lt;JsonObject, T&gt; valueFn) {
-<span class="fc" id="L190">        PlcConnectionAdapter.checkDatatype(datatype);</span>
-<span class="fc" id="L191">        return new Consumer&lt;JsonObject&gt;() {</span>
-            private static final long serialVersionUID = 1L;
+    private class MySupplier&lt;T&gt; implements Supplier&lt;T&gt; {
 
-            @Override
-            public void accept(JsonObject jo) {
-<span class="fc" id="L196">                PlcConnection connection = null;</span>
-<span class="fc" id="L197">                Address address = null;</span>
-                try {
-<span class="fc" id="L199">                    connection = getConnection();</span>
-<span class="fc" id="L200">                    String addressStr = addressFn.apply(jo);</span>
-<span class="fc" id="L201">                    address = connection.parseAddress(addressStr);</span>
-<span class="fc" id="L202">                    T value = valueFn.apply(jo);</span>
-<span class="fc" id="L203">                    PlcWriter writer = connection.getWriter()</span>
-<span class="pc" id="L204">                        .orElseThrow(() -&gt; new NullPointerException(&quot;No writer available&quot;));</span>
-<span class="fc" id="L205">                    PlcWriteRequest writeReq = newPlcWriteRequest(address, value);</span>
-<span class="fc" id="L206">                    writer.write(writeReq).get();</span>
-<span class="fc" id="L207">                } catch (Exception e) {</span>
-<span class="fc" id="L208">                    logger.error(&quot;writing to plc device {} {} failed&quot;, connection, address, e);</span>
-<span class="fc" id="L209">                }</span>
-<span class="fc" id="L210">            }</span>
+        private static final long serialVersionUID = 1L;
 
-        };
-    }
+        private Class&lt;T&gt; genericDatatype;
+        private PlcClientDatatype clientDatatype;
+        private String fieldQuery;
 
-    static void checkDatatype(Class&lt;?&gt; cls) {
-<span class="fc bfc" id="L216" title="All 2 branches covered.">        for (Class&lt;?&gt; check: allowedDataTypes) {</span>
-<span class="fc bfc" id="L217" title="All 2 branches covered.">            if (check == cls)</span>
-<span class="fc" id="L218">                return;</span>
+<span class="fc" id="L144">        MySupplier(Class&lt;T&gt; genericDatatype, PlcClientDatatype clientDatatype, String fieldQuery) {</span>
+<span class="fc" id="L145">            this.genericDatatype = genericDatatype;</span>
+<span class="fc" id="L146">            this.clientDatatype = clientDatatype;</span>
+<span class="fc" id="L147">            this.fieldQuery = fieldQuery;</span>
+<span class="fc" id="L148">        }</span>
+
+        @Override
+        @SuppressWarnings(&quot;unchecked&quot;)
+        public T get() {
+<span class="nc" id="L153">            PlcConnection connection = null;</span>
+<span class="nc" id="L154">            PlcField field = null;</span>
+            try {
+<span class="nc" id="L156">                connection = getConnection();</span>
+<span class="nc" id="L157">                PlcReader reader = connection.getReader()</span>
+<span class="nc" id="L158">                    .orElseThrow(() -&gt; new PlcException(&quot;This connection doesn't support reading&quot;));</span>
+<span class="nc" id="L159">                PlcReadRequest readRequest = reader.readRequestBuilder().addItem(FIELD_NAME, fieldQuery).build();</span>
+<span class="nc" id="L160">                PlcReadResponse readResponse = reader.read(readRequest).get();</span>
+<span class="nc" id="L161">                Object value = null;</span>
+<span class="pc bnc" id="L162" title="All 11 branches missed.">                switch (clientDatatype) {</span>
+                    case BYTE:
+<span class="nc" id="L164">                        value = readResponse.getByte(FIELD_NAME);</span>
+<span class="nc" id="L165">                        break;</span>
+                    case SHORT:
+<span class="nc" id="L167">                        value = readResponse.getShort(FIELD_NAME);</span>
+<span class="nc" id="L168">                        break;</span>
+                    case INTEGER:
+<span class="nc" id="L170">                        value = readResponse.getInteger(FIELD_NAME);</span>
+<span class="nc" id="L171">                        break;</span>
+                    case LONG:
+<span class="nc" id="L173">                        value = readResponse.getLong(FIELD_NAME);</span>
+<span class="nc" id="L174">                        break;</span>
+                    case FLOAT:
+<span class="nc" id="L176">                        value = readResponse.getFloat(FIELD_NAME);</span>
+<span class="nc" id="L177">                        break;</span>
+                    case DOUBLE:
+<span class="nc" id="L179">                        value = readResponse.getDouble(FIELD_NAME);</span>
+<span class="nc" id="L180">                        break;</span>
+                    case STRING:
+<span class="nc" id="L182">                        value = readResponse.getString(FIELD_NAME);</span>
+<span class="nc" id="L183">                        break;</span>
+                    case TIME:
+<span class="nc" id="L185">                        value = readResponse.getTime(FIELD_NAME);</span>
+<span class="nc" id="L186">                        break;</span>
+                    case DATE:
+<span class="nc" id="L188">                        value = readResponse.getDate(FIELD_NAME);</span>
+<span class="nc" id="L189">                        break;</span>
+                    case DATE_TIME:
+<span class="nc" id="L191">                        value = readResponse.getDateTime(FIELD_NAME);</span>
+                        break;
+                }
+<span class="nc bnc" id="L194" title="All 2 branches missed.">                if (value != null) {</span>
+<span class="nc bnc" id="L195" title="All 2 branches missed.">                    if (genericDatatype.isAssignableFrom(value.getClass())) {</span>
+<span class="nc" id="L196">                        return (T) value;</span>
+                    } else {
+<span class="nc" id="L198">                        logger.error(&quot;types don't match {} should be of type {}&quot;, value.getClass(), genericDatatype);</span>
+                    }
+                }
+<span class="nc" id="L201">            } catch (Exception e) {</span>
+<span class="nc" id="L202">                logger.error(&quot;reading from plc device {} {} failed&quot;, connection, field, e);</span>
+<span class="nc" id="L203">            }</span>
+<span class="nc" id="L204">            return null;</span>
         }
-<span class="fc" id="L220">        throw new IllegalArgumentException(&quot;Not a legal plc data type: &quot; + cls.getSimpleName());</span>
     }
 
-    @SuppressWarnings(&quot;unchecked&quot;)
-    static &lt;T&gt; TypeSafePlcWriteRequest&lt;T&gt; newPlcWriteRequest(Address address, T value) {
-<span class="fc" id="L225">        Class&lt;T&gt; cls = (Class&lt;T&gt;) value.getClass();</span>
-<span class="fc" id="L226">        return new TypeSafePlcWriteRequest&lt;&gt;(cls, address, value);</span>
+    &lt;T&gt; Consumer&lt;T&gt; newJsonConsumer(Class&lt;T&gt; genericDatatype, PlcClientDatatype clientDatatype, String fieldQuery) {
+<span class="fc" id="L209">        return new ObjectConsumer&lt;&gt;(genericDatatype, clientDatatype, fieldQuery);</span>
     }
 
-    static &lt;T&gt; TypeSafePlcReadRequest&lt;T&gt; newPlcReadRequest(Class&lt;T&gt; datatype, Address address) {
-<span class="fc" id="L230">        return new TypeSafePlcReadRequest&lt;&gt;(datatype, address);</span>
+    &lt;T&gt; Consumer&lt;JsonObject&gt; newJsonConsumer(PlcClientDatatype clientDatatype, Function&lt;JsonObject, String&gt; fieldQueryFn, Function&lt;JsonObject, T&gt; fieldValueFn) {
+<span class="fc" id="L213">        return new JsonConsumer&lt;&gt;(clientDatatype, fieldQueryFn, fieldValueFn);</span>
+    }
+
+<span class="fc" id="L216">    private abstract class BaseConsumer&lt;T&gt; implements Consumer&lt;T&gt; {</span>
+
+        protected void write(PlcClientDatatype clientDatatype, String fieldQuery, Object fieldValue) {
+<span class="fc" id="L219">            PlcConnection connection = null;</span>
+            try {
+<span class="fc" id="L221">                connection = getConnection();</span>
+<span class="fc" id="L222">                PlcWriter writer = connection.getWriter()</span>
+<span class="pc" id="L223">                    .orElseThrow(() -&gt; new PlcException(&quot;This connection doesn't support writing&quot;));</span>
+<span class="fc" id="L224">                PlcWriteRequest.Builder builder = writer.writeRequestBuilder();</span>
+<span class="fc" id="L225">                PlcWriteRequest writeRequest = builder.build();</span>
+<span class="fc" id="L226">                addItem(builder, clientDatatype, fieldQuery, fieldValue);</span>
+<span class="fc" id="L227">                writer.write(writeRequest).get();</span>
+<span class="nc" id="L228">            } catch (Exception e) {</span>
+<span class="nc" id="L229">                logger.error(&quot;writing to plc device {} {} failed&quot;, connection, fieldQuery, e);</span>
+<span class="fc" id="L230">            }</span>
+
+<span class="fc" id="L232">        }</span>
+
+        private void addItem(PlcWriteRequest.Builder builder,
+                             PlcClientDatatype clientDatatype, String fieldQuery, Object fieldValue) {
+<span class="pc bpc" id="L236" title="5 of 11 branches missed.">            switch (clientDatatype) {</span>
+                case BYTE:
+<span class="pc bpc" id="L238" title="1 of 2 branches missed.">                    if (fieldValue instanceof Byte) {</span>
+<span class="fc" id="L239">                        builder.addItem(FIELD_NAME, fieldQuery, (Byte) fieldValue);</span>
+                    }
+                    break;
+                case SHORT:
+<span class="pc bpc" id="L243" title="1 of 2 branches missed.">                    if (fieldValue instanceof Short) {</span>
+<span class="fc" id="L244">                        builder.addItem(FIELD_NAME, fieldQuery, (Short) fieldValue);</span>
+                    }
+                    break;
+                case INTEGER:
+<span class="pc bpc" id="L248" title="1 of 2 branches missed.">                    if (fieldValue instanceof Integer) {</span>
+<span class="fc" id="L249">                        builder.addItem(FIELD_NAME, fieldQuery, (Integer) fieldValue);</span>
+                    }
+                    break;
+                case LONG:
+<span class="nc bnc" id="L253" title="All 2 branches missed.">                    if (fieldValue instanceof Long) {</span>
+<span class="nc" id="L254">                        builder.addItem(FIELD_NAME, fieldQuery, (Long) fieldValue);</span>
+                    }
+                    break;
+                case FLOAT:
+<span class="pc bpc" id="L258" title="1 of 2 branches missed.">                    if (fieldValue instanceof Float) {</span>
+<span class="fc" id="L259">                        builder.addItem(FIELD_NAME, fieldQuery, (Float) fieldValue);</span>
+                    }
+                    break;
+                case DOUBLE:
+<span class="nc bnc" id="L263" title="All 2 branches missed.">                    if (fieldValue instanceof Double) {</span>
+<span class="nc" id="L264">                        builder.addItem(FIELD_NAME, fieldQuery, (Double) fieldValue);</span>
+                    }
+                    break;
+                case STRING:
+<span class="pc bpc" id="L268" title="1 of 2 branches missed.">                    if (fieldValue instanceof String) {</span>
+<span class="fc" id="L269">                        builder.addItem(FIELD_NAME, fieldQuery, (String) fieldValue);</span>
+                    }
+                    break;
+                case TIME:
+<span class="nc bnc" id="L273" title="All 2 branches missed.">                    if (fieldValue instanceof LocalTime) {</span>
+<span class="nc" id="L274">                        builder.addItem(FIELD_NAME, fieldQuery, (LocalTime) fieldValue);</span>
+                    }
+                    break;
+                case DATE:
+<span class="nc bnc" id="L278" title="All 2 branches missed.">                    if (fieldValue instanceof LocalDate) {</span>
+<span class="nc" id="L279">                        builder.addItem(FIELD_NAME, fieldQuery, (LocalDate) fieldValue);</span>
+                    }
+                    break;
+                case DATE_TIME:
+<span class="nc bnc" id="L283" title="All 2 branches missed.">                    if (fieldValue instanceof LocalDateTime) {</span>
+<span class="nc" id="L284">                        builder.addItem(FIELD_NAME, fieldQuery, (LocalDateTime) fieldValue);</span>
+                    }
+                    break;
+            }
+<span class="fc" id="L288">        }</span>
+    }
+
+    private class ObjectConsumer&lt;T&gt; extends BaseConsumer&lt;T&gt; {
+        private static final long serialVersionUID = 1L;
+
+        private PlcClientDatatype clientDatatype;
+        private String fieldQuery;
+
+<span class="fc" id="L297">        ObjectConsumer(Class&lt;T&gt; genericDatatype, PlcClientDatatype clientDatatype, String fieldQuery) {</span>
+<span class="fc" id="L298">            this.clientDatatype = clientDatatype;</span>
+<span class="fc" id="L299">            this.fieldQuery = fieldQuery;</span>
+<span class="fc" id="L300">        }</span>
+
+        @Override
+        public void accept(Object fieldValue) {
+<span class="nc" id="L304">            write(clientDatatype, fieldQuery, fieldValue);</span>
+<span class="nc" id="L305">        }</span>
+    }
+
+    private class JsonConsumer&lt;T&gt; extends BaseConsumer&lt;JsonObject&gt; {
+        private static final long serialVersionUID = 1L;
+
+        private PlcClientDatatype clientDatatype;
+        private Function&lt;JsonObject, String&gt; fieldQueryFn;
+        private Function&lt;JsonObject, T&gt; fieldValueFn;
+
+<span class="fc" id="L315">        JsonConsumer(PlcClientDatatype clientDatatype, Function&lt;JsonObject, String&gt; fieldQueryFn, Function&lt;JsonObject, T&gt; fieldValueFn) {</span>
+<span class="fc" id="L316">            this.clientDatatype = clientDatatype;</span>
+<span class="fc" id="L317">            this.fieldQueryFn = fieldQueryFn;</span>
+<span class="fc" id="L318">            this.fieldValueFn = fieldValueFn;</span>
+<span class="fc" id="L319">        }</span>
+
+        @Override
+        public void accept(JsonObject jsonObject) {
+<span class="fc" id="L323">            String fieldQuery = fieldQueryFn.apply(jsonObject);</span>
+<span class="fc" id="L324">            Object fieldValue = fieldValueFn.apply(jsonObject);</span>
+<span class="fc" id="L325">            write(clientDatatype, fieldQuery, fieldValue);</span>
+<span class="fc" id="L326">        }</span>
     }
 
 }

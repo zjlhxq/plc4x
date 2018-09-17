@@ -27,91 +27,86 @@ import org.apache.plc4x.java.api.connection.PlcWriter;
 import org.apache.plc4x.java.api.exceptions.PlcException;
 import org.apache.plc4x.java.api.messages.PlcWriteRequest;
 import org.apache.plc4x.java.api.messages.PlcWriteResponse;
-import org.apache.plc4x.java.api.messages.items.WriteRequestItem;
-import org.apache.plc4x.java.api.model.Address;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Plc4XProducer extends DefaultAsyncProducer {
-    @SuppressWarnings(&quot;unused&quot;)
-    private Plc4XEndpoint endpoint;
     private PlcConnection plcConnection;
+    private PlcWriter plcWriter;
     private AtomicInteger openRequests;
 
     public Plc4XProducer(Plc4XEndpoint endpoint) throws PlcException {
-<span class="fc" id="L44">        super(endpoint);</span>
-<span class="fc" id="L45">        this.endpoint = endpoint;</span>
-<span class="fc" id="L46">        String plc4xURI = endpoint.getEndpointUri().replaceFirst(&quot;plc4x:/?/?&quot;, &quot;&quot;);</span>
-<span class="fc" id="L47">        plcConnection = endpoint.getPlcDriverManager().getConnection(plc4xURI);</span>
-<span class="fc" id="L48">        openRequests = new AtomicInteger();</span>
-<span class="fc" id="L49">    }</span>
+<span class="fc" id="L41">        super(endpoint);</span>
+<span class="fc" id="L42">        String plc4xURI = endpoint.getEndpointUri().replaceFirst(&quot;plc4x:/?/?&quot;, &quot;&quot;);</span>
+<span class="fc" id="L43">        plcConnection = endpoint.getPlcDriverManager().getConnection(plc4xURI);</span>
+<span class="pc" id="L44">        plcWriter = plcConnection.getWriter().orElseThrow(() -&gt; new PlcException(&quot;This connection doesn't support writing.&quot;));</span>
+<span class="fc" id="L45">        openRequests = new AtomicInteger();</span>
+<span class="fc" id="L46">    }</span>
 
-    @SuppressWarnings(&quot;unchecked&quot;)
     @Override
     public void process(Exchange exchange) throws Exception {
-<span class="fc" id="L54">        Message in = exchange.getIn();</span>
-<span class="fc" id="L55">        Address address = in.getHeader(Constants.ADDRESS_HEADER, Address.class);</span>
-<span class="fc" id="L56">        Object body = in.getBody();</span>
-<span class="fc" id="L57">        PlcWriteRequest.Builder builder = PlcWriteRequest.builder();</span>
-<span class="fc bfc" id="L58" title="All 2 branches covered.">        if (body instanceof List) {</span>
-<span class="fc" id="L59">            List&lt;?&gt; bodyList = in.getBody(List.class);</span>
-<span class="fc" id="L60">            bodyList</span>
-<span class="fc" id="L61">                .stream()</span>
-<span class="fc" id="L62">                .map(o -&gt; (WriteRequestItem&lt;?&gt;) new WriteRequestItem(o.getClass(), address, o))</span>
-<span class="fc" id="L63">                .forEach(builder::addItem);</span>
-<span class="fc" id="L64">        } else {</span>
-<span class="fc" id="L65">            Object value = in.getBody(Object.class);</span>
-<span class="fc" id="L66">            builder.addItem(address, value);</span>
+<span class="fc" id="L50">        Message in = exchange.getIn();</span>
+<span class="fc" id="L51">        String fieldName = in.getHeader(Constants.FIELD_NAME_HEADER, String.class);</span>
+<span class="fc" id="L52">        String fieldQuery = in.getHeader(Constants.FIELD_QUERY_HEADER, String.class);</span>
+<span class="fc" id="L53">        Object body = in.getBody();</span>
+<span class="fc" id="L54">        PlcWriteRequest.Builder builder = plcWriter.writeRequestBuilder();</span>
+<span class="fc bfc" id="L55" title="All 2 branches covered.">        if (body instanceof List) {</span>
+<span class="fc" id="L56">            List&lt;?&gt; bodyList = in.getBody(List.class);</span>
+<span class="fc" id="L57">            Object[] values = bodyList.toArray();</span>
+//            builder.addItem(fieldName, fieldQuery, values);
+<span class="fc" id="L59">        } else {</span>
+<span class="fc" id="L60">            Object value = in.getBody(Object.class);</span>
+//            builder.addItem(fieldName, fieldQuery, value);
         }
-<span class="pc" id="L68">        PlcWriter plcWriter = plcConnection.getWriter().orElseThrow(() -&gt; new IllegalArgumentException(&quot;Writer for driver not found&quot;));</span>
-<span class="fc" id="L69">        CompletableFuture&lt;? extends PlcWriteResponse&gt; completableFuture = plcWriter.write(builder.build());</span>
-<span class="fc" id="L70">        int currentlyOpenRequests = openRequests.incrementAndGet();</span>
+<span class="pc" id="L63">        PlcWriter plcWriter = plcConnection.getWriter().orElseThrow(() -&gt; new IllegalArgumentException(&quot;Writer for driver not found&quot;));</span>
+<span class="fc" id="L64">        CompletableFuture&lt;? extends PlcWriteResponse&gt; completableFuture = plcWriter.write(builder.build());</span>
+<span class="fc" id="L65">        int currentlyOpenRequests = openRequests.incrementAndGet();</span>
         try {
-<span class="fc" id="L72">            log.debug(&quot;Currently open requests including {}:{}&quot;, exchange, currentlyOpenRequests);</span>
-<span class="fc" id="L73">            Object plcWriteResponse = completableFuture.get();</span>
-<span class="fc bfc" id="L74" title="All 2 branches covered.">            if (exchange.getPattern().isOutCapable()) {</span>
-<span class="fc" id="L75">                Message out = exchange.getOut();</span>
-<span class="fc" id="L76">                out.copyFrom(exchange.getIn());</span>
-<span class="fc" id="L77">                out.setBody(plcWriteResponse);</span>
-<span class="fc" id="L78">            } else {</span>
-<span class="fc" id="L79">                in.setBody(plcWriteResponse);</span>
+<span class="fc" id="L67">            log.debug(&quot;Currently open requests including {}:{}&quot;, exchange, currentlyOpenRequests);</span>
+<span class="fc" id="L68">            Object plcWriteResponse = completableFuture.get();</span>
+<span class="fc bfc" id="L69" title="All 2 branches covered.">            if (exchange.getPattern().isOutCapable()) {</span>
+<span class="fc" id="L70">                Message out = exchange.getOut();</span>
+<span class="fc" id="L71">                out.copyFrom(exchange.getIn());</span>
+<span class="fc" id="L72">                out.setBody(plcWriteResponse);</span>
+<span class="fc" id="L73">            } else {</span>
+<span class="fc" id="L74">                in.setBody(plcWriteResponse);</span>
             }
         } finally {
-<span class="fc" id="L82">            int openRequestsAfterFinish = openRequests.decrementAndGet();</span>
-<span class="fc" id="L83">            log.trace(&quot;Open Requests after {}:{}&quot;, exchange, openRequestsAfterFinish);</span>
+<span class="fc" id="L77">            int openRequestsAfterFinish = openRequests.decrementAndGet();</span>
+<span class="fc" id="L78">            log.trace(&quot;Open Requests after {}:{}&quot;, exchange, openRequestsAfterFinish);</span>
         }
-<span class="fc" id="L85">    }</span>
+<span class="fc" id="L80">    }</span>
 
     @Override
     public boolean process(Exchange exchange, AsyncCallback callback) {
         try {
-<span class="fc" id="L90">            process(exchange);</span>
-<span class="fc" id="L91">            Message out = exchange.getOut();</span>
-<span class="fc" id="L92">            out.copyFrom(exchange.getIn());</span>
-<span class="fc" id="L93">        } catch (Exception e) {</span>
-<span class="fc" id="L94">            exchange.setOut(null);</span>
-<span class="fc" id="L95">            exchange.setException(e);</span>
-<span class="fc" id="L96">        }</span>
-<span class="fc" id="L97">        callback.done(true);</span>
-<span class="fc" id="L98">        return true;</span>
+<span class="fc" id="L85">            process(exchange);</span>
+<span class="fc" id="L86">            Message out = exchange.getOut();</span>
+<span class="fc" id="L87">            out.copyFrom(exchange.getIn());</span>
+<span class="fc" id="L88">        } catch (Exception e) {</span>
+<span class="fc" id="L89">            exchange.setOut(null);</span>
+<span class="fc" id="L90">            exchange.setException(e);</span>
+<span class="fc" id="L91">        }</span>
+<span class="fc" id="L92">        callback.done(true);</span>
+<span class="fc" id="L93">        return true;</span>
     }
 
     @Override
     protected void doStop() throws Exception {
-<span class="fc" id="L103">        int openRequestsAtStop = openRequests.get();</span>
-<span class="fc" id="L104">        log.debug(&quot;Stopping with {} open requests&quot;, openRequestsAtStop);</span>
-<span class="fc bfc" id="L105" title="All 2 branches covered.">        if (openRequestsAtStop &gt; 0) {</span>
-<span class="fc" id="L106">            log.warn(&quot;There are still {} open requests&quot;, openRequestsAtStop);</span>
+<span class="fc" id="L98">        int openRequestsAtStop = openRequests.get();</span>
+<span class="fc" id="L99">        log.debug(&quot;Stopping with {} open requests&quot;, openRequestsAtStop);</span>
+<span class="fc bfc" id="L100" title="All 2 branches covered.">        if (openRequestsAtStop &gt; 0) {</span>
+<span class="fc" id="L101">            log.warn(&quot;There are still {} open requests&quot;, openRequestsAtStop);</span>
         }
         try {
-<span class="fc" id="L109">            plcConnection.close();</span>
-<span class="fc" id="L110">        } catch (Exception e) {</span>
-<span class="fc" id="L111">            log.warn(&quot;Could not close {}&quot;, plcConnection, e);</span>
-<span class="fc" id="L112">        }</span>
-<span class="fc" id="L113">        super.doStop();</span>
-<span class="fc" id="L114">    }</span>
+<span class="fc" id="L104">            plcConnection.close();</span>
+<span class="fc" id="L105">        } catch (Exception e) {</span>
+<span class="fc" id="L106">            log.warn(&quot;Could not close {}&quot;, plcConnection, e);</span>
+<span class="fc" id="L107">        }</span>
+<span class="fc" id="L108">        super.doStop();</span>
+<span class="fc" id="L109">    }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

@@ -18,23 +18,23 @@ under the License.
 */
 package org.apache.plc4x.kafka;
 
+import org.apache.kafka.common.config.AbstractConfig;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.connect.connector.Task;
 import org.apache.kafka.connect.sink.SinkConnector;
-import org.apache.plc4x.kafka.sink.Plc4xSinkConfig;
-import org.apache.plc4x.kafka.sink.Plc4xSinkTask;
 import org.apache.plc4x.kafka.util.VersionUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-<span class="nc" id="L34">public class Plc4xSinkConnector extends SinkConnector {</span>
-<span class="nc" id="L35">    private static Logger log = LoggerFactory.getLogger(Plc4xSinkConnector.class);</span>
+<span class="nc" id="L29">public class Plc4xSinkConnector extends SinkConnector {</span>
+    static final String URL_CONFIG = &quot;url&quot;;
+    private static final String URL_DOC = &quot;Connection string used by PLC4X to connect to the PLC&quot;;
 
-    private Map&lt;String, String&gt; configProperties;
+<span class="nc" id="L33">    static final ConfigDef CONFIG_DEF = new ConfigDef()</span>
+<span class="nc" id="L34">        .define(URL_CONFIG, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, URL_DOC);</span>
+
+    private String url;
+    private String query;
 
     @Override
     public Class&lt;? extends Task&gt; taskClass() {
@@ -43,27 +43,27 @@ import java.util.Map;
 
     @Override
     public List&lt;Map&lt;String, String&gt;&gt; taskConfigs(int maxTasks) {
-<span class="nc" id="L46">        log.info(&quot;Setting task configurations for {} workers.&quot;, maxTasks);</span>
-<span class="nc" id="L47">        final List&lt;Map&lt;String, String&gt;&gt; configs = new ArrayList&lt;&gt;(maxTasks);</span>
-<span class="nc bnc" id="L48" title="All 2 branches missed.">        for (int i = 0; i &lt; maxTasks; ++i) {</span>
-<span class="nc" id="L49">            configs.add(configProperties);</span>
+<span class="nc" id="L46">        List&lt;Map&lt;String, String&gt;&gt; configs = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L47" title="All 2 branches missed.">        for (int i = 0; i &lt; maxTasks; i++) {</span>
+<span class="nc" id="L48">            Map&lt;String, String&gt; taskConfig = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L49">            taskConfig.put(URL_CONFIG, url);</span>
+<span class="nc" id="L50">            configs.add(taskConfig);</span>
         }
-<span class="nc" id="L51">        return configs;</span>
+<span class="nc" id="L52">        return configs;</span>
     }
 
     @Override
     public void start(Map&lt;String, String&gt; props) {
-<span class="nc" id="L56">        configProperties = props;</span>
-<span class="nc" id="L57">    }</span>
+<span class="nc" id="L57">        AbstractConfig config = new AbstractConfig(Plc4xSinkConnector.CONFIG_DEF, props);</span>
+<span class="nc" id="L58">        url = config.getString(URL_CONFIG);</span>
+<span class="nc" id="L59">    }</span>
 
     @Override
-    public void stop() {
-        // Nothing to do here ...
-<span class="nc" id="L62">    }</span>
+<span class="nc" id="L62">    public void stop() {}</span>
 
     @Override
     public ConfigDef config() {
-<span class="nc" id="L66">        return Plc4xSinkConfig.CONFIG_DEF;</span>
+<span class="nc" id="L66">        return CONFIG_DEF;</span>
     }
 
     @Override

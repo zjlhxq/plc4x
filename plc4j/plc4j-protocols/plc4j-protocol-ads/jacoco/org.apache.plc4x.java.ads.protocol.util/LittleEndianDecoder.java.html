@@ -18,203 +18,349 @@
  */
 package org.apache.plc4x.java.ads.protocol.util;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.plc4x.java.ads.api.commands.types.TimeStamp;
-import org.apache.plc4x.java.api.exceptions.PlcProtocolException;
-import org.apache.plc4x.java.api.exceptions.PlcUnsupportedDataTypeException;
+import org.apache.commons.lang3.NotImplementedException;
+import org.apache.plc4x.java.ads.model.AdsDataType;
+import org.apache.plc4x.java.base.messages.items.*;
 
+import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.LinkedList;
 
 // TODO: we might user ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN).putInt(port).asArray() etc
 public class LittleEndianDecoder {
-
-    private static final Map&lt;Class&lt;?&gt;, Long&gt; LENGTH_MAP;
-
-    static {
-<span class="fc" id="L36">        Map&lt;Class&lt;?&gt;, Long&gt; lengthMap = new ConcurrentHashMap&lt;&gt;();</span>
-<span class="fc" id="L37">        lengthMap.put(Boolean.class, 1L);</span>
-<span class="fc" id="L38">        lengthMap.put(Byte.class, 1L);</span>
-<span class="fc" id="L39">        lengthMap.put(Short.class, 2L);</span>
-<span class="fc" id="L40">        lengthMap.put(Integer.class, 4L);</span>
-<span class="fc" id="L41">        lengthMap.put(Float.class, 4L);</span>
-<span class="fc" id="L42">        lengthMap.put(Double.class, 8L);</span>
-<span class="fc" id="L43">        lengthMap.put(Calendar.class, 8L);</span>
-<span class="fc" id="L44">        LENGTH_MAP = Collections.unmodifiableMap(lengthMap);</span>
-<span class="fc" id="L45">    }</span>
 
     private LittleEndianDecoder() {
         // Utility class
     }
 
-    public static long getLengthFor(Class&lt;?&gt; clazz, long defaultValue) {
-<span class="fc bfc" id="L52" title="All 2 branches covered.">        if (Calendar.class.isAssignableFrom(clazz)) {</span>
-<span class="fc" id="L53">            return 8;</span>
-        }
-<span class="fc" id="L55">        return LENGTH_MAP.getOrDefault(clazz, defaultValue);</span>
-    }
-
     @SuppressWarnings(&quot;unchecked&quot;)
-    public static &lt;T&gt; List&lt;T&gt; decodeData(Class&lt;T&gt; dataType, byte[] adsData) throws PlcProtocolException {
-<span class="fc bfc" id="L60" title="All 2 branches covered.">        if (dataType == byte[].class) {</span>
-<span class="fc" id="L61">            return (List&lt;T&gt;) Collections.singletonList(adsData);</span>
-        }
-<span class="fc bfc" id="L63" title="All 2 branches covered.">        if (dataType == Byte[].class) {</span>
-<span class="fc" id="L64">            return (List&lt;T&gt;) Collections.singletonList(ArrayUtils.toObject(adsData));</span>
-        }
-<span class="fc" id="L66">        List&lt;Object&gt; result = new LinkedList&lt;&gt;();</span>
-<span class="fc" id="L67">        int i = 0;</span>
-<span class="fc" id="L68">        final int length = adsData.length;</span>
-
-        // Expand arrays to avoid IndexOutOfBoundsException
-        final byte[] safeLengthAdsData;
-<span class="fc bfc" id="L72" title="All 4 branches covered.">        if (dataType == Short.class &amp;&amp; length &lt; 2) {</span>
-<span class="fc" id="L73">            safeLengthAdsData = new byte[2];</span>
-<span class="fc" id="L74">            System.arraycopy(adsData, 0, safeLengthAdsData, 0, length);</span>
-<span class="fc bfc" id="L75" title="All 4 branches covered.">        } else if (dataType == Integer.class &amp;&amp; length &lt; 4) {</span>
-<span class="fc" id="L76">            safeLengthAdsData = new byte[4];</span>
-<span class="fc" id="L77">            System.arraycopy(adsData, 0, safeLengthAdsData, 0, length);</span>
-<span class="fc bfc" id="L78" title="All 4 branches covered.">        } else if (dataType == Float.class &amp;&amp; length &lt; 4) {</span>
-<span class="fc" id="L79">            safeLengthAdsData = new byte[4];</span>
-<span class="fc" id="L80">            System.arraycopy(adsData, 0, safeLengthAdsData, 0, length);</span>
-<span class="fc bfc" id="L81" title="All 4 branches covered.">        } else if (dataType == Double.class &amp;&amp; length &lt; 8) {</span>
-<span class="fc" id="L82">            safeLengthAdsData = new byte[8];</span>
-<span class="fc" id="L83">            System.arraycopy(adsData, 0, safeLengthAdsData, 0, length);</span>
-<span class="fc bfc" id="L84" title="All 6 branches covered.">        } else if ((dataType == Calendar.class || Calendar.class.isAssignableFrom(dataType)) &amp;&amp; length &lt; 8) {</span>
-<span class="fc" id="L85">            safeLengthAdsData = new byte[8];</span>
-<span class="fc" id="L86">            System.arraycopy(adsData, 0, safeLengthAdsData, 0, length);</span>
-        } else {
-<span class="fc" id="L88">            safeLengthAdsData = adsData;</span>
-        }
-
-<span class="fc bfc" id="L91" title="All 2 branches covered.">        while (i &lt; length) {</span>
-<span class="fc" id="L92">            byte byteOne = safeLengthAdsData[i];</span>
-<span class="fc bfc" id="L93" title="All 2 branches covered.">            if (dataType == String.class) {</span>
-<span class="fc" id="L94">                i = decodeString(safeLengthAdsData, i, length, result);</span>
-<span class="fc bfc" id="L95" title="All 2 branches covered.">            } else if (dataType == Boolean.class) {</span>
-<span class="fc bfc" id="L96" title="All 2 branches covered.">                result.add((byteOne &amp; 0x01) == 0x01);</span>
-<span class="fc" id="L97">                i += 1;</span>
-<span class="fc bfc" id="L98" title="All 2 branches covered.">            } else if (dataType == Byte.class) {</span>
-<span class="fc" id="L99">                result.add(byteOne);</span>
-<span class="fc" id="L100">                i += 1;</span>
-<span class="fc bfc" id="L101" title="All 2 branches covered.">            } else if (dataType == Short.class) {</span>
-<span class="fc" id="L102">                decodeShort(safeLengthAdsData, i, result);</span>
-<span class="fc" id="L103">                i += 2;</span>
-<span class="fc bfc" id="L104" title="All 2 branches covered.">            } else if (dataType == Integer.class) {</span>
-<span class="fc" id="L105">                decodeInteger(safeLengthAdsData, i, result);</span>
-<span class="fc" id="L106">                i += 4;</span>
-<span class="fc bfc" id="L107" title="All 2 branches covered.">            } else if (dataType == BigInteger.class) {</span>
-<span class="fc" id="L108">                decodeBigInteger(safeLengthAdsData, result);</span>
-                // A big integer can consume the whole stream
-<span class="fc" id="L110">                i = length;</span>
-<span class="fc bfc" id="L111" title="All 2 branches covered.">            } else if (dataType == Float.class) {</span>
-<span class="fc" id="L112">                decodeFloat(safeLengthAdsData, i, result);</span>
-<span class="fc" id="L113">                i += 4;</span>
-<span class="fc bfc" id="L114" title="All 2 branches covered.">            } else if (dataType == Double.class) {</span>
-<span class="fc" id="L115">                decodeDouble(safeLengthAdsData, i, result);</span>
-<span class="fc" id="L116">                i += 8;</span>
-<span class="fc bfc" id="L117" title="All 4 branches covered.">            } else if (dataType == Calendar.class || Calendar.class.isAssignableFrom(dataType)) {</span>
-<span class="fc" id="L118">                extractCalendar(safeLengthAdsData, i, result);</span>
-<span class="fc" id="L119">                i += 8;</span>
-            } else {
-<span class="fc" id="L121">                throw new PlcUnsupportedDataTypeException(dataType);</span>
+    public static FieldItem&lt;?&gt; decodeData(AdsDataType adsDataType, byte[] adsData) {
+<span class="fc" id="L44">        ByteBuf wrappedBuffer = Unpooled.wrappedBuffer(adsData);</span>
+<span class="pc bpc" id="L45" title="34 of 42 branches missed.">        switch (adsDataType) {</span>
+            case BIT: {
+<span class="nc" id="L47">                LinkedList&lt;Boolean&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L48" title="All 2 branches missed.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="nc" id="L49">                    short aByte = wrappedBuffer.readUnsignedByte();</span>
+<span class="nc bnc" id="L50" title="All 2 branches missed.">                    values.offer(aByte != 0);</span>
+<span class="nc" id="L51">                }</span>
+<span class="nc" id="L52">                return new DefaultBooleanFieldItem(values.toArray(new Boolean[0]));</span>
             }
-<span class="fc" id="L123">        }</span>
-<span class="fc" id="L124">        return (List&lt;T&gt;) result;</span>
+            case BIT8: {
+<span class="nc" id="L55">                LinkedList&lt;Boolean&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="nc" id="L57">                    short aByte = wrappedBuffer.readUnsignedByte();</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">                    values.offer(aByte != 0);</span>
+<span class="nc" id="L59">                }</span>
+<span class="nc" id="L60">                return new DefaultBooleanFieldItem(values.toArray(new Boolean[0]));</span>
+            }
+            case BITARR8: {
+<span class="nc" id="L63">                LinkedList&lt;Long&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="nc" id="L65">                    short aByte = wrappedBuffer.readUnsignedByte();</span>
+<span class="nc" id="L66">                    values.offer((long) aByte);</span>
+<span class="nc" id="L67">                }</span>
+<span class="nc" id="L68">                return new DefaultIntegerFieldItem(values.toArray(new Long[0]));</span>
+            }
+            case BITARR16: {
+<span class="nc" id="L71">                LinkedList&lt;Long&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="nc" id="L73">                    long aLong = wrappedBuffer.readUnsignedShortLE();</span>
+<span class="nc" id="L74">                    values.offer(aLong);</span>
+<span class="nc" id="L75">                }</span>
+<span class="nc" id="L76">                return new DefaultIntegerFieldItem(values.toArray(new Long[0]));</span>
+            }
+            case BITARR32: {
+<span class="nc" id="L79">                LinkedList&lt;Long&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="nc" id="L81">                    long aLong = wrappedBuffer.readUnsignedIntLE();</span>
+<span class="nc" id="L82">                    values.offer(aLong);</span>
+<span class="nc" id="L83">                }</span>
+<span class="nc" id="L84">                return new DefaultIntegerFieldItem(values.toArray(new Long[0]));</span>
+            }
+            case INT8: {
+<span class="nc" id="L87">                LinkedList&lt;Long&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="nc" id="L89">                    long aLong = wrappedBuffer.readByte();</span>
+<span class="nc" id="L90">                    values.offer(aLong);</span>
+<span class="nc" id="L91">                }</span>
+<span class="nc" id="L92">                return new DefaultIntegerFieldItem(values.toArray(new Long[0]));</span>
+            }
+            case INT16: {
+<span class="nc" id="L95">                LinkedList&lt;Long&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="nc" id="L97">                    long aLong = wrappedBuffer.readShortLE();</span>
+<span class="nc" id="L98">                    values.offer(aLong);</span>
+<span class="nc" id="L99">                }</span>
+<span class="nc" id="L100">                return new DefaultIntegerFieldItem(values.toArray(new Long[0]));</span>
+            }
+            case INT32: {
+<span class="fc" id="L103">                LinkedList&lt;Long&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="fc bfc" id="L104" title="All 2 branches covered.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="fc" id="L105">                    long aLong = wrappedBuffer.readIntLE();</span>
+<span class="fc" id="L106">                    values.offer(aLong);</span>
+<span class="fc" id="L107">                }</span>
+<span class="fc" id="L108">                return new DefaultIntegerFieldItem(values.toArray(new Long[0]));</span>
+            }
+            case INT64: {
+<span class="fc" id="L111">                LinkedList&lt;Long&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="fc bfc" id="L112" title="All 2 branches covered.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="fc" id="L113">                    byte[] bytes = new byte[8];</span>
+<span class="fc" id="L114">                    wrappedBuffer.readBytes(bytes);</span>
+<span class="fc" id="L115">                    BigInteger bigInteger = new BigInteger(bytes);</span>
+                    // TODO: potential dataloss here.
+<span class="fc" id="L117">                    values.offer(bigInteger.longValue());</span>
+<span class="fc" id="L118">                }</span>
+<span class="fc" id="L119">                return new DefaultIntegerFieldItem(values.toArray(new Long[0]));</span>
+            }
+            case UINT8: {
+<span class="nc" id="L122">                LinkedList&lt;Long&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="nc" id="L124">                    long aLong = wrappedBuffer.readUnsignedByte();</span>
+<span class="nc" id="L125">                    values.offer(aLong);</span>
+<span class="nc" id="L126">                }</span>
+<span class="nc" id="L127">                return new DefaultIntegerFieldItem(values.toArray(new Long[0]));</span>
+            }
+            case UINT16: {
+<span class="nc" id="L130">                LinkedList&lt;Long&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L131" title="All 2 branches missed.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="nc" id="L132">                    long aLong = wrappedBuffer.readUnsignedShortLE();</span>
+<span class="nc" id="L133">                    values.offer(aLong);</span>
+<span class="nc" id="L134">                }</span>
+<span class="nc" id="L135">                return new DefaultIntegerFieldItem(values.toArray(new Long[0]));</span>
+            }
+            case UINT32: {
+<span class="nc" id="L138">                LinkedList&lt;Long&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="nc" id="L140">                    long aLong = wrappedBuffer.readUnsignedIntLE();</span>
+<span class="nc" id="L141">                    values.offer(aLong);</span>
+<span class="nc" id="L142">                }</span>
+<span class="nc" id="L143">                return new DefaultIntegerFieldItem(values.toArray(new Long[0]));</span>
+            }
+            case UINT64: {
+<span class="nc" id="L146">                LinkedList&lt;Long&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="nc" id="L148">                    byte[] bytes = new byte[64];</span>
+<span class="nc" id="L149">                    wrappedBuffer.readBytes(bytes);</span>
+<span class="nc" id="L150">                    BigInteger bigInteger = new BigInteger(ArrayUtils.add(bytes, (byte) 0x0));</span>
+                    // TODO: potential dataloss here.
+<span class="nc" id="L152">                    values.offer(bigInteger.longValue());</span>
+<span class="nc" id="L153">                }</span>
+<span class="nc" id="L154">                return new DefaultIntegerFieldItem(values.toArray(new Long[0]));</span>
+            }
+            case FLOAT: {
+<span class="nc" id="L157">                LinkedList&lt;Double&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="nc" id="L159">                    double aLong = wrappedBuffer.readFloatLE();</span>
+<span class="nc" id="L160">                    values.offer(aLong);</span>
+<span class="nc" id="L161">                }</span>
+<span class="nc" id="L162">                return new DefaultFloatingPointFieldItem(values.toArray(new Double[0]));</span>
+            }
+            case DOUBLE: {
+<span class="nc" id="L165">                LinkedList&lt;Double&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L166" title="All 2 branches missed.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="nc" id="L167">                    double aLong = wrappedBuffer.readDoubleLE();</span>
+<span class="nc" id="L168">                    values.offer(aLong);</span>
+<span class="nc" id="L169">                }</span>
+<span class="nc" id="L170">                return new DefaultFloatingPointFieldItem(values.toArray(new Double[0]));</span>
+            }
+            case BOOL: {
+<span class="fc" id="L173">                LinkedList&lt;Boolean&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="fc bfc" id="L174" title="All 2 branches covered.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="fc" id="L175">                    short aByte = wrappedBuffer.readUnsignedByte();</span>
+<span class="pc bpc" id="L176" title="1 of 2 branches missed.">                    values.offer(aByte != 0);</span>
+<span class="fc" id="L177">                }</span>
+<span class="fc" id="L178">                return new DefaultBooleanFieldItem(values.toArray(new Boolean[0]));</span>
+            }
+            case BYTE: {
+<span class="fc" id="L181">                LinkedList&lt;Long&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="fc bfc" id="L182" title="All 2 branches covered.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="fc" id="L183">                    long aByte = wrappedBuffer.readUnsignedByte();</span>
+<span class="fc" id="L184">                    values.offer(aByte);</span>
+<span class="fc" id="L185">                }</span>
+<span class="fc" id="L186">                return new DefaultIntegerFieldItem(values.toArray(new Long[0]));</span>
+            }
+            case WORD: {
+<span class="nc" id="L189">                LinkedList&lt;Long&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L190" title="All 2 branches missed.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="nc" id="L191">                    long aByte = wrappedBuffer.readUnsignedShortLE();</span>
+<span class="nc" id="L192">                    values.offer(aByte);</span>
+<span class="nc" id="L193">                }</span>
+<span class="nc" id="L194">                return new DefaultIntegerFieldItem(values.toArray(new Long[0]));</span>
+            }
+            case DWORD: {
+<span class="nc" id="L197">                LinkedList&lt;Long&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L198" title="All 2 branches missed.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="nc" id="L199">                    long aByte = wrappedBuffer.readUnsignedIntLE();</span>
+<span class="nc" id="L200">                    values.offer(aByte);</span>
+<span class="nc" id="L201">                }</span>
+<span class="nc" id="L202">                return new DefaultIntegerFieldItem(values.toArray(new Long[0]));</span>
+            }
+            case SINT: {
+<span class="nc" id="L205">                LinkedList&lt;Long&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L206" title="All 2 branches missed.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="nc" id="L207">                    long aByte = wrappedBuffer.readByte();</span>
+<span class="nc" id="L208">                    values.offer(aByte);</span>
+<span class="nc" id="L209">                }</span>
+<span class="nc" id="L210">                return new DefaultIntegerFieldItem(values.toArray(new Long[0]));</span>
+            }
+            case USINT: {
+<span class="nc" id="L213">                LinkedList&lt;Long&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L214" title="All 2 branches missed.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="nc" id="L215">                    long aByte = wrappedBuffer.readUnsignedByte();</span>
+<span class="nc" id="L216">                    values.offer(aByte);</span>
+<span class="nc" id="L217">                }</span>
+<span class="nc" id="L218">                return new DefaultIntegerFieldItem(values.toArray(new Long[0]));</span>
+            }
+            case INT: {
+<span class="fc" id="L221">                LinkedList&lt;Long&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="fc bfc" id="L222" title="All 2 branches covered.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="fc" id="L223">                    long aByte = wrappedBuffer.readShortLE();</span>
+<span class="fc" id="L224">                    values.offer(aByte);</span>
+<span class="fc" id="L225">                }</span>
+<span class="fc" id="L226">                return new DefaultIntegerFieldItem(values.toArray(new Long[0]));</span>
+            }
+            case UINT: {
+<span class="nc" id="L229">                LinkedList&lt;Long&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L230" title="All 2 branches missed.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="nc" id="L231">                    long aByte = wrappedBuffer.readUnsignedShortLE();</span>
+<span class="nc" id="L232">                    values.offer(aByte);</span>
+<span class="nc" id="L233">                }</span>
+<span class="nc" id="L234">                return new DefaultIntegerFieldItem(values.toArray(new Long[0]));</span>
+            }
+            case DINT: {
+<span class="nc" id="L237">                LinkedList&lt;Long&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L238" title="All 2 branches missed.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="nc" id="L239">                    long aByte = wrappedBuffer.readIntLE();</span>
+<span class="nc" id="L240">                    values.offer(aByte);</span>
+<span class="nc" id="L241">                }</span>
+<span class="nc" id="L242">                return new DefaultIntegerFieldItem(values.toArray(new Long[0]));</span>
+            }
+            case UDINT: {
+<span class="nc" id="L245">                LinkedList&lt;Long&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L246" title="All 2 branches missed.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="nc" id="L247">                    long aByte = wrappedBuffer.readUnsignedIntLE();</span>
+<span class="nc" id="L248">                    values.offer(aByte);</span>
+<span class="nc" id="L249">                }</span>
+<span class="nc" id="L250">                return new DefaultIntegerFieldItem(values.toArray(new Long[0]));</span>
+            }
+            case LINT: {
+<span class="nc" id="L253">                LinkedList&lt;Long&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L254" title="All 2 branches missed.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="nc" id="L255">                    long aByte = wrappedBuffer.readLongLE();</span>
+<span class="nc" id="L256">                    values.offer(aByte);</span>
+<span class="nc" id="L257">                }</span>
+<span class="nc" id="L258">                return new DefaultIntegerFieldItem(values.toArray(new Long[0]));</span>
+            }
+            case ULINT: {
+<span class="nc" id="L261">                LinkedList&lt;Long&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L262" title="All 2 branches missed.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="nc" id="L263">                    byte[] bytes = new byte[64];</span>
+<span class="nc" id="L264">                    wrappedBuffer.readBytes(bytes);</span>
+<span class="nc" id="L265">                    BigInteger bigInteger = new BigInteger(ArrayUtils.add(bytes, (byte) 0x0));</span>
+                    // TODO: potential dataloss here.
+<span class="nc" id="L267">                    values.offer(bigInteger.longValue());</span>
+<span class="nc" id="L268">                }</span>
+<span class="nc" id="L269">                return new DefaultIntegerFieldItem(values.toArray(new Long[0]));</span>
+            }
+            case REAL: {
+<span class="fc" id="L272">                LinkedList&lt;Double&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="fc bfc" id="L273" title="All 2 branches covered.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="fc" id="L274">                    double aByte = wrappedBuffer.readFloatLE();</span>
+<span class="fc" id="L275">                    values.offer(aByte);</span>
+<span class="fc" id="L276">                }</span>
+<span class="fc" id="L277">                return new DefaultFloatingPointFieldItem(values.toArray(new Double[0]));</span>
+            }
+            case LREAL: {
+<span class="fc" id="L280">                LinkedList&lt;Double&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="fc bfc" id="L281" title="All 2 branches covered.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="fc" id="L282">                    double aByte = wrappedBuffer.readDoubleLE();</span>
+<span class="fc" id="L283">                    values.offer(aByte);</span>
+<span class="fc" id="L284">                }</span>
+<span class="fc" id="L285">                return new DefaultFloatingPointFieldItem(values.toArray(new Double[0]));</span>
+            }
+            case STRING: {
+<span class="fc" id="L288">                LinkedList&lt;String&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="fc bfc" id="L289" title="All 2 branches covered.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="fc" id="L290">                    ByteArrayOutputStream os = new ByteArrayOutputStream();</span>
+                    Byte aByte;
+<span class="fc bfc" id="L292" title="All 2 branches covered.">                    while ((aByte = wrappedBuffer.readByte()) != 0x0) {</span>
+<span class="fc" id="L293">                        os.write(aByte);</span>
+                    }
+<span class="fc" id="L295">                    values.offer(new String(os.toByteArray()));</span>
+<span class="fc" id="L296">                }</span>
+<span class="fc" id="L297">                return new DefaultStringFieldItem(values.toArray(new String[0]));</span>
+            }
+            case TIME: {
+<span class="nc" id="L300">                LinkedList&lt;LocalDateTime&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L301" title="All 2 branches missed.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="nc" id="L302">                    long aByte = wrappedBuffer.readUnsignedIntLE();</span>
+                    // TODO: we can't map time to LocalDateTime. Implmentation broken currently
+<span class="nc" id="L304">                    Instant instant = Instant.ofEpochMilli(aByte);</span>
+<span class="nc" id="L305">                    values.offer(LocalDateTime.ofInstant(instant, ZoneId.of(&quot;ECT&quot;)));</span>
+<span class="nc" id="L306">                }</span>
+<span class="nc" id="L307">                return new DefaultTimeFieldItem(values.toArray(new LocalDateTime[0]));</span>
+            }
+            case TIME_OF_DAY: {
+<span class="nc" id="L310">                LinkedList&lt;LocalDateTime&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L311" title="All 2 branches missed.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="nc" id="L312">                    long aByte = wrappedBuffer.readUnsignedIntLE();</span>
+                    // TODO: we can't map time to LocalDateTime. Implmentation broken currently
+<span class="nc" id="L314">                    Instant instant = Instant.ofEpochMilli(aByte);</span>
+<span class="nc" id="L315">                    values.offer(LocalDateTime.ofInstant(instant, ZoneId.of(&quot;ECT&quot;)));</span>
+<span class="nc" id="L316">                }</span>
+<span class="nc" id="L317">                return new DefaultTimeFieldItem(values.toArray(new LocalDateTime[0]));</span>
+            }
+            case DATE: {
+<span class="nc" id="L320">                LinkedList&lt;LocalDateTime&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L321" title="All 2 branches missed.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="nc" id="L322">                    long aByte = wrappedBuffer.readUnsignedIntLE();</span>
+                    // TODO: we can't map time to LocalDateTime. Implmentation broken currently
+<span class="nc" id="L324">                    Instant instant = Instant.ofEpochMilli(aByte);</span>
+<span class="nc" id="L325">                    values.offer(LocalDateTime.ofInstant(instant, ZoneId.of(&quot;ECT&quot;)));</span>
+<span class="nc" id="L326">                }</span>
+<span class="nc" id="L327">                return new DefaultTimeFieldItem(values.toArray(new LocalDateTime[0]));</span>
+            }
+            case DATE_AND_TIME: {
+<span class="nc" id="L330">                LinkedList&lt;LocalDateTime&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L331" title="All 2 branches missed.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="nc" id="L332">                    long aByte = wrappedBuffer.readUnsignedIntLE();</span>
+                    // TODO: we can't map time to LocalDateTime. Implmentation broken currently
+<span class="nc" id="L334">                    Instant instant = Instant.ofEpochMilli(aByte);</span>
+<span class="nc" id="L335">                    values.offer(LocalDateTime.ofInstant(instant, ZoneId.of(&quot;ECT&quot;)));</span>
+<span class="nc" id="L336">                }</span>
+<span class="nc" id="L337">                return new DefaultTimeFieldItem(values.toArray(new LocalDateTime[0]));</span>
+            }
+            case ARRAY: {
+<span class="nc" id="L340">                throw new NotImplementedException(&quot;not implemented yet &quot; + adsDataType);</span>
+            }
+            case POINTER: {
+<span class="nc" id="L343">                throw new NotImplementedException(&quot;not implemented yet &quot; + adsDataType);</span>
+            }
+            case ENUM: {
+<span class="nc" id="L346">                throw new NotImplementedException(&quot;not implemented yet &quot; + adsDataType);</span>
+            }
+            case STRUCT: {
+<span class="nc" id="L349">                throw new NotImplementedException(&quot;not implemented yet &quot; + adsDataType);</span>
+            }
+            case ALIAS: {
+<span class="nc" id="L352">                throw new NotImplementedException(&quot;not implemented yet &quot; + adsDataType);</span>
+            }
+            case SUB_RANGE_DATA_TYPE: {
+<span class="nc" id="L355">                throw new NotImplementedException(&quot;not implemented yet &quot; + adsDataType);</span>
+            }
+            case UNKNOWN: {
+<span class="nc" id="L358">                throw new NotImplementedException(&quot;not implemented yet &quot; + adsDataType);</span>
+            }
+            default:
+<span class="nc" id="L361">                throw new IllegalArgumentException(&quot;Unsupported adsDataType &quot; + adsDataType);</span>
+        }
     }
 
-    private static int decodeString(byte[] adsData, int i, int length, List&lt;Object&gt; result) throws PlcProtocolException {
-<span class="fc bfc" id="L128" title="All 2 branches covered.">        if (length &lt; 2) {</span>
-<span class="fc" id="L129">            throw new PlcProtocolException(&quot;String must be a null terminated byte array&quot;);</span>
-        }
-<span class="fc" id="L131">        int pos = i;</span>
-<span class="fc" id="L132">        StringBuilder builder = new StringBuilder();</span>
-        // TODO: check if we have at least a 0x0 space
-<span class="fc bfc" id="L134" title="All 4 branches covered.">        while (pos &lt; length &amp;&amp; adsData[pos] != (byte) 0x0) {</span>
-<span class="fc" id="L135">            builder.append((char) adsData[pos]);</span>
-<span class="fc" id="L136">            pos++;</span>
-        }
-<span class="fc" id="L138">        pos++; // skip terminating character</span>
-<span class="fc" id="L139">        result.add(builder.toString());</span>
-<span class="fc" id="L140">        return pos;</span>
-    }
-
-    private static void decodeShort(byte[] adsData, int i, List&lt;Object&gt; result) {
-<span class="fc" id="L144">        byte byteOne = adsData[i];</span>
-<span class="fc" id="L145">        byte byteTwo = adsData[i + 1];</span>
-<span class="fc" id="L146">        result.add((short) ((byteOne &amp; 0xff) | ((byteTwo &amp; 0xff) &lt;&lt; 8)));</span>
-<span class="fc" id="L147">    }</span>
-
-    private static void decodeInteger(byte[] adsData, int i, List&lt;Object&gt; result) {
-<span class="fc" id="L150">        byte byteOne = adsData[i];</span>
-<span class="fc" id="L151">        byte byteTwo = adsData[i + 1];</span>
-<span class="fc" id="L152">        byte byteThree = adsData[i + 2];</span>
-<span class="fc" id="L153">        byte byteFour = adsData[i + 3];</span>
-<span class="fc" id="L154">        result.add((byteOne &amp; 0xff) | ((byteTwo &amp; 0xff) &lt;&lt; 8) | ((byteThree &amp; 0xff) &lt;&lt; 16) | (byteFour &amp; 0xff) &lt;&lt; 24);</span>
-<span class="fc" id="L155">    }</span>
-
-    private static void decodeBigInteger(byte[] adsData, List&lt;Object&gt; result) {
-<span class="fc" id="L158">        byte[] clone = ArrayUtils.clone(adsData);</span>
-<span class="fc" id="L159">        ArrayUtils.reverse(clone);</span>
-<span class="fc" id="L160">        byte[] bigIntegerByteArray = ArrayUtils.insert(0, clone, (byte) 0x0);</span>
-<span class="fc" id="L161">        result.add(new BigInteger(bigIntegerByteArray));</span>
-<span class="fc" id="L162">    }</span>
-
-    private static void decodeFloat(byte[] adsData, int i, List&lt;Object&gt; result) {
-<span class="fc" id="L165">        byte byteOne = adsData[i];</span>
-<span class="fc" id="L166">        byte byteTwo = adsData[i + 1];</span>
-<span class="fc" id="L167">        byte byteThree = adsData[i + 2];</span>
-<span class="fc" id="L168">        byte byteFour = adsData[i + 3];</span>
-        // TODO: check how ads expects this data
-        // Description of the Real number format:
-        // https://www.sps-lehrgang.de/zahlenformate-step7/#c144
-        // https://de.wikipedia.org/wiki/IEEE_754
-<span class="fc" id="L173">        int intValue = (byteOne &amp; 0xff) | ((byteTwo &amp; 0xff) &lt;&lt; 8) | ((byteThree &amp; 0xff) &lt;&lt; 16) | ((byteFour &amp; 0xff) &lt;&lt; 24);</span>
-<span class="fc" id="L174">        result.add(Float.intBitsToFloat(intValue));</span>
-<span class="fc" id="L175">    }</span>
-
-    private static void decodeDouble(byte[] adsData, int i, List&lt;Object&gt; result) {
-<span class="fc" id="L178">        byte byteOne = adsData[i];</span>
-<span class="fc" id="L179">        byte byteTwo = adsData[i + 1];</span>
-<span class="fc" id="L180">        byte byteThree = adsData[i + 2];</span>
-<span class="fc" id="L181">        byte byteFour = adsData[i + 3];</span>
-<span class="fc" id="L182">        byte byteFive = adsData[i + 4];</span>
-<span class="fc" id="L183">        byte byteSix = adsData[i + 5];</span>
-<span class="fc" id="L184">        byte byteSeven = adsData[i + 6];</span>
-<span class="fc" id="L185">        byte byteEigth = adsData[i + 7];</span>
-        // TODO: check how ads expects this data
-        // Description of the Real number format:
-        // https://www.sps-lehrgang.de/zahlenformate-step7/#c144
-        // https://de.wikipedia.org/wiki/IEEE_754
-<span class="fc" id="L190">        long longValue = (long) (byteOne &amp; 0xff) | ((long) (byteTwo &amp; 0xff) &lt;&lt; 8) | ((long) (byteThree &amp; 0xff) &lt;&lt; 16) | ((long) (byteFour &amp; 0xff) &lt;&lt; 24)</span>
-            | (long) (byteFive &amp; 0xff) &lt;&lt; 32 | ((long) (byteSix &amp; 0xff) &lt;&lt; 40) | ((long) (byteSeven &amp; 0xff) &lt;&lt; 48) | ((long) (byteEigth &amp; 0xff) &lt;&lt; 56);
-<span class="fc" id="L192">        result.add(Double.longBitsToDouble(longValue));</span>
-<span class="fc" id="L193">    }</span>
-
-    private static void extractCalendar(byte[] adsData, int i, List&lt;Object&gt; result) {
-<span class="fc" id="L196">        byte byteOne = adsData[i];</span>
-<span class="fc" id="L197">        byte byteTwo = adsData[i + 1];</span>
-<span class="fc" id="L198">        byte byteThree = adsData[i + 2];</span>
-<span class="fc" id="L199">        byte byteFour = adsData[i + 3];</span>
-<span class="fc" id="L200">        byte byteFive = adsData[i + 4];</span>
-<span class="fc" id="L201">        byte byteSix = adsData[i + 5];</span>
-<span class="fc" id="L202">        byte byteSeven = adsData[i + 6];</span>
-<span class="fc" id="L203">        byte byteEight = adsData[i + 7];</span>
-<span class="fc" id="L204">        Calendar calendar = Calendar.getInstance();</span>
-<span class="fc" id="L205">        calendar.setTime(new Date(TimeStamp.winTimeToJava(</span>
-            new BigInteger(new byte[]{
-                // LE
-                byteEight,
-                byteSeven,
-                byteSix,
-                byteFive,
-                byteFour,
-                byteThree,
-                byteTwo,
-                byteOne,
-<span class="fc" id="L216">            })).longValue()));</span>
-<span class="fc" id="L217">        result.add(calendar);</span>
-<span class="fc" id="L218">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

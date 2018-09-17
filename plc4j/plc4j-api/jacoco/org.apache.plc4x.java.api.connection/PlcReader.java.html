@@ -20,16 +20,13 @@ package org.apache.plc4x.java.api.connection;
 
 import org.apache.plc4x.java.api.messages.PlcReadRequest;
 import org.apache.plc4x.java.api.messages.PlcReadResponse;
-import org.apache.plc4x.java.api.messages.specific.TypeSafePlcReadRequest;
-import org.apache.plc4x.java.api.messages.specific.TypeSafePlcReadResponse;
 
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 /**
  * Interface implemented by all PlcConnections that are able to read from remote resources.
  */
-@FunctionalInterface
 public interface PlcReader {
 
     /**
@@ -38,20 +35,21 @@ public interface PlcReader {
      * @param readRequest object describing the type and location of the value.
      * @return a {@link CompletableFuture} giving async access to the returned value.
      */
-    CompletableFuture&lt;? extends PlcReadResponse&gt; read(PlcReadRequest readRequest);
+    CompletableFuture&lt;PlcReadResponse&lt;?&gt;&gt; read(PlcReadRequest readRequest);
 
     /**
      * Reads a requested value from a PLC.
      *
-     * @param readRequest object describing the type and location of the value.
-     * @param &lt;T&gt;         type that is being requested.
+     * @param readRequestBuilderConsumer consumer which can be used to build requests.
      * @return a {@link CompletableFuture} giving async access to the returned value.
      */
-    default &lt;T&gt; CompletableFuture&lt;TypeSafePlcReadResponse&lt;T&gt;&gt; read(TypeSafePlcReadRequest&lt;T&gt; readRequest) {
-<span class="fc" id="L51">        Objects.requireNonNull(readRequest, &quot;Read request must not be null&quot;);</span>
-<span class="fc" id="L52">        return read((PlcReadRequest) readRequest)</span>
-<span class="fc" id="L53">            .thenApply(readResponse -&gt; TypeSafePlcReadResponse.of(readResponse, readRequest.getDataType()));</span>
+    default CompletableFuture&lt;PlcReadResponse&lt;?&gt;&gt; read(Consumer&lt;PlcReadRequest.Builder&gt; readRequestBuilderConsumer) {
+<span class="nc" id="L47">        PlcReadRequest.Builder requestBuilder = readRequestBuilder();</span>
+<span class="nc" id="L48">        readRequestBuilderConsumer.accept(requestBuilder);</span>
+<span class="nc" id="L49">        return read(requestBuilder.build());</span>
     }
+
+    PlcReadRequest.Builder readRequestBuilder();
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

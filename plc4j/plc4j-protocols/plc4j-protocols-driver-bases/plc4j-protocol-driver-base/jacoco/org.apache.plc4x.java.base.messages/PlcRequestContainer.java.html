@@ -18,9 +18,7 @@
  */
 package org.apache.plc4x.java.base.messages;
 
-import org.apache.plc4x.java.api.messages.PlcRequest;
-import org.apache.plc4x.java.api.messages.PlcResponse;
-import org.apache.plc4x.java.api.messages.ProtocolMessage;
+import org.apache.plc4x.java.api.messages.PlcProtocolMessage;
 
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -31,24 +29,24 @@ import java.util.concurrent.CompletableFuture;
  * @param &lt;T&gt; type of request.
  * @param &lt;R&gt; type of response.
  */
-public class PlcRequestContainer&lt;T extends PlcRequest, R extends PlcResponse&gt; implements ProtocolMessage {
+public class PlcRequestContainer&lt;T extends InternalPlcRequest, R extends InternalPlcResponse&gt; implements PlcProtocolMessage {
 
     private final T request;
     private final CompletableFuture&lt;R&gt; responseFuture;
 
-<span class="fc" id="L39">    public PlcRequestContainer(T request, CompletableFuture&lt;R&gt; responseFuture) {</span>
-<span class="fc" id="L40">        Objects.requireNonNull(request, &quot;Request must not be null&quot;);</span>
-<span class="fc" id="L41">        Objects.requireNonNull(responseFuture, &quot;Response future must not be null&quot;);</span>
-<span class="fc" id="L42">        this.request = request;</span>
-<span class="fc" id="L43">        this.responseFuture = responseFuture;</span>
-<span class="fc" id="L44">    }</span>
+<span class="fc" id="L37">    public PlcRequestContainer(T request, CompletableFuture&lt;R&gt; responseFuture) {</span>
+<span class="fc" id="L38">        Objects.requireNonNull(request, &quot;Request must not be null&quot;);</span>
+<span class="fc" id="L39">        Objects.requireNonNull(responseFuture, &quot;Response future must not be null&quot;);</span>
+<span class="fc" id="L40">        this.request = request;</span>
+<span class="fc" id="L41">        this.responseFuture = responseFuture;</span>
+<span class="fc" id="L42">    }</span>
 
     public T getRequest() {
-<span class="fc" id="L47">        return request;</span>
+<span class="fc" id="L45">        return request;</span>
     }
 
     public CompletableFuture&lt;R&gt; getResponseFuture() {
-<span class="fc" id="L51">        return responseFuture;</span>
+<span class="fc" id="L49">        return responseFuture;</span>
     }
 
     /**
@@ -57,33 +55,34 @@ public class PlcRequestContainer&lt;T extends PlcRequest, R extends PlcResponse&
      * @return null
      */
     @Override
-    public ProtocolMessage getParent() {
-<span class="fc" id="L61">        return null;</span>
+    public PlcProtocolMessage getParent() {
+<span class="fc" id="L59">        return null;</span>
     }
 
     @Override
     public String toString() {
-<span class="fc" id="L66">        return &quot;PlcRequestContainer{&quot; +</span>
+<span class="fc" id="L64">        return &quot;PlcRequestContainer{&quot; +</span>
             &quot;request=&quot; + request +
             '}';
     }
 
     @Override
     public boolean equals(Object o) {
-<span class="fc bfc" id="L73" title="All 2 branches covered.">        if (this == o) {</span>
-<span class="fc" id="L74">            return true;</span>
+<span class="fc bfc" id="L71" title="All 2 branches covered.">        if (this == o) {</span>
+<span class="fc" id="L72">            return true;</span>
         }
-<span class="fc bfc" id="L76" title="All 2 branches covered.">        if (!(o instanceof PlcRequestContainer)) {</span>
-<span class="fc" id="L77">            return false;</span>
+<span class="fc bfc" id="L74" title="All 2 branches covered.">        if (!(o instanceof PlcRequestContainer)) {</span>
+<span class="fc" id="L75">            return false;</span>
         }
-<span class="fc" id="L79">        PlcRequestContainer&lt;?, ?&gt; that = (PlcRequestContainer&lt;?, ?&gt;) o;</span>
-<span class="pc bpc" id="L80" title="1 of 2 branches missed.">        return Objects.equals(request, that.request) &amp;&amp;</span>
-<span class="pc bpc" id="L81" title="1 of 2 branches missed.">            Objects.equals(responseFuture, that.responseFuture);</span>
+<span class="fc" id="L77">        PlcRequestContainer&lt;?, ?&gt; that = (PlcRequestContainer&lt;?, ?&gt;) o;</span>
+<span class="pc bpc" id="L78" title="1 of 2 branches missed.">        return Objects.equals(request, that.request) &amp;&amp;</span>
+<span class="pc bpc" id="L79" title="1 of 2 branches missed.">            Objects.equals(responseFuture, that.responseFuture);</span>
     }
 
     @Override
     public int hashCode() {
-<span class="fc" id="L86">        return Objects.hash(request, responseFuture);</span>
+<span class="fc" id="L84">        return Objects.hash(request, responseFuture);</span>
     }
+
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

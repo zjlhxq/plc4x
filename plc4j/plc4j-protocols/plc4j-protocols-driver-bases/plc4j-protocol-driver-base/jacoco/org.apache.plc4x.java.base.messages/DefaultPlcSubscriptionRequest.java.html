@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DefaultPlcSubscriptionRequest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PLC4J: Protocol: Driver-Base: Base</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.java.base.messages</a> &gt; <span class="el_source">DefaultPlcSubscriptionRequest.java</span></div><h1>DefaultPlcSubscriptionRequest.java</h1><pre class="source lang-java linenums">/*
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+&quot;License&quot;); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+&quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+*/
+package org.apache.plc4x.java.base.messages;
+
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.plc4x.java.api.messages.PlcSubscriptionRequest;
+import org.apache.plc4x.java.api.model.PlcField;
+import org.apache.plc4x.java.api.types.PlcSubscriptionType;
+import org.apache.plc4x.java.base.connection.PlcFieldHandler;
+import org.apache.plc4x.java.base.messages.items.FieldItem;
+
+import java.time.Duration;
+import java.util.*;
+import java.util.function.BiFunction;
+
+<span class="nc" id="L33">public class DefaultPlcSubscriptionRequest implements InternalPlcSubscriptionRequest {</span>
+
+    @Override
+    public int getNumberOfFields() {
+<span class="nc" id="L37">        return 0;</span>
+    }
+
+    @Override
+    public LinkedHashSet&lt;String&gt; getFieldNames() {
+<span class="nc" id="L42">        return null;</span>
+    }
+
+    @Override
+    public PlcField getField(String name) {
+<span class="nc" id="L47">        return null;</span>
+    }
+
+    @Override
+    public LinkedList&lt;PlcField&gt; getFields() {
+<span class="nc" id="L52">        return null;</span>
+    }
+
+    @Override
+    public PlcSubscriptionType getPlcSubscriptionType() {
+<span class="nc" id="L57">        return null;</span>
+    }
+
+    public static class Builder implements PlcSubscriptionRequest.Builder {
+
+        private final PlcFieldHandler fieldHandler;
+        private final Map&lt;String, BuilderItem&lt;Object&gt;&gt; fields;
+
+<span class="nc" id="L65">        public Builder(PlcFieldHandler fieldHandler) {</span>
+<span class="nc" id="L66">            this.fieldHandler = fieldHandler;</span>
+<span class="nc" id="L67">            fields = new TreeMap&lt;&gt;();</span>
+<span class="nc" id="L68">        }</span>
+
+        @Override
+        public PlcSubscriptionRequest.Builder addCyclicField(String name, String fieldQuery, Duration pollingInterval) {
+<span class="nc" id="L72">            return null;</span>
+        }
+
+        @Override
+        public PlcSubscriptionRequest.Builder addChangeOfStateField(String name, String fieldQuery) {
+<span class="nc" id="L77">            return null;</span>
+        }
+
+        @Override
+        public PlcSubscriptionRequest.Builder addEventField(String name, String fieldQuery) {
+<span class="nc" id="L82">            return null;</span>
+        }
+
+        @Override
+        public PlcSubscriptionRequest build() {
+<span class="nc" id="L87">            LinkedHashMap&lt;String, Pair&lt;PlcField, FieldItem&gt;&gt; parsedFields = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L88">            fields.forEach((name, builderItem) -&gt; {</span>
+                // Compile the query string.
+<span class="nc" id="L90">                PlcField parsedField = fieldHandler.createField(builderItem.fieldQuery);</span>
+                // Encode the payload.
+                // TODO: Depending on the field type, handle the FieldItem creation differently.
+<span class="nc" id="L93">                FieldItem fieldItem = builderItem.encoder.apply(parsedField, null);</span>
+<span class="nc" id="L94">                parsedFields.put(name, new ImmutablePair&lt;&gt;(parsedField, fieldItem));</span>
+<span class="nc" id="L95">            });</span>
+<span class="nc" id="L96">            return new DefaultPlcSubscriptionRequest();</span>
+        }
+
+        private static class BuilderItem&lt;T&gt; {
+            private final String fieldQuery;
+            private final BiFunction&lt;PlcField, T[], FieldItem&gt; encoder;
+
+<span class="nc" id="L103">            private BuilderItem(String fieldQuery, BiFunction&lt;PlcField, T[], FieldItem&gt; encoder) {</span>
+<span class="nc" id="L104">                this.fieldQuery = fieldQuery;</span>
+<span class="nc" id="L105">                this.encoder = encoder;</span>
+<span class="nc" id="L106">            }</span>
+        }
+
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

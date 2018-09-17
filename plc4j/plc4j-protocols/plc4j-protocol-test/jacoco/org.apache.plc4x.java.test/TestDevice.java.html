@@ -18,6 +18,8 @@ under the License.
 */
 package org.apache.plc4x.java.test;
 
+import org.apache.plc4x.java.base.messages.items.FieldItem;
+
 import java.util.*;
 
 /**
@@ -25,53 +27,93 @@ import java.util.*;
  * Values are stored in a HashMap.
  */
 class TestDevice {
-<span class="fc" id="L28">    private final Random random = new Random();</span>
+
+<span class="fc" id="L31">    private final Random random = new Random();</span>
     private final String name;
-<span class="fc" id="L30">    private final Map&lt;TestAddress, Object&gt; state = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L33">    private final Map&lt;TestField, FieldItem&gt; state = new HashMap&lt;&gt;();</span>
 
-<span class="fc" id="L32">    TestDevice(String name) {</span>
-<span class="fc" id="L33">        this.name = name;</span>
-<span class="fc" id="L34">    }</span>
+<span class="fc" id="L35">    TestDevice(String name) {</span>
+<span class="fc" id="L36">        this.name = name;</span>
+<span class="fc" id="L37">    }</span>
 
-    @SuppressWarnings(&quot;unchecked&quot;)
-    &lt;T&gt; Optional&lt;T&gt; get(Class&lt;? extends T&gt; type, TestAddress address) {
-<span class="fc" id="L38">        Objects.requireNonNull(address);</span>
-<span class="fc bfc" id="L39" title="All 2 branches covered.">        if (address.equals(TestAddress.RANDOM)) {</span>
-<span class="fc" id="L40">            return Optional.of(randomValue(type));</span>
-        } else {
-<span class="fc" id="L42">            return Optional.ofNullable((T) state.get(address));</span>
+    Optional&lt;FieldItem&gt; get(TestField field) {
+<span class="fc" id="L40">        Objects.requireNonNull(field);</span>
+<span class="pc bpc" id="L41" title="2 of 4 branches missed.">        switch(field.getType()) {</span>
+            case STATE:
+<span class="fc" id="L43">                return Optional.ofNullable(state.get(field));</span>
+            case RANDOM:
+<span class="fc" id="L45">                return Optional.of(randomValue(field.getDataType()));</span>
+            case STDOUT:
+<span class="nc" id="L47">                return Optional.empty();</span>
         }
+<span class="nc" id="L49">        throw new IllegalArgumentException(&quot;Unsupported field type: &quot; + field.getType().name());</span>
     }
 
-    public void set(TestAddress address, Object value) {
-<span class="fc" id="L47">        state.put(address, value);</span>
-<span class="fc" id="L48">    }</span>
+    void set(TestField field, FieldItem value) {
+<span class="fc" id="L53">        Objects.requireNonNull(field);</span>
+<span class="pc bpc" id="L54" title="3 of 4 branches missed.">        switch (field.getType()) {</span>
+            case STATE:
+<span class="fc" id="L56">                state.put(field, value);</span>
+<span class="fc" id="L57">                return;</span>
+            case STDOUT:
+<span class="nc" id="L59">                System.out.printf(&quot;TEST PLC STDOUT [%s]: %s%n&quot;, field.getName(), Objects.toString(value.getValues()[0]));</span>
+<span class="nc" id="L60">                return;</span>
+            case RANDOM:
+<span class="nc" id="L62">                System.out.printf(&quot;TEST PLC RANDOM [%s]: %s%n&quot;, field.getName(), Objects.toString(value.getValues()[0]));</span>
+<span class="nc" id="L63">                return;</span>
+        }
+<span class="nc" id="L65">        throw new IllegalArgumentException(&quot;Unsupported field type: &quot; + field.getType().name());</span>
+    }
 
     @SuppressWarnings(&quot;unchecked&quot;)
-    private &lt;T&gt; T randomValue(Class&lt;T&gt; type) {
-<span class="fc" id="L52">        Object result = null;</span>
+    private FieldItem randomValue(Class&lt;?&gt; type) {
+<span class="fc" id="L70">        Object result = null;</span>
 
-        // TODO: implement for further data types
+<span class="pc bpc" id="L72" title="1 of 2 branches missed.">        if (type.equals(Byte.class))</span>
+<span class="nc" id="L73">            result = (byte) random.nextInt(1 &lt;&lt; 8);</span>
 
-<span class="pc bpc" id="L56" title="1 of 2 branches missed.">        if (type == Integer.class)</span>
-<span class="fc" id="L57">            result = random.nextInt();</span>
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">        if (type.equals(Short.class))</span>
+<span class="nc" id="L76">            result = (short) random.nextInt(1 &lt;&lt; 16);</span>
 
-<span class="pc bpc" id="L59" title="1 of 2 branches missed.">        if (type == Byte.class) {</span>
-<span class="nc" id="L60">            byte[] bytes = new byte[1];</span>
-<span class="nc" id="L61">            random.nextBytes(bytes);</span>
-<span class="nc" id="L62">            result = bytes[0];</span>
+<span class="pc bpc" id="L78" title="1 of 2 branches missed.">        if (type.equals(Integer.class))</span>
+<span class="fc" id="L79">            result = random.nextInt();</span>
+
+<span class="pc bpc" id="L81" title="1 of 2 branches missed.">        if (type.equals(Long.class))</span>
+<span class="nc" id="L82">            result = random.nextLong();</span>
+
+<span class="pc bpc" id="L84" title="1 of 2 branches missed.">        if (type.equals(Float.class))</span>
+<span class="nc" id="L85">            result = random.nextFloat();</span>
+
+<span class="pc bpc" id="L87" title="1 of 2 branches missed.">        if (type.equals(Double.class))</span>
+<span class="nc" id="L88">            result = random.nextDouble();</span>
+
+<span class="pc bpc" id="L90" title="1 of 2 branches missed.">        if (type.equals(Boolean.class))</span>
+<span class="nc" id="L91">            result = random.nextBoolean();</span>
+
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">        if (type.equals(String.class)) {</span>
+<span class="nc" id="L94">            int length = random.nextInt(100);</span>
+<span class="nc" id="L95">            StringBuilder sb = new StringBuilder(length);</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">            for (int i = 0; i &lt; length; i++) {</span>
+<span class="nc" id="L97">                char c = (char)('a' + random.nextInt(26));</span>
+<span class="nc" id="L98">                sb.append(c);</span>
+            }
+<span class="nc" id="L100">            result = sb.toString();</span>
         }
 
-<span class="pc bpc" id="L65" title="1 of 2 branches missed.">        if (type == Short.class) {</span>
-<span class="nc" id="L66">            result = random.nextInt(1 &lt;&lt; 16);</span>
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">        if (type.equals(byte[].class)) {</span>
+<span class="nc" id="L104">            int length = random.nextInt(100);</span>
+<span class="nc" id="L105">            byte[] bytes = new byte[length];</span>
+<span class="nc" id="L106">            random.nextBytes(bytes);</span>
+<span class="nc" id="L107">            result = bytes;</span>
         }
 
-<span class="fc" id="L69">        return (T) result;</span>
+<span class="fc" id="L110">        return new TestFieldItem(new Object[] { result });</span>
     }
 
     @Override
     public String toString() {
-<span class="nc" id="L74">        return name;</span>
+<span class="nc" id="L115">        return name;</span>
     }
+
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

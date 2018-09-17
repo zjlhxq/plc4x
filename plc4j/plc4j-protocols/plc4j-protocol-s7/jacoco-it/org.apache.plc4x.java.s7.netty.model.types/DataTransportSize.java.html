@@ -27,71 +27,47 @@ import java.util.Map;
  * TODO: Double chcek the sizeInBits values ... looks fishy to me ...
  */
 <span class="fc" id="L29">public enum DataTransportSize {</span>
-<span class="fc" id="L30">    NULL((byte) 0x00, false),</span>
-<span class="fc" id="L31">    BIT((byte) 0x03, true),</span>
-<span class="fc" id="L32">    BYTE_WORD_DWORD((byte) 0x04, true),</span>
-<span class="fc" id="L33">    INTEGER((byte) 0x05, true),</span>
-<span class="fc" id="L34">    DINTEGER((byte) 0x06, false),</span>
-<span class="fc" id="L35">    REAL((byte) 0x07, false),</span>
-<span class="fc" id="L36">    OCTET_STRING((byte) 0x09, false);</span>
+<span class="fc" id="L30">    NULL((byte) 0x00, false, false),</span>
+<span class="fc" id="L31">    BIT((byte) 0x03, true, true),</span>
+<span class="fc" id="L32">    BYTE_WORD_DWORD((byte) 0x04, true, true),</span>
+<span class="fc" id="L33">    INTEGER((byte) 0x05, true, false),</span>
+<span class="fc" id="L34">    DINTEGER((byte) 0x06, false, false),</span>
+<span class="fc" id="L35">    REAL((byte) 0x07, false, false),</span>
+<span class="fc" id="L36">    OCTET_STRING((byte) 0x09, false, true);</span>
 
     private final byte code;
     private final boolean sizeInBits;
+    private final boolean hasBlankByte;
 
-<span class="fc" id="L41">    DataTransportSize(byte code, boolean sizeInBits) {</span>
-<span class="fc" id="L42">        this.code = code;</span>
-<span class="fc" id="L43">        this.sizeInBits = sizeInBits;</span>
-<span class="fc" id="L44">    }</span>
+<span class="fc" id="L42">    DataTransportSize(byte code, boolean sizeInBits, boolean hasBlankByte) {</span>
+<span class="fc" id="L43">        this.code = code;</span>
+<span class="fc" id="L44">        this.sizeInBits = sizeInBits;</span>
+<span class="fc" id="L45">        this.hasBlankByte = hasBlankByte;</span>
+<span class="fc" id="L46">    }</span>
 
     public byte getCode() {
-<span class="fc" id="L47">        return code;</span>
+<span class="fc" id="L49">        return code;</span>
     }
 
     public boolean isSizeInBits() {
-<span class="nc" id="L51">        return sizeInBits;</span>
+<span class="nc" id="L53">        return sizeInBits;</span>
+    }
+
+    public boolean isHasBlankByte() {
+<span class="nc" id="L57">        return hasBlankByte;</span>
     }
 
     private final static Map&lt;Byte, DataTransportSize&gt; map;
 
     static {
-<span class="fc" id="L57">        map = new HashMap&lt;&gt;();</span>
-<span class="fc bfc" id="L58" title="All 2 branches covered.">        for (DataTransportSize dataTransportSize : DataTransportSize.values()) {</span>
-<span class="fc" id="L59">            map.put(dataTransportSize.code, dataTransportSize);</span>
+<span class="fc" id="L63">        map = new HashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L64" title="All 2 branches covered.">        for (DataTransportSize dataTransportSize : DataTransportSize.values()) {</span>
+<span class="fc" id="L65">            map.put(dataTransportSize.code, dataTransportSize);</span>
         }
-<span class="fc" id="L61">    }</span>
+<span class="fc" id="L67">    }</span>
 
     public static DataTransportSize valueOf(byte code) {
-<span class="fc" id="L64">        return map.get(code);</span>
-    }
-
-    public static DataTransportSize getForTransportSize(TransportSize transportSize) {
-<span class="nc bnc" id="L68" title="All 7 branches missed.">        switch (transportSize) {</span>
-            case BIT:
-<span class="nc" id="L70">                return BIT;</span>
-            case INT:
-<span class="nc" id="L72">                return INTEGER;</span>
-            case DINT:
-<span class="nc" id="L74">                return DINTEGER;</span>
-            case BYTE:
-            case WORD:
-            case DWORD:
-<span class="nc" id="L78">                return BYTE_WORD_DWORD;</span>
-            case CHAR:
-<span class="nc" id="L80">                return OCTET_STRING;</span>
-            case REAL:
-<span class="nc" id="L82">                return REAL;</span>
-            case TIME:
-            case TOD:
-            case TIMER:
-            case S5TIME:
-            case COUNTER:
-            case IEC_TIMER:
-            case HS_COUNTER:
-            case IEC_COUNTER:
-            case DATE_AND_TIME:
-            default:
-<span class="nc" id="L93">                return null;</span>
-        }
+<span class="fc" id="L70">        return map.get(code);</span>
     }
 
 }

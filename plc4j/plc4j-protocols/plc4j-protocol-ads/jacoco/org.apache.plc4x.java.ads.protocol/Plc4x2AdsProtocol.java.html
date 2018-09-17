@@ -20,55 +20,54 @@ package org.apache.plc4x.java.ads.protocol;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.plc4x.java.ads.api.commands.*;
 import org.apache.plc4x.java.ads.api.commands.types.*;
 import org.apache.plc4x.java.ads.api.generic.AmsPacket;
 import org.apache.plc4x.java.ads.api.generic.types.AmsNetId;
 import org.apache.plc4x.java.ads.api.generic.types.AmsPort;
 import org.apache.plc4x.java.ads.api.generic.types.Invoke;
-import org.apache.plc4x.java.ads.model.AdsAddress;
-import org.apache.plc4x.java.ads.model.SymbolicAdsAddress;
+import org.apache.plc4x.java.ads.model.AdsDataType;
+import org.apache.plc4x.java.ads.model.DirectAdsField;
+import org.apache.plc4x.java.ads.model.SymbolicAdsField;
 import org.apache.plc4x.java.ads.protocol.exception.AdsException;
-import org.apache.plc4x.java.ads.protocol.util.LittleEndianDecoder;
 import org.apache.plc4x.java.api.exceptions.PlcException;
 import org.apache.plc4x.java.api.exceptions.PlcIoException;
 import org.apache.plc4x.java.api.exceptions.PlcProtocolException;
-import org.apache.plc4x.java.api.messages.*;
-import org.apache.plc4x.java.api.messages.items.ReadRequestItem;
-import org.apache.plc4x.java.api.messages.items.ReadResponseItem;
-import org.apache.plc4x.java.api.messages.items.WriteRequestItem;
-import org.apache.plc4x.java.api.messages.items.WriteResponseItem;
-import org.apache.plc4x.java.api.messages.specific.TypeSafePlcReadRequest;
-import org.apache.plc4x.java.api.messages.specific.TypeSafePlcReadResponse;
-import org.apache.plc4x.java.api.messages.specific.TypeSafePlcWriteRequest;
-import org.apache.plc4x.java.api.messages.specific.TypeSafePlcWriteResponse;
-import org.apache.plc4x.java.api.model.Address;
-import org.apache.plc4x.java.api.types.ResponseCode;
-import org.apache.plc4x.java.base.messages.PlcRequestContainer;
+import org.apache.plc4x.java.api.exceptions.PlcProtocolPayloadTooBigException;
+import org.apache.plc4x.java.api.messages.PlcProprietaryRequest;
+import org.apache.plc4x.java.api.messages.PlcReadRequest;
+import org.apache.plc4x.java.api.messages.PlcRequest;
+import org.apache.plc4x.java.api.messages.PlcWriteRequest;
+import org.apache.plc4x.java.api.model.PlcField;
+import org.apache.plc4x.java.api.types.PlcResponseCode;
+import org.apache.plc4x.java.base.messages.*;
+import org.apache.plc4x.java.base.messages.items.FieldItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static org.apache.plc4x.java.ads.protocol.util.LittleEndianDecoder.decodeData;
 import static org.apache.plc4x.java.ads.protocol.util.LittleEndianEncoder.encodeData;
 
-public class Plc4x2AdsProtocol extends MessageToMessageCodec&lt;AmsPacket, PlcRequestContainer&lt;PlcRequest, PlcResponse&gt;&gt; {
+public class Plc4x2AdsProtocol extends MessageToMessageCodec&lt;AmsPacket, PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt;&gt; {
 
-<span class="fc" id="L65">    private static final Logger LOGGER = LoggerFactory.getLogger(Plc4x2AdsProtocol.class);</span>
+<span class="fc" id="L64">    private static final Logger LOGGER = LoggerFactory.getLogger(Plc4x2AdsProtocol.class);</span>
 
-<span class="fc" id="L67">    private static final AtomicLong correlationBuilder = new AtomicLong(1);</span>
+<span class="fc" id="L66">    private static final AtomicLong correlationBuilder = new AtomicLong(1);</span>
 
-    private final ConcurrentMap&lt;Long, PlcRequestContainer&lt;PlcRequest, PlcResponse&gt;&gt; requests;
+    private final ConcurrentMap&lt;Long, PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt;&gt; requests;
 
-    private final ConcurrentMap&lt;SymbolicAdsAddress, AdsAddress&gt; addressMapping;
+    private final ConcurrentMap&lt;SymbolicAdsField, DirectAdsField&gt; fieldMapping;
 
     private List&lt;Consumer&lt;AdsDeviceNotificationRequest&gt;&gt; deviceNotificationListeners;
 
@@ -77,243 +76,259 @@ public class Plc4x2AdsProtocol extends MessageToMessageCodec&lt;AmsPacket, PlcRe
     private final AmsNetId sourceAmsNetId;
     private final AmsPort sourceAmsPort;
 
-<span class="fc" id="L80">    public Plc4x2AdsProtocol(AmsNetId targetAmsNetId, AmsPort targetAmsPort, AmsNetId sourceAmsNetId, AmsPort sourceAmsPort, ConcurrentMap&lt;SymbolicAdsAddress, AdsAddress&gt; addressMapping) {</span>
-<span class="fc" id="L81">        this.targetAmsNetId = targetAmsNetId;</span>
-<span class="fc" id="L82">        this.targetAmsPort = targetAmsPort;</span>
-<span class="fc" id="L83">        this.sourceAmsNetId = sourceAmsNetId;</span>
-<span class="fc" id="L84">        this.sourceAmsPort = sourceAmsPort;</span>
-<span class="fc" id="L85">        this.requests = new ConcurrentHashMap&lt;&gt;();</span>
-<span class="fc" id="L86">        this.addressMapping = addressMapping;</span>
-<span class="fc" id="L87">        this.deviceNotificationListeners = new LinkedList&lt;&gt;();</span>
-<span class="fc" id="L88">    }</span>
+<span class="fc" id="L79">    public Plc4x2AdsProtocol(AmsNetId targetAmsNetId, AmsPort targetAmsPort, AmsNetId sourceAmsNetId, AmsPort sourceAmsPort, ConcurrentMap&lt;SymbolicAdsField, DirectAdsField&gt; fieldMapping) {</span>
+<span class="fc" id="L80">        this.targetAmsNetId = targetAmsNetId;</span>
+<span class="fc" id="L81">        this.targetAmsPort = targetAmsPort;</span>
+<span class="fc" id="L82">        this.sourceAmsNetId = sourceAmsNetId;</span>
+<span class="fc" id="L83">        this.sourceAmsPort = sourceAmsPort;</span>
+<span class="fc" id="L84">        this.requests = new ConcurrentHashMap&lt;&gt;();</span>
+<span class="fc" id="L85">        this.fieldMapping = fieldMapping;</span>
+<span class="fc" id="L86">        this.deviceNotificationListeners = new LinkedList&lt;&gt;();</span>
+<span class="fc" id="L87">    }</span>
 
     @Override
-    protected void encode(ChannelHandlerContext ctx, PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; msg, List&lt;Object&gt; out) throws Exception {
-<span class="fc" id="L92">        LOGGER.trace(&quot;(&lt;--OUT): {}, {}, {}&quot;, ctx, msg, out);</span>
-<span class="fc" id="L93">        PlcRequest request = msg.getRequest();</span>
-<span class="fc bfc" id="L94" title="All 2 branches covered.">        if (request instanceof PlcReadRequest) {</span>
-<span class="fc" id="L95">            encodeReadRequest(msg, out);</span>
-<span class="pc bpc" id="L96" title="1 of 2 branches missed.">        } else if (request instanceof PlcWriteRequest) {</span>
-<span class="fc" id="L97">            encodeWriteRequest(msg, out);</span>
-<span class="nc bnc" id="L98" title="All 2 branches missed.">        } else if (request instanceof PlcProprietaryRequest) {</span>
-<span class="nc" id="L99">            encodeProprietaryRequest(msg, out);</span>
+    protected void encode(ChannelHandlerContext ctx, PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; msg, List&lt;Object&gt; out) throws Exception {
+<span class="fc" id="L91">        LOGGER.trace(&quot;(&lt;--OUT): {}, {}, {}&quot;, ctx, msg, out);</span>
+<span class="fc" id="L92">        PlcRequest request = msg.getRequest();</span>
+<span class="fc bfc" id="L93" title="All 2 branches covered.">        if (request instanceof PlcReadRequest) {</span>
+<span class="fc" id="L94">            encodeReadRequest(msg, out);</span>
+<span class="pc bpc" id="L95" title="1 of 2 branches missed.">        } else if (request instanceof PlcWriteRequest) {</span>
+<span class="fc" id="L96">            encodeWriteRequest(msg, out);</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">        } else if (request instanceof PlcProprietaryRequest) {</span>
+<span class="nc" id="L98">            encodeProprietaryRequest(msg, out);</span>
         } else {
-<span class="nc" id="L101">            throw new PlcProtocolException(&quot;Unknown type &quot; + request.getClass());</span>
+<span class="nc" id="L100">            throw new PlcProtocolException(&quot;Unknown type &quot; + request.getClass());</span>
         }
-<span class="fc" id="L103">    }</span>
+<span class="fc" id="L102">    }</span>
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-<span class="nc" id="L107">        LOGGER.trace(&quot;(--&gt;ERR): {}&quot;, ctx, cause);</span>
-<span class="nc bnc" id="L108" title="All 2 branches missed.">        if (cause instanceof AdsException) {</span>
-<span class="nc" id="L109">            Invoke invokeId = ((AdsException) cause).getInvokeId();</span>
-<span class="nc bnc" id="L110" title="All 2 branches missed.">            if (invokeId != null) {</span>
-<span class="nc" id="L111">                PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; remove = requests.remove(invokeId.getAsLong());</span>
-<span class="nc bnc" id="L112" title="All 2 branches missed.">                if (remove != null) {</span>
-<span class="nc" id="L113">                    remove.getResponseFuture().completeExceptionally(new PlcIoException(cause));</span>
+<span class="nc" id="L106">        LOGGER.trace(&quot;(--&gt;ERR): {}&quot;, ctx, cause);</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">        if (cause instanceof AdsException) {</span>
+<span class="nc" id="L108">            Invoke invokeId = ((AdsException) cause).getInvokeId();</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">            if (invokeId != null) {</span>
+<span class="nc" id="L110">                PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; remove = requests.remove(invokeId.getAsLong());</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">                if (remove != null) {</span>
+<span class="nc" id="L112">                    remove.getResponseFuture().completeExceptionally(new PlcIoException(cause));</span>
                 } else {
-<span class="nc" id="L115">                    LOGGER.warn(&quot;Unrelated exception received {}&quot;, invokeId, cause);</span>
+<span class="nc" id="L114">                    LOGGER.warn(&quot;Unrelated exception received {}&quot;, invokeId, cause);</span>
                 }
-<span class="nc" id="L117">            } else {</span>
-<span class="nc" id="L118">                super.exceptionCaught(ctx, cause);</span>
+<span class="nc" id="L116">            } else {</span>
+<span class="nc" id="L117">                super.exceptionCaught(ctx, cause);</span>
             }
-<span class="nc bnc" id="L120" title="All 4 branches missed.">        } else if ((cause instanceof IOException) &amp;&amp; (cause.getMessage().contains(&quot;Connection reset by peer&quot;) ||</span>
-<span class="nc bnc" id="L121" title="All 2 branches missed.">            cause.getMessage().contains(&quot;Operation timed out&quot;))) {</span>
-<span class="nc bnc" id="L122" title="All 2 branches missed.">            String reason = cause.getMessage().contains(&quot;Connection reset by peer&quot;) ?</span>
+<span class="nc bnc" id="L119" title="All 4 branches missed.">        } else if ((cause instanceof IOException) &amp;&amp; (cause.getMessage().contains(&quot;Connection reset by peer&quot;) ||</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">            cause.getMessage().contains(&quot;Operation timed out&quot;))) {</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">            String reason = cause.getMessage().contains(&quot;Connection reset by peer&quot;) ?</span>
                 &quot;Connection terminated unexpectedly&quot; : &quot;Remote host not responding&quot;;
-<span class="nc bnc" id="L124" title="All 2 branches missed.">            if (!requests.isEmpty()) {</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">            if (!requests.isEmpty()) {</span>
                 // If the connection is hung up, all still pending requests can be closed.
-<span class="nc bnc" id="L126" title="All 2 branches missed.">                for (PlcRequestContainer requestContainer : requests.values()) {</span>
-<span class="nc" id="L127">                    requestContainer.getResponseFuture().completeExceptionally(new PlcIoException(reason));</span>
-<span class="nc" id="L128">                }</span>
+<span class="nc bnc" id="L125" title="All 2 branches missed.">                for (PlcRequestContainer requestContainer : requests.values()) {</span>
+<span class="nc" id="L126">                    requestContainer.getResponseFuture().completeExceptionally(new PlcIoException(reason));</span>
+<span class="nc" id="L127">                }</span>
                 // Clear the list
-<span class="nc" id="L130">                requests.clear();</span>
+<span class="nc" id="L129">                requests.clear();</span>
             }
-<span class="nc" id="L132">        } else {</span>
-<span class="nc" id="L133">            super.exceptionCaught(ctx, cause);</span>
+<span class="nc" id="L131">        } else {</span>
+<span class="nc" id="L132">            super.exceptionCaught(ctx, cause);</span>
         }
-<span class="nc" id="L135">    }</span>
+<span class="nc" id="L134">    }</span>
 
-    private void encodeWriteRequest(PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; msg, List&lt;Object&gt; out) throws PlcException {
-<span class="fc" id="L138">        PlcWriteRequest writeRequest = (PlcWriteRequest) msg.getRequest();</span>
-<span class="pc bpc" id="L139" title="1 of 2 branches missed.">        if (writeRequest.getRequestItems().size() != 1) {</span>
-<span class="nc" id="L140">            throw new PlcProtocolException(&quot;Only one item supported&quot;);</span>
+    private void encodeWriteRequest(PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; msg, List&lt;Object&gt; out) throws PlcException {
+<span class="fc" id="L137">        InternalPlcWriteRequest writeRequest = (InternalPlcWriteRequest) msg.getRequest();</span>
+<span class="pc bpc" id="L138" title="1 of 2 branches missed.">        if (writeRequest.getFields().size() != 1) {</span>
+<span class="nc" id="L139">            throw new PlcProtocolException(&quot;Only one item supported&quot;);</span>
         }
-<span class="fc" id="L142">        WriteRequestItem&lt;?&gt; writeRequestItem = writeRequest.getRequestItems().get(0);</span>
-<span class="fc" id="L143">        Address address = writeRequestItem.getAddress();</span>
-<span class="pc bpc" id="L144" title="1 of 2 branches missed.">        if (address instanceof SymbolicAdsAddress) {</span>
-<span class="nc" id="L145">            AdsAddress mappedAddress = addressMapping.get(address);</span>
-<span class="nc" id="L146">            LOGGER.debug(&quot;Replacing {} with {}&quot;, address, mappedAddress);</span>
-<span class="nc" id="L147">            address = mappedAddress;</span>
+<span class="fc" id="L141">        PlcField field = writeRequest.getFields().get(0);</span>
+<span class="pc bpc" id="L142" title="1 of 2 branches missed.">        if (field instanceof SymbolicAdsField) {</span>
+<span class="nc" id="L143">            DirectAdsField mappedField = fieldMapping.get(field);</span>
+<span class="nc" id="L144">            LOGGER.debug(&quot;Replacing {} with {}&quot;, field, mappedField);</span>
+<span class="nc" id="L145">            field = mappedField;</span>
         }
-<span class="pc bpc" id="L149" title="1 of 2 branches missed.">        if (!(address instanceof AdsAddress)) {</span>
-<span class="nc" id="L150">            throw new PlcProtocolException(&quot;Address not of type AdsAddress: &quot; + address.getClass());</span>
+<span class="pc bpc" id="L147" title="1 of 2 branches missed.">        if (!(field instanceof DirectAdsField)) {</span>
+<span class="nc" id="L148">            throw new PlcProtocolException(&quot;PlcField not of type DirectAdsField: &quot; + field.getClass());</span>
         }
-<span class="fc" id="L152">        AdsAddress adsAddress = (AdsAddress) address;</span>
-<span class="fc" id="L153">        Invoke invokeId = Invoke.of(correlationBuilder.incrementAndGet());</span>
-<span class="fc" id="L154">        IndexGroup indexGroup = IndexGroup.of(adsAddress.getIndexGroup());</span>
-<span class="fc" id="L155">        IndexOffset indexOffset = IndexOffset.of(adsAddress.getIndexOffset());</span>
-<span class="fc" id="L156">        byte[] bytes = encodeData(writeRequestItem.getDatatype(), writeRequestItem.getValues().toArray());</span>
-<span class="fc" id="L157">        Data data = Data.of(bytes);</span>
-<span class="fc" id="L158">        AmsPacket amsPacket = AdsWriteRequest.of(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId, indexGroup, indexOffset, data);</span>
-<span class="fc" id="L159">        LOGGER.debug(&quot;encoded write request {}&quot;, amsPacket);</span>
-<span class="fc" id="L160">        out.add(amsPacket);</span>
-<span class="fc" id="L161">        requests.put(invokeId.getAsLong(), msg);</span>
-<span class="fc" id="L162">    }</span>
+<span class="fc" id="L150">        DirectAdsField directAdsField = (DirectAdsField) field;</span>
+<span class="fc" id="L151">        Invoke invokeId = Invoke.of(correlationBuilder.incrementAndGet());</span>
+<span class="fc" id="L152">        IndexGroup indexGroup = IndexGroup.of(directAdsField.getIndexGroup());</span>
+<span class="fc" id="L153">        IndexOffset indexOffset = IndexOffset.of(directAdsField.getIndexOffset());</span>
 
-    private void encodeReadRequest(PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; msg, List&lt;Object&gt; out) throws PlcException {
-<span class="fc" id="L165">        PlcReadRequest readRequest = (PlcReadRequest) msg.getRequest();</span>
+<span class="fc" id="L155">        FieldItem fieldItem = writeRequest.getFieldItems().get(0);</span>
+<span class="fc" id="L156">        Object[] values = fieldItem.getValues();</span>
 
-<span class="pc bpc" id="L167" title="1 of 2 branches missed.">        if (readRequest.getRequestItems().size() != 1) {</span>
-<span class="nc" id="L168">            throw new PlcProtocolException(&quot;Only one item supported&quot;);</span>
+<span class="fc" id="L158">        byte[] bytes = encodeData(directAdsField.getAdsDataType(), values);</span>
+<span class="fc" id="L159">        int bytesToBeWritten = bytes.length;</span>
+<span class="fc" id="L160">        int maxTheoreticalSize = directAdsField.getAdsDataType().getTargetByteSize() * directAdsField.getNumberOfElements();</span>
+<span class="pc bpc" id="L161" title="1 of 2 branches missed.">        if (bytesToBeWritten &gt; maxTheoreticalSize) {</span>
+<span class="nc" id="L162">            throw new PlcProtocolPayloadTooBigException(&quot;Ads&quot;, maxTheoreticalSize, bytesToBeWritten, values);</span>
         }
-<span class="fc" id="L170">        ReadRequestItem&lt;?&gt; readRequestItem = readRequest.getRequestItems().get(0);</span>
-<span class="fc" id="L171">        Address address = readRequestItem.getAddress();</span>
-<span class="pc bpc" id="L172" title="1 of 2 branches missed.">        if (address instanceof SymbolicAdsAddress) {</span>
-<span class="nc" id="L173">            AdsAddress mappedAddress = addressMapping.get(address);</span>
-<span class="nc bnc" id="L174" title="All 2 branches missed.">            if (mappedAddress == null) {</span>
-<span class="nc" id="L175">                throw new PlcProtocolException(&quot;No address mapping for &quot; + address);</span>
+<span class="fc" id="L164">        Data data = Data.of(bytes);</span>
+<span class="fc" id="L165">        AmsPacket amsPacket = AdsWriteRequest.of(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId, indexGroup, indexOffset, data);</span>
+<span class="fc" id="L166">        LOGGER.debug(&quot;encoded write request {}&quot;, amsPacket);</span>
+<span class="fc" id="L167">        out.add(amsPacket);</span>
+<span class="fc" id="L168">        requests.put(invokeId.getAsLong(), msg);</span>
+<span class="fc" id="L169">    }</span>
+
+    private void encodeReadRequest(PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; msg, List&lt;Object&gt; out) throws PlcException {
+<span class="fc" id="L172">        PlcReadRequest readRequest = (PlcReadRequest) msg.getRequest();</span>
+
+<span class="pc bpc" id="L174" title="1 of 2 branches missed.">        if (readRequest.getFields().size() != 1) {</span>
+<span class="nc" id="L175">            throw new PlcProtocolException(&quot;Only one item supported&quot;);</span>
+        }
+<span class="fc" id="L177">        PlcField field = readRequest.getFields().get(0);</span>
+<span class="pc bpc" id="L178" title="1 of 2 branches missed.">        if (field instanceof SymbolicAdsField) {</span>
+<span class="nc" id="L179">            DirectAdsField mappedField = fieldMapping.get(field);</span>
+<span class="nc bnc" id="L180" title="All 2 branches missed.">            if (mappedField == null) {</span>
+<span class="nc" id="L181">                throw new PlcProtocolException(&quot;No field mapping for &quot; + field);</span>
             }
-<span class="nc" id="L177">            LOGGER.debug(&quot;Replacing {} with {}&quot;, address, mappedAddress);</span>
-<span class="nc" id="L178">            address = mappedAddress;</span>
+<span class="nc" id="L183">            LOGGER.debug(&quot;Replacing {} with {}&quot;, field, mappedField);</span>
+<span class="nc" id="L184">            field = mappedField;</span>
         }
-<span class="pc bpc" id="L180" title="1 of 2 branches missed.">        if (!(address instanceof AdsAddress)) {</span>
-<span class="nc" id="L181">            throw new PlcProtocolException(&quot;Address not of type AdsAddress: &quot; + address.getClass());</span>
+<span class="pc bpc" id="L186" title="1 of 2 branches missed.">        if (!(field instanceof DirectAdsField)) {</span>
+<span class="nc" id="L187">            throw new PlcProtocolException(&quot;PlcField not of type DirectAdsField: &quot; + field.getClass());</span>
         }
-<span class="fc" id="L183">        AdsAddress adsAddress = (AdsAddress) address;</span>
-<span class="fc" id="L184">        Invoke invokeId = Invoke.of(correlationBuilder.incrementAndGet());</span>
-<span class="fc" id="L185">        IndexGroup indexGroup = IndexGroup.of(adsAddress.getIndexGroup());</span>
-<span class="fc" id="L186">        IndexOffset indexOffset = IndexOffset.of(adsAddress.getIndexOffset());</span>
-        // TODO: length determination doesn't work here really as this is only known within the plc or by the developer
-<span class="fc" id="L188">        Length length = Length.of(calculateLength(readRequestItem.getDatatype(), readRequestItem.getSize()));</span>
-<span class="fc" id="L189">        AmsPacket amsPacket = AdsReadRequest.of(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId, indexGroup, indexOffset, length);</span>
-<span class="fc" id="L190">        LOGGER.debug(&quot;encoded read request {}&quot;, amsPacket);</span>
-<span class="fc" id="L191">        out.add(amsPacket);</span>
-<span class="fc" id="L192">        requests.put(invokeId.getAsLong(), msg);</span>
-<span class="fc" id="L193">    }</span>
+<span class="fc" id="L189">        DirectAdsField directAdsField = (DirectAdsField) field;</span>
+<span class="fc" id="L190">        Invoke invokeId = Invoke.of(correlationBuilder.incrementAndGet());</span>
+<span class="fc" id="L191">        IndexGroup indexGroup = IndexGroup.of(directAdsField.getIndexGroup());</span>
+<span class="fc" id="L192">        IndexOffset indexOffset = IndexOffset.of(directAdsField.getIndexOffset());</span>
+<span class="fc" id="L193">        AdsDataType adsDataType = directAdsField.getAdsDataType();</span>
+<span class="fc" id="L194">        int numberOfElements = directAdsField.getNumberOfElements();</span>
+<span class="fc" id="L195">        int readLength = adsDataType.getTargetByteSize() * numberOfElements;</span>
+<span class="fc" id="L196">        Length length = Length.of(readLength);</span>
+<span class="fc" id="L197">        AmsPacket amsPacket = AdsReadRequest.of(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId, indexGroup, indexOffset, length);</span>
+<span class="fc" id="L198">        LOGGER.debug(&quot;encoded read request {}&quot;, amsPacket);</span>
+<span class="fc" id="L199">        out.add(amsPacket);</span>
+<span class="fc" id="L200">        requests.put(invokeId.getAsLong(), msg);</span>
+<span class="fc" id="L201">    }</span>
 
-    private long calculateLength(Class&lt;?&gt; dataType, int size) {
-<span class="fc" id="L196">        return LittleEndianDecoder.getLengthFor(dataType, 16) * size;</span>
-    }
-
-    private void encodeProprietaryRequest(PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; msg, List&lt;Object&gt; out) throws PlcProtocolException {
-<span class="nc" id="L200">        PlcProprietaryRequest plcProprietaryRequest = (PlcProprietaryRequest) msg.getRequest();</span>
-<span class="nc bnc" id="L201" title="All 2 branches missed.">        if (!(plcProprietaryRequest.getRequest() instanceof AmsPacket)) {</span>
-<span class="nc" id="L202">            throw new PlcProtocolException(&quot;Unsupported proprietary type for this driver &quot; + plcProprietaryRequest.getRequest().getClass());</span>
+    private void encodeProprietaryRequest(PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; msg, List&lt;Object&gt; out) throws PlcProtocolException {
+<span class="nc" id="L204">        PlcProprietaryRequest plcProprietaryRequest = (PlcProprietaryRequest) msg.getRequest();</span>
+<span class="nc bnc" id="L205" title="All 2 branches missed.">        if (!(plcProprietaryRequest.getProprietaryRequest() instanceof AmsPacket)) {</span>
+<span class="nc" id="L206">            throw new PlcProtocolException(&quot;Unsupported proprietary type for this driver &quot; + plcProprietaryRequest.getProprietaryRequest().getClass());</span>
         }
-<span class="nc" id="L204">        AmsPacket amsPacket = (AmsPacket) plcProprietaryRequest.getRequest();</span>
-<span class="nc" id="L205">        LOGGER.debug(&quot;encoded proprietary request {}&quot;, amsPacket);</span>
-<span class="nc" id="L206">        out.add(amsPacket);</span>
-<span class="nc" id="L207">        requests.put(amsPacket.getAmsHeader().getInvokeId().getAsLong(), msg);</span>
-<span class="nc" id="L208">    }</span>
+<span class="nc" id="L208">        AmsPacket amsPacket = (AmsPacket) plcProprietaryRequest.getProprietaryRequest();</span>
+<span class="nc" id="L209">        LOGGER.debug(&quot;encoded proprietary request {}&quot;, amsPacket);</span>
+<span class="nc" id="L210">        out.add(amsPacket);</span>
+<span class="nc" id="L211">        requests.put(amsPacket.getAmsHeader().getInvokeId().getAsLong(), msg);</span>
+<span class="nc" id="L212">    }</span>
 
     @Override
     protected void decode(ChannelHandlerContext channelHandlerContext, AmsPacket amsPacket, List&lt;Object&gt; out) throws Exception {
-<span class="fc" id="L212">        LOGGER.trace(&quot;(--&gt;IN): {}, {}, {}&quot;, channelHandlerContext, amsPacket, out);</span>
-<span class="pc bpc" id="L213" title="1 of 2 branches missed.">        if (amsPacket instanceof AdsDeviceNotificationRequest) {</span>
-<span class="nc" id="L214">            LOGGER.debug(&quot;Received notification {}&quot;, amsPacket);</span>
-<span class="nc" id="L215">            handleAdsDeviceNotificationRequest((AdsDeviceNotificationRequest) amsPacket);</span>
-<span class="nc" id="L216">            return;</span>
+<span class="fc" id="L216">        LOGGER.trace(&quot;(--&gt;IN): {}, {}, {}&quot;, channelHandlerContext, amsPacket, out);</span>
+<span class="pc bpc" id="L217" title="1 of 2 branches missed.">        if (amsPacket instanceof AdsDeviceNotificationRequest) {</span>
+<span class="nc" id="L218">            LOGGER.debug(&quot;Received notification {}&quot;, amsPacket);</span>
+<span class="nc" id="L219">            handleAdsDeviceNotificationRequest((AdsDeviceNotificationRequest) amsPacket);</span>
+<span class="nc" id="L220">            return;</span>
         }
-<span class="fc" id="L218">        PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; plcRequestContainer = requests.remove(amsPacket.getAmsHeader().getInvokeId().getAsLong());</span>
-<span class="pc bpc" id="L219" title="1 of 2 branches missed.">        if (plcRequestContainer == null) {</span>
-<span class="nc" id="L220">            LOGGER.info(&quot;Unmapped packet received {}&quot;, amsPacket);</span>
-<span class="nc" id="L221">            return;</span>
+<span class="fc" id="L222">        PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; plcRequestContainer = requests.remove(amsPacket.getAmsHeader().getInvokeId().getAsLong());</span>
+<span class="pc bpc" id="L223" title="1 of 2 branches missed.">        if (plcRequestContainer == null) {</span>
+<span class="nc" id="L224">            LOGGER.info(&quot;Unmapped packet received {}&quot;, amsPacket);</span>
+<span class="nc" id="L225">            return;</span>
         }
-<span class="fc" id="L223">        PlcRequest request = plcRequestContainer.getRequest();</span>
-<span class="fc" id="L224">        PlcResponse response = null;</span>
+<span class="fc" id="L227">        PlcRequest request = plcRequestContainer.getRequest();</span>
+        final InternalPlcResponse response;
 
         // Handle the response to a read request.
-<span class="fc bfc" id="L227" title="All 2 branches covered.">        if (request instanceof PlcReadRequest) {</span>
-<span class="pc bpc" id="L228" title="1 of 2 branches missed.">            if (amsPacket instanceof AdsReadResponse) {</span>
-<span class="fc" id="L229">                response = decodeReadResponse((AdsReadResponse) amsPacket, plcRequestContainer);</span>
+<span class="fc bfc" id="L231" title="All 2 branches covered.">        if (request instanceof PlcReadRequest) {</span>
+<span class="pc bpc" id="L232" title="1 of 2 branches missed.">            if (amsPacket instanceof AdsReadResponse) {</span>
+<span class="fc" id="L233">                response = decodeReadResponse((AdsReadResponse) amsPacket, plcRequestContainer);</span>
             } else {
-<span class="nc" id="L231">                throw new PlcProtocolException(&quot;Wrong type correlated &quot; + amsPacket);</span>
+<span class="nc" id="L235">                throw new PlcProtocolException(&quot;Wrong type correlated &quot; + amsPacket);</span>
             }
-<span class="pc bpc" id="L233" title="1 of 2 branches missed.">        } else if (request instanceof PlcWriteRequest) {</span>
-<span class="pc bpc" id="L234" title="1 of 2 branches missed.">            if (amsPacket instanceof AdsWriteResponse) {</span>
-<span class="fc" id="L235">                response = decodeWriteResponse((AdsWriteResponse) amsPacket, plcRequestContainer);</span>
+<span class="pc bpc" id="L237" title="1 of 2 branches missed.">        } else if (request instanceof PlcWriteRequest) {</span>
+<span class="pc bpc" id="L238" title="1 of 2 branches missed.">            if (amsPacket instanceof AdsWriteResponse) {</span>
+<span class="fc" id="L239">                response = decodeWriteResponse((AdsWriteResponse) amsPacket, plcRequestContainer);</span>
             } else {
-<span class="nc" id="L237">                throw new PlcProtocolException(&quot;Wrong type correlated &quot; + amsPacket);</span>
+<span class="nc" id="L241">                throw new PlcProtocolException(&quot;Wrong type correlated &quot; + amsPacket);</span>
             }
-<span class="nc bnc" id="L239" title="All 2 branches missed.">        } else if (request instanceof PlcProprietaryRequest) {</span>
-<span class="nc" id="L240">            response = decodeProprietaryResponse(amsPacket, plcRequestContainer);</span>
+<span class="nc bnc" id="L243" title="All 2 branches missed.">        } else if (request instanceof PlcProprietaryRequest) {</span>
+<span class="nc" id="L244">            response = decodeProprietaryResponse(amsPacket, plcRequestContainer);</span>
+        } else {
+<span class="nc" id="L246">            response = null;</span>
         }
-<span class="fc" id="L242">        LOGGER.debug(&quot;Plc4x response {}&quot;, response);</span>
+<span class="fc" id="L248">        LOGGER.debug(&quot;Plc4x response {}&quot;, response);</span>
 
         // Confirm the response being handled.
-<span class="pc bpc" id="L245" title="1 of 2 branches missed.">        if (response != null) {</span>
-<span class="fc" id="L246">            plcRequestContainer.getResponseFuture().complete(response);</span>
+<span class="pc bpc" id="L251" title="1 of 2 branches missed.">        if (response != null) {</span>
+<span class="fc" id="L252">            plcRequestContainer.getResponseFuture().complete(response);</span>
         }
-<span class="fc" id="L248">    }</span>
+<span class="fc" id="L254">    }</span>
 
     private void handleAdsDeviceNotificationRequest(AdsDeviceNotificationRequest adsDeviceNotificationRequest) {
-<span class="nc bnc" id="L251" title="All 2 branches missed.">        for (Consumer&lt;AdsDeviceNotificationRequest&gt; deviceNotificationListener : deviceNotificationListeners) {</span>
+<span class="nc bnc" id="L257" title="All 2 branches missed.">        for (Consumer&lt;AdsDeviceNotificationRequest&gt; deviceNotificationListener : deviceNotificationListeners) {</span>
             try {
-<span class="nc" id="L253">                deviceNotificationListener.accept(adsDeviceNotificationRequest);</span>
-<span class="nc" id="L254">            } catch (RuntimeException e) {</span>
-<span class="nc" id="L255">                LOGGER.error(&quot;Exception received from {} while handling {}&quot;, deviceNotificationListener, adsDeviceNotificationRequest, e);</span>
-<span class="nc" id="L256">            }</span>
-<span class="nc" id="L257">        }</span>
-<span class="nc" id="L258">    }</span>
+<span class="nc" id="L259">                deviceNotificationListener.accept(adsDeviceNotificationRequest);</span>
+<span class="nc" id="L260">            } catch (RuntimeException e) {</span>
+<span class="nc" id="L261">                LOGGER.error(&quot;Exception received from {} while handling {}&quot;, deviceNotificationListener, adsDeviceNotificationRequest, e);</span>
+<span class="nc" id="L262">            }</span>
+<span class="nc" id="L263">        }</span>
+<span class="nc" id="L264">    }</span>
 
     public boolean addConsumer(Consumer&lt;AdsDeviceNotificationRequest&gt; adsDeviceNotificationRequestConsumer) {
-<span class="nc" id="L261">        return deviceNotificationListeners.add(adsDeviceNotificationRequestConsumer);</span>
+<span class="nc" id="L267">        return deviceNotificationListeners.add(adsDeviceNotificationRequestConsumer);</span>
     }
 
     public boolean removeConsumer(Consumer&lt;AdsDeviceNotificationRequest&gt; adsDeviceNotificationRequestConsumer) {
-<span class="nc" id="L265">        return deviceNotificationListeners.remove(adsDeviceNotificationRequestConsumer);</span>
+<span class="nc" id="L271">        return deviceNotificationListeners.remove(adsDeviceNotificationRequestConsumer);</span>
     }
 
 
     @SuppressWarnings(&quot;unchecked&quot;)
-    private PlcResponse decodeWriteResponse(AdsWriteResponse responseMessage, PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; requestContainer) {
-<span class="fc" id="L271">        PlcWriteRequest plcWriteRequest = (PlcWriteRequest) requestContainer.getRequest();</span>
-<span class="fc" id="L272">        WriteRequestItem requestItem = plcWriteRequest.getRequestItems().get(0);</span>
+    private InternalPlcResponse decodeWriteResponse(AdsWriteResponse responseMessage, PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; requestContainer) {
+<span class="fc" id="L277">        InternalPlcWriteRequest plcWriteRequest = (InternalPlcWriteRequest) requestContainer.getRequest();</span>
+<span class="fc" id="L278">        PlcResponseCode responseCode = decodeResponseCode(responseMessage.getResult());</span>
 
-<span class="fc" id="L274">        ResponseCode responseCode = decodeResponseCode(responseMessage.getResult());</span>
-
-<span class="pc bpc" id="L276" title="1 of 2 branches missed.">        if (plcWriteRequest instanceof TypeSafePlcWriteRequest) {</span>
-<span class="fc" id="L277">            return new TypeSafePlcWriteResponse((TypeSafePlcWriteRequest) plcWriteRequest, Collections.singletonList(new WriteResponseItem&lt;&gt;(requestItem, responseCode)));</span>
-        } else {
-<span class="nc" id="L279">            return new PlcWriteResponse(plcWriteRequest, Collections.singletonList(new WriteResponseItem&lt;&gt;(requestItem, responseCode)));</span>
-        }
+        // TODO: does every item has the same ads response or is this whole aggregation broken?
+<span class="fc" id="L281">        Map&lt;String, PlcResponseCode&gt; responseItems = plcWriteRequest.getFieldNames()</span>
+<span class="fc" id="L282">            .stream()</span>
+<span class="fc" id="L283">            .collect(Collectors.toMap(</span>
+<span class="fc" id="L284">                fieldName -&gt; fieldName,</span>
+<span class="fc" id="L285">                __ -&gt; responseCode</span>
+            ));
+<span class="fc" id="L287">        return new DefaultPlcWriteResponse(plcWriteRequest, responseItems);</span>
     }
 
     @SuppressWarnings(&quot;unchecked&quot;)
-    private PlcResponse decodeReadResponse(AdsReadResponse responseMessage, PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; requestContainer) throws PlcProtocolException {
-<span class="fc" id="L285">        PlcReadRequest plcReadRequest = (PlcReadRequest) requestContainer.getRequest();</span>
-<span class="fc" id="L286">        ReadRequestItem requestItem = plcReadRequest.getRequestItems().get(0);</span>
+    private InternalPlcResponse decodeReadResponse(AdsReadResponse responseMessage, PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; requestContainer) {
+<span class="fc" id="L292">        InternalPlcReadRequest plcReadRequest = (InternalPlcReadRequest) requestContainer.getRequest();</span>
 
-<span class="fc" id="L288">        ResponseCode responseCode = decodeResponseCode(responseMessage.getResult());</span>
-<span class="fc" id="L289">        byte[] bytes = responseMessage.getData().getBytes();</span>
-<span class="fc" id="L290">        List decoded = decodeData(requestItem.getDatatype(), bytes);</span>
+        // TODO: only single requests supported for now
+<span class="fc" id="L295">        DirectAdsField field = (DirectAdsField) plcReadRequest.getFields().get(0);</span>
 
-<span class="fc bfc" id="L292" title="All 2 branches covered.">        if (plcReadRequest instanceof TypeSafePlcReadRequest) {</span>
-<span class="fc" id="L293">            return new TypeSafePlcReadResponse((TypeSafePlcReadRequest) plcReadRequest, Collections.singletonList(new ReadResponseItem&lt;&gt;(requestItem, responseCode, decoded)));</span>
-        } else {
-<span class="fc" id="L295">            return new PlcReadResponse(plcReadRequest, Collections.singletonList(new ReadResponseItem&lt;&gt;(requestItem, responseCode, decoded)));</span>
-        }
+
+<span class="fc" id="L298">        PlcResponseCode responseCode = decodeResponseCode(responseMessage.getResult());</span>
+<span class="fc" id="L299">        byte[] bytes = responseMessage.getData().getBytes();</span>
+<span class="fc" id="L300">        FieldItem&lt;?&gt; fieldItem = decodeData(field.getAdsDataType(), bytes);</span>
+
+        // TODO: does every item has the same ads response or is this whole aggregation broken?
+<span class="fc" id="L303">        Map&lt;String, Pair&lt;PlcResponseCode, FieldItem&gt;&gt; responseItems = plcReadRequest.getFieldNames()</span>
+<span class="fc" id="L304">            .stream()</span>
+<span class="fc" id="L305">            .collect(Collectors.toMap(</span>
+<span class="fc" id="L306">                fieldName -&gt; fieldName,</span>
+<span class="fc" id="L307">                __ -&gt; Pair.of(responseCode, fieldItem)</span>
+            ));
+
+<span class="fc" id="L310">        return new DefaultPlcReadResponse(plcReadRequest, responseItems);</span>
     }
 
-    private PlcResponse decodeProprietaryResponse(AmsPacket amsPacket, PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; plcRequestContainer) {
-<span class="nc" id="L300">        return new PlcProprietaryResponse&lt;&gt;((PlcProprietaryRequest) plcRequestContainer.getRequest(), amsPacket);</span>
+    @SuppressWarnings(&quot;unchecked&quot;)
+    private InternalPlcResponse decodeProprietaryResponse(AmsPacket amsPacket, PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; plcRequestContainer) {
+<span class="nc" id="L315">        return new DefaultPlcProprietaryResponse&lt;&gt;((InternalPlcProprietaryRequest) plcRequestContainer.getRequest(), amsPacket);</span>
     }
 
-    private ResponseCode decodeResponseCode(Result result) {
-<span class="pc bpc" id="L304" title="6 of 7 branches missed.">        switch (result.toAdsReturnCode()) {</span>
+    private PlcResponseCode decodeResponseCode(Result result) {
+<span class="pc bpc" id="L319" title="6 of 7 branches missed.">        switch (result.toAdsReturnCode()) {</span>
             case ADS_CODE_0:
-<span class="fc" id="L306">                return ResponseCode.OK;</span>
+<span class="fc" id="L321">                return PlcResponseCode.OK;</span>
             case ADS_CODE_1:
-<span class="nc" id="L308">                return ResponseCode.INTERNAL_ERROR;</span>
+<span class="nc" id="L323">                return PlcResponseCode.INTERNAL_ERROR;</span>
             case ADS_CODE_2:
             case ADS_CODE_3:
             case ADS_CODE_4:
             case ADS_CODE_5:
-<span class="nc" id="L313">                return ResponseCode.INTERNAL_ERROR;</span>
+<span class="nc" id="L328">                return PlcResponseCode.INTERNAL_ERROR;</span>
             case ADS_CODE_6:
             case ADS_CODE_7:
-<span class="nc" id="L316">                return ResponseCode.INVALID_ADDRESS;</span>
+<span class="nc" id="L331">                return PlcResponseCode.INVALID_ADDRESS;</span>
             case ADS_CODE_8:
             case ADS_CODE_9:
             case ADS_CODE_10:
@@ -426,11 +441,11 @@ public class Plc4x2AdsProtocol extends MessageToMessageCodec&lt;AmsPacket, PlcRe
             case ADS_CODE_10060:
             case ADS_CODE_10061:
             case ADS_CODE_10065:
-<span class="nc" id="L429">                return ResponseCode.INTERNAL_ERROR;</span>
+<span class="nc" id="L444">                return PlcResponseCode.INTERNAL_ERROR;</span>
             case UNKNOWN:
-<span class="nc" id="L431">                return ResponseCode.INTERNAL_ERROR;</span>
+<span class="nc" id="L446">                return PlcResponseCode.INTERNAL_ERROR;</span>
         }
-<span class="nc" id="L433">        throw new IllegalStateException(result.toAdsReturnCode() + &quot; not mapped&quot;);</span>
+<span class="nc" id="L448">        throw new IllegalStateException(result.toAdsReturnCode() + &quot; not mapped&quot;);</span>
     }
 
 }

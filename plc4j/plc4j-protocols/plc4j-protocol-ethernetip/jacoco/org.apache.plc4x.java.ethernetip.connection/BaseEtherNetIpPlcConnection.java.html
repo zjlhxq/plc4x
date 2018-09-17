@@ -21,13 +21,11 @@ package org.apache.plc4x.java.ethernetip.connection;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.plc4x.java.api.connection.PlcReader;
 import org.apache.plc4x.java.api.connection.PlcWriter;
-import org.apache.plc4x.java.api.exceptions.PlcInvalidAddressException;
 import org.apache.plc4x.java.api.messages.*;
-import org.apache.plc4x.java.api.model.Address;
 import org.apache.plc4x.java.base.connection.AbstractPlcConnection;
 import org.apache.plc4x.java.base.connection.ChannelFactory;
-import org.apache.plc4x.java.base.messages.PlcRequestContainer;
-import org.apache.plc4x.java.ethernetip.model.EtherNetIpAddress;
+import org.apache.plc4x.java.base.messages.*;
+import org.apache.plc4x.java.ethernetip.netty.util.EnipPlcFieldHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,52 +33,64 @@ import java.util.concurrent.CompletableFuture;
 
 public abstract class BaseEtherNetIpPlcConnection extends AbstractPlcConnection implements PlcReader, PlcWriter {
 
-<span class="nc" id="L38">    private static final Logger logger = LoggerFactory.getLogger(BaseEtherNetIpPlcConnection.class);</span>
+<span class="nc" id="L36">    private static final Logger logger = LoggerFactory.getLogger(BaseEtherNetIpPlcConnection.class);</span>
 
-    protected BaseEtherNetIpPlcConnection(ChannelFactory channelFactory, String params) {
-<span class="nc" id="L41">        super(channelFactory, true);</span>
+    BaseEtherNetIpPlcConnection(ChannelFactory channelFactory, String params) {
+<span class="nc" id="L39">        super(channelFactory, true);</span>
 
-<span class="nc bnc" id="L43" title="All 2 branches missed.">        if (!StringUtils.isEmpty(params)) {</span>
-<span class="nc bnc" id="L44" title="All 2 branches missed.">            for (String param : params.split(&quot;&amp;&quot;)) {</span>
-<span class="nc" id="L45">                String[] paramElements = param.split(&quot;=&quot;);</span>
-<span class="nc" id="L46">                String paramName = paramElements[0];</span>
-<span class="nc bnc" id="L47" title="All 2 branches missed.">                if (paramElements.length == 2) {</span>
-<span class="nc" id="L48">                    String paramValue = paramElements[1];</span>
-<span class="nc" id="L49">                    switch (paramName) {</span>
+<span class="nc bnc" id="L41" title="All 2 branches missed.">        if (!StringUtils.isEmpty(params)) {</span>
+<span class="nc bnc" id="L42" title="All 2 branches missed.">            for (String param : params.split(&quot;&amp;&quot;)) {</span>
+<span class="nc" id="L43">                String[] paramElements = param.split(&quot;=&quot;);</span>
+<span class="nc" id="L44">                String paramName = paramElements[0];</span>
+<span class="nc bnc" id="L45" title="All 2 branches missed.">                if (paramElements.length == 2) {</span>
+<span class="nc" id="L46">                    String paramValue = paramElements[1];</span>
+<span class="nc" id="L47">                    switch (paramName) {</span>
                         default:
-<span class="nc" id="L51">                            logger.debug(&quot;Unknown parameter {} with value {}&quot;, paramName, paramValue);</span>
+<span class="nc" id="L49">                            logger.debug(&quot;Unknown parameter {} with value {}&quot;, paramName, paramValue);</span>
                     }
-<span class="nc" id="L53">                } else {</span>
-<span class="nc" id="L54">                    logger.debug(&quot;Unknown no-value parameter {}&quot;, paramName);</span>
+<span class="nc" id="L51">                } else {</span>
+<span class="nc" id="L52">                    logger.debug(&quot;Unknown no-value parameter {}&quot;, paramName);</span>
                 }
             }
         }
-<span class="nc" id="L58">    }</span>
+<span class="nc" id="L56">    }</span>
 
     @Override
-    public Address parseAddress(String addressString) throws PlcInvalidAddressException {
-<span class="nc bnc" id="L62" title="All 2 branches missed.">        if(EtherNetIpAddress.matches(addressString)) {</span>
-<span class="nc" id="L63">            return EtherNetIpAddress.of(addressString);</span>
-        }
-<span class="nc" id="L65">        throw new PlcInvalidAddressException(addressString);</span>
+    public PlcReadRequest.Builder readRequestBuilder() {
+<span class="nc" id="L60">        return new DefaultPlcReadRequest.Builder(new EnipPlcFieldHandler());</span>
     }
 
     @Override
-    public CompletableFuture&lt;PlcReadResponse&gt; read(PlcReadRequest readRequest) {
-<span class="nc" id="L70">        CompletableFuture&lt;PlcReadResponse&gt; readFuture = new CompletableFuture&lt;&gt;();</span>
-<span class="nc" id="L71">        PlcRequestContainer&lt;PlcReadRequest, PlcReadResponse&gt; container =</span>
-            new PlcRequestContainer&lt;&gt;(readRequest, readFuture);
-<span class="nc" id="L73">        channel.writeAndFlush(container);</span>
-<span class="nc" id="L74">        return readFuture;</span>
+    public CompletableFuture&lt;PlcReadResponse&lt;?&gt;&gt; read(PlcReadRequest readRequest) {
+<span class="nc" id="L65">        CompletableFuture&lt;InternalPlcReadResponse&gt; future = new CompletableFuture&lt;&gt;();</span>
+<span class="nc" id="L66">        PlcRequestContainer&lt;InternalPlcReadRequest, InternalPlcReadResponse&gt; container =</span>
+            new PlcRequestContainer&lt;&gt;((InternalPlcReadRequest) readRequest, future);
+<span class="nc" id="L68">        channel.writeAndFlush(container).addListener(f -&gt; {</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">            if (!f.isSuccess()) {</span>
+<span class="nc" id="L70">                future.completeExceptionally(f.cause());</span>
+            }
+<span class="nc" id="L72">        });</span>
+<span class="nc" id="L73">        return future</span>
+<span class="nc" id="L74">            .thenApply(PlcReadResponse.class::cast);</span>
     }
 
     @Override
-    public CompletableFuture&lt;PlcWriteResponse&gt; write(PlcWriteRequest writeRequest) {
-<span class="nc" id="L79">        CompletableFuture&lt;PlcWriteResponse&gt; writeFuture = new CompletableFuture&lt;&gt;();</span>
-<span class="nc" id="L80">        PlcRequestContainer&lt;PlcWriteRequest, PlcWriteResponse&gt; container =</span>
-            new PlcRequestContainer&lt;&gt;(writeRequest, writeFuture);
-<span class="nc" id="L82">        channel.writeAndFlush(container);</span>
-<span class="nc" id="L83">        return writeFuture;</span>
+    public PlcWriteRequest.Builder writeRequestBuilder() {
+<span class="nc" id="L79">        return new DefaultPlcWriteRequest.Builder(new EnipPlcFieldHandler());</span>
+    }
+
+    @Override
+    public CompletableFuture&lt;PlcWriteResponse&lt;?&gt;&gt; write(PlcWriteRequest writeRequest) {
+<span class="nc" id="L84">        CompletableFuture&lt;InternalPlcWriteResponse&gt; future = new CompletableFuture&lt;&gt;();</span>
+<span class="nc" id="L85">        PlcRequestContainer&lt;InternalPlcWriteRequest, InternalPlcWriteResponse&gt; container =</span>
+            new PlcRequestContainer&lt;&gt;((InternalPlcWriteRequest) writeRequest, future);
+<span class="nc" id="L87">        channel.writeAndFlush(container).addListener(f -&gt; {</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">            if (!f.isSuccess()) {</span>
+<span class="nc" id="L89">                future.completeExceptionally(f.cause());</span>
+            }
+<span class="nc" id="L91">        });</span>
+<span class="nc" id="L92">        return future</span>
+<span class="nc" id="L93">            .thenApply(PlcWriteResponse.class::cast);</span>
     }
 
 }

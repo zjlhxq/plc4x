@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PlcSubscriber.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PLC4J: API</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.java.api.connection</a> &gt; <span class="el_source">PlcSubscriber.java</span></div><h1>PlcSubscriber.java</h1><pre class="source lang-java linenums">/*
+ Licensed to the Apache Software Foundation (ASF) under one
+ or more contributor license agreements.  See the NOTICE file
+ distributed with this work for additional information
+ regarding copyright ownership.  The ASF licenses this file
+ to you under the Apache License, Version 2.0 (the
+ &quot;License&quot;); you may not use this file except in compliance
+ with the License.  You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing,
+ software distributed under the License is distributed on an
+ &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ KIND, either express or implied.  See the License for the
+ specific language governing permissions and limitations
+ under the License.
+ */
+package org.apache.plc4x.java.api.connection;
+
+import org.apache.plc4x.java.api.messages.*;
+import org.apache.plc4x.java.api.model.PlcConsumerRegistration;
+import org.apache.plc4x.java.api.model.PlcSubscriptionHandle;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
+
+/**
+ * Interface implemented by all PlcConnections that are able to receive notifications from remote resources.
+ */
+public interface PlcSubscriber {
+
+    /**
+     * Subscribes to fields on the PLC.
+     *
+     * @param subscriptionRequest subscription request containing at least one subscription request item.
+     * @return subscription response containing a subscription response item for each subscription request item.
+     */
+    CompletableFuture&lt;PlcSubscriptionResponse&gt; subscribe(PlcSubscriptionRequest subscriptionRequest);
+
+    /**
+     * Subscribes to fields on the PLC.
+     *
+     * @param plcSubscriptionRequestBuilderConsumer consumer which can be used to build requests.
+     * @return subscription response containing a subscription response item for each subscription request item.
+     */
+    default CompletableFuture&lt;PlcSubscriptionResponse&gt; subscribe(Consumer&lt;PlcSubscriptionRequest.Builder&gt; plcSubscriptionRequestBuilderConsumer) {
+<span class="nc" id="L51">        PlcSubscriptionRequest.Builder builder = subscriptionRequestBuilder();</span>
+<span class="nc" id="L52">        plcSubscriptionRequestBuilderConsumer.accept(builder);</span>
+<span class="nc" id="L53">        return subscribe(builder.build());</span>
+    }
+
+    /**
+     * Unsubscribes from fields on the PLC. For unsubscribing the unsubscription request uses the subscription
+     * handle returned as part of the subscription response item.
+     *
+     * @param unsubscriptionRequest unsubscription request containing at least one unsubscription request item.
+     * @return unsubscription response containing a unsubscription response item for each unsubscription request item.
+     */
+    CompletableFuture&lt;PlcUnsubscriptionResponse&gt; unsubscribe(PlcUnsubscriptionRequest unsubscriptionRequest);
+
+    /**
+     * Unsubscribes from fields on the PLC. For unsubscribing the unsubscription request uses the subscription
+     * handle returned as part of the subscription response item.
+     *
+     * @param plcSubscriptionRequestBuilderConsumer consumer which can be used to build requests.
+     * @return unsubscription response containing a unsubscription response item for each unsubscription request item.
+     */
+    default CompletableFuture&lt;PlcUnsubscriptionResponse&gt; unsubscribe(Consumer&lt;PlcUnsubscriptionRequest.Builder&gt; plcSubscriptionRequestBuilderConsumer) {
+<span class="nc" id="L73">        PlcUnsubscriptionRequest.Builder builder = unsubscriptionRequestBuilder();</span>
+<span class="nc" id="L74">        plcSubscriptionRequestBuilderConsumer.accept(builder);</span>
+<span class="nc" id="L75">        return unsubscribe(builder.build());</span>
+    }
+
+    /**
+     * Convenience method to subscribe a {@link Consumer} to all fields of the subscription.
+     *
+     * @param subscriptionRequest subscription request
+     * @param consumer            consumer for all {@link PlcSubscriptionEvent}s
+     * @return TODO: document me
+     * @throws ExecutionException   something went wrong.
+     * @throws InterruptedException something went wrong.
+     */
+    default PlcConsumerRegistration register(PlcSubscriptionRequest subscriptionRequest, Consumer&lt;PlcSubscriptionEvent&gt; consumer) throws ExecutionException, InterruptedException {
+<span class="nc" id="L88">        PlcSubscriptionResponse plcSubscriptionResponse = subscribe(subscriptionRequest).get();</span>
+        // TODO: we need to return the plcSubscriptionResponse here too as we need this to unsubscribe...
+<span class="nc" id="L90">        return register(consumer, plcSubscriptionResponse.getSubscriptionHandles().toArray(new PlcSubscriptionHandle[0]));</span>
+    }
+
+    /**
+     * Convenience method to subscribe a {@link Consumer} to all fields of the subscription.
+     *
+     * @param subscriptionRequestBuilderConsumer consumer for building subscription request.
+     * @param consumer                           consumer for all {@link PlcSubscriptionEvent}s
+     * @return TODO: document me
+     * @throws ExecutionException   something went wrong.
+     * @throws InterruptedException something went wrong.
+     */
+    default PlcConsumerRegistration register(Consumer&lt;PlcSubscriptionRequest.Builder&gt; subscriptionRequestBuilderConsumer, Consumer&lt;PlcSubscriptionEvent&gt; consumer) throws ExecutionException, InterruptedException {
+<span class="nc" id="L103">        PlcSubscriptionRequest.Builder builder = subscriptionRequestBuilder();</span>
+<span class="nc" id="L104">        subscriptionRequestBuilderConsumer.accept(builder);</span>
+<span class="nc" id="L105">        return register(builder.build(), consumer);</span>
+    }
+
+    /**
+     * @param consumer
+     * @param handles
+     * @return TODO: document me
+     */
+    PlcConsumerRegistration register(Consumer&lt;PlcSubscriptionEvent&gt; consumer, Collection&lt;PlcSubscriptionHandle&gt; handles);
+
+    default PlcConsumerRegistration register(Consumer&lt;PlcSubscriptionEvent&gt; consumer, PlcSubscriptionHandle... handles) {
+<span class="nc" id="L116">        return register(consumer, Arrays.asList(handles));</span>
+    }
+
+    /**
+     * // TODO: document me.
+     */
+    void unregister(PlcConsumerRegistration registration);
+
+    PlcSubscriptionRequest.Builder subscriptionRequestBuilder();
+
+    PlcUnsubscriptionRequest.Builder unsubscriptionRequestBuilder();
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

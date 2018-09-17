@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>S7ResponseSizeEstimator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PLC4J: Protocol: S7</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.java.s7.netty.util</a> &gt; <span class="el_source">S7ResponseSizeEstimator.java</span></div><h1>S7ResponseSizeEstimator.java</h1><pre class="source lang-java linenums">package org.apache.plc4x.java.s7.netty.util;
-/*
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>S7ResponseSizeEstimator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PLC4J: Protocol: S7</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.java.s7.netty.util</a> &gt; <span class="el_source">S7ResponseSizeEstimator.java</span></div><h1>S7ResponseSizeEstimator.java</h1><pre class="source lang-java linenums">/*
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -17,6 +16,7 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
 */
+package org.apache.plc4x.java.s7.netty.util;
 
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.plc4x.java.s7.netty.model.messages.S7RequestMessage;
@@ -25,7 +25,7 @@ import org.apache.plc4x.java.s7.netty.model.params.VarParameter;
 import org.apache.plc4x.java.s7.netty.model.params.items.S7AnyVarParameterItem;
 import org.apache.plc4x.java.s7.netty.model.params.items.VarParameterItem;
 import org.apache.plc4x.java.s7.netty.model.payloads.items.VarPayloadItem;
-import org.apache.plc4x.java.s7.netty.model.types.DataTransportSize;
+import org.apache.plc4x.java.s7.netty.model.types.TransportSize;
 
 import java.util.List;
 
@@ -155,28 +155,25 @@ public class S7ResponseSizeEstimator {
 <span class="nc" id="L155">        short length = 4;</span>
 <span class="nc" id="L156">        S7AnyVarParameterItem s7AnyVarParameterItem = (S7AnyVarParameterItem) varParameterItem;</span>
 <span class="nc" id="L157">        length +=</span>
-<span class="nc" id="L158">            s7AnyVarParameterItem.getNumElements() * s7AnyVarParameterItem.getTransportSize().getSizeInBytes();</span>
-        // Get the corresponding &quot;Data Transport Size&quot; for a given &quot;Transport Size&quot;.
-<span class="nc" id="L160">        DataTransportSize dataTransportSize =</span>
-<span class="nc" id="L161">            DataTransportSize.getForTransportSize(s7AnyVarParameterItem.getTransportSize());</span>
+<span class="nc" id="L158">            s7AnyVarParameterItem.getNumElements() * s7AnyVarParameterItem.getDataType().getSizeInBytes();</span>
         // It seems that bit payloads need a additional separating 0x00 byte.
-<span class="nc bnc" id="L163" title="All 4 branches missed.">        if((dataTransportSize != null) &amp;&amp; dataTransportSize.isSizeInBits()) {</span>
-<span class="nc" id="L164">            length += 1;</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">        if(s7AnyVarParameterItem.getDataType() == TransportSize.BOOL) {</span>
+<span class="nc" id="L161">            length += 1;</span>
         }
-<span class="nc" id="L166">        return length;</span>
+<span class="nc" id="L163">        return length;</span>
     }
 
     private static short getEstimatedResponseWriteVarPayloadSize(VarParameter varParameter) {
-<span class="nc" id="L170">        short length = 0;</span>
-<span class="nc bnc" id="L171" title="All 2 branches missed.">        for (VarParameterItem varParameterItem : varParameter.getItems()) {</span>
-<span class="nc" id="L172">            length += getEstimatedResponseWriteVarPayloadItemSize(varParameterItem);</span>
-<span class="nc" id="L173">        }</span>
-<span class="nc" id="L174">        return length;</span>
+<span class="nc" id="L167">        short length = 0;</span>
+<span class="nc bnc" id="L168" title="All 2 branches missed.">        for (VarParameterItem varParameterItem : varParameter.getItems()) {</span>
+<span class="nc" id="L169">            length += getEstimatedResponseWriteVarPayloadItemSize(varParameterItem);</span>
+<span class="nc" id="L170">        }</span>
+<span class="nc" id="L171">        return length;</span>
     }
 
     private static short getEstimatedResponseWriteVarPayloadItemSize(VarParameterItem varParameterItem) {
         // This is just one byte containing the error code.
-<span class="nc" id="L179">        return 1;</span>
+<span class="nc" id="L176">        return 1;</span>
     }
 
 }

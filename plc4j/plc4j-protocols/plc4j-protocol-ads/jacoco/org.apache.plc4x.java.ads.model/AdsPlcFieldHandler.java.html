@@ -1,0 +1,946 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdsPlcFieldHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PLC4J: Protocol: ADS</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.java.ads.model</a> &gt; <span class="el_source">AdsPlcFieldHandler.java</span></div><h1>AdsPlcFieldHandler.java</h1><pre class="source lang-java linenums">/*
+ Licensed to the Apache Software Foundation (ASF) under one
+ or more contributor license agreements.  See the NOTICE file
+ distributed with this work for additional information
+ regarding copyright ownership.  The ASF licenses this file
+ to you under the Apache License, Version 2.0 (the
+ &quot;License&quot;); you may not use this file except in compliance
+ with the License.  You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing,
+ software distributed under the License is distributed on an
+ &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ KIND, either express or implied.  See the License for the
+ specific language governing permissions and limitations
+ under the License.
+ */
+package org.apache.plc4x.java.ads.model;
+
+import org.apache.plc4x.java.api.exceptions.PlcInvalidFieldException;
+import org.apache.plc4x.java.api.exceptions.PlcRuntimeException;
+import org.apache.plc4x.java.api.model.PlcField;
+import org.apache.plc4x.java.base.connection.PlcFieldHandler;
+import org.apache.plc4x.java.base.messages.items.*;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.nio.charset.Charset;
+import java.time.LocalDateTime;
+import java.util.BitSet;
+import java.util.LinkedList;
+import java.util.List;
+
+// TODO: implement me acording to ads. currently copy pasta from S7
+// Use endian decoders.
+// TODO: replace all ifs with switches
+<span class="fc" id="L38">public class AdsPlcFieldHandler implements PlcFieldHandler {</span>
+
+    @Override
+    public PlcField createField(String fieldQuery) throws PlcInvalidFieldException {
+<span class="pc bpc" id="L42" title="1 of 2 branches missed.">        if (DirectAdsField.matches(fieldQuery)) {</span>
+<span class="fc" id="L43">            return DirectAdsField.of(fieldQuery);</span>
+<span class="nc bnc" id="L44" title="All 2 branches missed.">        } else if (SymbolicAdsField.matches(fieldQuery)) {</span>
+<span class="nc" id="L45">            return SymbolicAdsField.of(fieldQuery);</span>
+        }
+<span class="nc" id="L47">        throw new PlcInvalidFieldException(fieldQuery);</span>
+    }
+
+    @Override
+    public FieldItem encodeBoolean(PlcField field, Object[] values) {
+<span class="fc" id="L52">        AdsField adsField = (AdsField) field;</span>
+        // All of these types are declared as Bit or Bit-String types.
+<span class="pc bpc" id="L54" title="1 of 2 branches missed.">        switch (adsField.getAdsDataType()) {</span>
+            case BIT:
+            case BIT8:
+            case BITARR8:
+            case BITARR16:
+            case BITARR32:
+            case INT8:
+            case INT16:
+            case INT32:
+            case INT64:
+            case UINT8:
+            case UINT16:
+            case UINT32:
+            case UINT64:
+            case FLOAT:
+            case DOUBLE:
+            case BOOL:
+            case BYTE:
+            case WORD:
+            case DWORD:
+            case SINT:
+            case USINT:
+            case INT:
+            case UINT:
+            case DINT:
+            case UDINT:
+            case LINT:
+            case ULINT:
+            case REAL:
+            case LREAL:
+            case STRING:
+            case TIME:
+            case TIME_OF_DAY:
+            case DATE:
+            case DATE_AND_TIME:
+            case ARRAY:
+            case POINTER:
+            case ENUM:
+            case STRUCT:
+            case ALIAS:
+            case SUB_RANGE_DATA_TYPE:
+<span class="fc" id="L95">                return internalEncodeBoolean(field, values);</span>
+            case UNKNOWN:
+            default:
+<span class="nc" id="L98">                throw new PlcRuntimeException(&quot;Invalid encoder for type &quot; + adsField.getAdsDataType().name());</span>
+        }
+    }
+
+    @Override
+    public FieldItem encodeByte(PlcField field, Object[] values) {
+<span class="fc" id="L104">        AdsField adsField = (AdsField) field;</span>
+<span class="pc bpc" id="L105" title="1 of 2 branches missed.">        switch (adsField.getAdsDataType()) {</span>
+            case BIT:
+            case BIT8:
+            case BITARR8:
+            case BITARR16:
+            case BITARR32:
+            case INT8:
+            case INT16:
+            case INT32:
+            case INT64:
+            case UINT8:
+            case UINT16:
+            case UINT32:
+            case UINT64:
+            case FLOAT:
+            case DOUBLE:
+            case BOOL:
+            case BYTE:
+            case WORD:
+            case DWORD:
+            case SINT:
+            case USINT:
+            case INT:
+            case UINT:
+            case DINT:
+            case UDINT:
+            case LINT:
+            case ULINT:
+            case REAL:
+            case LREAL:
+            case STRING:
+            case TIME:
+            case TIME_OF_DAY:
+            case DATE:
+            case DATE_AND_TIME:
+            case ARRAY:
+            case POINTER:
+            case ENUM:
+            case STRUCT:
+            case ALIAS:
+            case SUB_RANGE_DATA_TYPE:
+<span class="fc" id="L146">                return internalEncodeInteger(field, values);</span>
+            case UNKNOWN:
+            default:
+<span class="nc" id="L149">                throw new PlcRuntimeException(&quot;Invalid encoder for type &quot; + adsField.getAdsDataType().name());</span>
+        }
+    }
+
+    @Override
+    public FieldItem encodeShort(PlcField field, Object[] values) {
+<span class="fc" id="L155">        AdsField adsField = (AdsField) field;</span>
+<span class="pc bpc" id="L156" title="1 of 2 branches missed.">        switch (adsField.getAdsDataType()) {</span>
+            case BIT:
+            case BIT8:
+            case BITARR8:
+            case BITARR16:
+            case BITARR32:
+            case INT8:
+            case INT16:
+            case INT32:
+            case INT64:
+            case UINT8:
+            case UINT16:
+            case UINT32:
+            case UINT64:
+            case FLOAT:
+            case DOUBLE:
+            case BOOL:
+            case BYTE:
+            case WORD:
+            case DWORD:
+            case SINT:
+            case USINT:
+            case INT:
+            case UINT:
+            case DINT:
+            case UDINT:
+            case LINT:
+            case ULINT:
+            case REAL:
+            case LREAL:
+            case STRING:
+            case TIME:
+            case TIME_OF_DAY:
+            case DATE:
+            case DATE_AND_TIME:
+            case ARRAY:
+            case POINTER:
+            case ENUM:
+            case STRUCT:
+            case ALIAS:
+            case SUB_RANGE_DATA_TYPE:
+<span class="fc" id="L197">                return internalEncodeInteger(field, values);</span>
+            case UNKNOWN:
+            default:
+<span class="nc" id="L200">                throw new PlcRuntimeException(&quot;Invalid encoder for type &quot; + adsField.getAdsDataType().name());</span>
+        }
+    }
+
+    @Override
+    public FieldItem encodeInteger(PlcField field, Object[] values) {
+<span class="fc" id="L206">        AdsField adsField = (AdsField) field;</span>
+<span class="pc bpc" id="L207" title="1 of 2 branches missed.">        switch (adsField.getAdsDataType()) {</span>
+            case BIT:
+            case BIT8:
+            case BITARR8:
+            case BITARR16:
+            case BITARR32:
+            case INT8:
+            case INT16:
+            case INT32:
+            case INT64:
+            case UINT8:
+            case UINT16:
+            case UINT32:
+            case UINT64:
+            case FLOAT:
+            case DOUBLE:
+            case BOOL:
+            case BYTE:
+            case WORD:
+            case DWORD:
+            case SINT:
+            case USINT:
+            case INT:
+            case UINT:
+            case DINT:
+            case UDINT:
+            case LINT:
+            case ULINT:
+            case REAL:
+            case LREAL:
+            case STRING:
+            case TIME:
+            case TIME_OF_DAY:
+            case DATE:
+            case DATE_AND_TIME:
+            case ARRAY:
+            case POINTER:
+            case ENUM:
+            case STRUCT:
+            case ALIAS:
+            case SUB_RANGE_DATA_TYPE:
+<span class="fc" id="L248">                return internalEncodeInteger(field, values);</span>
+            case UNKNOWN:
+            default:
+<span class="nc" id="L251">                throw new PlcRuntimeException(&quot;Invalid encoder for type &quot; + adsField.getAdsDataType().name());</span>
+        }
+    }
+
+    @Override
+    public FieldItem encodeBigInteger(PlcField field, Object[] values) {
+<span class="fc" id="L257">        AdsField adsField = (AdsField) field;</span>
+<span class="pc bpc" id="L258" title="1 of 2 branches missed.">        switch (adsField.getAdsDataType()) {</span>
+            case BIT:
+            case BIT8:
+            case BITARR8:
+            case BITARR16:
+            case BITARR32:
+            case INT8:
+            case INT16:
+            case INT32:
+            case INT64:
+            case UINT8:
+            case UINT16:
+            case UINT32:
+            case UINT64:
+            case FLOAT:
+            case DOUBLE:
+            case BOOL:
+            case BYTE:
+            case WORD:
+            case DWORD:
+            case SINT:
+            case USINT:
+            case INT:
+            case UINT:
+            case DINT:
+            case UDINT:
+            case LINT:
+            case ULINT:
+            case REAL:
+            case LREAL:
+            case STRING:
+            case TIME:
+            case TIME_OF_DAY:
+            case DATE:
+            case DATE_AND_TIME:
+            case ARRAY:
+            case POINTER:
+            case ENUM:
+            case STRUCT:
+            case ALIAS:
+            case SUB_RANGE_DATA_TYPE:
+<span class="fc" id="L299">                return internalEncodeInteger(field, values);</span>
+            case UNKNOWN:
+            default:
+<span class="nc" id="L302">                throw new PlcRuntimeException(&quot;Invalid encoder for type &quot; + adsField.getAdsDataType().name());</span>
+        }
+    }
+
+    @Override
+    public FieldItem encodeLong(PlcField field, Object[] values) {
+<span class="nc" id="L308">        AdsField adsField = (AdsField) field;</span>
+<span class="nc bnc" id="L309" title="All 2 branches missed.">        switch (adsField.getAdsDataType()) {</span>
+            case BIT:
+            case BIT8:
+            case BITARR8:
+            case BITARR16:
+            case BITARR32:
+            case INT8:
+            case INT16:
+            case INT32:
+            case INT64:
+            case UINT8:
+            case UINT16:
+            case UINT32:
+            case UINT64:
+            case FLOAT:
+            case DOUBLE:
+            case BOOL:
+            case BYTE:
+            case WORD:
+            case DWORD:
+            case SINT:
+            case USINT:
+            case INT:
+            case UINT:
+            case DINT:
+            case UDINT:
+            case LINT:
+            case ULINT:
+            case REAL:
+            case LREAL:
+            case STRING:
+            case TIME:
+            case TIME_OF_DAY:
+            case DATE:
+            case DATE_AND_TIME:
+            case ARRAY:
+            case POINTER:
+            case ENUM:
+            case STRUCT:
+            case ALIAS:
+            case SUB_RANGE_DATA_TYPE:
+<span class="nc" id="L350">                return internalEncodeInteger(field, values);</span>
+            case UNKNOWN:
+            default:
+<span class="nc" id="L353">                throw new PlcRuntimeException(&quot;Invalid encoder for type &quot; + adsField.getAdsDataType().name());</span>
+        }
+    }
+
+    @Override
+    public FieldItem encodeFloat(PlcField field, Object[] values) {
+<span class="fc" id="L359">        AdsField adsField = (AdsField) field;</span>
+<span class="pc bpc" id="L360" title="1 of 2 branches missed.">        switch (adsField.getAdsDataType()) {</span>
+            case BIT:
+            case BIT8:
+            case BITARR8:
+            case BITARR16:
+            case BITARR32:
+            case INT8:
+            case INT16:
+            case INT32:
+            case INT64:
+            case UINT8:
+            case UINT16:
+            case UINT32:
+            case UINT64:
+            case FLOAT:
+            case DOUBLE:
+            case BOOL:
+            case BYTE:
+            case WORD:
+            case DWORD:
+            case SINT:
+            case USINT:
+            case INT:
+            case UINT:
+            case DINT:
+            case UDINT:
+            case LINT:
+            case ULINT:
+            case REAL:
+            case LREAL:
+            case STRING:
+            case TIME:
+            case TIME_OF_DAY:
+            case DATE:
+            case DATE_AND_TIME:
+            case ARRAY:
+            case POINTER:
+            case ENUM:
+            case STRUCT:
+            case ALIAS:
+            case SUB_RANGE_DATA_TYPE:
+<span class="fc" id="L401">                return internalEncodeFloatingPoint(field, values);</span>
+            case UNKNOWN:
+            default:
+<span class="nc" id="L404">                throw new PlcRuntimeException(&quot;Invalid encoder for type &quot; + adsField.getAdsDataType().name());</span>
+        }
+    }
+
+    @Override
+    public FieldItem encodeDouble(PlcField field, Object[] values) {
+<span class="fc" id="L410">        AdsField adsField = (AdsField) field;</span>
+<span class="pc bpc" id="L411" title="1 of 2 branches missed.">        switch (adsField.getAdsDataType()) {</span>
+            case BIT:
+            case BIT8:
+            case BITARR8:
+            case BITARR16:
+            case BITARR32:
+            case INT8:
+            case INT16:
+            case INT32:
+            case INT64:
+            case UINT8:
+            case UINT16:
+            case UINT32:
+            case UINT64:
+            case FLOAT:
+            case DOUBLE:
+            case BOOL:
+            case BYTE:
+            case WORD:
+            case DWORD:
+            case SINT:
+            case USINT:
+            case INT:
+            case UINT:
+            case DINT:
+            case UDINT:
+            case LINT:
+            case ULINT:
+            case REAL:
+            case LREAL:
+            case STRING:
+            case TIME:
+            case TIME_OF_DAY:
+            case DATE:
+            case DATE_AND_TIME:
+            case ARRAY:
+            case POINTER:
+            case ENUM:
+            case STRUCT:
+            case ALIAS:
+            case SUB_RANGE_DATA_TYPE:
+<span class="fc" id="L452">                return internalEncodeFloatingPoint(field, values);</span>
+            case UNKNOWN:
+            default:
+<span class="nc" id="L455">                throw new PlcRuntimeException(&quot;Invalid encoder for type &quot; + adsField.getAdsDataType().name());</span>
+        }
+    }
+
+    @Override
+    public FieldItem encodeString(PlcField field, Object[] values) {
+<span class="fc" id="L461">        AdsField adsField = (AdsField) field;</span>
+<span class="pc bpc" id="L462" title="1 of 2 branches missed.">        switch (adsField.getAdsDataType()) {</span>
+            case BIT:
+            case BIT8:
+            case BITARR8:
+            case BITARR16:
+            case BITARR32:
+            case INT8:
+            case INT16:
+            case INT32:
+            case INT64:
+            case UINT8:
+            case UINT16:
+            case UINT32:
+            case UINT64:
+            case FLOAT:
+            case DOUBLE:
+            case BOOL:
+            case BYTE:
+            case WORD:
+            case DWORD:
+            case SINT:
+            case USINT:
+            case INT:
+            case UINT:
+            case DINT:
+            case UDINT:
+            case LINT:
+            case ULINT:
+            case REAL:
+            case LREAL:
+            case STRING:
+            case TIME:
+            case TIME_OF_DAY:
+            case DATE:
+            case DATE_AND_TIME:
+            case ARRAY:
+            case POINTER:
+            case ENUM:
+            case STRUCT:
+            case ALIAS:
+            case SUB_RANGE_DATA_TYPE:
+<span class="fc" id="L503">                return internalEncodeString(field, values);</span>
+            case UNKNOWN:
+            default:
+<span class="nc" id="L506">                throw new PlcRuntimeException(&quot;Invalid encoder for type &quot; + adsField.getAdsDataType().name());</span>
+        }
+    }
+
+    @Override
+    public FieldItem encodeTime(PlcField field, Object[] values) {
+<span class="nc" id="L512">        AdsField adsField = (AdsField) field;</span>
+<span class="nc bnc" id="L513" title="All 2 branches missed.">        switch (adsField.getAdsDataType()) {</span>
+            case BIT:
+            case BIT8:
+            case BITARR8:
+            case BITARR16:
+            case BITARR32:
+            case INT8:
+            case INT16:
+            case INT32:
+            case INT64:
+            case UINT8:
+            case UINT16:
+            case UINT32:
+            case UINT64:
+            case FLOAT:
+            case DOUBLE:
+            case BOOL:
+            case BYTE:
+            case WORD:
+            case DWORD:
+            case SINT:
+            case USINT:
+            case INT:
+            case UINT:
+            case DINT:
+            case UDINT:
+            case LINT:
+            case ULINT:
+            case REAL:
+            case LREAL:
+            case STRING:
+            case TIME:
+            case TIME_OF_DAY:
+            case DATE:
+            case DATE_AND_TIME:
+            case ARRAY:
+            case POINTER:
+            case ENUM:
+            case STRUCT:
+            case ALIAS:
+            case SUB_RANGE_DATA_TYPE:
+<span class="nc" id="L554">                return internalEncodeTemporal(field, values);</span>
+            case UNKNOWN:
+            default:
+<span class="nc" id="L557">                throw new PlcRuntimeException(&quot;Invalid encoder for type &quot; + adsField.getAdsDataType().name());</span>
+        }
+    }
+
+    @Override
+    public FieldItem encodeDate(PlcField field, Object[] values) {
+<span class="nc" id="L563">        AdsField adsField = (AdsField) field;</span>
+<span class="nc bnc" id="L564" title="All 2 branches missed.">        switch (adsField.getAdsDataType()) {</span>
+            case BIT:
+            case BIT8:
+            case BITARR8:
+            case BITARR16:
+            case BITARR32:
+            case INT8:
+            case INT16:
+            case INT32:
+            case INT64:
+            case UINT8:
+            case UINT16:
+            case UINT32:
+            case UINT64:
+            case FLOAT:
+            case DOUBLE:
+            case BOOL:
+            case BYTE:
+            case WORD:
+            case DWORD:
+            case SINT:
+            case USINT:
+            case INT:
+            case UINT:
+            case DINT:
+            case UDINT:
+            case LINT:
+            case ULINT:
+            case REAL:
+            case LREAL:
+            case STRING:
+            case TIME:
+            case TIME_OF_DAY:
+            case DATE:
+            case DATE_AND_TIME:
+            case ARRAY:
+            case POINTER:
+            case ENUM:
+            case STRUCT:
+            case ALIAS:
+            case SUB_RANGE_DATA_TYPE:
+<span class="nc" id="L605">                return internalEncodeTemporal(field, values);</span>
+            case UNKNOWN:
+            default:
+<span class="nc" id="L608">                throw new PlcRuntimeException(&quot;Invalid encoder for type &quot; + adsField.getAdsDataType().name());</span>
+        }
+    }
+
+    @Override
+    public FieldItem encodeDateTime(PlcField field, Object[] values) {
+<span class="nc" id="L614">        AdsField adsField = (AdsField) field;</span>
+<span class="nc bnc" id="L615" title="All 2 branches missed.">        switch (adsField.getAdsDataType()) {</span>
+            case BIT:
+            case BIT8:
+            case BITARR8:
+            case BITARR16:
+            case BITARR32:
+            case INT8:
+            case INT16:
+            case INT32:
+            case INT64:
+            case UINT8:
+            case UINT16:
+            case UINT32:
+            case UINT64:
+            case FLOAT:
+            case DOUBLE:
+            case BOOL:
+            case BYTE:
+            case WORD:
+            case DWORD:
+            case SINT:
+            case USINT:
+            case INT:
+            case UINT:
+            case DINT:
+            case UDINT:
+            case LINT:
+            case ULINT:
+            case REAL:
+            case LREAL:
+            case STRING:
+            case TIME:
+            case TIME_OF_DAY:
+            case DATE:
+            case DATE_AND_TIME:
+            case ARRAY:
+            case POINTER:
+            case ENUM:
+            case STRUCT:
+            case ALIAS:
+            case SUB_RANGE_DATA_TYPE:
+<span class="nc" id="L656">                return internalEncodeTemporal(field, values);</span>
+            case UNKNOWN:
+            default:
+<span class="nc" id="L659">                throw new PlcRuntimeException(&quot;Invalid encoder for type &quot; + adsField.getAdsDataType().name());</span>
+        }
+    }
+
+    private FieldItem internalEncodeBoolean(PlcField field, Object[] values) {
+<span class="fc" id="L664">        AdsField adsField = (AdsField) field;</span>
+<span class="pc bpc" id="L665" title="1 of 2 branches missed.">        switch (adsField.getAdsDataType()) {</span>
+            case BOOL:
+            case BYTE:
+            case WORD:
+            case DWORD:
+<span class="fc" id="L670">                break;</span>
+            default:
+<span class="nc" id="L672">                throw new IllegalArgumentException(</span>
+<span class="nc" id="L673">                    &quot;Cannot assign boolean values to &quot; + adsField.getAdsDataType().name() + &quot; fields.&quot;);</span>
+        }
+<span class="fc" id="L675">        List&lt;Boolean&gt; booleanValues = new LinkedList&lt;&gt;();</span>
+<span class="fc bfc" id="L676" title="All 2 branches covered.">        for (Object value : values) {</span>
+<span class="pc bpc" id="L677" title="1 of 2 branches missed.">            if (value instanceof Boolean) {</span>
+<span class="fc" id="L678">                Boolean booleanValue = (Boolean) value;</span>
+<span class="fc" id="L679">                booleanValues.add(booleanValue);</span>
+<span class="pc bnc" id="L680" title="All 2 branches missed.">            } else if (value instanceof Byte) {</span>
+<span class="nc" id="L681">                Byte byteValue = (Byte) value;</span>
+<span class="nc" id="L682">                BitSet bitSet = BitSet.valueOf(new byte[]{byteValue});</span>
+<span class="nc bnc" id="L683" title="All 2 branches missed.">                for (int i = 0; i &lt; 8; i++) {</span>
+<span class="nc" id="L684">                    booleanValues.add(bitSet.get(i));</span>
+                }
+<span class="nc bnc" id="L686" title="All 2 branches missed.">            } else if (value instanceof Short) {</span>
+<span class="nc" id="L687">                Short shortValue = (Short) value;</span>
+<span class="nc" id="L688">                BitSet bitSet = BitSet.valueOf(new long[]{shortValue});</span>
+<span class="nc bnc" id="L689" title="All 2 branches missed.">                for (int i = 0; i &lt; 16; i++) {</span>
+<span class="nc" id="L690">                    booleanValues.add(bitSet.get(i));</span>
+                }
+<span class="nc bnc" id="L692" title="All 2 branches missed.">            } else if (value instanceof Integer) {</span>
+<span class="nc" id="L693">                Integer integerValue = (Integer) value;</span>
+<span class="nc" id="L694">                BitSet bitSet = BitSet.valueOf(new long[]{integerValue});</span>
+<span class="nc bnc" id="L695" title="All 2 branches missed.">                for (int i = 0; i &lt; 32; i++) {</span>
+<span class="nc" id="L696">                    booleanValues.add(bitSet.get(i));</span>
+                }
+<span class="nc bnc" id="L698" title="All 2 branches missed.">            } else if (value instanceof Long) {</span>
+<span class="nc" id="L699">                long longValue = (Long) value;</span>
+<span class="nc" id="L700">                BitSet bitSet = BitSet.valueOf(new long[]{longValue});</span>
+<span class="nc bnc" id="L701" title="All 2 branches missed.">                for (int i = 0; i &lt; 64; i++) {</span>
+<span class="nc" id="L702">                    booleanValues.add(bitSet.get(i));</span>
+                }
+<span class="nc" id="L704">            } else {</span>
+<span class="nc" id="L705">                throw new IllegalArgumentException(</span>
+<span class="nc" id="L706">                    &quot;Value of type &quot; + value.getClass().getName() +</span>
+<span class="nc" id="L707">                        &quot; is not assignable to &quot; + adsField.getAdsDataType().name() + &quot; fields.&quot;);</span>
+            }
+        }
+<span class="fc" id="L710">        return new DefaultBooleanFieldItem(booleanValues.toArray(new Boolean[0]));</span>
+    }
+
+    private FieldItem internalEncodeInteger(PlcField field, Object[] values) {
+<span class="fc" id="L714">        AdsField adsField = (AdsField) field;</span>
+<span class="fc" id="L715">        BigDecimal minValue = BigDecimal.valueOf(adsField.getAdsDataType().getLowerBound());</span>
+<span class="fc" id="L716">        BigDecimal maxValue = BigDecimal.valueOf(adsField.getAdsDataType().getUpperBound());</span>
+        Class&lt;? extends FieldItem&gt; fieldType;
+<span class="pc bpc" id="L718" title="10 of 14 branches missed.">        switch (adsField.getAdsDataType()) {</span>
+            case BYTE:
+<span class="fc" id="L720">                fieldType = DefaultIntegerFieldItem.class;</span>
+<span class="fc" id="L721">                break;</span>
+            case WORD:
+<span class="nc" id="L723">                fieldType = DefaultIntegerFieldItem.class;</span>
+<span class="nc" id="L724">                break;</span>
+            case DWORD:
+<span class="nc" id="L726">                fieldType = DefaultIntegerFieldItem.class;</span>
+<span class="nc" id="L727">                break;</span>
+            case SINT:
+<span class="nc" id="L729">                fieldType = DefaultIntegerFieldItem.class;</span>
+<span class="nc" id="L730">                break;</span>
+            case USINT:
+<span class="nc" id="L732">                fieldType = DefaultIntegerFieldItem.class;</span>
+<span class="nc" id="L733">                break;</span>
+            case INT:
+<span class="fc" id="L735">                fieldType = DefaultIntegerFieldItem.class;</span>
+<span class="fc" id="L736">                break;</span>
+            case UINT:
+<span class="nc" id="L738">                fieldType = DefaultIntegerFieldItem.class;</span>
+<span class="nc" id="L739">                break;</span>
+            case DINT:
+<span class="nc" id="L741">                fieldType = DefaultIntegerFieldItem.class;</span>
+<span class="nc" id="L742">                break;</span>
+            case UDINT:
+<span class="nc" id="L744">                fieldType = DefaultIntegerFieldItem.class;</span>
+<span class="nc" id="L745">                break;</span>
+            case LINT:
+<span class="nc" id="L747">                fieldType = DefaultIntegerFieldItem.class;</span>
+<span class="nc" id="L748">                break;</span>
+            case ULINT:
+<span class="nc" id="L750">                fieldType = DefaultBigIntegerFieldItem.class;</span>
+<span class="nc" id="L751">                break;</span>
+            case INT32:
+<span class="fc" id="L753">                fieldType = DefaultIntegerFieldItem.class;</span>
+<span class="fc" id="L754">                break;</span>
+            case INT64:
+<span class="fc" id="L756">                fieldType = DefaultIntegerFieldItem.class;</span>
+<span class="fc" id="L757">                break;</span>
+            default:
+<span class="nc" id="L759">                throw new IllegalArgumentException(</span>
+<span class="nc" id="L760">                    &quot;Cannot assign integer values to &quot; + adsField.getAdsDataType().name() + &quot; fields.&quot;);</span>
+        }
+<span class="pc bpc" id="L762" title="1 of 2 branches missed.">        if (fieldType == DefaultIntegerFieldItem.class) {</span>
+<span class="fc" id="L763">            Long[] longValues = new Long[values.length];</span>
+<span class="fc bfc" id="L764" title="All 2 branches covered.">            for (int i = 0; i &lt; values.length; i++) {</span>
+<span class="pc bpc" id="L765" title="3 of 10 branches missed.">                if (!((values[i] instanceof Byte) || (values[i] instanceof Short) ||</span>
+                    (values[i] instanceof Integer) || (values[i] instanceof BigInteger) || (values[i] instanceof Long))) {
+<span class="nc" id="L767">                    throw new IllegalArgumentException(</span>
+<span class="nc" id="L768">                        &quot;Value of type &quot; + values[i].getClass().getName() +</span>
+<span class="nc" id="L769">                            &quot; is not assignable to &quot; + adsField.getAdsDataType().name() + &quot; fields.&quot;);</span>
+                }
+<span class="fc" id="L771">                BigDecimal value = BigDecimal.valueOf(((Number) values[i]).longValue());</span>
+<span class="pc bpc" id="L772" title="1 of 2 branches missed.">                if (minValue.compareTo(value) &gt; 0) {</span>
+<span class="nc" id="L773">                    throw new IllegalArgumentException(</span>
+<span class="nc" id="L774">                        &quot;Value of &quot; + value.toString() + &quot; exceeds allowed minimum for type &quot;</span>
+<span class="nc" id="L775">                            + adsField.getAdsDataType().name() + &quot; (min &quot; + minValue.toString() + &quot;)&quot;);</span>
+                }
+<span class="pc bpc" id="L777" title="1 of 2 branches missed.">                if (maxValue.compareTo(value) &lt; 0) {</span>
+<span class="nc" id="L778">                    throw new IllegalArgumentException(</span>
+<span class="nc" id="L779">                        &quot;Value of &quot; + value.toString() + &quot; exceeds allowed maximum for type &quot;</span>
+<span class="nc" id="L780">                            + adsField.getAdsDataType().name() + &quot; (max &quot; + maxValue.toString() + &quot;)&quot;);</span>
+                }
+<span class="fc" id="L782">                longValues[i] = value.longValue();</span>
+            }
+<span class="fc" id="L784">            return new DefaultIntegerFieldItem(longValues);</span>
+        } else {
+<span class="nc" id="L786">            BigInteger[] bigIntegerValues = new BigInteger[values.length];</span>
+<span class="nc bnc" id="L787" title="All 2 branches missed.">            for (int i = 0; i &lt; values.length; i++) {</span>
+                BigDecimal value;
+<span class="nc bnc" id="L789" title="All 2 branches missed.">                if (values[i] instanceof BigInteger) {</span>
+<span class="nc" id="L790">                    value = new BigDecimal((BigInteger) values[i]);</span>
+<span class="nc bnc" id="L791" title="All 8 branches missed.">                } else if (((values[i] instanceof Byte) || (values[i] instanceof Short) ||</span>
+                    (values[i] instanceof Integer) || (values[i] instanceof Long))) {
+<span class="nc" id="L793">                    value = new BigDecimal(((Number) values[i]).longValue());</span>
+                } else {
+<span class="nc" id="L795">                    throw new IllegalArgumentException(</span>
+<span class="nc" id="L796">                        &quot;Value of type &quot; + values[i].getClass().getName() +</span>
+<span class="nc" id="L797">                            &quot; is not assignable to &quot; + adsField.getAdsDataType().name() + &quot; fields.&quot;);</span>
+                }
+<span class="nc bnc" id="L799" title="All 2 branches missed.">                if (minValue.compareTo(value) &gt; 0) {</span>
+<span class="nc" id="L800">                    throw new IllegalArgumentException(</span>
+<span class="nc" id="L801">                        &quot;Value of &quot; + value.toString() + &quot; exceeds allowed minimum for type &quot;</span>
+<span class="nc" id="L802">                            + adsField.getAdsDataType().name() + &quot; (min &quot; + minValue.toString() + &quot;)&quot;);</span>
+                }
+<span class="nc bnc" id="L804" title="All 2 branches missed.">                if (maxValue.compareTo(value) &lt; 0) {</span>
+<span class="nc" id="L805">                    throw new IllegalArgumentException(</span>
+<span class="nc" id="L806">                        &quot;Value of &quot; + value.toString() + &quot; exceeds allowed maximum for type &quot;</span>
+<span class="nc" id="L807">                            + adsField.getAdsDataType().name() + &quot; (max &quot; + maxValue.toString() + &quot;)&quot;);</span>
+                }
+<span class="nc" id="L809">                bigIntegerValues[i] = value.toBigInteger();</span>
+            }
+<span class="nc" id="L811">            return new DefaultBigIntegerFieldItem(bigIntegerValues);</span>
+        }
+    }
+
+    private FieldItem internalEncodeFloatingPoint(PlcField field, Object[] values) {
+<span class="fc" id="L816">        AdsField adsField = (AdsField) field;</span>
+<span class="fc" id="L817">        BigDecimal minValue = BigDecimal.valueOf(adsField.getAdsDataType().getLowerBound());</span>
+<span class="fc" id="L818">        BigDecimal maxValue = BigDecimal.valueOf(adsField.getAdsDataType().getUpperBound());</span>
+<span class="pc bpc" id="L819" title="1 of 3 branches missed.">        switch (adsField.getAdsDataType()) {</span>
+            case REAL:
+<span class="fc" id="L821">                break;</span>
+            case LREAL:
+<span class="fc" id="L823">                break;</span>
+            default:
+<span class="nc" id="L825">                throw new IllegalArgumentException(</span>
+<span class="nc" id="L826">                    &quot;Cannot assign floating point values to &quot; + adsField.getAdsDataType().name() + &quot; fields.&quot;);</span>
+        }
+<span class="fc" id="L828">        Double[] floatingPointValues = new Double[values.length];</span>
+<span class="fc bfc" id="L829" title="All 2 branches covered.">        for (int i = 0; i &lt; values.length; i++) {</span>
+<span class="fc bfc" id="L830" title="All 2 branches covered.">            if (values[i] instanceof Float) {</span>
+<span class="fc" id="L831">                floatingPointValues[i] = ((Float) values[i]).doubleValue();</span>
+<span class="pc bpc" id="L832" title="1 of 2 branches missed.">            } else if (values[i] instanceof Double) {</span>
+<span class="fc" id="L833">                floatingPointValues[i] = (Double) values[i];</span>
+            } else {
+<span class="nc" id="L835">                throw new IllegalArgumentException(</span>
+<span class="nc" id="L836">                    &quot;Value of type &quot; + values[i].getClass().getName() +</span>
+<span class="nc" id="L837">                        &quot; is not assignable to &quot; + adsField.getAdsDataType().name() + &quot; fields.&quot;);</span>
+            }
+
+<span class="pc bpc" id="L840" title="1 of 2 branches missed.">            if (minValue.compareTo(new BigDecimal(floatingPointValues[i])) &gt; 0) {</span>
+<span class="nc" id="L841">                throw new IllegalArgumentException(</span>
+                    &quot;Value of &quot; + floatingPointValues[i] + &quot; exceeds allowed minimum for type &quot;
+<span class="nc" id="L843">                        + adsField.getAdsDataType().name() + &quot; (min &quot; + minValue.toString() + &quot;)&quot;);</span>
+            }
+<span class="pc bpc" id="L845" title="1 of 2 branches missed.">            if (maxValue.compareTo(new BigDecimal(floatingPointValues[i])) &lt; 0) {</span>
+<span class="nc" id="L846">                throw new IllegalArgumentException(</span>
+                    &quot;Value of &quot; + floatingPointValues[i] + &quot; exceeds allowed maximum for type &quot;
+<span class="nc" id="L848">                        + adsField.getAdsDataType().name() + &quot; (max &quot; + maxValue.toString() + &quot;)&quot;);</span>
+            }
+        }
+<span class="fc" id="L851">        return new DefaultFloatingPointFieldItem(floatingPointValues);</span>
+    }
+
+    private FieldItem internalEncodeString(PlcField field, Object[] values) {
+<span class="fc" id="L855">        AdsField adsField = (AdsField) field;</span>
+<span class="fc" id="L856">        double maxLength = adsField.getAdsDataType().getUpperBound();</span>
+        boolean encoding16Bit;
+<span class="pc bpc" id="L858" title="1 of 2 branches missed.">        switch (adsField.getAdsDataType()) {</span>
+            case STRING:
+<span class="fc" id="L860">                encoding16Bit = false;</span>
+<span class="fc" id="L861">                break;</span>
+            default:
+<span class="nc" id="L863">                throw new IllegalArgumentException(</span>
+<span class="nc" id="L864">                    &quot;Cannot assign string values to &quot; + adsField.getAdsDataType().name() + &quot; fields.&quot;);</span>
+        }
+<span class="fc" id="L866">        List&lt;String&gt; stringValues = new LinkedList&lt;&gt;();</span>
+<span class="fc bfc" id="L867" title="All 2 branches covered.">        for (Object value : values) {</span>
+<span class="pc bpc" id="L868" title="1 of 2 branches missed.">            if (value instanceof String) {</span>
+<span class="fc" id="L869">                String stringValue = (String) value;</span>
+<span class="pc bpc" id="L870" title="1 of 2 branches missed.">                if (stringValue.length() &gt; maxLength) {</span>
+<span class="nc" id="L871">                    throw new IllegalArgumentException(</span>
+<span class="nc" id="L872">                        &quot;String length &quot; + stringValue.length() + &quot; exceeds allowed maximum for type &quot;</span>
+<span class="nc" id="L873">                            + adsField.getAdsDataType().name() + &quot; (max &quot; + maxLength + &quot;)&quot;);</span>
+                }
+<span class="fc" id="L875">                stringValues.add(stringValue);</span>
+<span class="fc" id="L876">            }</span>
+            // All other types just translate to max one String character.
+<span class="nc bnc" id="L878" title="All 2 branches missed.">            else if (value instanceof Byte) {</span>
+<span class="nc" id="L879">                Byte byteValue = (Byte) value;</span>
+<span class="nc" id="L880">                byte[] stringBytes = new byte[]{byteValue};</span>
+<span class="nc bnc" id="L881" title="All 2 branches missed.">                if (encoding16Bit) {</span>
+<span class="nc" id="L882">                    stringValues.add(new String(stringBytes, Charset.forName(&quot;UTF-16&quot;)));</span>
+                } else {
+<span class="nc" id="L884">                    stringValues.add(new String(stringBytes, Charset.forName(&quot;UTF-8&quot;)));</span>
+                }
+<span class="nc bnc" id="L886" title="All 2 branches missed.">            } else if (value instanceof Short) {</span>
+<span class="nc" id="L887">                Short shortValue = (Short) value;</span>
+<span class="nc" id="L888">                byte[] stringBytes = new byte[2];</span>
+<span class="nc" id="L889">                stringBytes[0] = (byte) (shortValue &gt;&gt; 8);</span>
+<span class="nc" id="L890">                stringBytes[1] = (byte) (shortValue &amp; 0xFF);</span>
+<span class="nc bnc" id="L891" title="All 2 branches missed.">                if (encoding16Bit) {</span>
+<span class="nc" id="L892">                    stringValues.add(new String(stringBytes, Charset.forName(&quot;UTF-16&quot;)));</span>
+                } else {
+<span class="nc" id="L894">                    stringValues.add(new String(stringBytes, Charset.forName(&quot;UTF-8&quot;)));</span>
+                }
+<span class="nc bnc" id="L896" title="All 2 branches missed.">            } else if (value instanceof Integer) {</span>
+<span class="nc" id="L897">                Integer integerValue = (Integer) value;</span>
+<span class="nc" id="L898">                byte[] stringBytes = new byte[4];</span>
+<span class="nc" id="L899">                stringBytes[0] = (byte) ((integerValue &gt;&gt; 24) &amp; 0xFF);</span>
+<span class="nc" id="L900">                stringBytes[1] = (byte) ((integerValue &gt;&gt; 16) &amp; 0xFF);</span>
+<span class="nc" id="L901">                stringBytes[2] = (byte) ((integerValue &gt;&gt; 8) &amp; 0xFF);</span>
+<span class="nc" id="L902">                stringBytes[3] = (byte) (integerValue &amp; 0xFF);</span>
+<span class="nc bnc" id="L903" title="All 2 branches missed.">                if (encoding16Bit) {</span>
+<span class="nc" id="L904">                    stringValues.add(new String(stringBytes, Charset.forName(&quot;UTF-16&quot;)));</span>
+                } else {
+<span class="nc" id="L906">                    stringValues.add(new String(stringBytes, Charset.forName(&quot;UTF-8&quot;)));</span>
+                }
+<span class="nc bnc" id="L908" title="All 2 branches missed.">            } else if (value instanceof Long) {</span>
+<span class="nc" id="L909">                Long longValue = (Long) value;</span>
+<span class="nc" id="L910">                byte[] stringBytes = new byte[8];</span>
+<span class="nc" id="L911">                stringBytes[0] = (byte) ((longValue &gt;&gt; 56) &amp; 0xFF);</span>
+<span class="nc" id="L912">                stringBytes[1] = (byte) ((longValue &gt;&gt; 48) &amp; 0xFF);</span>
+<span class="nc" id="L913">                stringBytes[2] = (byte) ((longValue &gt;&gt; 40) &amp; 0xFF);</span>
+<span class="nc" id="L914">                stringBytes[3] = (byte) ((longValue &gt;&gt; 32) &amp; 0xFF);</span>
+<span class="nc" id="L915">                stringBytes[4] = (byte) ((longValue &gt;&gt; 24) &amp; 0xFF);</span>
+<span class="nc" id="L916">                stringBytes[5] = (byte) ((longValue &gt;&gt; 16) &amp; 0xFF);</span>
+<span class="nc" id="L917">                stringBytes[6] = (byte) ((longValue &gt;&gt; 8) &amp; 0xFF);</span>
+<span class="nc" id="L918">                stringBytes[7] = (byte) (longValue &amp; 0xFF);</span>
+<span class="nc bnc" id="L919" title="All 2 branches missed.">                if (encoding16Bit) {</span>
+<span class="nc" id="L920">                    stringValues.add(new String(stringBytes, Charset.forName(&quot;UTF-16&quot;)));</span>
+                } else {
+<span class="nc" id="L922">                    stringValues.add(new String(stringBytes, Charset.forName(&quot;UTF-8&quot;)));</span>
+                }
+<span class="nc" id="L924">            } else {</span>
+<span class="nc" id="L925">                throw new IllegalArgumentException(</span>
+<span class="nc" id="L926">                    &quot;Value of type &quot; + value.getClass().getName() +</span>
+<span class="nc" id="L927">                        &quot; is not assignable to &quot; + adsField.getAdsDataType().name() + &quot; fields.&quot;);</span>
+            }
+        }
+<span class="fc" id="L930">        return new DefaultStringFieldItem(stringValues.toArray(new String[0]));</span>
+    }
+
+    private FieldItem internalEncodeTemporal(PlcField field, Object[] values) {
+<span class="nc" id="L934">        AdsField adsField = (AdsField) field;</span>
+<span class="nc bnc" id="L935" title="All 2 branches missed.">        switch (adsField.getAdsDataType()) {</span>
+            case TIME:
+            case DATE:
+            case DATE_AND_TIME:
+<span class="nc" id="L939">                return new DefaultTimeFieldItem((LocalDateTime[]) values);</span>
+            default:
+<span class="nc" id="L941">                throw new IllegalArgumentException(</span>
+<span class="nc" id="L942">                    &quot;Cannot assign temporal values to &quot; + adsField.getAdsDataType().name() + &quot; fields.&quot;);</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

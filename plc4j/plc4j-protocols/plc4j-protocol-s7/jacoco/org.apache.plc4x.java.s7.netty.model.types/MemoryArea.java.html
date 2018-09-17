@@ -25,44 +25,59 @@ import java.util.Map;
  * (Values determined by evaluating generated &quot;.pcapng&quot; files)
  */
 <span class="fc" id="L27">public enum MemoryArea {</span>
-<span class="fc" id="L28">    COUNTERS((byte) 0x1C), /* Renamed from &quot;S7 Counters&quot; */</span>
-<span class="fc" id="L29">    TIMERS((byte) 0x1D), /* Renamed from &quot;S7 Timers&quot; */</span>
-<span class="fc" id="L30">    DIRECT_PERIPHERAL_ACCESS((byte) 0x80),</span>
-<span class="fc" id="L31">    INPUTS((byte) 0x81),</span>
-<span class="fc" id="L32">    OUTPUTS((byte) 0x82),</span>
-<span class="fc" id="L33">    FLAGS((byte) 0x83),</span>
-<span class="fc" id="L34">    DATA_BLOCKS((byte) 0x84),</span>
-<span class="fc" id="L35">    INSTANCE_DATA_BLOCKS((byte) 0x85),</span>
-<span class="fc" id="L36">    LOCAL_DATA((byte) 0x86),</span>
+<span class="fc" id="L28">    COUNTERS(&quot;C&quot;, (byte) 0x1C), /* Renamed from &quot;S7 Counters&quot; */ // TODO: Double check shortName</span>
+<span class="fc" id="L29">    TIMERS(&quot;T&quot;, (byte) 0x1D), /* Renamed from &quot;S7 Timers&quot; */ // TODO: Double check shortName</span>
+<span class="fc" id="L30">    DIRECT_PERIPHERAL_ACCESS(&quot;D&quot;, (byte) 0x80), // TODO: Double check shortName</span>
+<span class="fc" id="L31">    INPUTS(&quot;I&quot;, (byte) 0x81),</span>
+<span class="fc" id="L32">    OUTPUTS(&quot;Q&quot;, (byte) 0x82),</span>
+<span class="fc" id="L33">    FLAGS(&quot;F&quot;, (byte) 0x83), // TODO: Double check shortName</span>
+<span class="fc" id="L34">    DATA_BLOCKS(&quot;DB&quot;, (byte) 0x84),</span>
+<span class="fc" id="L35">    INSTANCE_DATA_BLOCKS(&quot;DBI&quot;, (byte) 0x85), // TODO: Double check shortName</span>
+<span class="fc" id="L36">    LOCAL_DATA(&quot;LD&quot;, (byte) 0x86); // TODO: Double check shortName</span>
 
-<span class="fc" id="L38">    S7_200_SYSTEM_INFO((byte) 0x03), /* Renamed from &quot;System info of 200 family&quot; */</span>
-<span class="fc" id="L39">    S7_200_FLAGS((byte) 0x05), /* Renamed from &quot;System flags of 200 family&quot; */</span>
-<span class="fc" id="L40">    S7_200_INPUTS((byte) 0x06), /* Renamed from &quot;System inputs of 200 family&quot; */</span>
-<span class="fc" id="L41">    S7_200_OUTPUTS((byte) 0x07), /* Renamed from &quot;System outputs of 200 family&quot; */</span>
-<span class="fc" id="L42">    S7_200_IEC_COUNTERS((byte) 0x1E), /* Renamed from &quot;IEC counters (200 family)&quot; */</span>
-<span class="fc" id="L43">    S7_200_IEC_TIMERS((byte) 0x1F); /* Renamed from &quot;IEC timers (200 family)&quot; */</span>
+    // TODO: I think we should remove these ...
+    /*S7_200_SYSTEM_INFO(null, (byte) 0x03), * Renamed from &quot;System info of 200 family&quot; *
+    S7_200_FLAGS(null, (byte) 0x05), * Renamed from &quot;System flags of 200 family&quot; *
+    S7_200_INPUTS(null, (byte) 0x06), * Renamed from &quot;System inputs of 200 family&quot; *
+    S7_200_OUTPUTS(null, (byte) 0x07), * Renamed from &quot;System outputs of 200 family&quot; *
+    S7_200_IEC_COUNTERS(null, (byte) 0x1E), * Renamed from &quot;IEC counters (200 family)&quot; *
+    S7_200_IEC_TIMERS(null, (byte) 0x1F); * Renamed from &quot;IEC timers (200 family)&quot; */
 
+    private final String shortName;
     private final byte code;
 
-<span class="fc" id="L47">    MemoryArea(byte code) {</span>
-<span class="fc" id="L48">        this.code = code;</span>
-<span class="fc" id="L49">    }</span>
+<span class="fc" id="L49">    MemoryArea(String shortName, byte code) {</span>
+<span class="fc" id="L50">        this.shortName = shortName;</span>
+<span class="fc" id="L51">        this.code = code;</span>
+<span class="fc" id="L52">    }</span>
+
+    public String getShortName() {
+<span class="fc" id="L55">        return shortName;</span>
+    }
 
     public byte getCode() {
-<span class="fc" id="L52">        return code;</span>
+<span class="fc" id="L59">        return code;</span>
     }
 
     private final static Map&lt;Byte, MemoryArea&gt; map;
 
     static {
-<span class="fc" id="L58">        map = new HashMap&lt;&gt;();</span>
-<span class="fc bfc" id="L59" title="All 2 branches covered.">        for (MemoryArea memoryArea : MemoryArea.values()) {</span>
-<span class="fc" id="L60">            map.put(memoryArea.code, memoryArea);</span>
+<span class="fc" id="L65">        map = new HashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L66" title="All 2 branches covered.">        for (MemoryArea memoryArea : MemoryArea.values()) {</span>
+<span class="fc" id="L67">            map.put(memoryArea.code, memoryArea);</span>
         }
-<span class="fc" id="L62">    }</span>
+<span class="fc" id="L69">    }</span>
 
+    public static MemoryArea valueOfShortName(String shortName) {
+<span class="pc bpc" id="L72" title="1 of 2 branches missed.">        for (MemoryArea value : MemoryArea.values()) {</span>
+<span class="fc bfc" id="L73" title="All 2 branches covered.">            if(value.getShortName().equals(shortName)) {</span>
+<span class="fc" id="L74">                return value;</span>
+            }
+        }
+<span class="nc" id="L77">        return null;</span>
+    }
     public static MemoryArea valueOf(byte code) {
-<span class="fc" id="L65">        return map.get(code);</span>
+<span class="fc" id="L80">        return map.get(code);</span>
     }
 
 }

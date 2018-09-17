@@ -18,27 +18,15 @@ under the License.
 */
 package org.apache.plc4x.java.test;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.plc4x.java.api.connection.*;
-import org.apache.plc4x.java.api.exceptions.PlcInvalidAddressException;
-import org.apache.plc4x.java.api.messages.PlcReadRequest;
-import org.apache.plc4x.java.api.messages.PlcReadResponse;
-import org.apache.plc4x.java.api.messages.PlcWriteRequest;
-import org.apache.plc4x.java.api.messages.PlcWriteResponse;
-import org.apache.plc4x.java.api.messages.items.ReadRequestItem;
-import org.apache.plc4x.java.api.messages.items.ReadResponseItem;
-import org.apache.plc4x.java.api.messages.items.WriteRequestItem;
-import org.apache.plc4x.java.api.messages.items.WriteResponseItem;
-import org.apache.plc4x.java.api.messages.specific.TypeSafePlcReadRequest;
-import org.apache.plc4x.java.api.messages.specific.TypeSafePlcReadResponse;
-import org.apache.plc4x.java.api.messages.specific.TypeSafePlcWriteRequest;
-import org.apache.plc4x.java.api.messages.specific.TypeSafePlcWriteResponse;
-import org.apache.plc4x.java.api.model.Address;
-import org.apache.plc4x.java.api.types.ResponseCode;
+import org.apache.plc4x.java.api.messages.*;
+import org.apache.plc4x.java.api.types.PlcResponseCode;
+import org.apache.plc4x.java.base.messages.*;
+import org.apache.plc4x.java.base.messages.items.FieldItem;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -47,103 +35,93 @@ import java.util.concurrent.CompletableFuture;
  */
 class TestConnection implements PlcConnection, PlcReader, PlcWriter {
     private final TestDevice device;
-<span class="nc" id="L50">    private boolean connected = false;</span>
+<span class="nc" id="L38">    private boolean connected = false;</span>
 
-<span class="nc" id="L52">    TestConnection(TestDevice device) {</span>
-<span class="nc" id="L53">        this.device = device;</span>
-<span class="nc" id="L54">    }</span>
+<span class="nc" id="L40">    TestConnection(TestDevice device) {</span>
+<span class="nc" id="L41">        this.device = device;</span>
+<span class="nc" id="L42">    }</span>
 
     @Override
     public void connect() {
-<span class="nc" id="L58">        connected = true;</span>
-<span class="nc" id="L59">    }</span>
+<span class="nc" id="L46">        connected = true;</span>
+<span class="nc" id="L47">    }</span>
 
     @Override
     public boolean isConnected() {
-<span class="nc" id="L63">        return connected;</span>
+<span class="nc" id="L51">        return connected;</span>
     }
 
     @Override
     public void close() {
-<span class="nc" id="L68">        connected = false;</span>
-<span class="nc" id="L69">    }</span>
-
-    @Override
-    public Address parseAddress(String addressString) throws PlcInvalidAddressException {
-<span class="nc bnc" id="L73" title="All 2 branches missed.">        if (!TestAddress.isValid(addressString)) {</span>
-<span class="nc" id="L74">            throw new PlcInvalidAddressException(&quot;Address must contain a single word.&quot;);</span>
-        }
-
-<span class="nc" id="L77">        return TestAddress.of(addressString);</span>
-    }
-
-    @Override
-    public Optional&lt;PlcLister&gt; getLister() {
-<span class="nc" id="L82">        return Optional.empty();</span>
-    }
+<span class="nc" id="L56">        connected = false;</span>
+<span class="nc" id="L57">    }</span>
 
     @Override
     public Optional&lt;PlcReader&gt; getReader() {
-<span class="nc" id="L87">        return Optional.of(this);</span>
+<span class="nc" id="L61">        return Optional.of(this);</span>
     }
 
     @Override
     public Optional&lt;PlcWriter&gt; getWriter() {
-<span class="nc" id="L92">        return Optional.of(this);</span>
+<span class="nc" id="L66">        return Optional.of(this);</span>
     }
 
     @Override
     public Optional&lt;PlcSubscriber&gt; getSubscriber() {
-<span class="nc" id="L97">        return Optional.empty(); // TODO: implement this</span>
+<span class="nc" id="L71">        return Optional.empty(); // TODO: implement this</span>
     }
 
     @Override
-    @SuppressWarnings(&quot;unchecked&quot;)
-    public CompletableFuture&lt;? extends PlcReadResponse&gt; read(PlcReadRequest readRequest) {
-<span class="nc" id="L103">        List&lt;ReadResponseItem&lt;?&gt;&gt; responseItems = new LinkedList&lt;&gt;();</span>
-<span class="nc bnc" id="L104" title="All 2 branches missed.">        for (ReadRequestItem&lt;?&gt; requestItem : readRequest.getRequestItems()) {</span>
-<span class="nc" id="L105">            TestAddress address = (TestAddress) requestItem.getAddress();</span>
-<span class="nc" id="L106">            Optional&lt;?&gt; value = device.get(requestItem.getDatatype(), address);</span>
-            ReadResponseItem&lt;?&gt; responseItem;
-<span class="nc bnc" id="L108" title="All 2 branches missed.">            if (value.isPresent()) {</span>
-<span class="nc" id="L109">                responseItem = new ReadResponseItem(requestItem, ResponseCode.OK, Collections.singletonList(value.get()));</span>
-            } else {
-<span class="nc" id="L111">                responseItem = new ReadResponseItem(requestItem, ResponseCode.NOT_FOUND, Collections.emptyList());</span>
-            }
-<span class="nc" id="L113">            responseItems.add(responseItem);</span>
-<span class="nc" id="L114">        }</span>
-<span class="nc" id="L115">        PlcReadResponse response = new PlcReadResponse(readRequest, responseItems);</span>
-<span class="nc" id="L116">        return CompletableFuture.completedFuture(response);</span>
+    public PlcReadRequest.Builder readRequestBuilder() {
+<span class="nc" id="L76">        return new DefaultPlcReadRequest.Builder(new TestFieldHandler());</span>
     }
 
     @Override
-    public &lt;T&gt; CompletableFuture&lt;TypeSafePlcReadResponse&lt;T&gt;&gt; read(TypeSafePlcReadRequest&lt;T&gt; readRequest) {
-<span class="nc" id="L121">        return null; // TODO: implement this</span>
+    public CompletableFuture&lt;PlcReadResponse&lt;?&gt;&gt; read(PlcReadRequest readRequest) {
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        if(!(readRequest instanceof InternalPlcReadRequest)) {</span>
+<span class="nc" id="L82">            throw new IllegalArgumentException(&quot;Read request doesn't implement InternalPlcReadRequest&quot;);</span>
+        }
+<span class="nc" id="L84">        InternalPlcReadRequest request = (InternalPlcReadRequest) readRequest;</span>
+<span class="nc" id="L85">        Map&lt;String, Pair&lt;PlcResponseCode, FieldItem&gt;&gt; fields = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">        for (String fieldName : request.getFieldNames()) {</span>
+<span class="nc" id="L87">            TestField field = (TestField) request.getField(fieldName);</span>
+<span class="nc" id="L88">            Optional&lt;FieldItem&gt; fieldItemOptional = device.get(field);</span>
+            ImmutablePair&lt;PlcResponseCode, FieldItem&gt; fieldPair;
+<span class="nc" id="L90">            boolean present = fieldItemOptional.isPresent();</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">            fieldPair = present</span>
+<span class="nc" id="L92">                ? new ImmutablePair&lt;&gt;(PlcResponseCode.OK, fieldItemOptional.get())</span>
+                : new ImmutablePair&lt;&gt;(PlcResponseCode.NOT_FOUND, null);
+<span class="nc" id="L94">            fields.put(fieldName, fieldPair);</span>
+<span class="nc" id="L95">        }</span>
+<span class="nc" id="L96">        PlcReadResponse&lt;?&gt; response = new DefaultPlcReadResponse(request, fields);</span>
+<span class="nc" id="L97">        return CompletableFuture.completedFuture(response);</span>
     }
 
     @Override
-    @SuppressWarnings(&quot;unchecked&quot;)
-    public CompletableFuture&lt;? extends PlcWriteResponse&gt; write(PlcWriteRequest writeRequest) {
-<span class="nc" id="L127">        List&lt;WriteResponseItem&lt;?&gt;&gt; responseItems = new LinkedList&lt;&gt;();</span>
-<span class="nc bnc" id="L128" title="All 2 branches missed.">        for (WriteRequestItem&lt;?&gt; requestItem : writeRequest.getRequestItems()) {</span>
-<span class="nc" id="L129">            TestAddress address = (TestAddress) requestItem.getAddress();</span>
-<span class="nc" id="L130">            Object value = requestItem.getValues().get(0);</span>
-<span class="nc" id="L131">            device.set(address, value);</span>
-<span class="nc" id="L132">            WriteResponseItem&lt;?&gt; responseItem = new WriteResponseItem(requestItem, ResponseCode.OK);</span>
-<span class="nc" id="L133">            responseItems.add(responseItem);</span>
-<span class="nc" id="L134">        }</span>
-<span class="nc" id="L135">        PlcWriteResponse response = new PlcWriteResponse(writeRequest, responseItems);</span>
-<span class="nc" id="L136">        return CompletableFuture.completedFuture(response);</span>
+    public PlcWriteRequest.Builder writeRequestBuilder() {
+<span class="nc" id="L102">        return new DefaultPlcWriteRequest.Builder(new TestFieldHandler());</span>
     }
 
     @Override
-    public &lt;T&gt; CompletableFuture&lt;TypeSafePlcWriteResponse&lt;T&gt;&gt; write(TypeSafePlcWriteRequest&lt;T&gt; writeRequest) {
-<span class="nc" id="L141">        return null; // TODO: implement this</span>
+    public CompletableFuture&lt;PlcWriteResponse&lt;?&gt;&gt; write(PlcWriteRequest writeRequest) {
+<span class="nc bnc" id="L107" title="All 2 branches missed.">        if(!(writeRequest instanceof InternalPlcWriteRequest)) {</span>
+<span class="nc" id="L108">            throw new IllegalArgumentException(&quot;Read request doesn't implement InternalPlcWriteRequest&quot;);</span>
+        }
+<span class="nc" id="L110">        InternalPlcWriteRequest request = (InternalPlcWriteRequest) writeRequest;</span>
+<span class="nc" id="L111">        Map&lt;String, PlcResponseCode&gt; fields = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">        for (String fieldName : request.getFieldNames()) {</span>
+<span class="nc" id="L113">            TestField field = (TestField) request.getField(fieldName);</span>
+<span class="nc" id="L114">            FieldItem fieldItem = request.getFieldItem(fieldName);</span>
+<span class="nc" id="L115">            device.set(field, fieldItem);</span>
+<span class="nc" id="L116">            fields.put(fieldName, PlcResponseCode.OK);</span>
+<span class="nc" id="L117">        }</span>
+<span class="nc" id="L118">        PlcWriteResponse&lt;?&gt; response = new DefaultPlcWriteResponse(request, fields);</span>
+<span class="nc" id="L119">        return CompletableFuture.completedFuture(response);</span>
     }
 
     @Override
     public String toString() {
-<span class="nc" id="L146">        return String.format(&quot;test:%s&quot;, device);</span>
+<span class="nc" id="L124">        return String.format(&quot;test:%s&quot;, device);</span>
     }
 
 }

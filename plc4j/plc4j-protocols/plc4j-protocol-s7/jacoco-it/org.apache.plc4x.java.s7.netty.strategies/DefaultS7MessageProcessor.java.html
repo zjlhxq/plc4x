@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DefaultS7MessageProcessor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PLC4J: Protocol: S7</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.java.s7.netty.strategies</a> &gt; <span class="el_source">DefaultS7MessageProcessor.java</span></div><h1>DefaultS7MessageProcessor.java</h1><pre class="source lang-java linenums">package org.apache.plc4x.java.s7.netty.strategies;
-/*
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DefaultS7MessageProcessor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PLC4J: Protocol: S7</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.java.s7.netty.strategies</a> &gt; <span class="el_source">DefaultS7MessageProcessor.java</span></div><h1>DefaultS7MessageProcessor.java</h1><pre class="source lang-java linenums">/*
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -17,11 +16,12 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
 */
+package org.apache.plc4x.java.s7.netty.strategies;
 
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.plc4x.java.api.exceptions.PlcException;
 import org.apache.plc4x.java.api.exceptions.PlcProtocolException;
-import org.apache.plc4x.java.api.messages.ProtocolMessage;
+import org.apache.plc4x.java.api.messages.PlcProtocolMessage;
 import org.apache.plc4x.java.s7.netty.model.messages.S7RequestMessage;
 import org.apache.plc4x.java.s7.netty.model.messages.S7ResponseMessage;
 import org.apache.plc4x.java.s7.netty.model.params.S7Parameter;
@@ -33,9 +33,9 @@ import org.apache.plc4x.java.s7.netty.model.payloads.VarPayload;
 import org.apache.plc4x.java.s7.netty.model.payloads.items.VarPayloadItem;
 import org.apache.plc4x.java.s7.netty.model.types.MessageType;
 import org.apache.plc4x.java.s7.netty.model.types.ParameterType;
-import org.apache.plc4x.java.s7.netty.model.types.TransportSize;
 import org.apache.plc4x.java.s7.netty.util.S7RequestSizeCalculator;
 import org.apache.plc4x.java.s7.netty.util.S7ResponseSizeEstimator;
+import org.apache.plc4x.java.s7.netty.model.types.TransportSize;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -93,7 +93,7 @@ public class DefaultS7MessageProcessor implements S7MessageProcessor {
             // If this is a read operation, try to get as many items in as possible.
 <span class="nc bnc" id="L94" title="All 2 branches missed.">            if(varParameter.getType() == ParameterType.READ_VAR) {</span>
                 // Create a var parameter without any items (yet).
-<span class="nc" id="L96">                S7Parameter subVarParameter = new VarParameter(varParameter.getType(), new LinkedList&lt;&gt;());</span>
+<span class="nc" id="L96">                VarParameter subVarParameter = new VarParameter(varParameter.getType(), new LinkedList&lt;&gt;());</span>
 
                 // Create a sub message with only this empty parameter.
 <span class="nc" id="L99">                S7RequestMessage subMessage = new S7RequestMessage(</span>
@@ -147,7 +147,7 @@ public class DefaultS7MessageProcessor implements S7MessageProcessor {
                     }
 
                     // Add the item to the current subVarParameter.
-<span class="nc" id="L150">                    ((VarParameter) subVarParameter).getItems().add(varParameterItem);</span>
+<span class="nc" id="L150">                    subVarParameter.getItems().add(varParameterItem);</span>
 <span class="nc" id="L151">                }</span>
 <span class="nc" id="L152">            }</span>
 
@@ -168,14 +168,14 @@ public class DefaultS7MessageProcessor implements S7MessageProcessor {
 <span class="nc bnc" id="L168" title="All 2 branches missed.">                    if (varParameterItem instanceof S7AnyVarParameterItem) {</span>
 <span class="nc" id="L169">                        S7AnyVarParameterItem s7AnyVarParameterItem = (S7AnyVarParameterItem) varParameterItem;</span>
 <span class="nc" id="L170">                        short byteOffset = s7AnyVarParameterItem.getByteOffset();</span>
-<span class="nc bnc" id="L171" title="All 2 branches missed.">                        if (s7AnyVarParameterItem.getTransportSize() == TransportSize.BIT) {</span>
+<span class="nc bnc" id="L171" title="All 2 branches missed.">                        if (s7AnyVarParameterItem.getDataType() == TransportSize.BOOL) {</span>
 <span class="nc" id="L172">                            byte bitOffset = 0;</span>
 <span class="nc bnc" id="L173" title="All 2 branches missed.">                            for (int i = 0; i &lt; s7AnyVarParameterItem.getNumElements(); i++) {</span>
                                 // Create a new message with only one single value item in the var parameter.
 <span class="nc" id="L175">                                VarParameterItem item = new S7AnyVarParameterItem(</span>
 <span class="nc" id="L176">                                    s7AnyVarParameterItem.getSpecificationType(),</span>
 <span class="nc" id="L177">                                    s7AnyVarParameterItem.getMemoryArea(),</span>
-<span class="nc" id="L178">                                    s7AnyVarParameterItem.getTransportSize(), (short) 1,</span>
+<span class="nc" id="L178">                                    s7AnyVarParameterItem.getDataType(), (short) 1,</span>
 <span class="nc" id="L179">                                    s7AnyVarParameterItem.getDataBlockNumber(),</span>
                                     byteOffset, bitOffset);
 <span class="nc" id="L181">                                S7Parameter subVarParameter = new VarParameter(varParameter.getType(),</span>
@@ -213,13 +213,13 @@ public class DefaultS7MessageProcessor implements S7MessageProcessor {
 <span class="nc" id="L213">                        } else {</span>
 <span class="nc" id="L214">                            int payloadPosition = 0;</span>
 <span class="nc bnc" id="L215" title="All 2 branches missed.">                            for (int i = 0; i &lt; s7AnyVarParameterItem.getNumElements(); i++) {</span>
-<span class="nc" id="L216">                                int elementSize = s7AnyVarParameterItem.getTransportSize().getSizeInBytes();</span>
+<span class="nc" id="L216">                                int elementSize = s7AnyVarParameterItem.getDataType().getSizeInBytes();</span>
 
                                 // Create a new message with only one single value item in the var parameter.
 <span class="nc" id="L219">                                VarParameterItem itemParameter = new S7AnyVarParameterItem(</span>
 <span class="nc" id="L220">                                    s7AnyVarParameterItem.getSpecificationType(),</span>
 <span class="nc" id="L221">                                    s7AnyVarParameterItem.getMemoryArea(),</span>
-<span class="nc" id="L222">                                    s7AnyVarParameterItem.getTransportSize(), (short) 1,</span>
+<span class="nc" id="L222">                                    s7AnyVarParameterItem.getDataType(), (short) 1,</span>
 <span class="nc" id="L223">                                    s7AnyVarParameterItem.getDataBlockNumber(),</span>
                                     byteOffset, (byte) 0);
 <span class="nc" id="L225">                                S7Parameter subVarParameter = new VarParameter(varParameter.getType(),</span>
@@ -355,7 +355,7 @@ public class DefaultS7MessageProcessor implements S7MessageProcessor {
 <span class="nc" id="L355">        return null;</span>
     }
 
-    static class S7CompositeRequestMessage implements ProtocolMessage {
+    static class S7CompositeRequestMessage implements PlcProtocolMessage {
 
         private S7RequestMessage originalRequest;
         private Collection&lt;S7RequestMessage&gt; requestMessages;
@@ -368,7 +368,7 @@ public class DefaultS7MessageProcessor implements S7MessageProcessor {
 <span class="nc" id="L368">        }</span>
 
         @Override
-        public ProtocolMessage getParent() {
+        public PlcProtocolMessage getParent() {
 <span class="nc" id="L372">            return originalRequest;</span>
         }
 

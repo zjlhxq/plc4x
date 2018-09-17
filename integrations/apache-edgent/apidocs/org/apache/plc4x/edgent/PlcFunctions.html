@@ -18,7 +18,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9,"i10":9,"i11":9,"i12":9,"i13":9,"i14":9,"i15":9,"i16":9,"i17":9,"i18":9,"i19":9,"i20":9,"i21":9};
+var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9,"i10":9,"i11":9,"i12":9,"i13":9,"i14":9,"i15":9,"i16":9,"i17":9,"i18":9,"i19":9,"i20":9,"i21":9,"i22":9,"i23":9,"i24":9,"i25":9,"i26":9,"i27":9,"i28":9,"i29":9,"i30":9,"i31":9,"i32":9,"i33":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -113,39 +113,39 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <div class="block">WIP - A plc4x Apache Edgent <code>Supplier</code> and <code>Consumer</code> connector factory.
  <p>
  TODO:
- Are there cases where a single logical poll would want to read from 
+ Are there cases where a single logical poll would want to read from
  multiple addrs/data (of different types) from a device and bundle the values
  into a single TStream tuple (e.g., a JsonObject)?  How would we support that?
  Is there a similar need for writing to multiple addrs/values on a device?
  Ah... NOTE: plc4c "batch" requests are coming and will help to address this.
- 
+
  <p>
  Sample use to read plc device data into an Edgent TStream:
  <pre><code>
  PlcConnection plcConnection = new PlcDriverManager().getConnection("s7://192.168.0.1/0/0");
  plcConnection.connect();
  PlcConnectionAdapter adapter = new PlcConnectionAdapter(plcConnection));
- 
+
  DirectProvider dp = new DirectProvider();
  Topology top = dp.newTopology();
  TStream&lt;Byte&gt; stream = top.poll(PlcFunctions.byteSupplier(adapter, "INPUTS/0", 1, TimeUnit.SECONDS);
  stream.print();
  dp.submit(top);
  </code></pre>
- 
+ <p>
  Sample use to write Edgent TStream data to a plc device:
  <pre><code>
  PlcConnection plcConnection = new PlcDriverManager().getConnection("s7://192.168.0.1/0/0");
  plcConnection.connect();
  PlcConnectionAdapter adapter = new PlcConnectionAdapter(plcConnection);
- 
+
  DirectProvider dp = new DirectProvider();
  Topology top = dp.newTopology();
- 
+
  TStream&lt;Byte&gt; stream = ...
  stream.print();
  TSink&lt;Byte&gt; sink = stream.sink(PlcFunctions.byteConsumer(adapter, "OUTPUTS/0"));
- 
+
  dp.submit(top);
  </code></pre></div>
 </li>
@@ -167,7 +167,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
-<td class="colFirst"><code>static org.apache.edgent.function.Supplier&lt;<a href="https://plc4x.apache.org/plc4j/plc4j-api/apidocs/org/apache/plc4x/java/api/messages/PlcReadResponse.html?is-external=true" title="class or interface in org.apache.plc4x.java.api.messages">PlcReadResponse</a>&gt;</code></td>
+<td class="colFirst"><code>static org.apache.edgent.function.Supplier&lt;<a href="https://plc4x.apache.org/plc4j/plc4j-api/apidocs/org/apache/plc4x/java/api/messages/PlcReadResponse.html?is-external=true" title="class or interface in org.apache.plc4x.java.api.messages">PlcReadResponse</a>&lt;?&gt;&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/apache/plc4x/edgent/PlcFunctions.html#batchSupplier-org.apache.plc4x.edgent.PlcConnectionAdapter-org.apache.plc4x.java.api.messages.PlcReadRequest-">batchSupplier</a></span>(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
              <a href="https://plc4x.apache.org/plc4j/plc4j-api/apidocs/org/apache/plc4x/java/api/messages/PlcReadRequest.html?is-external=true" title="class or interface in org.apache.plc4x.java.api.messages">PlcReadRequest</a>&nbsp;readRequest)</code>&nbsp;</td>
 </tr>
@@ -176,7 +176,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/apache/plc4x/edgent/PlcFunctions.html#booleanConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-org.apache.edgent.function.Function-org.apache.edgent.function.Function-">booleanConsumer</a></span>(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
                org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&gt;&nbsp;addressFn,
                org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Boolean.html?is-external=true" title="class or interface in java.lang">Boolean</a>&gt;&nbsp;valueFn)</code>
-<div class="block">Create a new Edgent <code>Consumer</code> to write data to the 
+<div class="block">Create a new Edgent <code>Consumer</code> to write data to the
  plc device.</div>
 </td>
 </tr>
@@ -184,7 +184,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <td class="colFirst"><code>static org.apache.edgent.function.Consumer&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Boolean.html?is-external=true" title="class or interface in java.lang">Boolean</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/apache/plc4x/edgent/PlcFunctions.html#booleanConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">booleanConsumer</a></span>(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
                <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</code>
-<div class="block">Create a new Edgent <code>Consumer</code> to write data to the 
+<div class="block">Create a new Edgent <code>Consumer</code> to write data to the
  plc device.</div>
 </td>
 </tr>
@@ -192,7 +192,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <td class="colFirst"><code>static org.apache.edgent.function.Supplier&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Boolean.html?is-external=true" title="class or interface in java.lang">Boolean</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/apache/plc4x/edgent/PlcFunctions.html#booleanSupplier-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">booleanSupplier</a></span>(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
                <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</code>
-<div class="block">Create a new Edgent <code>Supplier</code> to read data from the 
+<div class="block">Create a new Edgent <code>Supplier</code> to read data from the
  plc device.</div>
 </td>
 </tr>
@@ -214,83 +214,147 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 </tr>
 <tr id="i7" class="rowColor">
 <td class="colFirst"><code>static org.apache.edgent.function.Consumer&lt;com.google.gson.JsonObject&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/apache/plc4x/edgent/PlcFunctions.html#calendarConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-org.apache.edgent.function.Function-org.apache.edgent.function.Function-">calendarConsumer</a></span>(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
-                org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&gt;&nbsp;addressFn,
-                org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/util/Calendar.html?is-external=true" title="class or interface in java.util">Calendar</a>&gt;&nbsp;valueFn)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/apache/plc4x/edgent/PlcFunctions.html#dateConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-org.apache.edgent.function.Function-org.apache.edgent.function.Function-">dateConsumer</a></span>(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
+            org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&gt;&nbsp;addressFn,
+            org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/time/LocalDate.html?is-external=true" title="class or interface in java.time">LocalDate</a>&gt;&nbsp;valueFn)</code>&nbsp;</td>
 </tr>
 <tr id="i8" class="altColor">
-<td class="colFirst"><code>static org.apache.edgent.function.Consumer&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/Calendar.html?is-external=true" title="class or interface in java.util">Calendar</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/apache/plc4x/edgent/PlcFunctions.html#calendarConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">calendarConsumer</a></span>(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
-                <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</code>&nbsp;</td>
+<td class="colFirst"><code>static org.apache.edgent.function.Consumer&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/time/LocalDate.html?is-external=true" title="class or interface in java.time">LocalDate</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/apache/plc4x/edgent/PlcFunctions.html#dateConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">dateConsumer</a></span>(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
+            <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</code>&nbsp;</td>
 </tr>
 <tr id="i9" class="rowColor">
-<td class="colFirst"><code>static org.apache.edgent.function.Supplier&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/Calendar.html?is-external=true" title="class or interface in java.util">Calendar</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/apache/plc4x/edgent/PlcFunctions.html#calendarSupplier-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">calendarSupplier</a></span>(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
-                <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</code>&nbsp;</td>
+<td class="colFirst"><code>static org.apache.edgent.function.Supplier&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/time/LocalDate.html?is-external=true" title="class or interface in java.time">LocalDate</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/apache/plc4x/edgent/PlcFunctions.html#dateSupplier-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">dateSupplier</a></span>(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
+            <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</code>&nbsp;</td>
 </tr>
 <tr id="i10" class="altColor">
+<td class="colFirst"><code>static org.apache.edgent.function.Consumer&lt;com.google.gson.JsonObject&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/apache/plc4x/edgent/PlcFunctions.html#dateTimeConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-org.apache.edgent.function.Function-org.apache.edgent.function.Function-">dateTimeConsumer</a></span>(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
+                org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&gt;&nbsp;addressFn,
+                org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/time/LocalDateTime.html?is-external=true" title="class or interface in java.time">LocalDateTime</a>&gt;&nbsp;valueFn)</code>&nbsp;</td>
+</tr>
+<tr id="i11" class="rowColor">
+<td class="colFirst"><code>static org.apache.edgent.function.Consumer&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/time/LocalDateTime.html?is-external=true" title="class or interface in java.time">LocalDateTime</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/apache/plc4x/edgent/PlcFunctions.html#dateTimeConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">dateTimeConsumer</a></span>(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
+                <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</code>&nbsp;</td>
+</tr>
+<tr id="i12" class="altColor">
+<td class="colFirst"><code>static org.apache.edgent.function.Supplier&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/time/LocalDateTime.html?is-external=true" title="class or interface in java.time">LocalDateTime</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/apache/plc4x/edgent/PlcFunctions.html#dateTimeSupplier-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">dateTimeSupplier</a></span>(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
+                <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</code>&nbsp;</td>
+</tr>
+<tr id="i13" class="rowColor">
+<td class="colFirst"><code>static org.apache.edgent.function.Consumer&lt;com.google.gson.JsonObject&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/apache/plc4x/edgent/PlcFunctions.html#doubleConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-org.apache.edgent.function.Function-org.apache.edgent.function.Function-">doubleConsumer</a></span>(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
+              org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&gt;&nbsp;addressFn,
+              org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Double.html?is-external=true" title="class or interface in java.lang">Double</a>&gt;&nbsp;valueFn)</code>&nbsp;</td>
+</tr>
+<tr id="i14" class="altColor">
+<td class="colFirst"><code>static org.apache.edgent.function.Consumer&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Double.html?is-external=true" title="class or interface in java.lang">Double</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/apache/plc4x/edgent/PlcFunctions.html#doubleConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">doubleConsumer</a></span>(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
+              <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</code>&nbsp;</td>
+</tr>
+<tr id="i15" class="rowColor">
+<td class="colFirst"><code>static org.apache.edgent.function.Supplier&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Double.html?is-external=true" title="class or interface in java.lang">Double</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/apache/plc4x/edgent/PlcFunctions.html#doubleSupplier-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">doubleSupplier</a></span>(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
+              <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</code>&nbsp;</td>
+</tr>
+<tr id="i16" class="altColor">
 <td class="colFirst"><code>static org.apache.edgent.function.Consumer&lt;com.google.gson.JsonObject&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/apache/plc4x/edgent/PlcFunctions.html#floatConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-org.apache.edgent.function.Function-org.apache.edgent.function.Function-">floatConsumer</a></span>(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
              org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&gt;&nbsp;addressFn,
              org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Float.html?is-external=true" title="class or interface in java.lang">Float</a>&gt;&nbsp;valueFn)</code>&nbsp;</td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i17" class="rowColor">
 <td class="colFirst"><code>static org.apache.edgent.function.Consumer&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Float.html?is-external=true" title="class or interface in java.lang">Float</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/apache/plc4x/edgent/PlcFunctions.html#floatConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">floatConsumer</a></span>(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
              <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</code>&nbsp;</td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i18" class="altColor">
 <td class="colFirst"><code>static org.apache.edgent.function.Supplier&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Float.html?is-external=true" title="class or interface in java.lang">Float</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/apache/plc4x/edgent/PlcFunctions.html#floatSupplier-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">floatSupplier</a></span>(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
              <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</code>&nbsp;</td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i19" class="rowColor">
 <td class="colFirst"><code>static org.apache.edgent.function.Consumer&lt;com.google.gson.JsonObject&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/apache/plc4x/edgent/PlcFunctions.html#integerConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-org.apache.edgent.function.Function-org.apache.edgent.function.Function-">integerConsumer</a></span>(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
                org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&gt;&nbsp;addressFn,
                org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Integer.html?is-external=true" title="class or interface in java.lang">Integer</a>&gt;&nbsp;valueFn)</code>&nbsp;</td>
 </tr>
-<tr id="i14" class="altColor">
+<tr id="i20" class="altColor">
 <td class="colFirst"><code>static org.apache.edgent.function.Consumer&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Integer.html?is-external=true" title="class or interface in java.lang">Integer</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/apache/plc4x/edgent/PlcFunctions.html#integerConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">integerConsumer</a></span>(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
                <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</code>&nbsp;</td>
 </tr>
-<tr id="i15" class="rowColor">
+<tr id="i21" class="rowColor">
 <td class="colFirst"><code>static org.apache.edgent.function.Supplier&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Integer.html?is-external=true" title="class or interface in java.lang">Integer</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/apache/plc4x/edgent/PlcFunctions.html#integerSupplier-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">integerSupplier</a></span>(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
                <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</code>&nbsp;</td>
 </tr>
-<tr id="i16" class="altColor">
+<tr id="i22" class="altColor">
+<td class="colFirst"><code>static org.apache.edgent.function.Consumer&lt;com.google.gson.JsonObject&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/apache/plc4x/edgent/PlcFunctions.html#longConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-org.apache.edgent.function.Function-org.apache.edgent.function.Function-">longConsumer</a></span>(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
+            org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&gt;&nbsp;addressFn,
+            org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Long.html?is-external=true" title="class or interface in java.lang">Long</a>&gt;&nbsp;valueFn)</code>&nbsp;</td>
+</tr>
+<tr id="i23" class="rowColor">
+<td class="colFirst"><code>static org.apache.edgent.function.Consumer&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Long.html?is-external=true" title="class or interface in java.lang">Long</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/apache/plc4x/edgent/PlcFunctions.html#longConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">longConsumer</a></span>(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
+            <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</code>&nbsp;</td>
+</tr>
+<tr id="i24" class="altColor">
+<td class="colFirst"><code>static org.apache.edgent.function.Supplier&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Long.html?is-external=true" title="class or interface in java.lang">Long</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/apache/plc4x/edgent/PlcFunctions.html#longSupplier-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">longSupplier</a></span>(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
+            <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</code>&nbsp;</td>
+</tr>
+<tr id="i25" class="rowColor">
 <td class="colFirst"><code>static org.apache.edgent.function.Consumer&lt;com.google.gson.JsonObject&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/apache/plc4x/edgent/PlcFunctions.html#shortConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-org.apache.edgent.function.Function-org.apache.edgent.function.Function-">shortConsumer</a></span>(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
              org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&gt;&nbsp;addressFn,
              org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Short.html?is-external=true" title="class or interface in java.lang">Short</a>&gt;&nbsp;valueFn)</code>&nbsp;</td>
 </tr>
-<tr id="i17" class="rowColor">
+<tr id="i26" class="altColor">
 <td class="colFirst"><code>static org.apache.edgent.function.Consumer&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Short.html?is-external=true" title="class or interface in java.lang">Short</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/apache/plc4x/edgent/PlcFunctions.html#shortConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">shortConsumer</a></span>(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
              <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</code>&nbsp;</td>
 </tr>
-<tr id="i18" class="altColor">
+<tr id="i27" class="rowColor">
 <td class="colFirst"><code>static org.apache.edgent.function.Supplier&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Short.html?is-external=true" title="class or interface in java.lang">Short</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/apache/plc4x/edgent/PlcFunctions.html#shortSupplier-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">shortSupplier</a></span>(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
              <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</code>&nbsp;</td>
 </tr>
-<tr id="i19" class="rowColor">
+<tr id="i28" class="altColor">
 <td class="colFirst"><code>static org.apache.edgent.function.Consumer&lt;com.google.gson.JsonObject&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/apache/plc4x/edgent/PlcFunctions.html#stringConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-org.apache.edgent.function.Function-org.apache.edgent.function.Function-">stringConsumer</a></span>(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
               org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&gt;&nbsp;addressFn,
               org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&gt;&nbsp;valueFn)</code>&nbsp;</td>
 </tr>
-<tr id="i20" class="altColor">
+<tr id="i29" class="rowColor">
 <td class="colFirst"><code>static org.apache.edgent.function.Consumer&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/apache/plc4x/edgent/PlcFunctions.html#stringConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">stringConsumer</a></span>(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
               <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</code>&nbsp;</td>
 </tr>
-<tr id="i21" class="rowColor">
+<tr id="i30" class="altColor">
 <td class="colFirst"><code>static org.apache.edgent.function.Supplier&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/apache/plc4x/edgent/PlcFunctions.html#stringSupplier-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">stringSupplier</a></span>(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
               <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</code>&nbsp;</td>
+</tr>
+<tr id="i31" class="rowColor">
+<td class="colFirst"><code>static org.apache.edgent.function.Consumer&lt;com.google.gson.JsonObject&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/apache/plc4x/edgent/PlcFunctions.html#timeConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-org.apache.edgent.function.Function-org.apache.edgent.function.Function-">timeConsumer</a></span>(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
+            org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&gt;&nbsp;addressFn,
+            org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/time/LocalTime.html?is-external=true" title="class or interface in java.time">LocalTime</a>&gt;&nbsp;valueFn)</code>&nbsp;</td>
+</tr>
+<tr id="i32" class="altColor">
+<td class="colFirst"><code>static org.apache.edgent.function.Consumer&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/time/LocalTime.html?is-external=true" title="class or interface in java.time">LocalTime</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/apache/plc4x/edgent/PlcFunctions.html#timeConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">timeConsumer</a></span>(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
+            <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</code>&nbsp;</td>
+</tr>
+<tr id="i33" class="rowColor">
+<td class="colFirst"><code>static org.apache.edgent.function.Supplier&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/time/LocalTime.html?is-external=true" title="class or interface in java.time">LocalTime</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../org/apache/plc4x/edgent/PlcFunctions.html#timeSupplier-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">timeSupplier</a></span>(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
+            <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</code>&nbsp;</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -322,7 +386,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <h4>booleanSupplier</h4>
 <pre>public static&nbsp;org.apache.edgent.function.Supplier&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Boolean.html?is-external=true" title="class or interface in java.lang">Boolean</a>&gt;&nbsp;booleanSupplier(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
                                                                            <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</pre>
-<div class="block">Create a new Edgent <code>Supplier</code> to read data from the 
+<div class="block">Create a new Edgent <code>Supplier</code> to read data from the
  plc device.
  <p>
  Every call to the returned <code>Supplier.get()</code> reads a
@@ -335,7 +399,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <dd><code>addressStr</code> - the plc device address string</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>the <code>Supplier&lt;T&gt;</code>
-
+ <p>
  // TODO: No need to import the Topology module for just this comment ... I think
  //see org.apache.edgent.topology.Topology#poll(Supplier, long, java.util.concurrent.TimeUnit)</dd>
 </dl>
@@ -371,6 +435,16 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
                                                                            <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</pre>
 </li>
 </ul>
+<a name="longSupplier-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>longSupplier</h4>
+<pre>public static&nbsp;org.apache.edgent.function.Supplier&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Long.html?is-external=true" title="class or interface in java.lang">Long</a>&gt;&nbsp;longSupplier(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
+                                                                     <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</pre>
+</li>
+</ul>
 <a name="floatSupplier-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">
 <!--   -->
 </a>
@@ -379,6 +453,16 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <h4>floatSupplier</h4>
 <pre>public static&nbsp;org.apache.edgent.function.Supplier&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Float.html?is-external=true" title="class or interface in java.lang">Float</a>&gt;&nbsp;floatSupplier(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
                                                                        <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</pre>
+</li>
+</ul>
+<a name="doubleSupplier-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>doubleSupplier</h4>
+<pre>public static&nbsp;org.apache.edgent.function.Supplier&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Double.html?is-external=true" title="class or interface in java.lang">Double</a>&gt;&nbsp;doubleSupplier(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
+                                                                         <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</pre>
 </li>
 </ul>
 <a name="stringSupplier-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">
@@ -391,14 +475,34 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
                                                                          <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</pre>
 </li>
 </ul>
-<a name="calendarSupplier-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">
+<a name="timeSupplier-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>calendarSupplier</h4>
-<pre>public static&nbsp;org.apache.edgent.function.Supplier&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/Calendar.html?is-external=true" title="class or interface in java.util">Calendar</a>&gt;&nbsp;calendarSupplier(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
-                                                                             <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</pre>
+<h4>timeSupplier</h4>
+<pre>public static&nbsp;org.apache.edgent.function.Supplier&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/time/LocalTime.html?is-external=true" title="class or interface in java.time">LocalTime</a>&gt;&nbsp;timeSupplier(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
+                                                                          <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</pre>
+</li>
+</ul>
+<a name="dateSupplier-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>dateSupplier</h4>
+<pre>public static&nbsp;org.apache.edgent.function.Supplier&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/time/LocalDate.html?is-external=true" title="class or interface in java.time">LocalDate</a>&gt;&nbsp;dateSupplier(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
+                                                                          <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</pre>
+</li>
+</ul>
+<a name="dateTimeSupplier-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>dateTimeSupplier</h4>
+<pre>public static&nbsp;org.apache.edgent.function.Supplier&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/time/LocalDateTime.html?is-external=true" title="class or interface in java.time">LocalDateTime</a>&gt;&nbsp;dateTimeSupplier(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
+                                                                                  <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</pre>
 </li>
 </ul>
 <a name="batchSupplier-org.apache.plc4x.edgent.PlcConnectionAdapter-org.apache.plc4x.java.api.messages.PlcReadRequest-">
@@ -407,8 +511,8 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <ul class="blockList">
 <li class="blockList">
 <h4>batchSupplier</h4>
-<pre>public static&nbsp;org.apache.edgent.function.Supplier&lt;<a href="https://plc4x.apache.org/plc4j/plc4j-api/apidocs/org/apache/plc4x/java/api/messages/PlcReadResponse.html?is-external=true" title="class or interface in org.apache.plc4x.java.api.messages">PlcReadResponse</a>&gt;&nbsp;batchSupplier(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
-                                                                                 <a href="https://plc4x.apache.org/plc4j/plc4j-api/apidocs/org/apache/plc4x/java/api/messages/PlcReadRequest.html?is-external=true" title="class or interface in org.apache.plc4x.java.api.messages">PlcReadRequest</a>&nbsp;readRequest)</pre>
+<pre>public static&nbsp;org.apache.edgent.function.Supplier&lt;<a href="https://plc4x.apache.org/plc4j/plc4j-api/apidocs/org/apache/plc4x/java/api/messages/PlcReadResponse.html?is-external=true" title="class or interface in org.apache.plc4x.java.api.messages">PlcReadResponse</a>&lt;?&gt;&gt;&nbsp;batchSupplier(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
+                                                                                    <a href="https://plc4x.apache.org/plc4j/plc4j-api/apidocs/org/apache/plc4x/java/api/messages/PlcReadRequest.html?is-external=true" title="class or interface in org.apache.plc4x.java.api.messages">PlcReadRequest</a>&nbsp;readRequest)</pre>
 </li>
 </ul>
 <a name="booleanConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">
@@ -419,7 +523,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <h4>booleanConsumer</h4>
 <pre>public static&nbsp;org.apache.edgent.function.Consumer&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Boolean.html?is-external=true" title="class or interface in java.lang">Boolean</a>&gt;&nbsp;booleanConsumer(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
                                                                            <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</pre>
-<div class="block">Create a new Edgent <code>Consumer</code> to write data to the 
+<div class="block">Create a new Edgent <code>Consumer</code> to write data to the
  plc device.
  <p>
  Every call to the returned <code>Consumer.accept(Object)</code>
@@ -431,7 +535,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <dd><code>addressStr</code> - the plc device address string</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>the <code>Consumer&lt;T&gt;</code>
-
+ <p>
  // TODO: No need to import the Topology module for just this comment ... I think
  //see org.apache.edgent.topology.TStream#sink(Consumer)</dd>
 </dl>
@@ -467,6 +571,16 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
                                                                            <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</pre>
 </li>
 </ul>
+<a name="longConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>longConsumer</h4>
+<pre>public static&nbsp;org.apache.edgent.function.Consumer&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Long.html?is-external=true" title="class or interface in java.lang">Long</a>&gt;&nbsp;longConsumer(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
+                                                                     <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</pre>
+</li>
+</ul>
 <a name="floatConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">
 <!--   -->
 </a>
@@ -475,6 +589,16 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <h4>floatConsumer</h4>
 <pre>public static&nbsp;org.apache.edgent.function.Consumer&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Float.html?is-external=true" title="class or interface in java.lang">Float</a>&gt;&nbsp;floatConsumer(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
                                                                        <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</pre>
+</li>
+</ul>
+<a name="doubleConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>doubleConsumer</h4>
+<pre>public static&nbsp;org.apache.edgent.function.Consumer&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Double.html?is-external=true" title="class or interface in java.lang">Double</a>&gt;&nbsp;doubleConsumer(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
+                                                                         <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</pre>
 </li>
 </ul>
 <a name="stringConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">
@@ -487,14 +611,34 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
                                                                          <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</pre>
 </li>
 </ul>
-<a name="calendarConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">
+<a name="timeConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>calendarConsumer</h4>
-<pre>public static&nbsp;org.apache.edgent.function.Consumer&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/Calendar.html?is-external=true" title="class or interface in java.util">Calendar</a>&gt;&nbsp;calendarConsumer(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
-                                                                             <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</pre>
+<h4>timeConsumer</h4>
+<pre>public static&nbsp;org.apache.edgent.function.Consumer&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/time/LocalTime.html?is-external=true" title="class or interface in java.time">LocalTime</a>&gt;&nbsp;timeConsumer(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
+                                                                          <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</pre>
+</li>
+</ul>
+<a name="dateConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>dateConsumer</h4>
+<pre>public static&nbsp;org.apache.edgent.function.Consumer&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/time/LocalDate.html?is-external=true" title="class or interface in java.time">LocalDate</a>&gt;&nbsp;dateConsumer(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
+                                                                          <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</pre>
+</li>
+</ul>
+<a name="dateTimeConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>dateTimeConsumer</h4>
+<pre>public static&nbsp;org.apache.edgent.function.Consumer&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/time/LocalDateTime.html?is-external=true" title="class or interface in java.time">LocalDateTime</a>&gt;&nbsp;dateTimeConsumer(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
+                                                                                  <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;addressStr)</pre>
 </li>
 </ul>
 <a name="booleanConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-org.apache.edgent.function.Function-org.apache.edgent.function.Function-">
@@ -506,7 +650,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <pre>public static&nbsp;org.apache.edgent.function.Consumer&lt;com.google.gson.JsonObject&gt;&nbsp;booleanConsumer(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
                                                                                               org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&gt;&nbsp;addressFn,
                                                                                               org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Boolean.html?is-external=true" title="class or interface in java.lang">Boolean</a>&gt;&nbsp;valueFn)</pre>
-<div class="block">Create a new Edgent <code>Consumer</code> to write data to the 
+<div class="block">Create a new Edgent <code>Consumer</code> to write data to the
  plc device.
  <p>
  TODO: Is it premature to supply this?
@@ -521,11 +665,11 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>adapter</code> - the @{link PlcConnectionAdapter}</dd>
-<dd><code>addressFn</code> - <code>Function</code> the returns a device <code>Address</code> from a <code>JsonObject</code></dd>
+<dd><code>addressFn</code> - <code>Function</code> the returns a device <code>PlcField</code> from a <code>JsonObject</code></dd>
 <dd><code>valueFn</code> - <code>Function</code> the returns a <code>Value</code> from a <code>JsonObject</code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>the <code>Consumer&lt;JsonObject&gt;</code>
-
+ <p>
  // TODO: No need to import the Topology module for just this comment ... I think
  //see org.apache.edgent.topology.TStream#sink(Consumer)</dd>
 </dl>
@@ -564,6 +708,17 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
                                                                                               org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Integer.html?is-external=true" title="class or interface in java.lang">Integer</a>&gt;&nbsp;valueFn)</pre>
 </li>
 </ul>
+<a name="longConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-org.apache.edgent.function.Function-org.apache.edgent.function.Function-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>longConsumer</h4>
+<pre>public static&nbsp;org.apache.edgent.function.Consumer&lt;com.google.gson.JsonObject&gt;&nbsp;longConsumer(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
+                                                                                           org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&gt;&nbsp;addressFn,
+                                                                                           org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Long.html?is-external=true" title="class or interface in java.lang">Long</a>&gt;&nbsp;valueFn)</pre>
+</li>
+</ul>
 <a name="floatConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-org.apache.edgent.function.Function-org.apache.edgent.function.Function-">
 <!--   -->
 </a>
@@ -573,6 +728,17 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <pre>public static&nbsp;org.apache.edgent.function.Consumer&lt;com.google.gson.JsonObject&gt;&nbsp;floatConsumer(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
                                                                                             org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&gt;&nbsp;addressFn,
                                                                                             org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Float.html?is-external=true" title="class or interface in java.lang">Float</a>&gt;&nbsp;valueFn)</pre>
+</li>
+</ul>
+<a name="doubleConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-org.apache.edgent.function.Function-org.apache.edgent.function.Function-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>doubleConsumer</h4>
+<pre>public static&nbsp;org.apache.edgent.function.Consumer&lt;com.google.gson.JsonObject&gt;&nbsp;doubleConsumer(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
+                                                                                             org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&gt;&nbsp;addressFn,
+                                                                                             org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Double.html?is-external=true" title="class or interface in java.lang">Double</a>&gt;&nbsp;valueFn)</pre>
 </li>
 </ul>
 <a name="stringConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-org.apache.edgent.function.Function-org.apache.edgent.function.Function-">
@@ -586,15 +752,37 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
                                                                                              org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&gt;&nbsp;valueFn)</pre>
 </li>
 </ul>
-<a name="calendarConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-org.apache.edgent.function.Function-org.apache.edgent.function.Function-">
+<a name="timeConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-org.apache.edgent.function.Function-org.apache.edgent.function.Function-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>timeConsumer</h4>
+<pre>public static&nbsp;org.apache.edgent.function.Consumer&lt;com.google.gson.JsonObject&gt;&nbsp;timeConsumer(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
+                                                                                           org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&gt;&nbsp;addressFn,
+                                                                                           org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/time/LocalTime.html?is-external=true" title="class or interface in java.time">LocalTime</a>&gt;&nbsp;valueFn)</pre>
+</li>
+</ul>
+<a name="dateConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-org.apache.edgent.function.Function-org.apache.edgent.function.Function-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>dateConsumer</h4>
+<pre>public static&nbsp;org.apache.edgent.function.Consumer&lt;com.google.gson.JsonObject&gt;&nbsp;dateConsumer(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
+                                                                                           org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&gt;&nbsp;addressFn,
+                                                                                           org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/time/LocalDate.html?is-external=true" title="class or interface in java.time">LocalDate</a>&gt;&nbsp;valueFn)</pre>
+</li>
+</ul>
+<a name="dateTimeConsumer-org.apache.plc4x.edgent.PlcConnectionAdapter-org.apache.edgent.function.Function-org.apache.edgent.function.Function-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>calendarConsumer</h4>
-<pre>public static&nbsp;org.apache.edgent.function.Consumer&lt;com.google.gson.JsonObject&gt;&nbsp;calendarConsumer(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
+<h4>dateTimeConsumer</h4>
+<pre>public static&nbsp;org.apache.edgent.function.Consumer&lt;com.google.gson.JsonObject&gt;&nbsp;dateTimeConsumer(<a href="../../../../org/apache/plc4x/edgent/PlcConnectionAdapter.html" title="class in org.apache.plc4x.edgent">PlcConnectionAdapter</a>&nbsp;adapter,
                                                                                                org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&gt;&nbsp;addressFn,
-                                                                                               org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/util/Calendar.html?is-external=true" title="class or interface in java.util">Calendar</a>&gt;&nbsp;valueFn)</pre>
+                                                                                               org.apache.edgent.function.Function&lt;com.google.gson.JsonObject,<a href="https://docs.oracle.com/javase/8/docs/api/java/time/LocalDateTime.html?is-external=true" title="class or interface in java.time">LocalDateTime</a>&gt;&nbsp;valueFn)</pre>
 </li>
 </ul>
 </li>
