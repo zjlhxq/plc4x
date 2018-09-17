@@ -23,6 +23,7 @@ import org.apache.plc4x.java.api.model.PlcField;
 import org.apache.plc4x.java.api.types.PlcResponseCode;
 import org.apache.plc4x.java.base.messages.items.FieldItem;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -37,590 +38,632 @@ public class DefaultPlcReadResponse implements InternalPlcReadResponse {
     private final InternalPlcReadRequest request;
     private final Map&lt;String, Pair&lt;PlcResponseCode, FieldItem&gt;&gt; values;
 
-<span class="nc" id="L40">    public DefaultPlcReadResponse(InternalPlcReadRequest request, Map&lt;String, Pair&lt;PlcResponseCode, FieldItem&gt;&gt; fields) {</span>
-<span class="nc" id="L41">        this.request = request;</span>
-<span class="nc" id="L42">        this.values = fields;</span>
-<span class="nc" id="L43">    }</span>
+<span class="nc" id="L41">    public DefaultPlcReadResponse(InternalPlcReadRequest request, Map&lt;String, Pair&lt;PlcResponseCode, FieldItem&gt;&gt; fields) {</span>
+<span class="nc" id="L42">        this.request = request;</span>
+<span class="nc" id="L43">        this.values = fields;</span>
+<span class="nc" id="L44">    }</span>
 
     @Override
     public InternalPlcReadRequest getRequest() {
-<span class="nc" id="L47">        return request;</span>
+<span class="nc" id="L48">        return request;</span>
     }
 
     @Override
     public int getNumberOfValues(String name) {
-<span class="nc" id="L52">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L53" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L54">            return fieldInternal.getNumberOfValues();</span>
+<span class="nc" id="L53">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L55">            return fieldInternal.getNumberOfValues();</span>
         }
-<span class="nc" id="L56">        return 0;</span>
+<span class="nc" id="L57">        return 0;</span>
     }
 
     @Override
     public Collection&lt;String&gt; getFieldNames() {
-<span class="nc" id="L61">        return request.getFieldNames();</span>
+<span class="nc" id="L62">        return request.getFieldNames();</span>
     }
 
     @Override
     public PlcField getField(String name) {
-<span class="nc" id="L66">        return request.getField(name);</span>
+<span class="nc" id="L67">        return request.getField(name);</span>
     }
 
     @Override
     public PlcResponseCode getResponseCode(String name) {
-<span class="nc bnc" id="L71" title="All 2 branches missed.">        if (values.get(name) == null) {</span>
-<span class="nc" id="L72">            return null;</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">        if (values.get(name) == null) {</span>
+<span class="nc" id="L73">            return null;</span>
         }
-<span class="nc" id="L74">        return values.get(name).getKey();</span>
+<span class="nc" id="L75">        return values.get(name).getKey();</span>
     }
 
     @Override
     public Object getObject(String name) {
-<span class="nc" id="L79">        return getObject(name, 0);</span>
+<span class="nc" id="L80">        return getObject(name, 0);</span>
     }
 
     @Override
     public Object getObject(String name, int index) {
-<span class="nc" id="L84">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L85" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L86">            return fieldInternal.getObject(index);</span>
+<span class="nc" id="L85">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L87">            return fieldInternal.getObject(index);</span>
         }
-<span class="nc" id="L88">        return null;</span>
+<span class="nc" id="L89">        return null;</span>
     }
 
     @Override
     public Collection&lt;Object&gt; getAllObjects(String name) {
         // TODO: Implement this ...
-<span class="nc" id="L94">        return null;</span>
+<span class="nc" id="L95">        return null;</span>
     }
 
     @Override
     public boolean isValidBoolean(String name) {
-<span class="nc" id="L99">        return isValidBoolean(name, 0);</span>
+<span class="nc" id="L100">        return isValidBoolean(name, 0);</span>
     }
 
     @Override
     public boolean isValidBoolean(String name, int index) {
-<span class="nc" id="L104">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L105" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L106">            return fieldInternal.isValidBoolean(index);</span>
+<span class="nc" id="L105">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L107">            return fieldInternal.isValidBoolean(index);</span>
         }
-<span class="nc" id="L108">        return false;</span>
+<span class="nc" id="L109">        return false;</span>
     }
 
     @Override
     public Boolean getBoolean(String name) {
-<span class="nc" id="L113">        return getBoolean(name, 0);</span>
+<span class="nc" id="L114">        return getBoolean(name, 0);</span>
     }
 
     @Override
     public Boolean getBoolean(String name, int index) {
-<span class="nc" id="L118">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L119" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L120">            return fieldInternal.getBoolean(index);</span>
+<span class="nc" id="L119">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L121">            return fieldInternal.getBoolean(index);</span>
         }
-<span class="nc" id="L122">        return null;</span>
+<span class="nc" id="L123">        return null;</span>
     }
 
     @Override
     public Collection&lt;Boolean&gt; getAllBooleans(String name) {
-<span class="nc" id="L127">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L128" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L129">            int num = fieldInternal.getNumberOfValues();</span>
-<span class="nc" id="L130">            List&lt;Boolean&gt; values = new ArrayList&lt;&gt;(num);</span>
-<span class="nc bnc" id="L131" title="All 2 branches missed.">            for (int i = 0; i &lt; num; i++) {</span>
-<span class="nc" id="L132">                values.add(fieldInternal.getBoolean(i));</span>
+<span class="nc" id="L128">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L130">            int num = fieldInternal.getNumberOfValues();</span>
+<span class="nc" id="L131">            List&lt;Boolean&gt; values = new ArrayList&lt;&gt;(num);</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">            for (int i = 0; i &lt; num; i++) {</span>
+<span class="nc" id="L133">                values.add(fieldInternal.getBoolean(i));</span>
             }
-<span class="nc" id="L134">            return values;</span>
+<span class="nc" id="L135">            return values;</span>
         }
-<span class="nc" id="L136">        return null;</span>
+<span class="nc" id="L137">        return null;</span>
     }
 
     @Override
     public boolean isValidByte(String name) {
-<span class="nc" id="L141">        return isValidByte(name, 0);</span>
+<span class="nc" id="L142">        return isValidByte(name, 0);</span>
     }
 
     @Override
     public boolean isValidByte(String name, int index) {
-<span class="nc" id="L146">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L147" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L148">            return fieldInternal.isValidByte(index);</span>
+<span class="nc" id="L147">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L149">            return fieldInternal.isValidByte(index);</span>
         }
-<span class="nc" id="L150">        return false;</span>
+<span class="nc" id="L151">        return false;</span>
     }
 
     @Override
     public Byte getByte(String name) {
-<span class="nc" id="L155">        return getByte(name, 0);</span>
+<span class="nc" id="L156">        return getByte(name, 0);</span>
     }
 
     @Override
     public Byte getByte(String name, int index) {
-<span class="nc" id="L160">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L161" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L162">            return fieldInternal.getByte(index);</span>
+<span class="nc" id="L161">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L162" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L163">            return fieldInternal.getByte(index);</span>
         }
-<span class="nc" id="L164">        return null;</span>
+<span class="nc" id="L165">        return null;</span>
     }
 
     @Override
     public Collection&lt;Byte&gt; getAllBytes(String name) {
-<span class="nc" id="L169">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L170" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L171">            int num = fieldInternal.getNumberOfValues();</span>
-<span class="nc" id="L172">            List&lt;Byte&gt; values = new ArrayList&lt;&gt;(num);</span>
-<span class="nc bnc" id="L173" title="All 2 branches missed.">            for (int i = 0; i &lt; num; i++) {</span>
-<span class="nc" id="L174">                values.add(fieldInternal.getByte(i));</span>
+<span class="nc" id="L170">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L171" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L172">            int num = fieldInternal.getNumberOfValues();</span>
+<span class="nc" id="L173">            List&lt;Byte&gt; values = new ArrayList&lt;&gt;(num);</span>
+<span class="nc bnc" id="L174" title="All 2 branches missed.">            for (int i = 0; i &lt; num; i++) {</span>
+<span class="nc" id="L175">                values.add(fieldInternal.getByte(i));</span>
             }
-<span class="nc" id="L176">            return values;</span>
+<span class="nc" id="L177">            return values;</span>
         }
-<span class="nc" id="L178">        return null;</span>
+<span class="nc" id="L179">        return null;</span>
     }
 
     @Override
     public byte[] getByteArray(String name) {
-<span class="nc" id="L183">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L184" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L185">            int num = fieldInternal.getNumberOfValues();</span>
-<span class="nc" id="L186">            byte[] values = new byte[num];</span>
-<span class="nc bnc" id="L187" title="All 2 branches missed.">            for (int i = 0; i &lt; num; i++) {</span>
-<span class="nc" id="L188">                values[i] = fieldInternal.getByte(i);</span>
+<span class="nc" id="L184">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L185" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L186">            int num = fieldInternal.getNumberOfValues();</span>
+<span class="nc" id="L187">            byte[] values = new byte[num];</span>
+<span class="nc bnc" id="L188" title="All 2 branches missed.">            for (int i = 0; i &lt; num; i++) {</span>
+<span class="nc" id="L189">                values[i] = fieldInternal.getByte(i);</span>
             }
-<span class="nc" id="L190">            return values;</span>
+<span class="nc" id="L191">            return values;</span>
         }
-<span class="nc" id="L192">        return null;</span>
+<span class="nc" id="L193">        return null;</span>
     }
 
     @Override
     public boolean isValidShort(String name) {
-<span class="nc" id="L197">        return isValidShort(name, 0);</span>
+<span class="nc" id="L198">        return isValidShort(name, 0);</span>
     }
 
     @Override
     public boolean isValidShort(String name, int index) {
-<span class="nc" id="L202">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L203" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L204">            return fieldInternal.isValidShort(index);</span>
+<span class="nc" id="L203">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L204" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L205">            return fieldInternal.isValidShort(index);</span>
         }
-<span class="nc" id="L206">        return false;</span>
+<span class="nc" id="L207">        return false;</span>
     }
 
     @Override
     public Short getShort(String name) {
-<span class="nc" id="L211">        return getShort(name, 0);</span>
+<span class="nc" id="L212">        return getShort(name, 0);</span>
     }
 
     @Override
     public Short getShort(String name, int index) {
-<span class="nc" id="L216">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L217" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L218">            return fieldInternal.getShort(index);</span>
+<span class="nc" id="L217">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L218" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L219">            return fieldInternal.getShort(index);</span>
         }
-<span class="nc" id="L220">        return null;</span>
+<span class="nc" id="L221">        return null;</span>
     }
 
     @Override
     public Collection&lt;Short&gt; getAllShorts(String name) {
-<span class="nc" id="L225">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L226" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L227">            int num = fieldInternal.getNumberOfValues();</span>
-<span class="nc" id="L228">            List&lt;Short&gt; values = new ArrayList&lt;&gt;(num);</span>
-<span class="nc bnc" id="L229" title="All 2 branches missed.">            for (int i = 0; i &lt; num; i++) {</span>
-<span class="nc" id="L230">                values.add(fieldInternal.getShort(i));</span>
+<span class="nc" id="L226">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L227" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L228">            int num = fieldInternal.getNumberOfValues();</span>
+<span class="nc" id="L229">            List&lt;Short&gt; values = new ArrayList&lt;&gt;(num);</span>
+<span class="nc bnc" id="L230" title="All 2 branches missed.">            for (int i = 0; i &lt; num; i++) {</span>
+<span class="nc" id="L231">                values.add(fieldInternal.getShort(i));</span>
             }
-<span class="nc" id="L232">            return values;</span>
+<span class="nc" id="L233">            return values;</span>
         }
-<span class="nc" id="L234">        return null;</span>
+<span class="nc" id="L235">        return null;</span>
     }
 
     @Override
     public boolean isValidInteger(String name) {
-<span class="nc" id="L239">        return isValidInteger(name, 0);</span>
+<span class="nc" id="L240">        return isValidInteger(name, 0);</span>
     }
 
     @Override
     public boolean isValidInteger(String name, int index) {
-<span class="nc" id="L244">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L245" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L246">            return fieldInternal.isValidInteger(index);</span>
+<span class="nc" id="L245">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L246" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L247">            return fieldInternal.isValidInteger(index);</span>
         }
-<span class="nc" id="L248">        return false;</span>
+<span class="nc" id="L249">        return false;</span>
     }
 
     @Override
     public Integer getInteger(String name) {
-<span class="nc" id="L253">        return getInteger(name, 0);</span>
+<span class="nc" id="L254">        return getInteger(name, 0);</span>
     }
 
     @Override
     public Integer getInteger(String name, int index) {
-<span class="nc" id="L258">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L259" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L260">            return fieldInternal.getInteger(index);</span>
+<span class="nc" id="L259">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L260" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L261">            return fieldInternal.getInteger(index);</span>
         }
-<span class="nc" id="L262">        return null;</span>
+<span class="nc" id="L263">        return null;</span>
     }
 
     @Override
     public Collection&lt;Integer&gt; getAllIntegers(String name) {
-<span class="nc" id="L267">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L268" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L269">            int num = fieldInternal.getNumberOfValues();</span>
-<span class="nc" id="L270">            List&lt;Integer&gt; values = new ArrayList&lt;&gt;(num);</span>
-<span class="nc bnc" id="L271" title="All 2 branches missed.">            for (int i = 0; i &lt; num; i++) {</span>
-<span class="nc" id="L272">                values.add(fieldInternal.getInteger(i));</span>
+<span class="nc" id="L268">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L269" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L270">            int num = fieldInternal.getNumberOfValues();</span>
+<span class="nc" id="L271">            List&lt;Integer&gt; values = new ArrayList&lt;&gt;(num);</span>
+<span class="nc bnc" id="L272" title="All 2 branches missed.">            for (int i = 0; i &lt; num; i++) {</span>
+<span class="nc" id="L273">                values.add(fieldInternal.getInteger(i));</span>
             }
-<span class="nc" id="L274">            return values;</span>
+<span class="nc" id="L275">            return values;</span>
         }
-<span class="nc" id="L276">        return null;</span>
+<span class="nc" id="L277">        return null;</span>
     }
 
     @Override
     public boolean isValidBigInteger(String name) {
-<span class="nc" id="L281">        return isValidBigInteger(name, 0);</span>
+<span class="nc" id="L282">        return isValidBigInteger(name, 0);</span>
     }
 
     @Override
     public boolean isValidBigInteger(String name, int index) {
-<span class="nc" id="L286">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L287" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L288">            return fieldInternal.isValidInteger(index);</span>
+<span class="nc" id="L287">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L288" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L289">            return fieldInternal.isValidInteger(index);</span>
         }
-<span class="nc" id="L290">        return false;</span>
+<span class="nc" id="L291">        return false;</span>
     }
 
     @Override
     public BigInteger getBigInteger(String name) {
-<span class="nc" id="L295">        return getBigInteger(name, 0);</span>
+<span class="nc" id="L296">        return getBigInteger(name, 0);</span>
     }
 
     @Override
     public BigInteger getBigInteger(String name, int index) {
-<span class="nc" id="L300">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L301" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L302">            return fieldInternal.getBigInteger(index);</span>
+<span class="nc" id="L301">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L302" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L303">            return fieldInternal.getBigInteger(index);</span>
         }
-<span class="nc" id="L304">        return null;</span>
+<span class="nc" id="L305">        return null;</span>
     }
 
     @Override
     public Collection&lt;BigInteger&gt; getAllBigIntegers(String name) {
-<span class="nc" id="L309">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L310" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L311">            int num = fieldInternal.getNumberOfValues();</span>
-<span class="nc" id="L312">            List&lt;BigInteger&gt; values = new ArrayList&lt;&gt;(num);</span>
-<span class="nc bnc" id="L313" title="All 2 branches missed.">            for (int i = 0; i &lt; num; i++) {</span>
-<span class="nc" id="L314">                values.add(fieldInternal.getBigInteger(i));</span>
+<span class="nc" id="L310">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L311" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L312">            int num = fieldInternal.getNumberOfValues();</span>
+<span class="nc" id="L313">            List&lt;BigInteger&gt; values = new ArrayList&lt;&gt;(num);</span>
+<span class="nc bnc" id="L314" title="All 2 branches missed.">            for (int i = 0; i &lt; num; i++) {</span>
+<span class="nc" id="L315">                values.add(fieldInternal.getBigInteger(i));</span>
             }
-<span class="nc" id="L316">            return values;</span>
+<span class="nc" id="L317">            return values;</span>
         }
-<span class="nc" id="L318">        return null;</span>
+<span class="nc" id="L319">        return null;</span>
     }
 
     @Override
     public boolean isValidLong(String name) {
-<span class="nc" id="L323">        return isValidLong(name, 0);</span>
+<span class="nc" id="L324">        return isValidLong(name, 0);</span>
     }
 
     @Override
     public boolean isValidLong(String name, int index) {
-<span class="nc" id="L328">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L329" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L330">            return fieldInternal.isValidLong(index);</span>
+<span class="nc" id="L329">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L330" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L331">            return fieldInternal.isValidLong(index);</span>
         }
-<span class="nc" id="L332">        return false;</span>
+<span class="nc" id="L333">        return false;</span>
     }
 
     @Override
     public Long getLong(String name) {
-<span class="nc" id="L337">        return getLong(name, 0);</span>
+<span class="nc" id="L338">        return getLong(name, 0);</span>
     }
 
     @Override
     public Long getLong(String name, int index) {
-<span class="nc" id="L342">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L343" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L344">            return fieldInternal.getLong(index);</span>
+<span class="nc" id="L343">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L344" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L345">            return fieldInternal.getLong(index);</span>
         }
-<span class="nc" id="L346">        return null;</span>
+<span class="nc" id="L347">        return null;</span>
     }
 
     @Override
     public Collection&lt;Long&gt; getAllLongs(String name) {
-<span class="nc" id="L351">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L352" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L353">            int num = fieldInternal.getNumberOfValues();</span>
-<span class="nc" id="L354">            List&lt;Long&gt; values = new ArrayList&lt;&gt;(num);</span>
-<span class="nc bnc" id="L355" title="All 2 branches missed.">            for (int i = 0; i &lt; num; i++) {</span>
-<span class="nc" id="L356">                values.add(fieldInternal.getLong(i));</span>
+<span class="nc" id="L352">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L353" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L354">            int num = fieldInternal.getNumberOfValues();</span>
+<span class="nc" id="L355">            List&lt;Long&gt; values = new ArrayList&lt;&gt;(num);</span>
+<span class="nc bnc" id="L356" title="All 2 branches missed.">            for (int i = 0; i &lt; num; i++) {</span>
+<span class="nc" id="L357">                values.add(fieldInternal.getLong(i));</span>
             }
-<span class="nc" id="L358">            return values;</span>
+<span class="nc" id="L359">            return values;</span>
         }
-<span class="nc" id="L360">        return null;</span>
+<span class="nc" id="L361">        return null;</span>
     }
 
     @Override
     public boolean isValidFloat(String name) {
-<span class="nc" id="L365">        return isValidFloat(name, 0);</span>
+<span class="nc" id="L366">        return isValidFloat(name, 0);</span>
     }
 
     @Override
     public boolean isValidFloat(String name, int index) {
-<span class="nc" id="L370">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L371" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L372">            return fieldInternal.isValidFloat(index);</span>
+<span class="nc" id="L371">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L372" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L373">            return fieldInternal.isValidFloat(index);</span>
         }
-<span class="nc" id="L374">        return false;</span>
+<span class="nc" id="L375">        return false;</span>
     }
 
     @Override
     public Float getFloat(String name) {
-<span class="nc" id="L379">        return getFloat(name, 0);</span>
+<span class="nc" id="L380">        return getFloat(name, 0);</span>
     }
 
     @Override
     public Float getFloat(String name, int index) {
-<span class="nc" id="L384">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L385" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L386">            return fieldInternal.getFloat(index);</span>
+<span class="nc" id="L385">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L386" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L387">            return fieldInternal.getFloat(index);</span>
         }
-<span class="nc" id="L388">        return null;</span>
+<span class="nc" id="L389">        return null;</span>
     }
 
     @Override
     public Collection&lt;Float&gt; getAllFloats(String name) {
-<span class="nc" id="L393">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L394" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L395">            int num = fieldInternal.getNumberOfValues();</span>
-<span class="nc" id="L396">            List&lt;Float&gt; values = new ArrayList&lt;&gt;(num);</span>
-<span class="nc bnc" id="L397" title="All 2 branches missed.">            for (int i = 0; i &lt; num; i++) {</span>
-<span class="nc" id="L398">                values.add(fieldInternal.getFloat(i));</span>
+<span class="nc" id="L394">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L395" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L396">            int num = fieldInternal.getNumberOfValues();</span>
+<span class="nc" id="L397">            List&lt;Float&gt; values = new ArrayList&lt;&gt;(num);</span>
+<span class="nc bnc" id="L398" title="All 2 branches missed.">            for (int i = 0; i &lt; num; i++) {</span>
+<span class="nc" id="L399">                values.add(fieldInternal.getFloat(i));</span>
             }
-<span class="nc" id="L400">            return values;</span>
+<span class="nc" id="L401">            return values;</span>
         }
-<span class="nc" id="L402">        return null;</span>
+<span class="nc" id="L403">        return null;</span>
     }
 
     @Override
     public boolean isValidDouble(String name) {
-<span class="nc" id="L407">        return isValidDouble(name, 0);</span>
+<span class="nc" id="L408">        return isValidDouble(name, 0);</span>
     }
 
     @Override
     public boolean isValidDouble(String name, int index) {
-<span class="nc" id="L412">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L413" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L414">            return fieldInternal.isValidDouble(index);</span>
+<span class="nc" id="L413">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L414" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L415">            return fieldInternal.isValidDouble(index);</span>
         }
-<span class="nc" id="L416">        return false;</span>
+<span class="nc" id="L417">        return false;</span>
     }
 
     @Override
     public Double getDouble(String name) {
-<span class="nc" id="L421">        return getDouble(name, 0);</span>
+<span class="nc" id="L422">        return getDouble(name, 0);</span>
     }
 
     @Override
     public Double getDouble(String name, int index) {
-<span class="nc" id="L426">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L427" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L428">            return fieldInternal.getDouble(index);</span>
+<span class="nc" id="L427">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L428" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L429">            return fieldInternal.getDouble(index);</span>
         }
-<span class="nc" id="L430">        return null;</span>
+<span class="nc" id="L431">        return null;</span>
     }
 
     @Override
     public Collection&lt;Double&gt; getAllDoubles(String name) {
-<span class="nc" id="L435">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L436" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L437">            int num = fieldInternal.getNumberOfValues();</span>
-<span class="nc" id="L438">            List&lt;Double&gt; values = new ArrayList&lt;&gt;(num);</span>
-<span class="nc bnc" id="L439" title="All 2 branches missed.">            for (int i = 0; i &lt; num; i++) {</span>
-<span class="nc" id="L440">                values.add(fieldInternal.getDouble(i));</span>
+<span class="nc" id="L436">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L437" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L438">            int num = fieldInternal.getNumberOfValues();</span>
+<span class="nc" id="L439">            List&lt;Double&gt; values = new ArrayList&lt;&gt;(num);</span>
+<span class="nc bnc" id="L440" title="All 2 branches missed.">            for (int i = 0; i &lt; num; i++) {</span>
+<span class="nc" id="L441">                values.add(fieldInternal.getDouble(i));</span>
             }
-<span class="nc" id="L442">            return values;</span>
+<span class="nc" id="L443">            return values;</span>
         }
-<span class="nc" id="L444">        return null;</span>
+<span class="nc" id="L445">        return null;</span>
+    }
+
+    @Override
+    public boolean isValidBigDecimal(String name) {
+<span class="nc" id="L450">        return isValidBigDecimal(name, 0);</span>
+    }
+
+    @Override
+    public boolean isValidBigDecimal(String name, int index) {
+<span class="nc" id="L455">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L456" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L457">            return fieldInternal.isValidBigDecimal(index);</span>
+        }
+<span class="nc" id="L459">        return false;</span>
+    }
+
+    @Override
+    public BigDecimal getBigDecimal(String name) {
+<span class="nc" id="L464">        return getBigDecimal(name, 0);</span>
+    }
+
+    @Override
+    public BigDecimal getBigDecimal(String name, int index) {
+<span class="nc" id="L469">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L470" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L471">            return fieldInternal.getBigDecimal(index);</span>
+        }
+<span class="nc" id="L473">        return null;</span>
+    }
+
+    @Override
+    public Collection&lt;BigDecimal&gt; getAllBigDecimals(String name) {
+<span class="nc" id="L478">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L479" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L480">            int num = fieldInternal.getNumberOfValues();</span>
+<span class="nc" id="L481">            List&lt;BigDecimal&gt; values = new ArrayList&lt;&gt;(num);</span>
+<span class="nc bnc" id="L482" title="All 2 branches missed.">            for (int i = 0; i &lt; num; i++) {</span>
+<span class="nc" id="L483">                values.add(fieldInternal.getBigDecimal(i));</span>
+            }
+<span class="nc" id="L485">            return values;</span>
+        }
+<span class="nc" id="L487">        return null;</span>
     }
 
     @Override
     public boolean isValidString(String name) {
-<span class="nc" id="L449">        return isValidString(name, 0);</span>
+<span class="nc" id="L492">        return isValidString(name, 0);</span>
     }
 
     @Override
     public boolean isValidString(String name, int index) {
-<span class="nc" id="L454">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L455" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L456">            return fieldInternal.isValidString(index);</span>
+<span class="nc" id="L497">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L498" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L499">            return fieldInternal.isValidString(index);</span>
         }
-<span class="nc" id="L458">        return false;</span>
+<span class="nc" id="L501">        return false;</span>
     }
 
     @Override
     public String getString(String name) {
-<span class="nc" id="L463">        return getString(name, 0);</span>
+<span class="nc" id="L506">        return getString(name, 0);</span>
     }
 
     @Override
     public String getString(String name, int index) {
-<span class="nc" id="L468">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L469" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L470">            return fieldInternal.getString(index);</span>
+<span class="nc" id="L511">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L512" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L513">            return fieldInternal.getString(index);</span>
         }
-<span class="nc" id="L472">        return null;</span>
+<span class="nc" id="L515">        return null;</span>
     }
 
     @Override
     public Collection&lt;String&gt; getAllStrings(String name) {
-<span class="nc" id="L477">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L478" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L479">            int num = fieldInternal.getNumberOfValues();</span>
-<span class="nc" id="L480">            List&lt;String&gt; values = new ArrayList&lt;&gt;(num);</span>
-<span class="nc bnc" id="L481" title="All 2 branches missed.">            for (int i = 0; i &lt; num; i++) {</span>
-<span class="nc" id="L482">                values.add(fieldInternal.getString(i));</span>
+<span class="nc" id="L520">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L521" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L522">            int num = fieldInternal.getNumberOfValues();</span>
+<span class="nc" id="L523">            List&lt;String&gt; values = new ArrayList&lt;&gt;(num);</span>
+<span class="nc bnc" id="L524" title="All 2 branches missed.">            for (int i = 0; i &lt; num; i++) {</span>
+<span class="nc" id="L525">                values.add(fieldInternal.getString(i));</span>
             }
-<span class="nc" id="L484">            return values;</span>
+<span class="nc" id="L527">            return values;</span>
         }
-<span class="nc" id="L486">        return null;</span>
+<span class="nc" id="L529">        return null;</span>
     }
 
     @Override
     public boolean isValidTime(String name) {
-<span class="nc" id="L491">        return isValidTime(name, 0);</span>
+<span class="nc" id="L534">        return isValidTime(name, 0);</span>
     }
 
     @Override
     public boolean isValidTime(String name, int index) {
-<span class="nc" id="L496">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L497" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L498">            return fieldInternal.isValidTime(index);</span>
+<span class="nc" id="L539">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L540" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L541">            return fieldInternal.isValidTime(index);</span>
         }
-<span class="nc" id="L500">        return false;</span>
+<span class="nc" id="L543">        return false;</span>
     }
 
     @Override
     public LocalTime getTime(String name) {
-<span class="nc" id="L505">        return getTime(name, 0);</span>
+<span class="nc" id="L548">        return getTime(name, 0);</span>
     }
 
     @Override
     public LocalTime getTime(String name, int index) {
-<span class="nc" id="L510">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L511" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L512">            return fieldInternal.getTime(index);</span>
+<span class="nc" id="L553">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L554" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L555">            return fieldInternal.getTime(index);</span>
         }
-<span class="nc" id="L514">        return null;</span>
+<span class="nc" id="L557">        return null;</span>
     }
 
     @Override
     public Collection&lt;LocalTime&gt; getAllTimes(String name) {
-<span class="nc" id="L519">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L520" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L521">            int num = fieldInternal.getNumberOfValues();</span>
-<span class="nc" id="L522">            List&lt;LocalTime&gt; values = new ArrayList&lt;&gt;(num);</span>
-<span class="nc bnc" id="L523" title="All 2 branches missed.">            for (int i = 0; i &lt; num; i++) {</span>
-<span class="nc" id="L524">                values.add(fieldInternal.getTime(i));</span>
+<span class="nc" id="L562">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L563" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L564">            int num = fieldInternal.getNumberOfValues();</span>
+<span class="nc" id="L565">            List&lt;LocalTime&gt; values = new ArrayList&lt;&gt;(num);</span>
+<span class="nc bnc" id="L566" title="All 2 branches missed.">            for (int i = 0; i &lt; num; i++) {</span>
+<span class="nc" id="L567">                values.add(fieldInternal.getTime(i));</span>
             }
-<span class="nc" id="L526">            return values;</span>
+<span class="nc" id="L569">            return values;</span>
         }
-<span class="nc" id="L528">        return null;</span>
+<span class="nc" id="L571">        return null;</span>
     }
 
     @Override
     public boolean isValidDate(String name) {
-<span class="nc" id="L533">        return isValidDate(name, 0);</span>
+<span class="nc" id="L576">        return isValidDate(name, 0);</span>
     }
 
     @Override
     public boolean isValidDate(String name, int index) {
-<span class="nc" id="L538">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L539" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L540">            return fieldInternal.isValidDate(index);</span>
+<span class="nc" id="L581">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L582" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L583">            return fieldInternal.isValidDate(index);</span>
         }
-<span class="nc" id="L542">        return false;</span>
+<span class="nc" id="L585">        return false;</span>
     }
 
     @Override
     public LocalDate getDate(String name) {
-<span class="nc" id="L547">        return getDate(name, 0);</span>
+<span class="nc" id="L590">        return getDate(name, 0);</span>
     }
 
     @Override
     public LocalDate getDate(String name, int index) {
-<span class="nc" id="L552">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L553" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L554">            return fieldInternal.getDate(index);</span>
+<span class="nc" id="L595">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L596" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L597">            return fieldInternal.getDate(index);</span>
         }
-<span class="nc" id="L556">        return null;</span>
+<span class="nc" id="L599">        return null;</span>
     }
 
     @Override
     public Collection&lt;LocalDate&gt; getAllDates(String name) {
-<span class="nc" id="L561">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L562" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L563">            int num = fieldInternal.getNumberOfValues();</span>
-<span class="nc" id="L564">            List&lt;LocalDate&gt; values = new ArrayList&lt;&gt;(num);</span>
-<span class="nc bnc" id="L565" title="All 2 branches missed.">            for (int i = 0; i &lt; num; i++) {</span>
-<span class="nc" id="L566">                values.add(fieldInternal.getDate(i));</span>
+<span class="nc" id="L604">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L605" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L606">            int num = fieldInternal.getNumberOfValues();</span>
+<span class="nc" id="L607">            List&lt;LocalDate&gt; values = new ArrayList&lt;&gt;(num);</span>
+<span class="nc bnc" id="L608" title="All 2 branches missed.">            for (int i = 0; i &lt; num; i++) {</span>
+<span class="nc" id="L609">                values.add(fieldInternal.getDate(i));</span>
             }
-<span class="nc" id="L568">            return values;</span>
+<span class="nc" id="L611">            return values;</span>
         }
-<span class="nc" id="L570">        return null;</span>
+<span class="nc" id="L613">        return null;</span>
     }
 
     @Override
     public boolean isValidDateTime(String name) {
-<span class="nc" id="L575">        return isValidDateTime(name, 0);</span>
+<span class="nc" id="L618">        return isValidDateTime(name, 0);</span>
     }
 
     @Override
     public boolean isValidDateTime(String name, int index) {
-<span class="nc" id="L580">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L581" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L582">            return fieldInternal.isValidDateTime(index);</span>
+<span class="nc" id="L623">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L624" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L625">            return fieldInternal.isValidDateTime(index);</span>
         }
-<span class="nc" id="L584">        return false;</span>
+<span class="nc" id="L627">        return false;</span>
     }
 
     @Override
     public LocalDateTime getDateTime(String name) {
-<span class="nc" id="L589">        return getDateTime(name, 0);</span>
+<span class="nc" id="L632">        return getDateTime(name, 0);</span>
     }
 
     @Override
     public LocalDateTime getDateTime(String name, int index) {
-<span class="nc" id="L594">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L595" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L596">            return fieldInternal.getDateTime(index);</span>
+<span class="nc" id="L637">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L638" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L639">            return fieldInternal.getDateTime(index);</span>
         }
-<span class="nc" id="L598">        return null;</span>
+<span class="nc" id="L641">        return null;</span>
     }
 
     @Override
     public Collection&lt;LocalDateTime&gt; getAllDateTimes(String name) {
-<span class="nc" id="L603">        FieldItem fieldInternal = getFieldInternal(name);</span>
-<span class="nc bnc" id="L604" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
-<span class="nc" id="L605">            int num = fieldInternal.getNumberOfValues();</span>
-<span class="nc" id="L606">            List&lt;LocalDateTime&gt; values = new ArrayList&lt;&gt;(num);</span>
-<span class="nc bnc" id="L607" title="All 2 branches missed.">            for (int i = 0; i &lt; num; i++) {</span>
-<span class="nc" id="L608">                values.add(fieldInternal.getDateTime(i));</span>
+<span class="nc" id="L646">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L647" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L648">            int num = fieldInternal.getNumberOfValues();</span>
+<span class="nc" id="L649">            List&lt;LocalDateTime&gt; values = new ArrayList&lt;&gt;(num);</span>
+<span class="nc bnc" id="L650" title="All 2 branches missed.">            for (int i = 0; i &lt; num; i++) {</span>
+<span class="nc" id="L651">                values.add(fieldInternal.getDateTime(i));</span>
             }
-<span class="nc" id="L610">            return values;</span>
+<span class="nc" id="L653">            return values;</span>
         }
-<span class="nc" id="L612">        return null;</span>
+<span class="nc" id="L655">        return null;</span>
     }
 
     private FieldItem getFieldInternal(String name) {
         // If this field doesn't exist, ignore it.
-<span class="nc bnc" id="L617" title="All 2 branches missed.">        if (values.get(name) == null) {</span>
-<span class="nc" id="L618">            return null;</span>
+<span class="nc bnc" id="L660" title="All 2 branches missed.">        if (values.get(name) == null) {</span>
+<span class="nc" id="L661">            return null;</span>
         }
-<span class="nc bnc" id="L620" title="All 2 branches missed.">        if (values.get(name).getKey() != PlcResponseCode.OK) {</span>
-<span class="nc" id="L621">            return null;</span>
+<span class="nc bnc" id="L663" title="All 2 branches missed.">        if (values.get(name).getKey() != PlcResponseCode.OK) {</span>
+<span class="nc" id="L664">            return null;</span>
         }
-<span class="nc" id="L623">        return values.get(name).getValue();</span>
+<span class="nc" id="L666">        return values.get(name).getValue();</span>
     }
 
 }
