@@ -95,21 +95,21 @@ import java.util.List;
     @Override
     public FieldItem encodeByteArray(PlcField field, Object[] values) {
 <span class="fc" id="L97">        ModbusField modbusField = (ModbusField) field;</span>
-<span class="fc" id="L98">        List&lt;byte[]&gt; byteArrays = new LinkedList&lt;&gt;();</span>
+<span class="fc" id="L98">        List&lt;Byte[]&gt; byteArrays = new LinkedList&lt;&gt;();</span>
 <span class="fc bfc" id="L99" title="All 2 branches covered.">        for (Object value : values) {</span>
 <span class="fc bfc" id="L100" title="All 2 branches covered.">            if (value instanceof byte[]) {</span>
 <span class="fc" id="L101">                byte[] byteArray = (byte[]) value;</span>
-<span class="fc" id="L102">                byteArrays.add(byteArray);</span>
+<span class="fc" id="L102">                byteArrays.add(ArrayUtils.toObject(byteArray));</span>
 <span class="pc bpc" id="L103" title="1 of 2 branches missed.">            } else if (value instanceof Byte[]) {</span>
 <span class="fc" id="L104">                Byte[] byteArray = (Byte[]) value;</span>
-<span class="fc" id="L105">                byteArrays.add(ArrayUtils.toPrimitive(byteArray));</span>
+<span class="fc" id="L105">                byteArrays.add(byteArray);</span>
 <span class="fc" id="L106">            } else {</span>
 <span class="nc" id="L107">                throw new IllegalArgumentException(</span>
 <span class="nc" id="L108">                    &quot;Value of type &quot; + value.getClass().getName() +</span>
                         &quot; is not assignable to &quot; + modbusField + &quot; fields.&quot;);
             }
         }
-<span class="fc" id="L112">        return new DefaultByteArrayFieldItem(byteArrays.toArray(new byte[0][0]));</span>
+<span class="fc" id="L112">        return new DefaultByteArrayFieldItem(byteArrays.toArray(new Byte[0][0]));</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
