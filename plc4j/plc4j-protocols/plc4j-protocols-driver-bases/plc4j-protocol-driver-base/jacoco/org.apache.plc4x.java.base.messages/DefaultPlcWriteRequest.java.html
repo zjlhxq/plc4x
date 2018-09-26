@@ -20,6 +20,7 @@ package org.apache.plc4x.java.base.messages;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
 import org.apache.plc4x.java.api.exceptions.PlcRuntimeException;
 import org.apache.plc4x.java.api.messages.PlcWriteRequest;
 import org.apache.plc4x.java.api.model.PlcField;
@@ -39,43 +40,68 @@ public class DefaultPlcWriteRequest implements InternalPlcWriteRequest, Internal
 
     private final LinkedHashMap&lt;String, Pair&lt;PlcField, FieldItem&gt;&gt; fields;
 
-<span class="nc" id="L42">    private DefaultPlcWriteRequest(LinkedHashMap&lt;String, Pair&lt;PlcField, FieldItem&gt;&gt; fields) {</span>
-<span class="nc" id="L43">        this.fields = fields;</span>
-<span class="nc" id="L44">    }</span>
+<span class="nc" id="L43">    protected DefaultPlcWriteRequest(LinkedHashMap&lt;String, Pair&lt;PlcField, FieldItem&gt;&gt; fields) {</span>
+<span class="nc" id="L44">        this.fields = fields;</span>
+<span class="nc" id="L45">    }</span>
 
     @Override
     public int getNumberOfFields() {
-<span class="nc" id="L48">        return fields.size();</span>
+<span class="nc" id="L49">        return fields.size();</span>
     }
 
     @Override
     public LinkedHashSet&lt;String&gt; getFieldNames() {
         // TODO: Check if this already is a LinkedHashSet.
-<span class="nc" id="L54">        return new LinkedHashSet&lt;&gt;(fields.keySet());</span>
+<span class="nc" id="L55">        return new LinkedHashSet&lt;&gt;(fields.keySet());</span>
     }
 
     @Override
     public PlcField getField(String name) {
-<span class="nc" id="L59">        return fields.get(name).getKey();</span>
+<span class="nc" id="L60">        return fields.get(name).getKey();</span>
     }
 
     @Override
     public LinkedList&lt;PlcField&gt; getFields() {
-<span class="nc" id="L64">        return fields.values().stream().map(Pair::getKey).collect(Collectors.toCollection(LinkedList::new));</span>
+<span class="nc" id="L65">        return fields.values().stream().map(Pair::getKey).collect(Collectors.toCollection(LinkedList::new));</span>
     }
 
     public FieldItem getFieldItem(String name) {
-<span class="nc" id="L68">        return fields.get(name).getValue();</span>
+<span class="nc" id="L69">        return fields.get(name).getValue();</span>
     }
 
     @Override
     public LinkedList&lt;FieldItem&gt; getFieldItems() {
-<span class="nc" id="L73">        return fields.values().stream().map(Pair::getValue).collect(Collectors.toCollection(LinkedList::new));</span>
+<span class="nc" id="L74">        return fields.values().stream().map(Pair::getValue).collect(Collectors.toCollection(LinkedList::new));</span>
+    }
+
+    @Override
+    public LinkedList&lt;Pair&lt;String, PlcField&gt;&gt; getNamedFields() {
+<span class="nc" id="L79">        return fields.entrySet()</span>
+<span class="nc" id="L80">            .stream()</span>
+<span class="nc" id="L81">            .map(stringPairEntry -&gt;</span>
+<span class="nc" id="L82">                Pair.of(</span>
+<span class="nc" id="L83">                    stringPairEntry.getKey(),</span>
+<span class="nc" id="L84">                    stringPairEntry.getValue().getKey()</span>
+                )
+<span class="nc" id="L86">            ).collect(Collectors.toCollection(LinkedList::new));</span>
+    }
+
+    @Override
+    public LinkedList&lt;Triple&lt;String, PlcField, FieldItem&gt;&gt; getNamedFieldTriples() {
+<span class="nc" id="L91">        return fields.entrySet()</span>
+<span class="nc" id="L92">            .stream()</span>
+<span class="nc" id="L93">            .map(stringPairEntry -&gt;</span>
+<span class="nc" id="L94">                Triple.of(</span>
+<span class="nc" id="L95">                    stringPairEntry.getKey(),</span>
+<span class="nc" id="L96">                    stringPairEntry.getValue().getKey(),</span>
+<span class="nc" id="L97">                    stringPairEntry.getValue().getValue()</span>
+                )
+<span class="nc" id="L99">            ).collect(Collectors.toCollection(LinkedList::new));</span>
     }
 
     @Override
     public int getNumberOfValues(String name) {
-<span class="nc" id="L78">        return fields.get(name).getValue().getNumberOfValues();</span>
+<span class="nc" id="L104">        return fields.get(name).getValue().getNumberOfValues();</span>
     }
 
     public static class Builder implements PlcWriteRequest.Builder {
@@ -84,141 +110,141 @@ public class DefaultPlcWriteRequest implements InternalPlcWriteRequest, Internal
         private final Map&lt;String, BuilderItem&lt;Object&gt;&gt; fields;
         private final Map&lt;Class&lt;?&gt;, BiFunction&lt;PlcField, Object[], FieldItem&gt;&gt; handlerMap;
 
-<span class="nc" id="L87">        public Builder(PlcFieldHandler fieldHandler) {</span>
-<span class="nc" id="L88">            this.fieldHandler = fieldHandler;</span>
-<span class="nc" id="L89">            fields = new TreeMap&lt;&gt;();</span>
-<span class="nc" id="L90">            handlerMap = new HashMap&lt;&gt;();</span>
-<span class="nc" id="L91">            handlerMap.put(Boolean.class, fieldHandler::encodeBoolean);</span>
-<span class="nc" id="L92">            handlerMap.put(Byte.class, fieldHandler::encodeByte);</span>
-<span class="nc" id="L93">            handlerMap.put(Short.class, fieldHandler::encodeShort);</span>
-<span class="nc" id="L94">            handlerMap.put(Integer.class, fieldHandler::encodeInteger);</span>
-<span class="nc" id="L95">            handlerMap.put(BigInteger.class, fieldHandler::encodeBigInteger);</span>
-<span class="nc" id="L96">            handlerMap.put(Long.class, fieldHandler::encodeLong);</span>
-<span class="nc" id="L97">            handlerMap.put(Float.class, fieldHandler::encodeFloat);</span>
-<span class="nc" id="L98">            handlerMap.put(BigDecimal.class, fieldHandler::encodeBigDecimal);</span>
-<span class="nc" id="L99">            handlerMap.put(Double.class, fieldHandler::encodeDouble);</span>
-<span class="nc" id="L100">            handlerMap.put(String.class, fieldHandler::encodeString);</span>
-<span class="nc" id="L101">            handlerMap.put(LocalTime.class, fieldHandler::encodeTime);</span>
-<span class="nc" id="L102">            handlerMap.put(LocalDate.class, fieldHandler::encodeDate);</span>
-<span class="nc" id="L103">            handlerMap.put(LocalDateTime.class, fieldHandler::encodeDateTime);</span>
-<span class="nc" id="L104">            handlerMap.put(byte[].class, fieldHandler::encodeByteArray);</span>
-<span class="nc" id="L105">            handlerMap.put(Byte[].class, fieldHandler::encodeByteArray);</span>
-<span class="nc" id="L106">        }</span>
+<span class="nc" id="L113">        public Builder(PlcFieldHandler fieldHandler) {</span>
+<span class="nc" id="L114">            this.fieldHandler = fieldHandler;</span>
+<span class="nc" id="L115">            fields = new TreeMap&lt;&gt;();</span>
+<span class="nc" id="L116">            handlerMap = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L117">            handlerMap.put(Boolean.class, fieldHandler::encodeBoolean);</span>
+<span class="nc" id="L118">            handlerMap.put(Byte.class, fieldHandler::encodeByte);</span>
+<span class="nc" id="L119">            handlerMap.put(Short.class, fieldHandler::encodeShort);</span>
+<span class="nc" id="L120">            handlerMap.put(Integer.class, fieldHandler::encodeInteger);</span>
+<span class="nc" id="L121">            handlerMap.put(BigInteger.class, fieldHandler::encodeBigInteger);</span>
+<span class="nc" id="L122">            handlerMap.put(Long.class, fieldHandler::encodeLong);</span>
+<span class="nc" id="L123">            handlerMap.put(Float.class, fieldHandler::encodeFloat);</span>
+<span class="nc" id="L124">            handlerMap.put(BigDecimal.class, fieldHandler::encodeBigDecimal);</span>
+<span class="nc" id="L125">            handlerMap.put(Double.class, fieldHandler::encodeDouble);</span>
+<span class="nc" id="L126">            handlerMap.put(String.class, fieldHandler::encodeString);</span>
+<span class="nc" id="L127">            handlerMap.put(LocalTime.class, fieldHandler::encodeTime);</span>
+<span class="nc" id="L128">            handlerMap.put(LocalDate.class, fieldHandler::encodeDate);</span>
+<span class="nc" id="L129">            handlerMap.put(LocalDateTime.class, fieldHandler::encodeDateTime);</span>
+<span class="nc" id="L130">            handlerMap.put(byte[].class, fieldHandler::encodeByteArray);</span>
+<span class="nc" id="L131">            handlerMap.put(Byte[].class, fieldHandler::encodeByteArray);</span>
+<span class="nc" id="L132">        }</span>
 
         @Override
         public Builder addItem(String name, String fieldQuery, Boolean... values) {
-<span class="nc" id="L110">            return addItem(name, fieldQuery, values, fieldHandler::encodeBoolean);</span>
+<span class="nc" id="L136">            return addItem(name, fieldQuery, values, fieldHandler::encodeBoolean);</span>
         }
 
         @Override
         public Builder addItem(String name, String fieldQuery, Byte... values) {
-<span class="nc" id="L115">            return addItem(name, fieldQuery, values, fieldHandler::encodeByte);</span>
+<span class="nc" id="L141">            return addItem(name, fieldQuery, values, fieldHandler::encodeByte);</span>
         }
 
         @Override
         public Builder addItem(String name, String fieldQuery, Short... values) {
-<span class="nc" id="L120">            return addItem(name, fieldQuery, values, fieldHandler::encodeShort);</span>
+<span class="nc" id="L146">            return addItem(name, fieldQuery, values, fieldHandler::encodeShort);</span>
         }
 
         @Override
         public Builder addItem(String name, String fieldQuery, Integer... values) {
-<span class="nc" id="L125">            return addItem(name, fieldQuery, values, fieldHandler::encodeInteger);</span>
+<span class="nc" id="L151">            return addItem(name, fieldQuery, values, fieldHandler::encodeInteger);</span>
         }
 
         @Override
         public PlcWriteRequest.Builder addItem(String name, String fieldQuery, BigInteger... values) {
-<span class="nc" id="L130">            return addItem(name, fieldQuery, values, fieldHandler::encodeBigInteger);</span>
+<span class="nc" id="L156">            return addItem(name, fieldQuery, values, fieldHandler::encodeBigInteger);</span>
         }
 
         @Override
         public Builder addItem(String name, String fieldQuery, Long... values) {
-<span class="nc" id="L135">            return addItem(name, fieldQuery, values, fieldHandler::encodeLong);</span>
+<span class="nc" id="L161">            return addItem(name, fieldQuery, values, fieldHandler::encodeLong);</span>
         }
 
         @Override
         public Builder addItem(String name, String fieldQuery, Float... values) {
-<span class="nc" id="L140">            return addItem(name, fieldQuery, values, fieldHandler::encodeFloat);</span>
+<span class="nc" id="L166">            return addItem(name, fieldQuery, values, fieldHandler::encodeFloat);</span>
         }
 
         @Override
         public Builder addItem(String name, String fieldQuery, Double... values) {
-<span class="nc" id="L145">            return addItem(name, fieldQuery, values, fieldHandler::encodeDouble);</span>
+<span class="nc" id="L171">            return addItem(name, fieldQuery, values, fieldHandler::encodeDouble);</span>
         }
 
         @Override
         public Builder addItem(String name, String fieldQuery, BigDecimal... values) {
-<span class="nc" id="L150">            return addItem(name, fieldQuery, values, fieldHandler::encodeBigDecimal);</span>
+<span class="nc" id="L176">            return addItem(name, fieldQuery, values, fieldHandler::encodeBigDecimal);</span>
         }
 
         @Override
         public Builder addItem(String name, String fieldQuery, String... values) {
-<span class="nc" id="L155">            return addItem(name, fieldQuery, values, fieldHandler::encodeString);</span>
+<span class="nc" id="L181">            return addItem(name, fieldQuery, values, fieldHandler::encodeString);</span>
         }
 
         @Override
         public Builder addItem(String name, String fieldQuery, LocalTime... values) {
-<span class="nc" id="L160">            return addItem(name, fieldQuery, values, fieldHandler::encodeTime);</span>
+<span class="nc" id="L186">            return addItem(name, fieldQuery, values, fieldHandler::encodeTime);</span>
         }
 
         @Override
         public Builder addItem(String name, String fieldQuery, LocalDate... values) {
-<span class="nc" id="L165">            return addItem(name, fieldQuery, values, fieldHandler::encodeDate);</span>
+<span class="nc" id="L191">            return addItem(name, fieldQuery, values, fieldHandler::encodeDate);</span>
         }
 
         @Override
         public Builder addItem(String name, String fieldQuery, LocalDateTime... values) {
-<span class="nc" id="L170">            return addItem(name, fieldQuery, values, fieldHandler::encodeDateTime);</span>
+<span class="nc" id="L196">            return addItem(name, fieldQuery, values, fieldHandler::encodeDateTime);</span>
         }
 
         @Override
         public Builder addItem(String name, String fieldQuery, byte[]... values) {
-<span class="nc" id="L175">            return addItem(name, fieldQuery, values, fieldHandler::encodeDateTime);</span>
+<span class="nc" id="L201">            return addItem(name, fieldQuery, values, fieldHandler::encodeDateTime);</span>
         }
 
         @Override
         public Builder addItem(String name, String fieldQuery, Byte[]... values) {
-<span class="nc" id="L180">            return addItem(name, fieldQuery, values, fieldHandler::encodeDateTime);</span>
+<span class="nc" id="L206">            return addItem(name, fieldQuery, values, fieldHandler::encodeDateTime);</span>
         }
 
         @Override
         public &lt;T&gt; Builder addItem(String name, String fieldQuery, T... values) {
-<span class="nc" id="L185">            Objects.requireNonNull(values);</span>
-<span class="nc" id="L186">            Class&lt;?&gt; checkedClazz = null;</span>
-<span class="nc bnc" id="L187" title="All 2 branches missed.">            for (T value : values) {</span>
-<span class="nc bnc" id="L188" title="All 2 branches missed.">                if (checkedClazz == null) {</span>
-<span class="nc" id="L189">                    checkedClazz = value.getClass();</span>
+<span class="nc" id="L211">            Objects.requireNonNull(values);</span>
+<span class="nc" id="L212">            Class&lt;?&gt; checkedClazz = null;</span>
+<span class="nc bnc" id="L213" title="All 2 branches missed.">            for (T value : values) {</span>
+<span class="nc bnc" id="L214" title="All 2 branches missed.">                if (checkedClazz == null) {</span>
+<span class="nc" id="L215">                    checkedClazz = value.getClass();</span>
                 }
-<span class="nc bnc" id="L191" title="All 2 branches missed.">                if (value.getClass() != checkedClazz) {</span>
-<span class="nc" id="L192">                    throw new IllegalArgumentException(&quot;Invalid class found &quot; + value.getClass() + &quot;. should all be &quot; + checkedClazz);</span>
+<span class="nc bnc" id="L217" title="All 2 branches missed.">                if (value.getClass() != checkedClazz) {</span>
+<span class="nc" id="L218">                    throw new IllegalArgumentException(&quot;Invalid class found &quot; + value.getClass() + &quot;. should all be &quot; + checkedClazz);</span>
                 }
             }
-<span class="nc" id="L195">            BiFunction&lt;PlcField, Object[], FieldItem&gt; plcFieldFieldItemBiFunction = handlerMap.get(checkedClazz);</span>
-<span class="nc bnc" id="L196" title="All 2 branches missed.">            if (plcFieldFieldItemBiFunction == null) {</span>
-<span class="nc" id="L197">                throw new IllegalArgumentException(&quot;no field handler for &quot; + checkedClazz + &quot; found&quot;);</span>
+<span class="nc" id="L221">            BiFunction&lt;PlcField, Object[], FieldItem&gt; plcFieldFieldItemBiFunction = handlerMap.get(checkedClazz);</span>
+<span class="nc bnc" id="L222" title="All 2 branches missed.">            if (plcFieldFieldItemBiFunction == null) {</span>
+<span class="nc" id="L223">                throw new IllegalArgumentException(&quot;no field handler for &quot; + checkedClazz + &quot; found&quot;);</span>
             }
-<span class="nc" id="L199">            return addItem(name, fieldQuery, values, plcFieldFieldItemBiFunction);</span>
+<span class="nc" id="L225">            return addItem(name, fieldQuery, values, plcFieldFieldItemBiFunction);</span>
         }
 
         @Override
         public PlcWriteRequest build() {
-<span class="nc" id="L204">            LinkedHashMap&lt;String, Pair&lt;PlcField, FieldItem&gt;&gt; parsedFields = new LinkedHashMap&lt;&gt;();</span>
-<span class="nc" id="L205">            fields.forEach((name, builderItem) -&gt; {</span>
+<span class="nc" id="L230">            LinkedHashMap&lt;String, Pair&lt;PlcField, FieldItem&gt;&gt; parsedFields = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L231">            fields.forEach((name, builderItem) -&gt; {</span>
                 // Compile the query string.
-<span class="nc" id="L207">                PlcField parsedField = fieldHandler.createField(builderItem.fieldQuery);</span>
+<span class="nc" id="L233">                PlcField parsedField = fieldHandler.createField(builderItem.fieldQuery);</span>
                 // Encode the payload.
                 // TODO: Depending on the field type, handle the FieldItem creation differently.
-<span class="nc" id="L210">                FieldItem fieldItem = builderItem.encoder.apply(parsedField, builderItem.values);</span>
-<span class="nc" id="L211">                parsedFields.put(name, new ImmutablePair&lt;&gt;(parsedField, fieldItem));</span>
-<span class="nc" id="L212">            });</span>
-<span class="nc" id="L213">            return new DefaultPlcWriteRequest(parsedFields);</span>
+<span class="nc" id="L236">                FieldItem fieldItem = builderItem.encoder.apply(parsedField, builderItem.values);</span>
+<span class="nc" id="L237">                parsedFields.put(name, new ImmutablePair&lt;&gt;(parsedField, fieldItem));</span>
+<span class="nc" id="L238">            });</span>
+<span class="nc" id="L239">            return new DefaultPlcWriteRequest(parsedFields);</span>
         }
 
         private Builder addItem(String name, String fieldQuery, Object[] values, BiFunction&lt;PlcField, Object[], FieldItem&gt; encoder) {
-<span class="nc bnc" id="L217" title="All 2 branches missed.">            if (fields.containsKey(name)) {</span>
-<span class="nc" id="L218">                throw new PlcRuntimeException(&quot;Duplicate field definition '&quot; + name + &quot;'&quot;);</span>
+<span class="nc bnc" id="L243" title="All 2 branches missed.">            if (fields.containsKey(name)) {</span>
+<span class="nc" id="L244">                throw new PlcRuntimeException(&quot;Duplicate field definition '&quot; + name + &quot;'&quot;);</span>
             }
-<span class="nc" id="L220">            fields.put(name, new BuilderItem&lt;&gt;(fieldQuery, values, encoder));</span>
-<span class="nc" id="L221">            return this;</span>
+<span class="nc" id="L246">            fields.put(name, new BuilderItem&lt;&gt;(fieldQuery, values, encoder));</span>
+<span class="nc" id="L247">            return this;</span>
         }
 
         private static class BuilderItem&lt;T&gt; {
@@ -226,11 +252,11 @@ public class DefaultPlcWriteRequest implements InternalPlcWriteRequest, Internal
             private final T[] values;
             private final BiFunction&lt;PlcField, T[], FieldItem&gt; encoder;
 
-<span class="nc" id="L229">            private BuilderItem(String fieldQuery, T[] values, BiFunction&lt;PlcField, T[], FieldItem&gt; encoder) {</span>
-<span class="nc" id="L230">                this.fieldQuery = fieldQuery;</span>
-<span class="nc" id="L231">                this.values = values;</span>
-<span class="nc" id="L232">                this.encoder = encoder;</span>
-<span class="nc" id="L233">            }</span>
+<span class="nc" id="L255">            private BuilderItem(String fieldQuery, T[] values, BiFunction&lt;PlcField, T[], FieldItem&gt; encoder) {</span>
+<span class="nc" id="L256">                this.fieldQuery = fieldQuery;</span>
+<span class="nc" id="L257">                this.values = values;</span>
+<span class="nc" id="L258">                this.encoder = encoder;</span>
+<span class="nc" id="L259">            }</span>
         }
 
     }
