@@ -32,37 +32,41 @@
 <a class="jxr_linenumber" name="L24" href="#L24">24</a>  
 <a class="jxr_linenumber" name="L25" href="#L25">25</a>  <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L26" href="#L26">26</a>  <em class="jxr_javadoccomment"> * General interface defining the minimal methods required for adding a new type of driver to the PLC4J system.</em>
-<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <em class="jxr_javadoccomment"> */</em>
-<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">interface</strong> <a href="../../../../../org/apache/plc4x/java/api/PlcDriver.html">PlcDriver</a> {
-<a class="jxr_linenumber" name="L29" href="#L29">29</a>  
-<a class="jxr_linenumber" name="L30" href="#L30">30</a>      <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_javadoccomment">     * @return code of the implemented protocol. This is usually a lot shorter than the String returned by @see #getProtocolName().</em>
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L33" href="#L33">33</a>      String getProtocolCode();
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>  
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>      <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <em class="jxr_javadoccomment">     * @return name of the implemented protocol.</em>
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>      String getProtocolName();
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>  
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>      <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <em class="jxr_javadoccomment">     * Connects to a PLC using the given plc connection string.</em>
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <em class="jxr_javadoccomment">     * @param url plc connection string.</em>
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <em class="jxr_javadoccomment">     * @return PlcConnection object.</em>
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <em class="jxr_javadoccomment">     * @throws PlcConnectionException an exception if the connection attempt failed.</em>
-<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>      <a href="../../../../../org/apache/plc4x/java/api/connection/PlcConnection.html">PlcConnection</a> connect(String url) <strong class="jxr_keyword">throws</strong> PlcConnectionException;
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>  
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>      <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>  <em class="jxr_javadoccomment">     * Connects to a PLC using the given plc connection string using given authentication credentials.</em>
-<a class="jxr_linenumber" name="L50" href="#L50">50</a>  <em class="jxr_javadoccomment">     * @param url plc connection string.</em>
-<a class="jxr_linenumber" name="L51" href="#L51">51</a>  <em class="jxr_javadoccomment">     * @param authentication authentication credentials.</em>
-<a class="jxr_linenumber" name="L52" href="#L52">52</a>  <em class="jxr_javadoccomment">     * @return PlcConnection object.</em>
-<a class="jxr_linenumber" name="L53" href="#L53">53</a>  <em class="jxr_javadoccomment">     * @throws PlcConnectionException an exception if the connection attempt failed.</em>
-<a class="jxr_linenumber" name="L54" href="#L54">54</a>  <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L55" href="#L55">55</a>      <a href="../../../../../org/apache/plc4x/java/api/connection/PlcConnection.html">PlcConnection</a> connect(String url, <a href="../../../../../org/apache/plc4x/java/api/authentication/PlcAuthentication.html">PlcAuthentication</a> authentication) <strong class="jxr_keyword">throws</strong> PlcConnectionException;
-<a class="jxr_linenumber" name="L56" href="#L56">56</a>  
-<a class="jxr_linenumber" name="L57" href="#L57">57</a>  }
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <em class="jxr_javadoccomment"> * &lt;b&gt;Note that each driver has to add a service file called org.apache.plc4x.java.PlcDriver to</em>
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <em class="jxr_javadoccomment"> * src/main/resources/META-INF which contains the fully qualified classname in order to get loaded</em>
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <em class="jxr_javadoccomment"> * by the PlcDriverManager instances.&lt;/b&gt;</em>
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">interface</strong> <a href="../../../../../org/apache/plc4x/java/api/PlcDriver.html">PlcDriver</a> {
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <em class="jxr_javadoccomment">     * @return code of the implemented protocol. This is usually a lot shorter than the String returned by @see #getProtocolName().</em>
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>      String getProtocolCode();
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <em class="jxr_javadoccomment">     * @return name of the implemented protocol.</em>
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>      String getProtocolName();
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <em class="jxr_javadoccomment">     * Connects to a PLC using the given plc connection string.</em>
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  <em class="jxr_javadoccomment">     * @param url plc connection string.</em>
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  <em class="jxr_javadoccomment">     * @return PlcConnection object.</em>
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  <em class="jxr_javadoccomment">     * @throws PlcConnectionException an exception if the connection attempt failed.</em>
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>      <a href="../../../../../org/apache/plc4x/java/api/connection/PlcConnection.html">PlcConnection</a> connect(String url) <strong class="jxr_keyword">throws</strong> PlcConnectionException;
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>  
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>  <em class="jxr_javadoccomment">     * Connects to a PLC using the given plc connection string using given authentication credentials.</em>
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>  <em class="jxr_javadoccomment">     * @param url plc connection string.</em>
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>  <em class="jxr_javadoccomment">     * @param authentication authentication credentials.</em>
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>  <em class="jxr_javadoccomment">     * @return PlcConnection object.</em>
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>  <em class="jxr_javadoccomment">     * @throws PlcConnectionException an exception if the connection attempt failed.</em>
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>      <a href="../../../../../org/apache/plc4x/java/api/connection/PlcConnection.html">PlcConnection</a> connect(String url, <a href="../../../../../org/apache/plc4x/java/api/authentication/PlcAuthentication.html">PlcAuthentication</a> authentication) <strong class="jxr_keyword">throws</strong> PlcConnectionException;
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>  
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>  }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2017&#x2013;2018 <a href="https://www.apache.org/">The Apache Software Foundation</a>. All rights reserved.</div>
