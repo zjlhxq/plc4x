@@ -31,8 +31,8 @@ public class MaskWriteRegisterModbusField extends ModbusField {
     private final int andMask;
     private final int orMask;
 
-    protected MaskWriteRegisterModbusField(int address, int andMask, int orMask) {
-<span class="fc" id="L35">        super(address);</span>
+    protected MaskWriteRegisterModbusField(int address, int andMask, int orMask, Integer quantity) {
+<span class="fc" id="L35">        super(address, quantity);</span>
 <span class="fc" id="L36">        this.andMask = andMask;</span>
 <span class="fc" id="L37">        this.orMask = orMask;</span>
 <span class="fc" id="L38">    }</span>
@@ -45,45 +45,48 @@ public class MaskWriteRegisterModbusField extends ModbusField {
 <span class="fc" id="L45">        int address = Integer.parseInt(matcher.group(&quot;address&quot;));</span>
 <span class="fc" id="L46">        int andMask = Integer.parseInt(matcher.group(&quot;andMask&quot;));</span>
 <span class="fc" id="L47">        int orMask = Integer.parseInt(matcher.group(&quot;orMask&quot;));</span>
-<span class="fc" id="L48">        return new MaskWriteRegisterModbusField(address, andMask, orMask);</span>
+
+<span class="fc" id="L49">        String quantityString = matcher.group(&quot;quantity&quot;);</span>
+<span class="pc bpc" id="L50" title="1 of 2 branches missed.">        Integer quantity = quantityString != null ? Integer.valueOf(quantityString) : null;</span>
+<span class="fc" id="L51">        return new MaskWriteRegisterModbusField(address, andMask, orMask, quantity);</span>
     }
 
     public int getAndMask() {
-<span class="fc" id="L52">        return andMask;</span>
+<span class="fc" id="L55">        return andMask;</span>
     }
 
     public int getOrMask() {
-<span class="fc" id="L56">        return orMask;</span>
+<span class="fc" id="L59">        return orMask;</span>
     }
 
     @Override
     public boolean equals(Object o) {
-<span class="nc bnc" id="L61" title="All 2 branches missed.">        if (this == o) {</span>
-<span class="nc" id="L62">            return true;</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">        if (this == o) {</span>
+<span class="nc" id="L65">            return true;</span>
         }
-<span class="nc bnc" id="L64" title="All 2 branches missed.">        if (!(o instanceof MaskWriteRegisterModbusField)) {</span>
-<span class="nc" id="L65">            return false;</span>
-        }
-<span class="nc bnc" id="L67" title="All 2 branches missed.">        if (!super.equals(o)) {</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">        if (!(o instanceof MaskWriteRegisterModbusField)) {</span>
 <span class="nc" id="L68">            return false;</span>
         }
-<span class="nc" id="L70">        MaskWriteRegisterModbusField that = (MaskWriteRegisterModbusField) o;</span>
-<span class="nc bnc" id="L71" title="All 4 branches missed.">        return andMask == that.andMask &amp;&amp;</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">        if (!super.equals(o)) {</span>
+<span class="nc" id="L71">            return false;</span>
+        }
+<span class="nc" id="L73">        MaskWriteRegisterModbusField that = (MaskWriteRegisterModbusField) o;</span>
+<span class="nc bnc" id="L74" title="All 4 branches missed.">        return andMask == that.andMask &amp;&amp;</span>
             orMask == that.orMask;
     }
 
     @Override
     public int hashCode() {
 
-<span class="nc" id="L78">        return Objects.hash(super.hashCode(), andMask, orMask);</span>
+<span class="nc" id="L81">        return Objects.hash(super.hashCode(), andMask, orMask);</span>
     }
 
     @Override
     public String toString() {
-<span class="nc" id="L83">        return &quot;MaskWriteRegisterModbusField{&quot; +</span>
+<span class="nc" id="L86">        return &quot;MaskWriteRegisterModbusField{&quot; +</span>
             &quot;andMask=&quot; + andMask +
             &quot;, orMask=&quot; + orMask +
-<span class="nc" id="L86">            &quot;} &quot; + super.toString();</span>
+<span class="nc" id="L89">            &quot;} &quot; + super.toString();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

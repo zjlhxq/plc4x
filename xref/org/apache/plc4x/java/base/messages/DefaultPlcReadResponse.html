@@ -687,21 +687,30 @@
 <a class="jxr_linenumber" name="L679" href="#L679">679</a> 
 <a class="jxr_linenumber" name="L680" href="#L680">680</a>     @Override
 <a class="jxr_linenumber" name="L681" href="#L681">681</a>     <strong class="jxr_keyword">public</strong> Collection&lt;byte[]&gt; getAllByteArrays(String name) {
-<a class="jxr_linenumber" name="L682" href="#L682">682</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L683" href="#L683">683</a>     }
-<a class="jxr_linenumber" name="L684" href="#L684">684</a> 
-<a class="jxr_linenumber" name="L685" href="#L685">685</a>     <strong class="jxr_keyword">private</strong> <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> getFieldInternal(String name) {
-<a class="jxr_linenumber" name="L686" href="#L686">686</a>         <em class="jxr_comment">// If this field doesn't exist, ignore it.</em>
-<a class="jxr_linenumber" name="L687" href="#L687">687</a>         <strong class="jxr_keyword">if</strong> (values.get(name) == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L688" href="#L688">688</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L689" href="#L689">689</a>         }
-<a class="jxr_linenumber" name="L690" href="#L690">690</a>         <strong class="jxr_keyword">if</strong> (values.get(name).getKey() != PlcResponseCode.OK) {
-<a class="jxr_linenumber" name="L691" href="#L691">691</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L692" href="#L692">692</a>         }
-<a class="jxr_linenumber" name="L693" href="#L693">693</a>         <strong class="jxr_keyword">return</strong> values.get(name).getValue();
-<a class="jxr_linenumber" name="L694" href="#L694">694</a>     }
-<a class="jxr_linenumber" name="L695" href="#L695">695</a> 
-<a class="jxr_linenumber" name="L696" href="#L696">696</a> }
+<a class="jxr_linenumber" name="L682" href="#L682">682</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L683" href="#L683">683</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L684" href="#L684">684</a>             <strong class="jxr_keyword">int</strong> num = fieldInternal.getNumberOfValues();
+<a class="jxr_linenumber" name="L685" href="#L685">685</a>             List&lt;byte[]&gt; values = <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;(num);
+<a class="jxr_linenumber" name="L686" href="#L686">686</a>             <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; num; i++) {
+<a class="jxr_linenumber" name="L687" href="#L687">687</a>                 values.add(fieldInternal.getByteArray(i));
+<a class="jxr_linenumber" name="L688" href="#L688">688</a>             }
+<a class="jxr_linenumber" name="L689" href="#L689">689</a>             <strong class="jxr_keyword">return</strong> values;
+<a class="jxr_linenumber" name="L690" href="#L690">690</a>         }
+<a class="jxr_linenumber" name="L691" href="#L691">691</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L692" href="#L692">692</a>     }
+<a class="jxr_linenumber" name="L693" href="#L693">693</a> 
+<a class="jxr_linenumber" name="L694" href="#L694">694</a>     <strong class="jxr_keyword">private</strong> <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> getFieldInternal(String name) {
+<a class="jxr_linenumber" name="L695" href="#L695">695</a>         <em class="jxr_comment">// If this field doesn't exist, ignore it.</em>
+<a class="jxr_linenumber" name="L696" href="#L696">696</a>         <strong class="jxr_keyword">if</strong> (values.get(name) == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L697" href="#L697">697</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L698" href="#L698">698</a>         }
+<a class="jxr_linenumber" name="L699" href="#L699">699</a>         <strong class="jxr_keyword">if</strong> (values.get(name).getKey() != PlcResponseCode.OK) {
+<a class="jxr_linenumber" name="L700" href="#L700">700</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L701" href="#L701">701</a>         }
+<a class="jxr_linenumber" name="L702" href="#L702">702</a>         <strong class="jxr_keyword">return</strong> values.get(name).getValue();
+<a class="jxr_linenumber" name="L703" href="#L703">703</a>     }
+<a class="jxr_linenumber" name="L704" href="#L704">704</a> 
+<a class="jxr_linenumber" name="L705" href="#L705">705</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2017&#x2013;2018 <a href="https://www.apache.org/">The Apache Software Foundation</a>. All rights reserved.</div>

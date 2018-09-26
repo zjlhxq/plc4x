@@ -679,18 +679,27 @@ public class DefaultPlcReadResponse implements InternalPlcReadResponse {
 
     @Override
     public Collection&lt;byte[]&gt; getAllByteArrays(String name) {
-<span class="nc" id="L682">        return null;</span>
+<span class="nc" id="L682">        FieldItem fieldInternal = getFieldInternal(name);</span>
+<span class="nc bnc" id="L683" title="All 2 branches missed.">        if (fieldInternal != null) {</span>
+<span class="nc" id="L684">            int num = fieldInternal.getNumberOfValues();</span>
+<span class="nc" id="L685">            List&lt;byte[]&gt; values = new ArrayList&lt;&gt;(num);</span>
+<span class="nc bnc" id="L686" title="All 2 branches missed.">            for (int i = 0; i &lt; num; i++) {</span>
+<span class="nc" id="L687">                values.add(fieldInternal.getByteArray(i));</span>
+            }
+<span class="nc" id="L689">            return values;</span>
+        }
+<span class="nc" id="L691">        return null;</span>
     }
 
     private FieldItem getFieldInternal(String name) {
         // If this field doesn't exist, ignore it.
-<span class="nc bnc" id="L687" title="All 2 branches missed.">        if (values.get(name) == null) {</span>
-<span class="nc" id="L688">            return null;</span>
+<span class="nc bnc" id="L696" title="All 2 branches missed.">        if (values.get(name) == null) {</span>
+<span class="nc" id="L697">            return null;</span>
         }
-<span class="nc bnc" id="L690" title="All 2 branches missed.">        if (values.get(name).getKey() != PlcResponseCode.OK) {</span>
-<span class="nc" id="L691">            return null;</span>
+<span class="nc bnc" id="L699" title="All 2 branches missed.">        if (values.get(name).getKey() != PlcResponseCode.OK) {</span>
+<span class="nc" id="L700">            return null;</span>
         }
-<span class="nc" id="L693">        return values.get(name).getValue();</span>
+<span class="nc" id="L702">        return values.get(name).getValue();</span>
     }
 
 }

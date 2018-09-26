@@ -28,8 +28,8 @@ public class RegisterModbusField extends ModbusField {
 
 <span class="fc" id="L29">    public static final Pattern ADDRESS_PATTERN = Pattern.compile(&quot;register:&quot; + ModbusField.ADDRESS_PATTERN);</span>
 
-    protected RegisterModbusField(int address) {
-<span class="fc" id="L32">        super(address);</span>
+    protected RegisterModbusField(int address, Integer quantity) {
+<span class="fc" id="L32">        super(address, quantity);</span>
 <span class="fc" id="L33">    }</span>
 
     public static RegisterModbusField of(String addressString) throws PlcInvalidFieldException {
@@ -38,7 +38,10 @@ public class RegisterModbusField extends ModbusField {
 <span class="nc" id="L38">            throw new PlcInvalidFieldException(addressString, ADDRESS_PATTERN);</span>
         }
 <span class="fc" id="L40">        int address = Integer.parseInt(matcher.group(&quot;address&quot;));</span>
-<span class="fc" id="L41">        return new RegisterModbusField(address);</span>
+
+<span class="fc" id="L42">        String quantityString = matcher.group(&quot;quantity&quot;);</span>
+<span class="pc bpc" id="L43" title="1 of 2 branches missed.">        Integer quantity = quantityString != null ? Integer.valueOf(quantityString) : null;</span>
+<span class="fc" id="L44">        return new RegisterModbusField(address, quantity);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
