@@ -27,524 +27,494 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.plc4x.java.api.exceptions.PlcException;
 import org.apache.plc4x.java.api.exceptions.PlcNotImplementedException;
 import org.apache.plc4x.java.api.exceptions.PlcProtocolException;
 import org.apache.plc4x.java.api.exceptions.PlcUnsupportedDataTypeException;
-import org.apache.plc4x.java.api.messages.*;
-import org.apache.plc4x.java.api.messages.items.*;
-import org.apache.plc4x.java.api.types.ResponseCode;
-import org.apache.plc4x.java.base.messages.PlcRequestContainer;
+import org.apache.plc4x.java.api.messages.PlcReadRequest;
+import org.apache.plc4x.java.api.messages.PlcRequest;
+import org.apache.plc4x.java.api.messages.PlcWriteRequest;
+import org.apache.plc4x.java.api.types.PlcResponseCode;
+import org.apache.plc4x.java.base.messages.*;
+import org.apache.plc4x.java.base.messages.items.DefaultBooleanFieldItem;
+import org.apache.plc4x.java.base.messages.items.DefaultByteArrayFieldItem;
+import org.apache.plc4x.java.base.messages.items.FieldItem;
 import org.apache.plc4x.java.modbus.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
-<span class="fc" id="L51">public class Plc4XModbusProtocol extends MessageToMessageCodec&lt;ModbusTcpPayload, PlcRequestContainer&lt;PlcRequest, PlcResponse&gt;&gt; {</span>
+<span class="fc" id="L55">public class Plc4XModbusProtocol extends MessageToMessageCodec&lt;ModbusTcpPayload, PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt;&gt; {</span>
 
-<span class="fc" id="L53">    private static final Logger LOGGER = LoggerFactory.getLogger(Plc4XModbusProtocol.class);</span>
+<span class="fc" id="L57">    private static final Logger LOGGER = LoggerFactory.getLogger(Plc4XModbusProtocol.class);</span>
 
-<span class="fc" id="L55">    public final AtomicInteger transactionId = new AtomicInteger();</span>
+<span class="fc" id="L59">    public final AtomicInteger transactionId = new AtomicInteger();</span>
 
-<span class="fc" id="L57">    private final ConcurrentMap&lt;Short, PlcRequestContainer&lt;PlcRequest, PlcResponse&gt;&gt; requestsMap = new ConcurrentHashMap&lt;&gt;();</span>
+<span class="fc" id="L61">    private final ConcurrentMap&lt;Short, PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt;&gt; requestsMap = new ConcurrentHashMap&lt;&gt;();</span>
 
     @Override
-    protected void encode(ChannelHandlerContext ctx, PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; msg, List&lt;Object&gt; out) throws Exception {
-<span class="fc" id="L61">        LOGGER.trace(&quot;(&lt;--OUT): {}, {}, {}&quot;, ctx, msg, out);</span>
+    protected void encode(ChannelHandlerContext ctx, PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; msg, List&lt;Object&gt; out) throws Exception {
+<span class="fc" id="L65">        LOGGER.trace(&quot;(&lt;--OUT): {}, {}, {}&quot;, ctx, msg, out);</span>
         // Reset transactionId on overflow
-<span class="fc" id="L63">        transactionId.compareAndSet(Short.MAX_VALUE + 1, 0);</span>
-<span class="fc" id="L64">        PlcRequest request = msg.getRequest();</span>
-<span class="fc bfc" id="L65" title="All 2 branches covered.">        if (request instanceof PlcReadRequest) {</span>
-<span class="fc" id="L66">            encodeReadRequest(msg, out);</span>
-<span class="pc bpc" id="L67" title="1 of 2 branches missed.">        } else if (request instanceof PlcWriteRequest) {</span>
-<span class="fc" id="L68">            encodeWriteRequest(msg, out);</span>
+<span class="fc" id="L67">        transactionId.compareAndSet(Short.MAX_VALUE + 1, 0);</span>
+<span class="fc" id="L68">        PlcRequest request = msg.getRequest();</span>
+<span class="fc bfc" id="L69" title="All 2 branches covered.">        if (request instanceof PlcReadRequest) {</span>
+<span class="fc" id="L70">            encodeReadRequest(msg, out);</span>
+<span class="pc bpc" id="L71" title="1 of 2 branches missed.">        } else if (request instanceof PlcWriteRequest) {</span>
+<span class="fc" id="L72">            encodeWriteRequest(msg, out);</span>
         }
-<span class="fc" id="L70">    }</span>
+<span class="fc" id="L74">    }</span>
 
-    private void encodeWriteRequest(PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; msg, List&lt;Object&gt; out) throws PlcException {
-<span class="fc" id="L73">        PlcWriteRequest request = (PlcWriteRequest) msg.getRequest();</span>
+    private void encodeWriteRequest(PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; msg, List&lt;Object&gt; out) throws PlcException {
+<span class="fc" id="L77">        InternalPlcWriteRequest request = (InternalPlcWriteRequest) msg.getRequest();</span>
+
         // TODO: support multiple requests
-<span class="pc" id="L75">        WriteRequestItem&lt;?&gt; writeRequestItem = request.getRequestItem().orElseThrow(() -&gt; new PlcNotImplementedException(&quot;Only single message supported for now&quot;));</span>
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">        if (request.getFieldNames().size() != 1) {</span>
+<span class="nc" id="L81">            throw new PlcNotImplementedException(&quot;Only single message supported for now&quot;);</span>
+        }
         // TODO: check if we can map like this. Implication is that we can only work with int, short, byte and boolean
-        // TODO: for higher datatypes float, double etc we might need to split the bytes into chunks
-<span class="fc" id="L78">        int quantity = writeRequestItem.getSize();</span>
-<span class="fc" id="L79">        short unitId = 0;</span>
+        // TODO: for higher data types float, double etc we might need to split the bytes into chunks
+<span class="fc" id="L85">        String fieldName = request.getFieldNames().iterator().next();</span>
+<span class="fc" id="L86">        int quantity = request.getNumberOfValues(fieldName);</span>
+<span class="fc" id="L87">        short unitId = 0;</span>
 
-<span class="fc" id="L81">        ModbusAddress address = (ModbusAddress) writeRequestItem.getAddress();</span>
+        /*
+         * It seems that in Modbus, there are only two types of resources, that can be accessed:
+         * - Register: 2 byte value
+         * - Coil: 1 bit value
+         *
+         * Registers:
+         * When writing a bit, byte or char (a one byte or less data types) into a register the value is filled up to
+         * fit the 2 bytes.
+         * When writing a data type that has more than 2 bytes, subsequent registers are written to automatically.
+         *
+         * Coils:
+         * When transferring data from/to a coil, 8 coil values can be transferred in a single byte.
+         * Naturally a coil is a boolean data type, however, similar to the registers bigger data types can be
+         * transported, by setting multiple subsequent coils: 32bit int -&gt; 32 coils
+         *
+         * In all cases where we are accessing more than the natural size of the datatype, we have to keep this in mind
+         * when addressing them. So if reading 2 32bit integers, this is split up into four registers. So for the second
+         * int we have to increment the address accordingly.
+         */
+<span class="fc" id="L108">        ModbusField field = (ModbusField) request.getField(fieldName);</span>
         ModbusPdu modbusRequest;
-<span class="fc bfc" id="L83" title="All 2 branches covered.">        if (address instanceof RegisterModbusAddress) {</span>
-<span class="fc" id="L84">            RegisterModbusAddress registerModbusAddress = (RegisterModbusAddress) address;</span>
-<span class="fc bfc" id="L85" title="All 2 branches covered.">            if (quantity &gt; 1) {</span>
-<span class="fc" id="L86">                byte[] bytesToWrite = produceRegisterValue(writeRequestItem.getValues());</span>
-<span class="fc" id="L87">                int requiredLength = 2 * quantity;</span>
-<span class="pc bpc" id="L88" title="1 of 2 branches missed.">                if (bytesToWrite.length != requiredLength) {</span>
-<span class="nc" id="L89">                    throw new PlcProtocolException(&quot;Invalid register values created. Should be at least quantity * 2 = N bytes. Was &quot; + bytesToWrite.length + &quot;, expected &quot; + requiredLength);</span>
+<span class="fc bfc" id="L110" title="All 2 branches covered.">        if (field instanceof RegisterModbusField) {</span>
+<span class="fc" id="L111">            RegisterModbusField registerModbusField = (RegisterModbusField) field;</span>
+<span class="fc bfc" id="L112" title="All 2 branches covered.">            if (quantity &gt; 1) {</span>
+<span class="fc" id="L113">                byte[] bytesToWrite = produceRegisterValue(Arrays.asList(request.getFieldItem(fieldName).getValues()));</span>
+                // A register is a 16 bit (2 byte) value ... so every value needs 2 byte.
+<span class="fc" id="L115">                int requiredLength = 2 * quantity;</span>
+<span class="pc bpc" id="L116" title="1 of 2 branches missed.">                if (bytesToWrite.length != requiredLength) {</span>
+<span class="nc" id="L117">                    throw new PlcProtocolException(&quot;Invalid register values created. Should be at least quantity * 2 = N bytes. Was &quot; + bytesToWrite.length + &quot;, expected &quot; + requiredLength);</span>
                 }
-<span class="fc" id="L91">                modbusRequest = new WriteMultipleRegistersRequest(registerModbusAddress.getAddress(), quantity, bytesToWrite);</span>
-<span class="fc" id="L92">            } else {</span>
-<span class="fc" id="L93">                byte[] register = produceRegisterValue(writeRequestItem.getValues());</span>
-<span class="fc" id="L94">                int intToWrite = register[0] &lt;&lt; 8 | register[1] &amp; 0xff;</span>
-<span class="fc" id="L95">                modbusRequest = new WriteSingleRegisterRequest(registerModbusAddress.getAddress(), intToWrite);</span>
-            }
-<span class="fc bfc" id="L97" title="All 2 branches covered.">        } else if (address instanceof CoilModbusAddress) {</span>
-<span class="fc" id="L98">            CoilModbusAddress coilModbusAddress = (CoilModbusAddress) address;</span>
-<span class="fc bfc" id="L99" title="All 2 branches covered.">            if (quantity &gt; 1) {</span>
-<span class="fc" id="L100">                byte[] bytesToWrite = produceCoilValues(writeRequestItem.getValues());</span>
-<span class="fc" id="L101">                int requiredLength = (quantity + 7) / 8;</span>
-<span class="pc bpc" id="L102" title="1 of 2 branches missed.">                if (bytesToWrite.length != requiredLength) {</span>
-<span class="nc" id="L103">                    throw new PlcProtocolException(&quot;Invalid coil values created. Should be at least (quantity + 7) / 8 = N bytes. Was &quot; + bytesToWrite.length + &quot;, expected &quot; + requiredLength);</span>
+<span class="fc" id="L119">                modbusRequest = new WriteMultipleRegistersRequest(registerModbusField.getAddress(), quantity, bytesToWrite);</span>
+<span class="fc" id="L120">            } else {</span>
+<span class="fc" id="L121">                byte[] register = produceRegisterValue(Arrays.asList(request.getFieldItem(fieldName).getValues()));</span>
+<span class="pc bpc" id="L122" title="2 of 4 branches missed.">                if ((register == null) || (register.length != 2)) {</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">                    throw new PlcProtocolException(&quot;Invalid register values created. Should be 2 bytes. Was &quot; +</span>
+                        ((register != null) ? register.length : 0));
                 }
-<span class="fc" id="L105">                modbusRequest = new WriteMultipleCoilsRequest(coilModbusAddress.getAddress(), quantity, bytesToWrite);</span>
-<span class="fc" id="L106">            } else {</span>
-<span class="fc" id="L107">                boolean booleanToWrite = produceCoilValue(writeRequestItem.getValues());</span>
-<span class="fc" id="L108">                modbusRequest = new WriteSingleCoilRequest(coilModbusAddress.getAddress(), booleanToWrite);</span>
+                // Reconvert the two bytes back to an int.
+<span class="fc" id="L127">                int intToWrite = register[0] &lt;&lt; 8 | register[1] &amp; 0xff;</span>
+<span class="fc" id="L128">                modbusRequest = new WriteSingleRegisterRequest(registerModbusField.getAddress(), intToWrite);</span>
             }
-<span class="pc bpc" id="L110" title="1 of 2 branches missed.">        } else if (address instanceof MaskWriteRegisterModbusAddress) {</span>
-<span class="fc" id="L111">            MaskWriteRegisterModbusAddress maskWriteRegisterModbusAddress = (MaskWriteRegisterModbusAddress) address;</span>
-<span class="pc bpc" id="L112" title="1 of 2 branches missed.">            if (quantity &gt; 1) {</span>
-<span class="nc" id="L113">                throw new PlcProtocolException(&quot;Mask write request can only write one value&quot;);</span>
+<span class="fc bfc" id="L130" title="All 2 branches covered.">        } else if (field instanceof CoilModbusField) {</span>
+<span class="fc" id="L131">            CoilModbusField coilModbusField = (CoilModbusField) field;</span>
+<span class="fc bfc" id="L132" title="All 2 branches covered.">            if (quantity &gt; 1) {</span>
+<span class="fc" id="L133">                byte[] bytesToWrite = produceCoilValues(Arrays.asList(request.getFieldItem(fieldName).getValues()));</span>
+                // As each coil value represents a bit, the number of bytes needed
+                // equals &quot;ceil(quantity/8)&quot; (a 3 bit shift is a division by 8 ... the +1 is the &quot;ceil&quot;)
+<span class="fc" id="L136">                int requiredLength = (quantity &gt;&gt; 3) + 1;</span>
+<span class="pc bpc" id="L137" title="1 of 2 branches missed.">                if (bytesToWrite.length != requiredLength) {</span>
+<span class="nc" id="L138">                    throw new PlcProtocolException(</span>
+                        &quot;Invalid coil values created. Should be big enough to transport N bits. Was &quot; +
+                            bytesToWrite.length + &quot;, expected &quot; + requiredLength);
+                }
+<span class="fc" id="L142">                modbusRequest = new WriteMultipleCoilsRequest(coilModbusField.getAddress(), quantity, bytesToWrite);</span>
+<span class="fc" id="L143">            } else {</span>
+<span class="fc" id="L144">                boolean booleanToWrite = produceCoilValue(Arrays.asList(request.getFieldItem(fieldName).getValues()));</span>
+<span class="fc" id="L145">                modbusRequest = new WriteSingleCoilRequest(coilModbusField.getAddress(), booleanToWrite);</span>
+            }
+<span class="pc bpc" id="L147" title="1 of 2 branches missed.">        } else if (field instanceof MaskWriteRegisterModbusField) {</span>
+<span class="fc" id="L148">            MaskWriteRegisterModbusField maskWriteRegisterModbusField = (MaskWriteRegisterModbusField) field;</span>
+<span class="pc bpc" id="L149" title="1 of 2 branches missed.">            if (quantity &gt; 1) {</span>
+<span class="nc" id="L150">                throw new PlcProtocolException(&quot;Mask write request can only write one value&quot;);</span>
             } else {
                 // TODO: this should be better part of the payload not the addressing.
-<span class="fc" id="L116">                int andMask = maskWriteRegisterModbusAddress.getAndMask();</span>
-<span class="fc" id="L117">                int orMask = maskWriteRegisterModbusAddress.getOrMask();</span>
-<span class="fc" id="L118">                modbusRequest = new MaskWriteRegisterRequest(maskWriteRegisterModbusAddress.getAddress(), andMask, orMask);</span>
+<span class="fc" id="L153">                int andMask = maskWriteRegisterModbusField.getAndMask();</span>
+<span class="fc" id="L154">                int orMask = maskWriteRegisterModbusField.getOrMask();</span>
+<span class="fc" id="L155">                modbusRequest = new MaskWriteRegisterRequest(maskWriteRegisterModbusField.getAddress(), andMask, orMask);</span>
             }
-<span class="fc" id="L120">        } else {</span>
-<span class="nc" id="L121">            throw new PlcProtocolException(&quot;Unsupported address type &quot; + address.getClass() + &quot; for a write request.&quot;);</span>
+<span class="fc" id="L157">        } else {</span>
+<span class="nc" id="L158">            throw new PlcProtocolException(&quot;Unsupported field type &quot; + field.getClass() + &quot; for a write request.&quot;);</span>
         }
-<span class="fc" id="L123">        short transactionId = (short) this.transactionId.getAndIncrement();</span>
-<span class="fc" id="L124">        requestsMap.put(transactionId, msg);</span>
-<span class="fc" id="L125">        out.add(new ModbusTcpPayload(transactionId, unitId, modbusRequest));</span>
-<span class="fc" id="L126">    }</span>
+<span class="fc" id="L160">        short transactionId = (short) this.transactionId.getAndIncrement();</span>
+<span class="fc" id="L161">        requestsMap.put(transactionId, msg);</span>
+<span class="fc" id="L162">        out.add(new ModbusTcpPayload(transactionId, unitId, modbusRequest));</span>
+<span class="fc" id="L163">    }</span>
 
-    private void encodeReadRequest(PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; msg, List&lt;Object&gt; out) throws PlcException {
-<span class="fc" id="L129">        PlcReadRequest request = (PlcReadRequest) msg.getRequest();</span>
+    private void encodeReadRequest(PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; msg, List&lt;Object&gt; out) throws PlcException {
+<span class="fc" id="L166">        PlcReadRequest request = (PlcReadRequest) msg.getRequest();</span>
         // TODO: support multiple requests
-<span class="pc" id="L131">        ReadRequestItem&lt;?&gt; readRequestItem = request.getRequestItem().orElseThrow(() -&gt; new PlcNotImplementedException(&quot;Only single message supported for now&quot;));</span>
-        // TODO: check if we can map like this. Implication is that we can only work with int, short, byte and boolean
-        // TODO: for higher datatypes float, double etc we might need to split the bytes into chunks
-<span class="fc" id="L134">        int quantity = readRequestItem.getSize();</span>
-        // TODO: the unit the should be used for multiple Requests
-<span class="fc" id="L136">        short unitId = 0;</span>
-
-<span class="fc" id="L138">        ModbusAddress address = (ModbusAddress) readRequestItem.getAddress();</span>
-        ModbusPdu modbusRequest;
-<span class="fc bfc" id="L140" title="All 2 branches covered.">        if (address instanceof CoilModbusAddress) {</span>
-<span class="fc" id="L141">            CoilModbusAddress coilModbusAddress = (CoilModbusAddress) address;</span>
-<span class="fc" id="L142">            modbusRequest = new ReadCoilsRequest(coilModbusAddress.getAddress(), quantity);</span>
-<span class="pc bpc" id="L143" title="1 of 2 branches missed.">        } else if (address instanceof RegisterModbusAddress) {</span>
-<span class="nc" id="L144">            RegisterModbusAddress registerModbusAddress = (RegisterModbusAddress) address;</span>
-<span class="nc" id="L145">            modbusRequest = new ReadHoldingRegistersRequest(registerModbusAddress.getAddress(), quantity);</span>
-<span class="pc bfc" id="L146" title="All 2 branches covered.">        } else if (address instanceof ReadDiscreteInputsModbusAddress) {</span>
-<span class="fc" id="L147">            ReadDiscreteInputsModbusAddress readDiscreteInputsModbusAddress = (ReadDiscreteInputsModbusAddress) address;</span>
-<span class="fc" id="L148">            modbusRequest = new ReadDiscreteInputsRequest(readDiscreteInputsModbusAddress.getAddress(), quantity);</span>
-<span class="fc bfc" id="L149" title="All 2 branches covered.">        } else if (address instanceof ReadHoldingRegistersModbusAddress) {</span>
-<span class="fc" id="L150">            ReadHoldingRegistersModbusAddress readHoldingRegistersModbusAddress = (ReadHoldingRegistersModbusAddress) address;</span>
-<span class="fc" id="L151">            modbusRequest = new ReadHoldingRegistersRequest(readHoldingRegistersModbusAddress.getAddress(), quantity);</span>
-<span class="pc bpc" id="L152" title="1 of 2 branches missed.">        } else if (address instanceof ReadInputRegistersModbusAddress) {</span>
-<span class="fc" id="L153">            ReadInputRegistersModbusAddress readInputRegistersModbusAddress = (ReadInputRegistersModbusAddress) address;</span>
-<span class="fc" id="L154">            modbusRequest = new ReadInputRegistersRequest(readInputRegistersModbusAddress.getAddress(), quantity);</span>
-<span class="fc" id="L155">        } else {</span>
-<span class="nc" id="L156">            throw new PlcProtocolException(&quot;Unsupported address type &quot; + address.getClass() + &quot; for a read request.&quot;);</span>
+<span class="pc bpc" id="L168" title="1 of 2 branches missed.">        if (request.getFieldNames().size() != 1) {</span>
+<span class="nc" id="L169">            throw new PlcNotImplementedException(&quot;Only single message supported for now&quot;);</span>
         }
-<span class="fc" id="L158">        short transactionId = (short) this.transactionId.getAndIncrement();</span>
-<span class="fc" id="L159">        requestsMap.put(transactionId, msg);</span>
-<span class="fc" id="L160">        out.add(new ModbusTcpPayload(transactionId, unitId, modbusRequest));</span>
-<span class="fc" id="L161">    }</span>
+        // TODO: check if we can map like this. Implication is that we can only work with int, short, byte and boolean
+        // TODO: for higher data types float, double etc we might need to split the bytes into chunks
+<span class="fc" id="L173">        String fieldName = request.getFieldNames().iterator().next();</span>
+        // TODO: The quantity is encoded in the field attribute
+<span class="fc" id="L175">        int quantity = 1;</span>
+        // TODO: the unit the should be used for multiple Requests
+<span class="fc" id="L177">        short unitId = 0;</span>
+
+<span class="fc" id="L179">        ModbusField field = (ModbusField) request.getField(fieldName);</span>
+        ModbusPdu modbusRequest;
+<span class="fc bfc" id="L181" title="All 2 branches covered.">        if (field instanceof CoilModbusField) {</span>
+<span class="fc" id="L182">            CoilModbusField coilModbusField = (CoilModbusField) field;</span>
+<span class="fc" id="L183">            modbusRequest = new ReadCoilsRequest(coilModbusField.getAddress(), quantity);</span>
+<span class="pc bpc" id="L184" title="1 of 2 branches missed.">        } else if (field instanceof RegisterModbusField) {</span>
+<span class="nc" id="L185">            RegisterModbusField registerModbusField = (RegisterModbusField) field;</span>
+<span class="nc" id="L186">            modbusRequest = new ReadHoldingRegistersRequest(registerModbusField.getAddress(), quantity);</span>
+<span class="pc bfc" id="L187" title="All 2 branches covered.">        } else if (field instanceof ReadDiscreteInputsModbusField) {</span>
+<span class="fc" id="L188">            ReadDiscreteInputsModbusField readDiscreteInputsModbusField = (ReadDiscreteInputsModbusField) field;</span>
+<span class="fc" id="L189">            modbusRequest = new ReadDiscreteInputsRequest(readDiscreteInputsModbusField.getAddress(), quantity);</span>
+<span class="fc bfc" id="L190" title="All 2 branches covered.">        } else if (field instanceof ReadHoldingRegistersModbusField) {</span>
+<span class="fc" id="L191">            ReadHoldingRegistersModbusField readHoldingRegistersModbusField = (ReadHoldingRegistersModbusField) field;</span>
+<span class="fc" id="L192">            modbusRequest = new ReadHoldingRegistersRequest(readHoldingRegistersModbusField.getAddress(), quantity);</span>
+<span class="pc bpc" id="L193" title="1 of 2 branches missed.">        } else if (field instanceof ReadInputRegistersModbusField) {</span>
+<span class="fc" id="L194">            ReadInputRegistersModbusField readInputRegistersModbusField = (ReadInputRegistersModbusField) field;</span>
+<span class="fc" id="L195">            modbusRequest = new ReadInputRegistersRequest(readInputRegistersModbusField.getAddress(), quantity);</span>
+<span class="fc" id="L196">        } else {</span>
+<span class="nc" id="L197">            throw new PlcProtocolException(&quot;Unsupported field type &quot; + field.getClass() + &quot; for a read request.&quot;);</span>
+        }
+<span class="fc" id="L199">        short transactionId = (short) this.transactionId.getAndIncrement();</span>
+<span class="fc" id="L200">        requestsMap.put(transactionId, msg);</span>
+<span class="fc" id="L201">        out.add(new ModbusTcpPayload(transactionId, unitId, modbusRequest));</span>
+<span class="fc" id="L202">    }</span>
 
     @SuppressWarnings(&quot;unchecked&quot;)
     @Override
     protected void decode(ChannelHandlerContext ctx, ModbusTcpPayload msg, List&lt;Object&gt; out) throws Exception {
-<span class="fc" id="L166">        LOGGER.trace(&quot;(--&gt;IN): {}, {}, {}&quot;, ctx, msg, out);</span>
-<span class="fc" id="L167">        LOGGER.debug(&quot;{}: transactionId: {}, unitId: {}, modbusPdu:{}&quot;, msg, msg.getTransactionId(), msg.getUnitId(), msg.getModbusPdu());</span>
+<span class="fc" id="L207">        LOGGER.trace(&quot;(--&gt;IN): {}, {}, {}&quot;, ctx, msg, out);</span>
+<span class="fc" id="L208">        LOGGER.debug(&quot;{}: transactionId: {}, unitId: {}, modbusPdu:{}&quot;, msg, msg.getTransactionId(), msg.getUnitId(), msg.getModbusPdu());</span>
         // TODO: implement me
-<span class="fc" id="L169">        short transactionId = msg.getTransactionId();</span>
-<span class="fc" id="L170">        PlcRequestContainer&lt;PlcRequest, PlcResponse&gt; plcRequestContainer = requestsMap.get(transactionId);</span>
-<span class="pc bpc" id="L171" title="1 of 2 branches missed.">        if (plcRequestContainer == null) {</span>
-<span class="nc" id="L172">            throw new PlcProtocolException(&quot;Unrelated payload received. [transactionId: &quot; + msg.getTransactionId() + &quot;, unitId: &quot; + msg.getUnitId() + &quot;, modbusPdu: &quot; + msg.getModbusPdu() + &quot;]&quot;);</span>
+<span class="fc" id="L210">        short transactionId = msg.getTransactionId();</span>
+<span class="fc" id="L211">        PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; plcRequestContainer = requestsMap.get(transactionId);</span>
+<span class="pc bpc" id="L212" title="1 of 2 branches missed.">        if (plcRequestContainer == null) {</span>
+<span class="nc" id="L213">            throw new PlcProtocolException(&quot;Unrelated payload received. [transactionId: &quot; + msg.getTransactionId() + &quot;, unitId: &quot; + msg.getUnitId() + &quot;, modbusPdu: &quot; + msg.getModbusPdu() + &quot;]&quot;);</span>
         }
 
         // TODO: only single Item supported for now
-<span class="fc" id="L176">        PlcRequest&lt;?&gt; request = plcRequestContainer.getRequest();</span>
-<span class="pc" id="L177">        RequestItem requestItem = request.getRequestItem().orElseThrow(() -&gt; new PlcNotImplementedException(&quot;Only single message supported for now&quot;));</span>
-<span class="fc" id="L178">        Class&lt;?&gt; dataType = requestItem.getDatatype();</span>
-
-<span class="fc" id="L180">        ModbusPdu modbusPdu = msg.getModbusPdu();</span>
-<span class="fc" id="L181">        short unitId = msg.getUnitId();</span>
-
-<span class="fc bfc" id="L183" title="All 2 branches covered.">        if (modbusPdu instanceof WriteMultipleCoilsResponse) {</span>
-            // TODO: finish implementation
-<span class="fc" id="L185">            WriteMultipleCoilsResponse writeMultipleCoilsResponse = (WriteMultipleCoilsResponse) modbusPdu;</span>
-<span class="fc" id="L186">            LOGGER.debug(&quot;{}: address:{}, quantity:{}&quot;, writeMultipleCoilsResponse, writeMultipleCoilsResponse.getAddress(), writeMultipleCoilsResponse.getQuantity());</span>
-<span class="fc" id="L187">            plcRequestContainer.getResponseFuture().complete(new PlcWriteResponse((PlcWriteRequest) request, new WriteResponseItem&lt;&gt;((WriteRequestItem) requestItem, ResponseCode.OK)));</span>
-<span class="fc bfc" id="L188" title="All 2 branches covered.">        } else if (modbusPdu instanceof WriteMultipleRegistersResponse) {</span>
-            // TODO: finish implementation
-<span class="fc" id="L190">            WriteMultipleRegistersResponse writeMultipleRegistersResponse = (WriteMultipleRegistersResponse) modbusPdu;</span>
-<span class="fc" id="L191">            LOGGER.debug(&quot;{}: address:{}, quantity:{}&quot;, writeMultipleRegistersResponse, writeMultipleRegistersResponse.getAddress(), writeMultipleRegistersResponse.getQuantity());</span>
-<span class="fc" id="L192">            plcRequestContainer.getResponseFuture().complete(new PlcWriteResponse((PlcWriteRequest) request, new WriteResponseItem&lt;&gt;((WriteRequestItem) requestItem, ResponseCode.OK)));</span>
-<span class="fc bfc" id="L193" title="All 2 branches covered.">        } else if (modbusPdu instanceof WriteSingleCoilResponse) {</span>
-            // TODO: finish implementation
-<span class="fc" id="L195">            WriteSingleCoilResponse writeSingleCoilResponse = (WriteSingleCoilResponse) modbusPdu;</span>
-<span class="fc" id="L196">            LOGGER.debug(&quot;{}: address:{}, value:{}&quot;, writeSingleCoilResponse, writeSingleCoilResponse.getAddress(), writeSingleCoilResponse.getValue());</span>
-<span class="fc" id="L197">            plcRequestContainer.getResponseFuture().complete(new PlcWriteResponse((PlcWriteRequest) request, new WriteResponseItem&lt;&gt;((WriteRequestItem) requestItem, ResponseCode.OK)));</span>
-<span class="fc bfc" id="L198" title="All 2 branches covered.">        } else if (modbusPdu instanceof WriteSingleRegisterResponse) {</span>
-            // TODO: finish implementation
-<span class="fc" id="L200">            WriteSingleRegisterResponse writeSingleRegisterResponse = (WriteSingleRegisterResponse) modbusPdu;</span>
-<span class="fc" id="L201">            LOGGER.debug(&quot;{}: address:{}, value:{}&quot;, writeSingleRegisterResponse, writeSingleRegisterResponse.getAddress(), writeSingleRegisterResponse.getValue());</span>
-<span class="fc" id="L202">            plcRequestContainer.getResponseFuture().complete(new PlcWriteResponse((PlcWriteRequest) request, new WriteResponseItem&lt;&gt;((WriteRequestItem) requestItem, ResponseCode.OK)));</span>
-<span class="fc bfc" id="L203" title="All 2 branches covered.">        } else if (modbusPdu instanceof ReadCoilsResponse) {</span>
-            // TODO: finish implementation
-<span class="fc" id="L205">            ReadCoilsResponse readCoilsResponse = (ReadCoilsResponse) modbusPdu;</span>
-<span class="fc" id="L206">            LOGGER.debug(&quot;{}: Nothing&quot;, readCoilsResponse);</span>
-<span class="fc" id="L207">            ByteBuf byteBuf = readCoilsResponse.getCoilStatus();</span>
-<span class="fc" id="L208">            List&lt;?&gt; data = produceCoilValueList(requestItem, dataType, byteBuf);</span>
-<span class="fc" id="L209">            plcRequestContainer.getResponseFuture().complete(new PlcReadResponse((PlcReadRequest) request, new ReadResponseItem((ReadRequestItem) requestItem, ResponseCode.OK, data)));</span>
-<span class="fc bfc" id="L210" title="All 2 branches covered.">        } else if (modbusPdu instanceof ReadDiscreteInputsResponse) {</span>
-            // TODO: finish implementation
-<span class="fc" id="L212">            ReadDiscreteInputsResponse readDiscreteInputsResponse = (ReadDiscreteInputsResponse) modbusPdu;</span>
-<span class="fc" id="L213">            LOGGER.debug(&quot;{}: Nothing&quot;, readDiscreteInputsResponse);</span>
-<span class="fc" id="L214">            ByteBuf byteBuf = readDiscreteInputsResponse.getInputStatus();</span>
-<span class="fc" id="L215">            List&lt;?&gt; data = produceCoilValueList(requestItem, dataType, byteBuf);</span>
-<span class="fc" id="L216">            plcRequestContainer.getResponseFuture().complete(new PlcReadResponse((PlcReadRequest) request, new ReadResponseItem((ReadRequestItem) requestItem, ResponseCode.OK, data)));</span>
-<span class="fc bfc" id="L217" title="All 2 branches covered.">        } else if (modbusPdu instanceof ReadHoldingRegistersResponse) {</span>
-            // TODO: finish implementation
-<span class="fc" id="L219">            ReadHoldingRegistersResponse readHoldingRegistersResponse = (ReadHoldingRegistersResponse) modbusPdu;</span>
-<span class="fc" id="L220">            LOGGER.debug(&quot;{}: Nothing&quot;, readHoldingRegistersResponse);</span>
-<span class="fc" id="L221">            ByteBuf byteBuf = readHoldingRegistersResponse.getRegisters();</span>
-            // TODO: use register method
-<span class="fc" id="L223">            List&lt;?&gt; data = produceRegisterValueList(requestItem, dataType, byteBuf);</span>
-<span class="fc" id="L224">            plcRequestContainer.getResponseFuture().complete(new PlcReadResponse((PlcReadRequest) request, new ReadResponseItem((ReadRequestItem) requestItem, ResponseCode.OK, data)));</span>
-<span class="fc bfc" id="L225" title="All 2 branches covered.">        } else if (modbusPdu instanceof ReadInputRegistersResponse) {</span>
-            // TODO: finish implementation
-<span class="fc" id="L227">            ReadInputRegistersResponse readInputRegistersResponse = (ReadInputRegistersResponse) modbusPdu;</span>
-<span class="fc" id="L228">            LOGGER.debug(&quot;{}: Nothing&quot;, readInputRegistersResponse);</span>
-<span class="fc" id="L229">            ByteBuf byteBuf = readInputRegistersResponse.getRegisters();</span>
-            // TODO: use register method
-<span class="fc" id="L231">            List&lt;?&gt; data = produceRegisterValueList(requestItem, dataType, byteBuf);</span>
-<span class="fc" id="L232">            plcRequestContainer.getResponseFuture().complete(new PlcReadResponse((PlcReadRequest) request, new ReadResponseItem((ReadRequestItem) requestItem, ResponseCode.OK, data)));</span>
-<span class="pc bpc" id="L233" title="1 of 2 branches missed.">        } else if (modbusPdu instanceof MaskWriteRegisterResponse) {</span>
-            // TODO: finish implementation
-<span class="fc" id="L235">            MaskWriteRegisterResponse maskWriteRegisterResponse = (MaskWriteRegisterResponse) modbusPdu;</span>
-<span class="fc" id="L236">            LOGGER.debug(&quot;{}: Nothing&quot;, maskWriteRegisterResponse);</span>
-<span class="fc" id="L237">            plcRequestContainer.getResponseFuture().complete(new PlcWriteResponse((PlcWriteRequest) request, new WriteResponseItem&lt;&gt;((WriteRequestItem) requestItem, ResponseCode.OK)));</span>
-<span class="pc bnc" id="L238" title="All 2 branches missed.">        } else if (modbusPdu instanceof ExceptionResponse) {</span>
-<span class="nc" id="L239">            ExceptionResponse exceptionResponse = (ExceptionResponse) modbusPdu;</span>
-<span class="nc" id="L240">            throw new PlcProtocolException(&quot;Error received &quot; + exceptionResponse.getExceptionCode());</span>
-        } else {
-<span class="nc" id="L242">            throw new PlcProtocolException(&quot;Unsupported messageTyp type&quot; + modbusPdu.getClass());</span>
+<span class="fc" id="L217">        InternalPlcFieldRequest request = (InternalPlcFieldRequest) plcRequestContainer.getRequest();</span>
+        // TODO: support multiple requests (Shouldn't be needed as the request wouldn't have been sent)
+<span class="pc bpc" id="L219" title="1 of 2 branches missed.">        if (request.getFieldNames().size() != 1) {</span>
+<span class="nc" id="L220">            throw new PlcNotImplementedException(&quot;Only single message supported for now&quot;);</span>
         }
-<span class="fc" id="L244">    }</span>
+<span class="fc" id="L222">        String fieldName = request.getFieldNames().iterator().next();</span>
+<span class="fc" id="L223">        ModbusField field = (ModbusField) request.getField(fieldName);</span>
+
+<span class="fc" id="L225">        ModbusPdu modbusPdu = msg.getModbusPdu();</span>
+<span class="fc" id="L226">        short unitId = msg.getUnitId();</span>
+
+<span class="fc bfc" id="L228" title="All 2 branches covered.">        if (modbusPdu instanceof WriteMultipleCoilsResponse) {</span>
+            // TODO: finish implementation
+<span class="fc" id="L230">            WriteMultipleCoilsResponse writeMultipleCoilsResponse = (WriteMultipleCoilsResponse) modbusPdu;</span>
+<span class="fc" id="L231">            LOGGER.debug(&quot;{}: address:{}, quantity:{}&quot;, writeMultipleCoilsResponse, writeMultipleCoilsResponse.getAddress(), writeMultipleCoilsResponse.getQuantity());</span>
+<span class="fc" id="L232">            Map&lt;String, PlcResponseCode&gt; responseValues = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L233">            responseValues.put(fieldName, PlcResponseCode.OK);</span>
+<span class="fc" id="L234">            plcRequestContainer.getResponseFuture().complete(new DefaultPlcWriteResponse((InternalPlcWriteRequest) request, responseValues));</span>
+<span class="fc bfc" id="L235" title="All 2 branches covered.">        } else if (modbusPdu instanceof WriteMultipleRegistersResponse) {</span>
+            // TODO: finish implementation
+<span class="fc" id="L237">            WriteMultipleRegistersResponse writeMultipleRegistersResponse = (WriteMultipleRegistersResponse) modbusPdu;</span>
+<span class="fc" id="L238">            LOGGER.debug(&quot;{}: address:{}, quantity:{}&quot;, writeMultipleRegistersResponse, writeMultipleRegistersResponse.getAddress(), writeMultipleRegistersResponse.getQuantity());</span>
+<span class="fc" id="L239">            Map&lt;String, PlcResponseCode&gt; responseValues = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L240">            responseValues.put(fieldName, PlcResponseCode.OK);</span>
+<span class="fc" id="L241">            plcRequestContainer.getResponseFuture().complete(new DefaultPlcWriteResponse((InternalPlcWriteRequest) request, responseValues));</span>
+<span class="fc bfc" id="L242" title="All 2 branches covered.">        } else if (modbusPdu instanceof WriteSingleCoilResponse) {</span>
+            // TODO: finish implementation
+<span class="fc" id="L244">            WriteSingleCoilResponse writeSingleCoilResponse = (WriteSingleCoilResponse) modbusPdu;</span>
+<span class="fc" id="L245">            LOGGER.debug(&quot;{}: address:{}, value:{}&quot;, writeSingleCoilResponse, writeSingleCoilResponse.getAddress(), writeSingleCoilResponse.getValue());</span>
+<span class="fc" id="L246">            Map&lt;String, PlcResponseCode&gt; responseValues = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L247">            responseValues.put(fieldName, PlcResponseCode.OK);</span>
+<span class="fc" id="L248">            plcRequestContainer.getResponseFuture().complete(new DefaultPlcWriteResponse((InternalPlcWriteRequest) request, responseValues));</span>
+<span class="fc bfc" id="L249" title="All 2 branches covered.">        } else if (modbusPdu instanceof WriteSingleRegisterResponse) {</span>
+            // TODO: finish implementation
+<span class="fc" id="L251">            WriteSingleRegisterResponse writeSingleRegisterResponse = (WriteSingleRegisterResponse) modbusPdu;</span>
+<span class="fc" id="L252">            LOGGER.debug(&quot;{}: address:{}, value:{}&quot;, writeSingleRegisterResponse, writeSingleRegisterResponse.getAddress(), writeSingleRegisterResponse.getValue());</span>
+<span class="fc" id="L253">            Map&lt;String, PlcResponseCode&gt; responseValues = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L254">            responseValues.put(fieldName, PlcResponseCode.OK);</span>
+<span class="fc" id="L255">            plcRequestContainer.getResponseFuture().complete(new DefaultPlcWriteResponse((InternalPlcWriteRequest) request, responseValues));</span>
+<span class="fc bfc" id="L256" title="All 2 branches covered.">        } else if (modbusPdu instanceof ReadCoilsResponse) {</span>
+            // TODO: finish implementation
+<span class="fc" id="L258">            ReadCoilsResponse readCoilsResponse = (ReadCoilsResponse) modbusPdu;</span>
+<span class="fc" id="L259">            LOGGER.debug(&quot;{}: Nothing&quot;, readCoilsResponse);</span>
+<span class="fc" id="L260">            ByteBuf byteBuf = readCoilsResponse.getCoilStatus();</span>
+<span class="fc" id="L261">            DefaultBooleanFieldItem data = produceCoilValueList(byteBuf);</span>
+<span class="fc" id="L262">            Map&lt;String, Pair&lt;PlcResponseCode, FieldItem&gt;&gt; responseValues = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L263">            responseValues.put(fieldName, new ImmutablePair&lt;&gt;(PlcResponseCode.OK, data));</span>
+<span class="fc" id="L264">            plcRequestContainer.getResponseFuture().complete(new DefaultPlcReadResponse((InternalPlcReadRequest) request, responseValues));</span>
+<span class="fc bfc" id="L265" title="All 2 branches covered.">        } else if (modbusPdu instanceof ReadDiscreteInputsResponse) {</span>
+            // TODO: finish implementation
+<span class="fc" id="L267">            ReadDiscreteInputsResponse readDiscreteInputsResponse = (ReadDiscreteInputsResponse) modbusPdu;</span>
+<span class="fc" id="L268">            LOGGER.debug(&quot;{}: Nothing&quot;, readDiscreteInputsResponse);</span>
+<span class="fc" id="L269">            ByteBuf byteBuf = readDiscreteInputsResponse.getInputStatus();</span>
+<span class="fc" id="L270">            DefaultBooleanFieldItem data = produceCoilValueList(byteBuf);</span>
+<span class="fc" id="L271">            Map&lt;String, Pair&lt;PlcResponseCode, FieldItem&gt;&gt; responseValues = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L272">            responseValues.put(fieldName, new ImmutablePair&lt;&gt;(PlcResponseCode.OK, data));</span>
+<span class="fc" id="L273">            plcRequestContainer.getResponseFuture().complete(new DefaultPlcReadResponse((InternalPlcReadRequest) request, responseValues));</span>
+<span class="fc bfc" id="L274" title="All 2 branches covered.">        } else if (modbusPdu instanceof ReadHoldingRegistersResponse) {</span>
+            // TODO: finish implementation
+<span class="fc" id="L276">            ReadHoldingRegistersResponse readHoldingRegistersResponse = (ReadHoldingRegistersResponse) modbusPdu;</span>
+<span class="fc" id="L277">            LOGGER.debug(&quot;{}: Nothing&quot;, readHoldingRegistersResponse);</span>
+<span class="fc" id="L278">            ByteBuf byteBuf = readHoldingRegistersResponse.getRegisters();</span>
+            // TODO: use register method
+<span class="fc" id="L280">            DefaultByteArrayFieldItem data = produceRegisterValueList(byteBuf);</span>
+<span class="fc" id="L281">            Map&lt;String, Pair&lt;PlcResponseCode, FieldItem&gt;&gt; responseValues = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L282">            responseValues.put(fieldName, new ImmutablePair&lt;&gt;(PlcResponseCode.OK, data));</span>
+<span class="fc" id="L283">            plcRequestContainer.getResponseFuture().complete(new DefaultPlcReadResponse((InternalPlcReadRequest) request, responseValues));</span>
+<span class="fc bfc" id="L284" title="All 2 branches covered.">        } else if (modbusPdu instanceof ReadInputRegistersResponse) {</span>
+            // TODO: finish implementation
+<span class="fc" id="L286">            ReadInputRegistersResponse readInputRegistersResponse = (ReadInputRegistersResponse) modbusPdu;</span>
+<span class="fc" id="L287">            LOGGER.debug(&quot;{}: Nothing&quot;, readInputRegistersResponse);</span>
+<span class="fc" id="L288">            ByteBuf byteBuf = readInputRegistersResponse.getRegisters();</span>
+            // TODO: use register method
+<span class="fc" id="L290">            DefaultByteArrayFieldItem data = produceRegisterValueList(byteBuf);</span>
+<span class="fc" id="L291">            Map&lt;String, Pair&lt;PlcResponseCode, FieldItem&gt;&gt; responseValues = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L292">            responseValues.put(fieldName, new ImmutablePair&lt;&gt;(PlcResponseCode.OK, data));</span>
+<span class="fc" id="L293">            plcRequestContainer.getResponseFuture().complete(new DefaultPlcReadResponse((InternalPlcReadRequest) request, responseValues));</span>
+<span class="pc bpc" id="L294" title="1 of 2 branches missed.">        } else if (modbusPdu instanceof MaskWriteRegisterResponse) {</span>
+            // TODO: finish implementation
+<span class="fc" id="L296">            MaskWriteRegisterResponse maskWriteRegisterResponse = (MaskWriteRegisterResponse) modbusPdu;</span>
+<span class="fc" id="L297">            LOGGER.debug(&quot;{}: Nothing&quot;, maskWriteRegisterResponse);</span>
+<span class="fc" id="L298">            Map&lt;String, PlcResponseCode&gt; responseValues = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L299">            responseValues.put(fieldName, PlcResponseCode.OK);</span>
+<span class="fc" id="L300">            plcRequestContainer.getResponseFuture().complete(new DefaultPlcWriteResponse((InternalPlcWriteRequest) request, responseValues));</span>
+<span class="pc bnc" id="L301" title="All 2 branches missed.">        } else if (modbusPdu instanceof ExceptionResponse) {</span>
+<span class="nc" id="L302">            ExceptionResponse exceptionResponse = (ExceptionResponse) modbusPdu;</span>
+<span class="nc" id="L303">            throw new PlcProtocolException(&quot;Error received &quot; + exceptionResponse.getExceptionCode());</span>
+        } else {
+<span class="nc" id="L305">            throw new PlcProtocolException(&quot;Unsupported messageTyp type&quot; + modbusPdu.getClass());</span>
+        }
+<span class="fc" id="L307">    }</span>
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-<span class="nc" id="L248">        LOGGER.trace(&quot;(--&gt;ERR): {}&quot;, ctx, cause);</span>
-<span class="nc" id="L249">        super.exceptionCaught(ctx, cause);</span>
-<span class="nc" id="L250">    }</span>
+<span class="nc" id="L311">        LOGGER.trace(&quot;(--&gt;ERR): {}&quot;, ctx, cause);</span>
+<span class="nc" id="L312">        super.exceptionCaught(ctx, cause);</span>
+<span class="nc" id="L313">    }</span>
 
     ////////////////////////////////////////////////////////////////////////////////
     // Encoding helpers.
     ////////////////////////////////////////////////////////////////////////////////
 
     private boolean produceCoilValue(List&lt;?&gt; values) throws PlcProtocolException {
-<span class="pc bpc" id="L257" title="1 of 2 branches missed.">        if (values.size() != 1) {</span>
-<span class="nc" id="L258">            throw new PlcProtocolException(&quot;Only one value allowed&quot;);</span>
+<span class="pc bpc" id="L320" title="1 of 2 branches missed.">        if (values.size() != 1) {</span>
+<span class="nc" id="L321">            throw new PlcProtocolException(&quot;Only one value allowed&quot;);</span>
         }
-<span class="fc" id="L260">        byte multiCoil = produceCoilValues(values)[0];</span>
-<span class="pc bpc" id="L261" title="1 of 2 branches missed.">        return multiCoil != 0;</span>
+<span class="fc" id="L323">        byte multiCoil = produceCoilValues(values)[0];</span>
+<span class="pc bpc" id="L324" title="1 of 2 branches missed.">        return multiCoil != 0;</span>
     }
 
     private byte[] produceCoilValues(List&lt;?&gt; values) throws PlcProtocolException {
-<span class="fc" id="L265">        List&lt;Byte&gt; coils = new LinkedList&lt;&gt;();</span>
-<span class="fc" id="L266">        byte actualCoil = 0;</span>
-<span class="fc" id="L267">        int i = 7;</span>
-<span class="fc bfc" id="L268" title="All 2 branches covered.">        for (Object value : values) {</span>
+<span class="fc" id="L328">        List&lt;Byte&gt; coils = new LinkedList&lt;&gt;();</span>
+<span class="fc" id="L329">        byte actualCoil = 0;</span>
+<span class="fc" id="L330">        int i = 7;</span>
+<span class="fc bfc" id="L331" title="All 2 branches covered.">        for (Object value : values) {</span>
             final boolean coilSet;
-<span class="fc bfc" id="L270" title="All 2 branches covered.">            if (value.getClass() == Boolean.class) {</span>
-<span class="fc" id="L271">                coilSet = (Boolean) value;</span>
-<span class="fc bfc" id="L272" title="All 2 branches covered.">            } else if (value.getClass() == Byte.class) {</span>
-<span class="pc bpc" id="L273" title="1 of 2 branches missed.">                if ((byte) value &gt; 1) {</span>
-<span class="nc" id="L274">                    throw new PlcProtocolException(&quot;Value to high to fit into Byte: &quot; + value);</span>
+<span class="pc bpc" id="L333" title="1 of 2 branches missed.">            if (value.getClass() == Boolean.class) {</span>
+<span class="nc" id="L334">                coilSet = (Boolean) value;</span>
+<span class="pc bpc" id="L335" title="1 of 2 branches missed.">            } else if (value.getClass() == Byte.class) {</span>
+<span class="nc bnc" id="L336" title="All 2 branches missed.">                if ((byte) value &gt; 1) {</span>
+<span class="nc" id="L337">                    throw new PlcProtocolException(&quot;Value to high to fit into Byte: &quot; + value);</span>
                 }
-<span class="pc bpc" id="L276" title="1 of 2 branches missed.">                coilSet = (byte) value == 1;</span>
-<span class="fc bfc" id="L277" title="All 2 branches covered.">            } else if (value.getClass() == byte[].class) {</span>
-<span class="fc" id="L278">                byte[] bytes = (byte[]) value;</span>
-<span class="pc bpc" id="L279" title="1 of 2 branches missed.">                if (bytes.length != 1) {</span>
-<span class="nc" id="L280">                    throw new PlcProtocolException(&quot;Exactly one byte is allowed: &quot; + bytes.length);</span>
+<span class="nc bnc" id="L339" title="All 2 branches missed.">                coilSet = (byte) value == 1;</span>
+<span class="pc bpc" id="L340" title="1 of 2 branches missed.">            } else if (value.getClass() == byte[].class) {</span>
+<span class="fc" id="L341">                byte[] bytes = (byte[]) value;</span>
+<span class="pc bpc" id="L342" title="1 of 2 branches missed.">                if (bytes.length != 1) {</span>
+<span class="nc" id="L343">                    throw new PlcProtocolException(&quot;Exactly one byte is allowed: &quot; + bytes.length);</span>
                 }
-<span class="fc" id="L282">                byte byteValue = bytes[0];</span>
-<span class="pc bpc" id="L283" title="1 of 2 branches missed.">                if (byteValue &gt; 1) {</span>
-<span class="nc" id="L284">                    throw new PlcProtocolException(&quot;Value to high to fit into Byte: &quot; + value);</span>
+<span class="fc" id="L345">                byte byteValue = bytes[0];</span>
+<span class="pc bpc" id="L346" title="1 of 2 branches missed.">                if (byteValue &gt; 1) {</span>
+<span class="nc" id="L347">                    throw new PlcProtocolException(&quot;Value to high to fit into Byte: &quot; + value);</span>
                 }
-<span class="pc bpc" id="L286" title="1 of 2 branches missed.">                coilSet = byteValue == 1;</span>
-<span class="fc bfc" id="L287" title="All 2 branches covered.">            } else if (value.getClass() == Byte[].class) {</span>
-<span class="fc" id="L288">                Byte[] bytes = (Byte[]) value;</span>
-<span class="pc bpc" id="L289" title="1 of 2 branches missed.">                if (bytes.length != 1) {</span>
-<span class="nc" id="L290">                    throw new PlcProtocolException(&quot;Exactly one byte is allowed: &quot; + bytes.length);</span>
+<span class="pc bpc" id="L349" title="1 of 2 branches missed.">                coilSet = byteValue == 1;</span>
+<span class="pc bnc" id="L350" title="All 2 branches missed.">            } else if (value.getClass() == Byte[].class) {</span>
+<span class="nc" id="L351">                Byte[] bytes = (Byte[]) value;</span>
+<span class="nc bnc" id="L352" title="All 2 branches missed.">                if (bytes.length != 1) {</span>
+<span class="nc" id="L353">                    throw new PlcProtocolException(&quot;Exactly one byte is allowed: &quot; + bytes.length);</span>
                 }
-<span class="fc" id="L292">                byte byteValue = bytes[0];</span>
-<span class="pc bpc" id="L293" title="1 of 2 branches missed.">                if (byteValue &gt; 1) {</span>
-<span class="nc" id="L294">                    throw new PlcProtocolException(&quot;Value to high to fit into Byte: &quot; + value);</span>
+<span class="nc" id="L355">                byte byteValue = bytes[0];</span>
+<span class="nc bnc" id="L356" title="All 2 branches missed.">                if (byteValue &gt; 1) {</span>
+<span class="nc" id="L357">                    throw new PlcProtocolException(&quot;Value to high to fit into Byte: &quot; + value);</span>
                 }
-<span class="pc bpc" id="L296" title="1 of 2 branches missed.">                coilSet = byteValue == 1;</span>
-<span class="fc bfc" id="L297" title="All 2 branches covered.">            } else if (value.getClass() == Short.class) {</span>
-<span class="pc bpc" id="L298" title="1 of 2 branches missed.">                if ((short) value &gt; 1) {</span>
-<span class="nc" id="L299">                    throw new PlcProtocolException(&quot;Value to high to fit into Byte: &quot; + value);</span>
+<span class="nc bnc" id="L359" title="All 2 branches missed.">                coilSet = byteValue == 1;</span>
+<span class="nc bnc" id="L360" title="All 2 branches missed.">            } else if (value.getClass() == Short.class) {</span>
+<span class="nc bnc" id="L361" title="All 2 branches missed.">                if ((short) value &gt; 1) {</span>
+<span class="nc" id="L362">                    throw new PlcProtocolException(&quot;Value to high to fit into Byte: &quot; + value);</span>
                 }
-<span class="pc bpc" id="L301" title="1 of 2 branches missed.">                coilSet = (Short) value == 1;</span>
-<span class="fc bfc" id="L302" title="All 2 branches covered.">            } else if (value.getClass() == Integer.class) {</span>
-<span class="pc bpc" id="L303" title="1 of 2 branches missed.">                if ((int) value &gt; 1) {</span>
-<span class="nc" id="L304">                    throw new PlcProtocolException(&quot;Value to high to fit into Byte: &quot; + value);</span>
+<span class="nc bnc" id="L364" title="All 2 branches missed.">                coilSet = (Short) value == 1;</span>
+<span class="nc bnc" id="L365" title="All 2 branches missed.">            } else if (value.getClass() == Integer.class) {</span>
+<span class="nc bnc" id="L366" title="All 2 branches missed.">                if ((int) value &gt; 1) {</span>
+<span class="nc" id="L367">                    throw new PlcProtocolException(&quot;Value to high to fit into Byte: &quot; + value);</span>
                 }
-<span class="pc bpc" id="L306" title="1 of 2 branches missed.">                coilSet = (int) value == 1;</span>
-<span class="fc bfc" id="L307" title="All 2 branches covered.">            } else if (value.getClass() == BigInteger.class) {</span>
-<span class="fc" id="L308">                coilSet = value.equals(BigInteger.ONE);</span>
-<span class="fc bfc" id="L309" title="All 2 branches covered.">            } else if (value.getClass() == Float.class) {</span>
-<span class="fc" id="L310">                coilSet = value.equals(1.0f);</span>
-<span class="pc bpc" id="L311" title="1 of 2 branches missed.">            } else if (value.getClass() == Double.class) {</span>
-<span class="fc" id="L312">                coilSet = value.equals(1.0d);</span>
+<span class="nc bnc" id="L369" title="All 2 branches missed.">                coilSet = (int) value == 1;</span>
+<span class="nc bnc" id="L370" title="All 2 branches missed.">            } else if (value.getClass() == BigInteger.class) {</span>
+<span class="nc" id="L371">                coilSet = value.equals(BigInteger.ONE);</span>
+<span class="nc bnc" id="L372" title="All 2 branches missed.">            } else if (value.getClass() == Float.class) {</span>
+<span class="nc" id="L373">                coilSet = value.equals(1.0f);</span>
+<span class="nc bnc" id="L374" title="All 2 branches missed.">            } else if (value.getClass() == Double.class) {</span>
+<span class="nc" id="L375">                coilSet = value.equals(1.0d);</span>
             } else {
-<span class="nc" id="L314">                throw new PlcUnsupportedDataTypeException(value.getClass());</span>
+<span class="nc" id="L377">                throw new PlcUnsupportedDataTypeException(value.getClass());</span>
             }
-<span class="pc bpc" id="L316" title="1 of 2 branches missed.">            byte coilToSet = coilSet ? (byte) 1 : (byte) 0;</span>
-<span class="fc" id="L317">            actualCoil = (byte) (actualCoil &amp; 0xff | coilToSet &lt;&lt; i);</span>
-<span class="fc" id="L318">            i--;</span>
-<span class="pc bpc" id="L319" title="1 of 2 branches missed.">            if (i &lt; 0) {</span>
-<span class="nc" id="L320">                coils.add(actualCoil);</span>
-<span class="nc" id="L321">                actualCoil = 0;</span>
-<span class="nc" id="L322">                i = 8;</span>
+<span class="pc bpc" id="L379" title="1 of 2 branches missed.">            byte coilToSet = coilSet ? (byte) 1 : (byte) 0;</span>
+<span class="fc" id="L380">            actualCoil = (byte) (actualCoil &amp; 0xff | coilToSet &lt;&lt; i);</span>
+<span class="fc" id="L381">            i--;</span>
+<span class="pc bpc" id="L382" title="1 of 2 branches missed.">            if (i &lt; 0) {</span>
+<span class="nc" id="L383">                coils.add(actualCoil);</span>
+<span class="nc" id="L384">                actualCoil = 0;</span>
+<span class="nc" id="L385">                i = 8;</span>
             }
-<span class="fc" id="L324">        }</span>
-<span class="pc bpc" id="L325" title="1 of 2 branches missed.">        if (coils.isEmpty()) {</span>
+<span class="fc" id="L387">        }</span>
+<span class="pc bpc" id="L388" title="1 of 2 branches missed.">        if (coils.isEmpty()) {</span>
             // We only have one coil
-<span class="fc" id="L327">            return new byte[]{actualCoil};</span>
+<span class="fc" id="L390">            return new byte[]{actualCoil};</span>
         }
-<span class="nc" id="L329">        return ArrayUtils.toPrimitive(coils.toArray(new Byte[0]));</span>
+<span class="nc" id="L392">        return ArrayUtils.toPrimitive(coils.toArray(new Byte[0]));</span>
     }
 
     private byte[] produceRegisterValue(List&lt;?&gt; values) throws PlcProtocolException {
-<span class="fc" id="L333">        ByteBuf buffer = Unpooled.buffer();</span>
-<span class="fc" id="L334">        long upperRegisterValue = 0xFFFFL;</span>
-<span class="fc bfc" id="L335" title="All 2 branches covered.">        for (Object value : values) {</span>
-<span class="fc bfc" id="L336" title="All 2 branches covered.">            if (value.getClass() == Boolean.class) {</span>
-<span class="fc" id="L337">                buffer.writeByte(0);</span>
-<span class="pc bpc" id="L338" title="1 of 2 branches missed.">                buffer.writeByte((boolean) value ? 1 : 0);</span>
-<span class="fc bfc" id="L339" title="All 2 branches covered.">            } else if (value.getClass() == Byte.class) {</span>
-<span class="fc" id="L340">                buffer.writeByte(0);</span>
-<span class="fc" id="L341">                buffer.writeByte((byte) value);</span>
-<span class="fc bfc" id="L342" title="All 2 branches covered.">            } else if (value.getClass() == byte[].class) {</span>
-<span class="fc" id="L343">                byte[] bytes = (byte[]) value;</span>
-<span class="pc bpc" id="L344" title="1 of 2 branches missed.">                if (bytes.length != 2) {</span>
-<span class="nc" id="L345">                    throw new PlcProtocolException(&quot;Exactly two bytes are allowed: &quot; + bytes.length);</span>
+<span class="fc" id="L396">        ByteBuf buffer = Unpooled.buffer();</span>
+<span class="fc" id="L397">        long upperRegisterValue = 0xFFFFL;</span>
+<span class="fc bfc" id="L398" title="All 2 branches covered.">        for (Object value : values) {</span>
+<span class="pc bpc" id="L399" title="1 of 2 branches missed.">            if (value.getClass() == Boolean.class) {</span>
+<span class="nc" id="L400">                buffer.writeByte(0);</span>
+<span class="nc bnc" id="L401" title="All 2 branches missed.">                buffer.writeByte((boolean) value ? 1 : 0);</span>
+<span class="pc bpc" id="L402" title="1 of 2 branches missed.">            } else if (value.getClass() == Byte.class) {</span>
+<span class="nc" id="L403">                buffer.writeByte(0);</span>
+<span class="nc" id="L404">                buffer.writeByte((byte) value);</span>
+<span class="pc bpc" id="L405" title="1 of 2 branches missed.">            } else if (value.getClass() == byte[].class) {</span>
+<span class="fc" id="L406">                byte[] bytes = (byte[]) value;</span>
+<span class="pc bpc" id="L407" title="1 of 2 branches missed.">                if (bytes.length != 2) {</span>
+<span class="nc" id="L408">                    throw new PlcProtocolException(&quot;Exactly two bytes are allowed: &quot; + bytes.length);</span>
                 }
-<span class="fc" id="L347">                buffer.writeBytes(bytes);</span>
-<span class="fc bfc" id="L348" title="All 2 branches covered.">            } else if (value.getClass() == Byte[].class) {</span>
-<span class="fc" id="L349">                Byte[] bytes = (Byte[]) value;</span>
-<span class="pc bpc" id="L350" title="1 of 2 branches missed.">                if (bytes.length != 2) {</span>
-<span class="nc" id="L351">                    throw new PlcProtocolException(&quot;Exactly two bytes are allowed: &quot; + bytes.length);</span>
+<span class="fc" id="L410">                buffer.writeBytes(bytes);</span>
+<span class="pc bnc" id="L411" title="All 2 branches missed.">            } else if (value.getClass() == Byte[].class) {</span>
+<span class="nc" id="L412">                Byte[] bytes = (Byte[]) value;</span>
+<span class="nc bnc" id="L413" title="All 2 branches missed.">                if (bytes.length != 2) {</span>
+<span class="nc" id="L414">                    throw new PlcProtocolException(&quot;Exactly two bytes are allowed: &quot; + bytes.length);</span>
                 }
-<span class="fc" id="L353">                buffer.writeBytes(ArrayUtils.toPrimitive(bytes));</span>
-<span class="fc bfc" id="L354" title="All 2 branches covered.">            } else if (value.getClass() == Short.class) {</span>
-<span class="pc bpc" id="L355" title="1 of 2 branches missed.">                if ((short) value &lt; 0) {</span>
-<span class="nc" id="L356">                    throw new PlcProtocolException(&quot;Only positive values are supported for Short: &quot; + value);</span>
+<span class="nc" id="L416">                buffer.writeBytes(ArrayUtils.toPrimitive(bytes));</span>
+<span class="nc bnc" id="L417" title="All 2 branches missed.">            } else if (value.getClass() == Short.class) {</span>
+<span class="nc bnc" id="L418" title="All 2 branches missed.">                if ((short) value &lt; 0) {</span>
+<span class="nc" id="L419">                    throw new PlcProtocolException(&quot;Only positive values are supported for Short: &quot; + value);</span>
                 }
-<span class="fc" id="L358">                buffer.writeShort((short) value);</span>
-<span class="fc bfc" id="L359" title="All 2 branches covered.">            } else if (value.getClass() == Integer.class) {</span>
-<span class="pc bpc" id="L360" title="1 of 2 branches missed.">                if ((int) value &gt; upperRegisterValue) {</span>
-<span class="nc" id="L361">                    throw new PlcProtocolException(&quot;Value to high to fit into register for Integer: &quot; + value);</span>
+<span class="nc" id="L421">                buffer.writeShort((short) value);</span>
+<span class="nc bnc" id="L422" title="All 2 branches missed.">            } else if (value.getClass() == Integer.class) {</span>
+<span class="nc bnc" id="L423" title="All 2 branches missed.">                if ((int) value &gt; upperRegisterValue) {</span>
+<span class="nc" id="L424">                    throw new PlcProtocolException(&quot;Value to high to fit into register for Integer: &quot; + value);</span>
                 }
-<span class="pc bpc" id="L363" title="1 of 2 branches missed.">                if ((int) value &lt; 0) {</span>
-<span class="nc" id="L364">                    throw new PlcProtocolException(&quot;Only positive values are supported for Integer: &quot; + value);</span>
+<span class="nc bnc" id="L426" title="All 2 branches missed.">                if ((int) value &lt; 0) {</span>
+<span class="nc" id="L427">                    throw new PlcProtocolException(&quot;Only positive values are supported for Integer: &quot; + value);</span>
                 }
-<span class="fc" id="L366">                buffer.writeShort((int) value);</span>
-<span class="fc bfc" id="L367" title="All 2 branches covered.">            } else if (value.getClass() == BigInteger.class) {</span>
-<span class="pc bpc" id="L368" title="1 of 2 branches missed.">                if (((BigInteger) value).compareTo(BigInteger.ZERO) &lt; 0) {</span>
-<span class="nc" id="L369">                    throw new PlcProtocolException(&quot;Only positive values are supported for BigInteger: &quot; + value);</span>
+<span class="nc" id="L429">                buffer.writeShort((int) value);</span>
+<span class="nc bnc" id="L430" title="All 2 branches missed.">            } else if (value.getClass() == BigInteger.class) {</span>
+<span class="nc bnc" id="L431" title="All 2 branches missed.">                if (((BigInteger) value).compareTo(BigInteger.ZERO) &lt; 0) {</span>
+<span class="nc" id="L432">                    throw new PlcProtocolException(&quot;Only positive values are supported for BigInteger: &quot; + value);</span>
                 }
-<span class="pc bpc" id="L371" title="1 of 2 branches missed.">                if (((BigInteger) value).compareTo(BigInteger.valueOf(0XFFFF_FFFFL)) &gt; 0) {</span>
-<span class="nc" id="L372">                    throw new PlcProtocolException(&quot;Value to high to fit into register for BigInteger: &quot; + value);</span>
+<span class="nc bnc" id="L434" title="All 2 branches missed.">                if (((BigInteger) value).compareTo(BigInteger.valueOf(0XFFFF_FFFFL)) &gt; 0) {</span>
+<span class="nc" id="L435">                    throw new PlcProtocolException(&quot;Value to high to fit into register for BigInteger: &quot; + value);</span>
                 }
                 // TODO: for now we can't support big values as we only write one register at once
-<span class="pc bpc" id="L375" title="1 of 2 branches missed.">                if (((BigInteger) value).compareTo(BigInteger.valueOf(upperRegisterValue)) &gt; 0) {</span>
-<span class="nc" id="L376">                    throw new PlcProtocolException(&quot;Value to high to fit into register for BigInteger: &quot; + value);</span>
+<span class="nc bnc" id="L438" title="All 2 branches missed.">                if (((BigInteger) value).compareTo(BigInteger.valueOf(upperRegisterValue)) &gt; 0) {</span>
+<span class="nc" id="L439">                    throw new PlcProtocolException(&quot;Value to high to fit into register for BigInteger: &quot; + value);</span>
                 }
                 // TODO: Register has 2 bytes so we trim to 2 instead of 4 like the second if above
-<span class="fc" id="L379">                int maxBytes = 2;</span>
-<span class="fc" id="L380">                byte[] bigIntegerBytes = ((BigInteger) value).toByteArray();</span>
-<span class="fc" id="L381">                byte[] bytes = new byte[maxBytes];</span>
-<span class="fc" id="L382">                int lengthToCopy = Math.min(bigIntegerBytes.length, maxBytes);</span>
-<span class="fc" id="L383">                int srcPosition = Math.max(bigIntegerBytes.length - maxBytes, 0);</span>
-<span class="fc" id="L384">                int destPosition = maxBytes - lengthToCopy;</span>
-<span class="fc" id="L385">                System.arraycopy(bigIntegerBytes, srcPosition, bytes, destPosition, lengthToCopy);</span>
+<span class="nc" id="L442">                int maxBytes = 2;</span>
+<span class="nc" id="L443">                byte[] bigIntegerBytes = ((BigInteger) value).toByteArray();</span>
+<span class="nc" id="L444">                byte[] bytes = new byte[maxBytes];</span>
+<span class="nc" id="L445">                int lengthToCopy = Math.min(bigIntegerBytes.length, maxBytes);</span>
+<span class="nc" id="L446">                int srcPosition = Math.max(bigIntegerBytes.length - maxBytes, 0);</span>
+<span class="nc" id="L447">                int destPosition = maxBytes - lengthToCopy;</span>
+<span class="nc" id="L448">                System.arraycopy(bigIntegerBytes, srcPosition, bytes, destPosition, lengthToCopy);</span>
 
                 // TODO: check if this is a good representation.
                 // TODO: can a big integer span multiple registers?
-<span class="fc" id="L389">                buffer.writeBytes(bytes);</span>
-<span class="fc bfc" id="L390" title="All 2 branches covered.">            } else if (value.getClass() == Float.class) {</span>
-<span class="pc bpc" id="L391" title="1 of 2 branches missed.">                if (((float) value) &lt; 0) {</span>
-<span class="nc" id="L392">                    throw new PlcProtocolException(&quot;Only positive values are supported for Float: &quot; + value);</span>
+<span class="nc" id="L452">                buffer.writeBytes(bytes);</span>
+<span class="nc bnc" id="L453" title="All 2 branches missed.">            } else if (value.getClass() == Float.class) {</span>
+<span class="nc bnc" id="L454" title="All 2 branches missed.">                if (((float) value) &lt; 0) {</span>
+<span class="nc" id="L455">                    throw new PlcProtocolException(&quot;Only positive values are supported for Float: &quot; + value);</span>
                 }
-<span class="pc bpc" id="L394" title="1 of 2 branches missed.">                if (((float) value) &gt; upperRegisterValue) {</span>
-<span class="nc" id="L395">                    throw new PlcProtocolException(&quot;Value to high to fit into register for Float: &quot; + value);</span>
+<span class="nc bnc" id="L457" title="All 2 branches missed.">                if (((float) value) &gt; upperRegisterValue) {</span>
+<span class="nc" id="L458">                    throw new PlcProtocolException(&quot;Value to high to fit into register for Float: &quot; + value);</span>
                 }
-<span class="fc" id="L397">                buffer.writeShort(Math.round((float) value));</span>
-<span class="pc bpc" id="L398" title="1 of 2 branches missed.">            } else if (value.getClass() == Double.class) {</span>
-<span class="pc bpc" id="L399" title="1 of 2 branches missed.">                if (((double) value) &lt; 0) {</span>
-<span class="nc" id="L400">                    throw new PlcProtocolException(&quot;Only positive values are supported for Double: &quot; + value);</span>
+<span class="nc" id="L460">                buffer.writeShort(Math.round((float) value));</span>
+<span class="nc bnc" id="L461" title="All 2 branches missed.">            } else if (value.getClass() == Double.class) {</span>
+<span class="nc bnc" id="L462" title="All 2 branches missed.">                if (((double) value) &lt; 0) {</span>
+<span class="nc" id="L463">                    throw new PlcProtocolException(&quot;Only positive values are supported for Double: &quot; + value);</span>
                 }
-<span class="pc bpc" id="L402" title="1 of 2 branches missed.">                if (((double) value) &gt; upperRegisterValue) {</span>
-<span class="nc" id="L403">                    throw new PlcProtocolException(&quot;Value to high to fit into register for Double: &quot; + value);</span>
+<span class="nc bnc" id="L465" title="All 2 branches missed.">                if (((double) value) &gt; upperRegisterValue) {</span>
+<span class="nc" id="L466">                    throw new PlcProtocolException(&quot;Value to high to fit into register for Double: &quot; + value);</span>
                 }
-<span class="fc" id="L405">                buffer.writeShort((int) Math.round((double) value));</span>
+<span class="nc" id="L468">                buffer.writeShort((int) Math.round((double) value));</span>
             } else {
-<span class="nc" id="L407">                throw new PlcUnsupportedDataTypeException(value.getClass());</span>
+<span class="nc" id="L470">                throw new PlcUnsupportedDataTypeException(value.getClass());</span>
             }
-<span class="fc" id="L409">        }</span>
-<span class="fc" id="L410">        byte[] result = new byte[buffer.writerIndex()];</span>
-<span class="fc" id="L411">        buffer.readBytes(result);</span>
-<span class="fc" id="L412">        return result;</span>
+<span class="fc" id="L472">        }</span>
+<span class="fc" id="L473">        byte[] result = new byte[buffer.writerIndex()];</span>
+<span class="fc" id="L474">        buffer.readBytes(result);</span>
+<span class="fc" id="L475">        return result;</span>
     }
 
     ////////////////////////////////////////////////////////////////////////////////
     // Decoding helpers.
     ////////////////////////////////////////////////////////////////////////////////
-    private &lt;T&gt; List&lt;T&gt; produceCoilValueList(RequestItem requestItem, Class&lt;T&gt; dataType, ByteBuf byteBuf) {
-<span class="fc" id="L419">        ReadRequestItem readRequestItem = (ReadRequestItem) requestItem;</span>
-<span class="fc" id="L420">        byte[] bytes = new byte[byteBuf.readableBytes()];</span>
-<span class="pc bpc" id="L421" title="1 of 2 branches missed.">        if (bytes.length &lt; 1) {</span>
-<span class="nc" id="L422">            return Collections.emptyList();</span>
+    private DefaultBooleanFieldItem produceCoilValueList(ByteBuf byteBuf) {
+<span class="fc" id="L482">        byte[] bytes = new byte[byteBuf.readableBytes()];</span>
+<span class="pc bpc" id="L483" title="1 of 2 branches missed.">        if (bytes.length &lt; 1) {</span>
+<span class="nc" id="L484">            return new DefaultBooleanFieldItem();</span>
         }
-<span class="fc" id="L424">        byteBuf.readBytes(bytes);</span>
-<span class="fc" id="L425">        List&lt;T&gt; data = new LinkedList&lt;&gt;();</span>
-<span class="fc" id="L426">        int bitIndex = 0;</span>
-<span class="fc" id="L427">        int coilIndex = 0;</span>
-<span class="fc bfc" id="L428" title="All 2 branches covered.">        while (data.size() &lt; readRequestItem.getSize()) {</span>
-<span class="pc bpc" id="L429" title="1 of 2 branches missed.">            if (bitIndex &gt; 7) {</span>
+<span class="fc" id="L486">        byteBuf.readBytes(bytes);</span>
+<span class="fc" id="L487">        List&lt;Boolean&gt; data = new LinkedList&lt;&gt;();</span>
+<span class="fc" id="L488">        int bitIndex = 0;</span>
+<span class="fc" id="L489">        int coilIndex = 0;</span>
+<span class="pc bpc" id="L490" title="1 of 2 branches missed.">        while (coilIndex &lt; bytes.length) {</span>
+<span class="fc bfc" id="L491" title="All 2 branches covered.">            if (bitIndex &gt; 7) {</span>
                 // Every 8 Coils we need to increase the access
-<span class="nc" id="L431">                coilIndex++;</span>
-<span class="nc" id="L432">                bitIndex = 0;</span>
+<span class="fc" id="L493">                coilIndex++;</span>
+<span class="fc" id="L494">                bitIndex = 0;</span>
+<span class="pc bpc" id="L495" title="1 of 2 branches missed.">                if (coilIndex &gt;= bytes.length) {</span>
+<span class="fc" id="L496">                    break;</span>
+                }
             }
-<span class="pc bpc" id="L434" title="1 of 2 branches missed.">            boolean coilSet = (bytes[coilIndex] &amp; 0xff &amp; (1L &lt;&lt; bitIndex)) != 0;</span>
-<span class="pc bpc" id="L435" title="1 of 2 branches missed.">            byte coilFlag = coilSet ? (byte) 1 : (byte) 0;</span>
-<span class="fc bfc" id="L436" title="All 2 branches covered.">            if (dataType == Boolean.class) {</span>
-                @SuppressWarnings(&quot;unchecked&quot;)
-<span class="fc" id="L438">                T itemToBeAdded = (T) Boolean.valueOf(coilSet);</span>
-<span class="fc" id="L439">                data.add(itemToBeAdded);</span>
-<span class="fc bfc" id="L440" title="All 2 branches covered.">            } else if (dataType == Byte.class) {</span>
-                @SuppressWarnings(&quot;unchecked&quot;)
-<span class="fc" id="L442">                T itemToBeAdded = (T) Byte.valueOf(coilFlag);</span>
-<span class="fc" id="L443">                data.add(itemToBeAdded);</span>
-<span class="fc bfc" id="L444" title="All 2 branches covered.">            } else if (dataType == byte[].class) {</span>
-<span class="fc" id="L445">                data.add((T) new byte[]{coilFlag});</span>
-<span class="fc bfc" id="L446" title="All 2 branches covered.">            } else if (dataType == Byte[].class) {</span>
-                @SuppressWarnings(&quot;unchecked&quot;)
-<span class="fc" id="L448">                T itemToBeAdded = (T) new Byte[]{coilFlag};</span>
-<span class="fc" id="L449">                data.add(itemToBeAdded);</span>
-<span class="fc bfc" id="L450" title="All 2 branches covered.">            } else if (dataType == Short.class) {</span>
-                @SuppressWarnings(&quot;unchecked&quot;)
-<span class="fc" id="L452">                T itemToBeAdded = (T) Short.valueOf(coilFlag);</span>
-<span class="fc" id="L453">                data.add(itemToBeAdded);</span>
-<span class="fc bfc" id="L454" title="All 2 branches covered.">            } else if (dataType == Integer.class) {</span>
-                @SuppressWarnings(&quot;unchecked&quot;)
-<span class="fc" id="L456">                T itemToBeAdded = (T) Integer.valueOf(coilFlag);</span>
-<span class="fc" id="L457">                data.add(itemToBeAdded);</span>
-<span class="fc bfc" id="L458" title="All 2 branches covered.">            } else if (dataType == BigInteger.class) {</span>
-                @SuppressWarnings(&quot;unchecked&quot;)
-<span class="fc" id="L460">                T itemToBeAdded = (T) BigInteger.valueOf(coilFlag);</span>
-<span class="fc" id="L461">                data.add(itemToBeAdded);</span>
-<span class="fc bfc" id="L462" title="All 2 branches covered.">            } else if (dataType == Float.class) {</span>
-                @SuppressWarnings(&quot;unchecked&quot;)
-<span class="fc" id="L464">                T itemToBeAdded = (T) Float.valueOf(coilFlag);</span>
-<span class="fc" id="L465">                data.add(itemToBeAdded);</span>
-<span class="pc bpc" id="L466" title="1 of 2 branches missed.">            } else if (dataType == Double.class) {</span>
-                @SuppressWarnings(&quot;unchecked&quot;)
-<span class="fc" id="L468">                T itemToBeAdded = (T) Double.valueOf(coilFlag);</span>
-<span class="fc" id="L469">                data.add(itemToBeAdded);</span>
-<span class="fc" id="L470">            } else {</span>
-<span class="nc" id="L471">                throw new PlcUnsupportedDataTypeException(dataType);</span>
-            }
-<span class="fc" id="L473">            bitIndex++;</span>
-<span class="fc" id="L474">        }</span>
-<span class="fc" id="L475">        return data;</span>
+<span class="fc bfc" id="L499" title="All 2 branches covered.">            boolean coilSet = (bytes[coilIndex] &amp; 0xff &amp; (1L &lt;&lt; bitIndex)) != 0;</span>
+<span class="fc" id="L500">            data.add(coilSet);</span>
+<span class="fc" id="L501">            bitIndex++;</span>
+<span class="fc" id="L502">        }</span>
+<span class="fc" id="L503">        return new DefaultBooleanFieldItem(data.toArray(new Boolean[0]));</span>
     }
 
-    private &lt;T&gt; List&lt;T&gt; produceRegisterValueList(RequestItem requestItem, Class&lt;T&gt; dataType, ByteBuf byteBuf) throws PlcProtocolException {
-<span class="fc" id="L479">        ReadRequestItem readRequestItem = (ReadRequestItem) requestItem;</span>
-<span class="fc" id="L480">        int readableBytes = byteBuf.readableBytes();</span>
-<span class="pc bpc" id="L481" title="1 of 2 branches missed.">        if (readableBytes % 2 != 0) {</span>
-<span class="nc" id="L482">            throw new PlcProtocolException(&quot;Readables bytes should even: &quot; + readableBytes);</span>
+    private DefaultByteArrayFieldItem produceRegisterValueList(ByteBuf byteBuf) throws PlcProtocolException {
+<span class="fc" id="L507">        int readableBytes = byteBuf.readableBytes();</span>
+<span class="pc bpc" id="L508" title="1 of 2 branches missed.">        if (readableBytes % 2 != 0) {</span>
+<span class="nc" id="L509">            throw new PlcProtocolException(&quot;Readables bytes should even: &quot; + readableBytes);</span>
         }
-<span class="fc" id="L484">        List&lt;T&gt; data = new LinkedList&lt;&gt;();</span>
-<span class="fc bfc" id="L485" title="All 2 branches covered.">        for (int i = 0; i &lt; readRequestItem.getSize(); i++) {</span>
-<span class="fc" id="L486">            byte[] register = new byte[2];</span>
-<span class="fc" id="L487">            byteBuf.readBytes(register);</span>
-<span class="fc" id="L488">            int intValue = register[0] &lt;&lt; 8 | register[1] &amp; 0xff;</span>
-<span class="fc bfc" id="L489" title="All 2 branches covered.">            if (dataType == Boolean.class) {</span>
-                @SuppressWarnings(&quot;unchecked&quot;)
-<span class="pc bpc" id="L491" title="1 of 2 branches missed.">                T itemToBeAdded = (T) Boolean.valueOf(intValue == 1);</span>
-<span class="fc" id="L492">                data.add(itemToBeAdded);</span>
-<span class="fc bfc" id="L493" title="All 2 branches covered.">            } else if (dataType == Byte.class) {</span>
-<span class="pc bpc" id="L494" title="1 of 2 branches missed.">                if (intValue &gt; Byte.MAX_VALUE) {</span>
-<span class="nc" id="L495">                    throw new PlcProtocolException(&quot;Value to high to fit into Byte: &quot; + intValue);</span>
-                }
-                @SuppressWarnings(&quot;unchecked&quot;)
-<span class="fc" id="L498">                T itemToBeADded = (T) Byte.valueOf((byte) intValue);</span>
-<span class="fc" id="L499">                data.add(itemToBeADded);</span>
-<span class="fc bfc" id="L500" title="All 2 branches covered.">            } else if (dataType == byte[].class) {</span>
-<span class="fc" id="L501">                T itemToBeAdded = (T) register;</span>
-<span class="fc" id="L502">                data.add(itemToBeAdded);</span>
-<span class="fc bfc" id="L503" title="All 2 branches covered.">            } else if (dataType == Byte[].class) {</span>
-                @SuppressWarnings(&quot;unchecked&quot;)
-<span class="fc" id="L505">                T itemToBeAdded = (T) ArrayUtils.toObject(register);</span>
-<span class="fc" id="L506">                data.add(itemToBeAdded);</span>
-<span class="fc bfc" id="L507" title="All 2 branches covered.">            } else if (dataType == Short.class) {</span>
-<span class="pc bpc" id="L508" title="1 of 2 branches missed.">                if (intValue &gt; Short.MAX_VALUE) {</span>
-<span class="nc" id="L509">                    throw new PlcProtocolException(&quot;Value to high to fit into Short: &quot; + intValue);</span>
-                }
-                @SuppressWarnings(&quot;unchecked&quot;)
-<span class="fc" id="L512">                T itemToBeAdded = (T) Short.valueOf((short) intValue);</span>
-<span class="fc" id="L513">                data.add(itemToBeAdded);</span>
-<span class="fc bfc" id="L514" title="All 2 branches covered.">            } else if (dataType == Integer.class) {</span>
-<span class="pc bpc" id="L515" title="1 of 2 branches missed.">                if (intValue &lt; 0) {</span>
-<span class="nc" id="L516">                    throw new PlcProtocolException(&quot;Integer underflow: &quot; + intValue);</span>
-                }
-                @SuppressWarnings(&quot;unchecked&quot;)
-<span class="fc" id="L519">                T itemToBeAdded = (T) Integer.valueOf(intValue);</span>
-<span class="fc" id="L520">                data.add(itemToBeAdded);</span>
-<span class="fc bfc" id="L521" title="All 2 branches covered.">            } else if (dataType == BigInteger.class) {</span>
-<span class="pc bpc" id="L522" title="1 of 2 branches missed.">                if (intValue &lt; 0) {</span>
-<span class="nc" id="L523">                    throw new PlcProtocolException(&quot;BigInteger underflow: &quot; + intValue);</span>
-                }
-                // TODO: can a big integer span multiple registers?
-                @SuppressWarnings(&quot;unchecked&quot;)
-<span class="fc" id="L527">                T itemToBeAdded = (T) new BigInteger(register);</span>
-<span class="fc" id="L528">                data.add(itemToBeAdded);</span>
-<span class="fc bfc" id="L529" title="All 2 branches covered.">            } else if (dataType == Float.class) {</span>
-<span class="pc bpc" id="L530" title="1 of 2 branches missed.">                if (intValue &lt; 0) {</span>
-<span class="nc" id="L531">                    throw new PlcProtocolException(&quot;BigInteger underflow: &quot; + intValue);</span>
-                }
-                @SuppressWarnings(&quot;unchecked&quot;)
-<span class="fc" id="L534">                T itemToBeAdded = (T) new Float(intValue);</span>
-<span class="fc" id="L535">                data.add(itemToBeAdded);</span>
-<span class="pc bpc" id="L536" title="1 of 2 branches missed.">            } else if (dataType == Double.class) {</span>
-<span class="pc bpc" id="L537" title="1 of 2 branches missed.">                if (intValue &lt; 0) {</span>
-<span class="nc" id="L538">                    throw new PlcProtocolException(&quot;BigInteger underflow: &quot; + intValue);</span>
-                }
-                @SuppressWarnings(&quot;unchecked&quot;)
-<span class="fc" id="L541">                T itemToBeAdded = (T) new Double(intValue);</span>
-<span class="fc" id="L542">                data.add(itemToBeAdded);</span>
-<span class="fc" id="L543">            } else {</span>
-<span class="nc" id="L544">                throw new PlcUnsupportedDataTypeException(dataType);</span>
-            }
-        }
-<span class="fc" id="L547">        return data;</span>
+<span class="fc" id="L511">        List&lt;byte[]&gt; data = new LinkedList&lt;&gt;();</span>
+<span class="fc bfc" id="L512" title="All 2 branches covered.">        while (byteBuf.readableBytes() &gt; 0) {</span>
+<span class="fc" id="L513">            byte[] register = new byte[2];</span>
+<span class="fc" id="L514">            byteBuf.readBytes(register);</span>
+<span class="fc" id="L515">            data.add(register);</span>
+<span class="fc" id="L516">        }</span>
+<span class="fc" id="L517">        return new DefaultByteArrayFieldItem(data.toArray(new byte[0][0]));</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
