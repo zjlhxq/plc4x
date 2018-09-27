@@ -44,7 +44,7 @@ public class LittleEndianDecoder {
     @SuppressWarnings(&quot;unchecked&quot;)
     public static FieldItem&lt;?&gt; decodeData(AdsDataType adsDataType, byte[] adsData) {
 <span class="fc" id="L46">        ByteBuf wrappedBuffer = Unpooled.wrappedBuffer(adsData);</span>
-<span class="pc bpc" id="L47" title="34 of 42 branches missed.">        switch (adsDataType) {</span>
+<span class="pc bpc" id="L47" title="32 of 42 branches missed.">        switch (adsDataType) {</span>
             case BIT: {
 <span class="nc" id="L49">                LinkedList&lt;Boolean&gt; values = new LinkedList&lt;&gt;();</span>
 <span class="nc bnc" id="L50" title="All 2 branches missed.">                while (wrappedBuffer.isReadable()) {</span>
@@ -298,12 +298,12 @@ public class LittleEndianDecoder {
 <span class="fc" id="L298">                return new DefaultStringFieldItem(values.toArray(new String[0]));</span>
             }
             case TIME: {
-<span class="nc" id="L301">                LinkedList&lt;Long&gt; values = new LinkedList&lt;&gt;();</span>
-<span class="nc bnc" id="L302" title="All 2 branches missed.">                while (wrappedBuffer.isReadable()) {</span>
-<span class="nc" id="L303">                    long aByte = wrappedBuffer.readUnsignedIntLE();</span>
-<span class="nc" id="L304">                    values.offer(aByte);</span>
-<span class="nc" id="L305">                }</span>
-<span class="nc" id="L306">                return new DefaultLongFieldItem(values.toArray(new Long[0]));</span>
+<span class="fc" id="L301">                LinkedList&lt;Long&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="fc bfc" id="L302" title="All 2 branches covered.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="fc" id="L303">                    long aByte = wrappedBuffer.readUnsignedIntLE();</span>
+<span class="fc" id="L304">                    values.offer(aByte);</span>
+<span class="fc" id="L305">                }</span>
+<span class="fc" id="L306">                return new DefaultLongFieldItem(values.toArray(new Long[0]));</span>
             }
             case TIME_OF_DAY: {
 <span class="nc" id="L309">                LinkedList&lt;LocalTime&gt; values = new LinkedList&lt;&gt;();</span>
@@ -314,44 +314,48 @@ public class LittleEndianDecoder {
 <span class="nc" id="L314">                return new DefaultLocalTimeFieldItem(values.toArray(new LocalTime[0]));</span>
             }
             case DATE: {
-<span class="nc" id="L317">                LinkedList&lt;LocalDate&gt; values = new LinkedList&lt;&gt;();</span>
-<span class="nc bnc" id="L318" title="All 2 branches missed.">                while (wrappedBuffer.isReadable()) {</span>
-<span class="nc" id="L319">                    long aByte = wrappedBuffer.readUnsignedIntLE();</span>
-<span class="nc" id="L320">                    values.offer(LocalDate.ofEpochDay(aByte));</span>
-<span class="nc" id="L321">                }</span>
-<span class="nc" id="L322">                return new DefaultLocalDateFieldItem(values.toArray(new LocalDate[0]));</span>
+<span class="fc" id="L317">                LinkedList&lt;LocalDate&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="fc bfc" id="L318" title="All 2 branches covered.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="fc" id="L319">                    long aByte = wrappedBuffer.readUnsignedIntLE();</span>
+                    // TODO: where to get the zone offset from
+<span class="fc" id="L321">                    LocalDateTime localDateTime = LocalDateTime.ofEpochSecond(aByte, 0, ZoneOffset.UTC);</span>
+<span class="fc" id="L322">                    values.offer(localDateTime.toLocalDate());</span>
+<span class="fc" id="L323">                }</span>
+<span class="fc" id="L324">                return new DefaultLocalDateFieldItem(values.toArray(new LocalDate[0]));</span>
             }
             case DATE_AND_TIME: {
-<span class="nc" id="L325">                LinkedList&lt;LocalDateTime&gt; values = new LinkedList&lt;&gt;();</span>
-<span class="nc bnc" id="L326" title="All 2 branches missed.">                while (wrappedBuffer.isReadable()) {</span>
-<span class="nc" id="L327">                    long aByte = wrappedBuffer.readUnsignedIntLE();</span>
-<span class="nc" id="L328">                    values.offer(LocalDateTime.ofEpochSecond(aByte, 0, ZoneOffset.UTC));</span>
-<span class="nc" id="L329">                }</span>
-<span class="nc" id="L330">                return new DefaultLocalDateTimeFieldItem(values.toArray(new LocalDateTime[0]));</span>
+<span class="nc" id="L327">                LinkedList&lt;LocalDateTime&gt; values = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L328" title="All 2 branches missed.">                while (wrappedBuffer.isReadable()) {</span>
+<span class="nc" id="L329">                    long aByte = wrappedBuffer.readUnsignedIntLE();</span>
+                    // TODO: where to get the zone offset from
+<span class="nc" id="L331">                    LocalDateTime localDateTime = LocalDateTime.ofEpochSecond(aByte, 0, ZoneOffset.UTC);</span>
+<span class="nc" id="L332">                    values.offer(localDateTime);</span>
+<span class="nc" id="L333">                }</span>
+<span class="nc" id="L334">                return new DefaultLocalDateTimeFieldItem(values.toArray(new LocalDateTime[0]));</span>
             }
             case ARRAY: {
-<span class="nc" id="L333">                throw new NotImplementedException(&quot;not implemented yet &quot; + adsDataType);</span>
+<span class="nc" id="L337">                throw new NotImplementedException(&quot;not implemented yet &quot; + adsDataType);</span>
             }
             case POINTER: {
-<span class="nc" id="L336">                throw new NotImplementedException(&quot;not implemented yet &quot; + adsDataType);</span>
+<span class="nc" id="L340">                throw new NotImplementedException(&quot;not implemented yet &quot; + adsDataType);</span>
             }
             case ENUM: {
-<span class="nc" id="L339">                throw new NotImplementedException(&quot;not implemented yet &quot; + adsDataType);</span>
+<span class="nc" id="L343">                throw new NotImplementedException(&quot;not implemented yet &quot; + adsDataType);</span>
             }
             case STRUCT: {
-<span class="nc" id="L342">                throw new NotImplementedException(&quot;not implemented yet &quot; + adsDataType);</span>
+<span class="nc" id="L346">                throw new NotImplementedException(&quot;not implemented yet &quot; + adsDataType);</span>
             }
             case ALIAS: {
-<span class="nc" id="L345">                throw new NotImplementedException(&quot;not implemented yet &quot; + adsDataType);</span>
+<span class="nc" id="L349">                throw new NotImplementedException(&quot;not implemented yet &quot; + adsDataType);</span>
             }
             case SUB_RANGE_DATA_TYPE: {
-<span class="nc" id="L348">                throw new NotImplementedException(&quot;not implemented yet &quot; + adsDataType);</span>
+<span class="nc" id="L352">                throw new NotImplementedException(&quot;not implemented yet &quot; + adsDataType);</span>
             }
             case UNKNOWN: {
-<span class="nc" id="L351">                throw new NotImplementedException(&quot;not implemented yet &quot; + adsDataType);</span>
+<span class="nc" id="L355">                throw new NotImplementedException(&quot;not implemented yet &quot; + adsDataType);</span>
             }
             default:
-<span class="nc" id="L354">                throw new IllegalArgumentException(&quot;Unsupported adsDataType &quot; + adsDataType);</span>
+<span class="nc" id="L358">                throw new IllegalArgumentException(&quot;Unsupported adsDataType &quot; + adsDataType);</span>
         }
     }
 

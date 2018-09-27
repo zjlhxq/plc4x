@@ -19,6 +19,9 @@
 package org.apache.plc4x.java.ads.model;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 
 /**
  * Documentation can be found here:
@@ -26,26 +29,26 @@ import java.time.Duration;
  * @see &lt;a href=&quot;https://infosys.beckhoff.com/english.php?content=../content/1033/tcsystemmanager/basics/TcSysMgr_DatatypeComparison.htm&amp;id=&quot;&gt;TwinCAT System Manager - I/O Variables&lt;/a&gt;
  * @see &lt;a href=&quot;https://infosys.beckhoff.com/english.php?content=../content/1033/tcplccontrol/html/tcplcctrl_plc_data_types_overview.htm&amp;id&quot;&gt;TwinCAT PLC Control: Data Types&lt;/a&gt;
  */
-<span class="fc" id="L29">public enum AdsDataType {</span>
+<span class="fc" id="L32">public enum AdsDataType {</span>
     // TODO: maybe this are just types for the plc ide and can be removed
     // https://infosys.beckhoff.com/english.php?content=../content/1033/tcsystemmanager/basics/TcSysMgr_DatatypeComparison.htm&amp;id=
-<span class="fc" id="L32">    BIT(8),</span>
-<span class="fc" id="L33">    BIT8(8),</span>
-<span class="fc" id="L34">    BITARR8(8),</span>
-<span class="fc" id="L35">    BITARR16(16),</span>
-<span class="fc" id="L36">    BITARR32(32),</span>
-<span class="fc" id="L37">    INT8(8),</span>
-<span class="fc" id="L38">    INT16(Short.MIN_VALUE, Short.MAX_VALUE, 16),</span>
-<span class="fc" id="L39">    INT32(Integer.MIN_VALUE, Integer.MAX_VALUE, 32),</span>
-<span class="fc" id="L40">    INT64(Long.MIN_VALUE, Long.MAX_VALUE, 64),</span>
-<span class="fc" id="L41">    UINT8(0, Short.MAX_VALUE, 8),</span>
-<span class="fc" id="L42">    UINT16(0, Integer.MAX_VALUE, 16),</span>
+<span class="fc" id="L35">    BIT(8),</span>
+<span class="fc" id="L36">    BIT8(8),</span>
+<span class="fc" id="L37">    BITARR8(8),</span>
+<span class="fc" id="L38">    BITARR16(16),</span>
+<span class="fc" id="L39">    BITARR32(32),</span>
+<span class="fc" id="L40">    INT8(8),</span>
+<span class="fc" id="L41">    INT16(Short.MIN_VALUE, Short.MAX_VALUE, 16),</span>
+<span class="fc" id="L42">    INT32(Integer.MIN_VALUE, Integer.MAX_VALUE, 32),</span>
+<span class="fc" id="L43">    INT64(Long.MIN_VALUE, Long.MAX_VALUE, 64),</span>
+<span class="fc" id="L44">    UINT8(0, Short.MAX_VALUE, 8),</span>
+<span class="fc" id="L45">    UINT16(0, Integer.MAX_VALUE, 16),</span>
     // TODO: max might be off here
-<span class="fc" id="L44">    UINT32(0, Double.MAX_VALUE, 32),</span>
+<span class="fc" id="L47">    UINT32(0, Double.MAX_VALUE, 32),</span>
     // TODO: max might be off here
-<span class="fc" id="L46">    UINT64(0, Double.MAX_VALUE, 64),</span>
-<span class="fc" id="L47">    FLOAT(Float.MIN_VALUE, Float.MAX_VALUE, 32),</span>
-<span class="fc" id="L48">    DOUBLE(Double.MIN_VALUE, Double.MAX_VALUE, 64),</span>
+<span class="fc" id="L49">    UINT64(0, Double.MAX_VALUE, 64),</span>
+<span class="fc" id="L50">    FLOAT(Float.MIN_VALUE, Float.MAX_VALUE, 32),</span>
+<span class="fc" id="L51">    DOUBLE(Double.MIN_VALUE, Double.MAX_VALUE, 64),</span>
     // https://infosys.beckhoff.com/english.php?content=../content/1033/tcplccontrol/html/tcplcctrl_plc_data_types_overview.htm&amp;id
     // Standard Data Types
     /**
@@ -61,7 +64,7 @@ import java.time.Duration;
      * &lt;p&gt;
      * The boolean variable is in the same memory range as the byte variable.
      */
-<span class="fc" id="L64">    BOOL(8),</span>
+<span class="fc" id="L67">    BOOL(8),</span>
     /**
      * BYTE
      * &lt;p&gt;
@@ -70,7 +73,7 @@ import java.time.Duration;
      * Type	Lower bound	Upper bound	Memory use
      * BYTE	0	255	8 Bit
      */
-<span class="fc" id="L73">    BYTE(0, 255, 8),</span>
+<span class="fc" id="L76">    BYTE(0, 255, 8),</span>
     /**
      * WORD
      * Integer data type.
@@ -78,7 +81,7 @@ import java.time.Duration;
      * Type	Lower bound	Upper bound	Memory use
      * WORD	0	65535	16 Bit
      */
-<span class="fc" id="L81">    WORD(0, 65535, 16),</span>
+<span class="fc" id="L84">    WORD(0, 65535, 16),</span>
     /**
      * DWORD
      * Integer data type.
@@ -86,7 +89,7 @@ import java.time.Duration;
      * Type	Lower bound	Upper bound	Memory use
      * DWORD	0	4294967295	32 Bit
      */
-<span class="fc" id="L89">    DWORD(0, 4294967295L, 32),</span>
+<span class="fc" id="L92">    DWORD(0, 4294967295L, 32),</span>
     /**
      * SINT
      * (Short) signed integer data type.
@@ -94,7 +97,7 @@ import java.time.Duration;
      * Type	Lower bound	Upper bound	Memory use
      * SINT	-128	127	8 Bit
      */
-<span class="fc" id="L97">    SINT(-128, 127, 8),</span>
+<span class="fc" id="L100">    SINT(-128, 127, 8),</span>
     /**
      * USINT
      * Unsigned (short) integer data type.
@@ -102,7 +105,7 @@ import java.time.Duration;
      * Type	Lower bound	Upper bound	Memory use
      * USINT	0	255	8 Bit
      */
-<span class="fc" id="L105">    USINT(0, 255, 8),</span>
+<span class="fc" id="L108">    USINT(0, 255, 8),</span>
     /**
      * INT
      * Signed integer data type.
@@ -110,7 +113,7 @@ import java.time.Duration;
      * Type	Lower bound	Upper bound	Memory use
      * INT	-32768	32767	16 Bit
      */
-<span class="fc" id="L113">    INT(-32768, 32767, 16),</span>
+<span class="fc" id="L116">    INT(-32768, 32767, 16),</span>
     /**
      * UINT
      * Unsigned integer data type.
@@ -118,7 +121,7 @@ import java.time.Duration;
      * Type	Lower bound	Upper bound	Memory use
      * UINT	0	65535	16 Bit
      */
-<span class="fc" id="L121">    UINT(0, 65535, 16),</span>
+<span class="fc" id="L124">    UINT(0, 65535, 16),</span>
     /**
      * DINT
      * Signed integer data type.
@@ -126,7 +129,7 @@ import java.time.Duration;
      * Type	Lower bound	Upper bound	Memory use
      * DINT	-2147483648	2147483647	32 Bit
      */
-<span class="fc" id="L129">    DINT(-2147483648, 2147483647, 32),</span>
+<span class="fc" id="L132">    DINT(-2147483648, 2147483647, 32),</span>
     /**
      * UDINT
      * Unsigned integer data type.
@@ -134,15 +137,15 @@ import java.time.Duration;
      * Type	Lower bound	Upper bound	Memory use
      * UDINT	0	4294967295	32 Bit
      */
-<span class="fc" id="L137">    UDINT(0, 4294967295L, 32),</span>
+<span class="fc" id="L140">    UDINT(0, 4294967295L, 32),</span>
     /**
      * LINT  (64 bit integer, currently not supported by TwinCAT)
      */
-<span class="fc" id="L141">    LINT(64),</span>
+<span class="fc" id="L144">    LINT(64),</span>
     /**
      * ULINT (Unsigned 64 bit integer, currently not supported by TwinCAT)
      */
-<span class="fc" id="L145">    ULINT(64),</span>
+<span class="fc" id="L148">    ULINT(64),</span>
     /**
      * REAL
      * 32 Bit floating point data type. It is required to represent rational numbers.
@@ -150,7 +153,7 @@ import java.time.Duration;
      * Type	Lower bound	Upper bound	Memory use
      * REAL	~ -3.402823 x 1038	~ 3.402823 x 1038	32 Bit
      */
-<span class="fc" id="L153">    REAL(Float.MIN_VALUE, Float.MAX_VALUE, 32),</span>
+<span class="fc" id="L156">    REAL(Float.MIN_VALUE, Float.MAX_VALUE, 32),</span>
     /**
      * LREAL
      * 64 Bit floating point data type. It is required to represent rational numbers.
@@ -158,7 +161,7 @@ import java.time.Duration;
      * Type	Lower bound	Upper bound	Memory use
      * LREAL	~ -1.79769313486231E308	~ 1.79769313486232E308	64 Bit
      */
-<span class="fc" id="L161">    LREAL(Double.MIN_VALUE, Double.MAX_VALUE, 64),</span>
+<span class="fc" id="L164">    LREAL(Double.MIN_VALUE, Double.MAX_VALUE, 64),</span>
     /**
      * STRING
      * A STRING type variable can contain any string of characters. The size entry in the declaration determines how much memory space should be reserved for the variable. It refers to the number of characters in the string and can be placed in parentheses or square brackets.
@@ -171,7 +174,7 @@ import java.time.Duration;
      * If no size specification is given, the default size of 80 characters will be used: Memory use [Bytes] =  80 + 1 Byte for string terminated Null character;
      * If string size specification is given: Memory use [Bytes] = String Size + 1 Byte for string terminated Null character);
      */
-<span class="fc" id="L174">    STRING(81),</span>
+<span class="fc" id="L177">    STRING(81),</span>
     /**
      * TIME
      * Duration time. The most siginificant digit is one millisecond. The data type is handled internally like DWORD.
@@ -179,7 +182,7 @@ import java.time.Duration;
      * Type	Lower bound	Upper bound	Memory use
      * TIME	T#0ms	T#71582m47s295ms	32 Bit
      */
-<span class="fc" id="L182">    TIME(0, Duration.ofMinutes(71582).plusSeconds(47).plusMillis(295).toMillis(), 32),</span>
+<span class="fc" id="L185">    TIME(0, Duration.ofMinutes(71582).plusSeconds(47).plusMillis(295).toMillis(), 32),</span>
     /**
      * TIME_OF_DAY
      * TOD
@@ -191,15 +194,15 @@ import java.time.Duration;
      * &lt;p&gt;
      * TOD#00:00	TOD#1193:02:47.295	32 Bit
      *///TODO: strange maximum
-<span class="fc" id="L194">    TIME_OF_DAY(0, Duration.ofHours(23).plusMinutes(59).plusSeconds(59).plusMillis(999).toMillis(), 32),</span>
+<span class="fc" id="L197">    TIME_OF_DAY(0, ChronoUnit.MILLIS.between(LocalTime.of(0, 0), LocalTime.of(23, 59, 59)), 32),</span>
     /**
      * DATE
      * Date. The most significant digit is one second. The data type is handled internally like DWORD.
      * &lt;p&gt;
      * Type	Lower bound	Upper bound	Memory use
      * DATE	D#1970-01-01	D#2106-02-06	32 Bit
-     *///TODO: calculate max
-<span class="fc" id="L202">    DATE(0, -1, 32),</span>
+     */
+<span class="fc" id="L205">    DATE(0, ChronoUnit.SECONDS.between(LocalDateTime.of(1970, 1, 1, 0, 0), LocalDateTime.of(2106, 2, 6, 0, 0)), 32),</span>
     /**
      * DATE_AND_TIME
      * DT
@@ -211,7 +214,7 @@ import java.time.Duration;
      * &lt;p&gt;
      * DT#1970-01-01-00:00	DT#2106-02-06-06:28:15	32 Bit
      *////TODO: calculate max
-<span class="fc" id="L214">    DATE_AND_TIME(0, -1, 32),</span>
+<span class="fc" id="L217">    DATE_AND_TIME(0, -1, 32),</span>
     //User-defined Data Types
     /**
      * Arrays
@@ -272,7 +275,7 @@ import java.time.Duration;
      * &lt;p&gt;
      * If you define a function in your project with the name CheckBounds, you can automatically check for out-of-range errors in arrays ! The name of the function is fixed and can only have this designation.
      */
-<span class="fc" id="L275">    ARRAY(-1),//TODO: implement me</span>
+<span class="fc" id="L278">    ARRAY(-1),//TODO: implement me</span>
     /**
      * Pointer
      * Variable or function block addresses are saved in pointers while a program is running. Pointer declarations have the following syntax:
@@ -315,7 +318,7 @@ import java.time.Duration;
      * ptByCurrDataOffs := udiAddress;
      * (* -- end of pointer increment ---*)
      */
-<span class="fc" id="L318">    POINTER(-1),//TODO: implement me,</span>
+<span class="fc" id="L321">    POINTER(-1),//TODO: implement me,</span>
     /**
      * Enumeration (ENUM)
      * Enumeration is a user-defined data type that is made up of a number of string constants. These constants are referred to as enumeration values. Enumeration values are recognized in all areas of the project even if they were locally declared within aPOU. It is best to create your enumerations as objects in the Object Organizer under the register card Data types. They begin with the keyword TYPE and end with END_TYPE.
@@ -343,7 +346,7 @@ import java.time.Duration;
      * &lt;p&gt;
      * Error: red may not be used for both TRAFFIC_SIGNAL and COLOR.
      */
-<span class="fc" id="L346">    ENUM(-1),//TODO: implement me,</span>
+<span class="fc" id="L349">    ENUM(-1),//TODO: implement me,</span>
     /**
      * Structures (STRUCT)
      * Structures are created as objects in the Object Organizer under the register card Data types. They begin with the keyword TYPE and end with END_TYPE.The syntax for structure declarations is as follows:
@@ -441,7 +444,7 @@ import java.time.Duration;
      * END_STRUCT
      * END_TYPE
      */
-<span class="fc" id="L444">    STRUCT(-1),//TODO: implement me,</span>
+<span class="fc" id="L447">    STRUCT(-1),//TODO: implement me,</span>
     /**
      * References (Alias types)
      * You can use the user-defined derived data type to create an alternative name for a variable, constant or function block. Create your references as objects in the Object Organizer under the register card Data types. They begin with the keyword TYPE and end with END_TYPE.
@@ -456,7 +459,7 @@ import java.time.Duration;
      * TYPE message:STRING[50];
      * END_TYPE;
      */
-<span class="fc" id="L459">    ALIAS(-1),//TODO: implement me,</span>
+<span class="fc" id="L462">    ALIAS(-1),//TODO: implement me,</span>
     /**
      * Subrange types
      * A sub-range data type is a type whose range of values is only a subset of that of the basic type. The declaration can be carried out in the data types register, but a variable can also be directly declared with a subrange type:
@@ -483,9 +486,9 @@ import java.time.Duration;
      * If a constant is assigned to a subrange type (in the declaration or in the implementation) that does not apply to this range (e.g. 1:=5000), an error message is issued.
      * In order to check for observance of range boundaries at runtime, the functions CheckRangeSigned or CheckRangeUnsigned must be introduced.
      */
-<span class="fc" id="L486">    SUB_RANGE_DATA_TYPE(-1),//TODO: implement me,</span>
+<span class="fc" id="L489">    SUB_RANGE_DATA_TYPE(-1),//TODO: implement me,</span>
 
-<span class="fc" id="L488">    UNKNOWN(-1);</span>
+<span class="fc" id="L491">    UNKNOWN(-1);</span>
 
     private final String typeName;
 
@@ -499,39 +502,39 @@ import java.time.Duration;
 
     // TODO: BYTE.MAX default might not be the best....
     AdsDataType(int memoryUse) {
-<span class="fc" id="L502">        this(0, Byte.MAX_VALUE, memoryUse);</span>
-<span class="fc" id="L503">    }</span>
+<span class="fc" id="L505">        this(0, Byte.MAX_VALUE, memoryUse);</span>
+<span class="fc" id="L506">    }</span>
 
-<span class="fc" id="L505">    AdsDataType(double lowerBound, double upperBound, int memoryUse) {</span>
-<span class="fc" id="L506">        this.lowerBound = lowerBound;</span>
-<span class="fc" id="L507">        this.upperBound = upperBound;</span>
-<span class="fc" id="L508">        this.typeName = name();</span>
-<span class="fc" id="L509">        this.memoryUse = memoryUse;</span>
-<span class="fc" id="L510">        this.targetByteSize = this.memoryUse * 8;</span>
-<span class="fc" id="L511">    }</span>
+<span class="fc" id="L508">    AdsDataType(double lowerBound, double upperBound, int memoryUse) {</span>
+<span class="fc" id="L509">        this.lowerBound = lowerBound;</span>
+<span class="fc" id="L510">        this.upperBound = upperBound;</span>
+<span class="fc" id="L511">        this.typeName = name();</span>
+<span class="fc" id="L512">        this.memoryUse = memoryUse;</span>
+<span class="fc" id="L513">        this.targetByteSize = this.memoryUse * 8;</span>
+<span class="fc" id="L514">    }</span>
 
     public String getTypeName() {
-<span class="nc" id="L514">        return typeName;</span>
+<span class="nc" id="L517">        return typeName;</span>
     }
 
     public double getLowerBound() {
-<span class="fc" id="L518">        return lowerBound;</span>
+<span class="fc" id="L521">        return lowerBound;</span>
     }
 
     public double getUpperBound() {
-<span class="fc" id="L522">        return upperBound;</span>
+<span class="fc" id="L525">        return upperBound;</span>
     }
 
     public int getMemoryUse() {
-<span class="nc" id="L526">        return memoryUse;</span>
+<span class="nc" id="L529">        return memoryUse;</span>
     }
 
     public int getTargetByteSize() {
-<span class="fc" id="L530">        return targetByteSize;</span>
+<span class="fc" id="L533">        return targetByteSize;</span>
     }
 
     public boolean withinBounds(double other) {
-<span class="pc bpc" id="L534" title="2 of 4 branches missed.">        return other &gt;= lowerBound &amp;&amp; other &lt;= upperBound;</span>
+<span class="pc bpc" id="L537" title="2 of 4 branches missed.">        return other &gt;= lowerBound &amp;&amp; other &lt;= upperBound;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

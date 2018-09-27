@@ -26,6 +26,7 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;
 import org.apache.plc4x.java.base.connection.ChannelFactory;
 import org.apache.plc4x.java.base.connection.TcpSocketChannelFactory;
+import org.apache.plc4x.java.base.protocol.SingleItemToSingleRequestProtocol;
 import org.apache.plc4x.java.modbus.netty.Plc4XModbusProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,43 +38,44 @@ public class ModbusTcpPlcConnection extends BaseModbusPlcConnection {
 
     private static final int MODBUS_TCP_PORT = 502;
 
-<span class="fc" id="L40">    private static final Logger logger = LoggerFactory.getLogger(ModbusTcpPlcConnection.class);</span>
+<span class="fc" id="L41">    private static final Logger logger = LoggerFactory.getLogger(ModbusTcpPlcConnection.class);</span>
 
     private ModbusTcpPlcConnection(InetAddress address, String params) {
-<span class="fc" id="L43">        this(new TcpSocketChannelFactory(address, MODBUS_TCP_PORT), params);</span>
-<span class="fc" id="L44">        logger.info(&quot;Configured ModbusTcpPlcConnection with: host-name {}&quot;, address.getHostAddress());</span>
-<span class="fc" id="L45">    }</span>
+<span class="fc" id="L44">        this(new TcpSocketChannelFactory(address, MODBUS_TCP_PORT), params);</span>
+<span class="fc" id="L45">        logger.info(&quot;Configured ModbusTcpPlcConnection with: host-name {}&quot;, address.getHostAddress());</span>
+<span class="fc" id="L46">    }</span>
 
     public ModbusTcpPlcConnection(InetAddress address, int port, String params) {
-<span class="fc" id="L48">        this(new TcpSocketChannelFactory(address, port), params);</span>
-<span class="fc" id="L49">        logger.info(&quot;Configured ModbusTcpPlcConnection with: host-name {}&quot;, address.getHostAddress());</span>
-<span class="fc" id="L50">    }</span>
+<span class="fc" id="L49">        this(new TcpSocketChannelFactory(address, port), params);</span>
+<span class="fc" id="L50">        logger.info(&quot;Configured ModbusTcpPlcConnection with: host-name {}&quot;, address.getHostAddress());</span>
+<span class="fc" id="L51">    }</span>
 
     public ModbusTcpPlcConnection(ChannelFactory channelFactory, String params) {
-<span class="fc" id="L53">        super(channelFactory, params);</span>
-<span class="fc" id="L54">    }</span>
+<span class="fc" id="L54">        super(channelFactory, params);</span>
+<span class="fc" id="L55">    }</span>
 
     public static ModbusTcpPlcConnection of(InetAddress address, String params) {
-<span class="fc" id="L57">        return new ModbusTcpPlcConnection(address, params);</span>
+<span class="fc" id="L58">        return new ModbusTcpPlcConnection(address, params);</span>
     }
 
     public static ModbusTcpPlcConnection of(InetAddress address, int port, String params) {
-<span class="fc" id="L61">        return new ModbusTcpPlcConnection(address, port, params);</span>
+<span class="fc" id="L62">        return new ModbusTcpPlcConnection(address, port, params);</span>
     }
 
     @Override
     protected ChannelHandler getChannelHandler(CompletableFuture&lt;Void&gt; sessionSetupCompleteFuture) {
-<span class="fc" id="L66">        return new ChannelInitializer() {</span>
+<span class="fc" id="L67">        return new ChannelInitializer() {</span>
             @Override
             protected void initChannel(Channel channel) {
-<span class="fc" id="L69">                channel.pipeline().addLast(new ModbusTcpCodec(new ModbusRequestEncoder(), new ModbusResponseDecoder()));</span>
-<span class="fc" id="L70">                channel.pipeline().addLast(new Plc4XModbusProtocol());</span>
-<span class="fc" id="L71">            }</span>
+<span class="fc" id="L70">                channel.pipeline().addLast(new ModbusTcpCodec(new ModbusRequestEncoder(), new ModbusResponseDecoder()));</span>
+<span class="fc" id="L71">                channel.pipeline().addLast(new Plc4XModbusProtocol());</span>
+<span class="fc" id="L72">                channel.pipeline().addLast(new SingleItemToSingleRequestProtocol());</span>
+<span class="fc" id="L73">            }</span>
         };
     }
 
     public InetAddress getRemoteAddress() {
-<span class="fc" id="L76">        return ((TcpSocketChannelFactory) channelFactory).getAddress();</span>
+<span class="fc" id="L78">        return ((TcpSocketChannelFactory) channelFactory).getAddress();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
