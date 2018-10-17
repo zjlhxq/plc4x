@@ -28,42 +28,45 @@ import org.apache.plc4x.java.ads.protocol.Ads2PayloadProtocol;
 import org.apache.plc4x.java.ads.protocol.Payload2SerialProtocol;
 import org.apache.plc4x.java.ads.protocol.Plc4x2AdsProtocol;
 import org.apache.plc4x.java.ads.protocol.util.SingleMessageRateLimiter;
+import org.apache.plc4x.java.api.messages.PlcSubscriptionRequest;
+import org.apache.plc4x.java.api.messages.PlcUnsubscriptionRequest;
 import org.apache.plc4x.java.base.connection.SerialChannelFactory;
 import org.apache.plc4x.java.base.protocol.SingleItemToSingleRequestProtocol;
 
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public class AdsSerialPlcConnection extends AdsAbstractPlcConnection {
 
     private AdsSerialPlcConnection(String serialPort, AmsNetId targetAmsNetId, AmsPort targetAmsPort) {
-<span class="fc" id="L39">        this(serialPort, targetAmsNetId, targetAmsPort, generateAMSNetId(), generateAMSPort());</span>
-<span class="fc" id="L40">    }</span>
+<span class="fc" id="L42">        this(serialPort, targetAmsNetId, targetAmsPort, generateAMSNetId(), generateAMSPort());</span>
+<span class="fc" id="L43">    }</span>
 
     private AdsSerialPlcConnection(String serialPort, AmsNetId targetAmsNetId, AmsPort targetAmsPort, AmsNetId sourceAmsNetId, AmsPort sourceAmsPort) {
-<span class="fc" id="L43">        super(new SerialChannelFactory(serialPort), targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort);</span>
-<span class="fc" id="L44">    }</span>
+<span class="fc" id="L46">        super(new SerialChannelFactory(serialPort), targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort);</span>
+<span class="fc" id="L47">    }</span>
 
     public static AdsSerialPlcConnection of(String serialPort, AmsNetId targetAmsNetId, AmsPort targetAmsPort) {
-<span class="fc" id="L47">        return new AdsSerialPlcConnection(serialPort, targetAmsNetId, targetAmsPort);</span>
+<span class="fc" id="L50">        return new AdsSerialPlcConnection(serialPort, targetAmsNetId, targetAmsPort);</span>
     }
 
     public static AdsSerialPlcConnection of(String serialPort, AmsNetId targetAmsNetId, AmsPort targetAmsPort, AmsNetId sourceAmsNetId, AmsPort sourceAmsPort) {
-<span class="fc" id="L51">        return new AdsSerialPlcConnection(serialPort, targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort);</span>
+<span class="fc" id="L54">        return new AdsSerialPlcConnection(serialPort, targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort);</span>
     }
 
     @Override
     protected ChannelHandler getChannelHandler(CompletableFuture&lt;Void&gt; sessionSetupCompleteFuture) {
-<span class="fc" id="L56">        return new ChannelInitializer() {</span>
+<span class="fc" id="L59">        return new ChannelInitializer() {</span>
             @Override
             protected void initChannel(Channel channel) {
                 // Build the protocol stack for communicating with the ads protocol.
-<span class="fc" id="L60">                ChannelPipeline pipeline = channel.pipeline();</span>
-<span class="fc" id="L61">                pipeline.addLast(new Payload2SerialProtocol());</span>
-<span class="fc" id="L62">                pipeline.addLast(new SingleMessageRateLimiter());</span>
-<span class="fc" id="L63">                pipeline.addLast(new Ads2PayloadProtocol());</span>
-<span class="fc" id="L64">                pipeline.addLast(new Plc4x2AdsProtocol(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, fieldMapping));</span>
-<span class="fc" id="L65">                pipeline.addLast(new SingleItemToSingleRequestProtocol(timer));</span>
-<span class="fc" id="L66">            }</span>
+<span class="fc" id="L63">                ChannelPipeline pipeline = channel.pipeline();</span>
+<span class="fc" id="L64">                pipeline.addLast(new Payload2SerialProtocol());</span>
+<span class="fc" id="L65">                pipeline.addLast(new SingleMessageRateLimiter());</span>
+<span class="fc" id="L66">                pipeline.addLast(new Ads2PayloadProtocol());</span>
+<span class="fc" id="L67">                pipeline.addLast(new Plc4x2AdsProtocol(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, fieldMapping));</span>
+<span class="fc" id="L68">                pipeline.addLast(new SingleItemToSingleRequestProtocol(AdsSerialPlcConnection.this, AdsSerialPlcConnection.this, timer));</span>
+<span class="fc" id="L69">            }</span>
         };
     }
 

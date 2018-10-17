@@ -19,12 +19,9 @@ under the License.
 package org.apache.plc4x.java.modbus.connection;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.plc4x.java.api.connection.PlcReader;
-import org.apache.plc4x.java.api.connection.PlcWriter;
-import org.apache.plc4x.java.api.messages.PlcReadRequest;
-import org.apache.plc4x.java.api.messages.PlcReadResponse;
-import org.apache.plc4x.java.api.messages.PlcWriteRequest;
-import org.apache.plc4x.java.api.messages.PlcWriteResponse;
+import org.apache.plc4x.java.base.messages.PlcReader;
+import org.apache.plc4x.java.base.messages.PlcWriter;
+import org.apache.plc4x.java.api.messages.*;
 import org.apache.plc4x.java.base.connection.AbstractPlcConnection;
 import org.apache.plc4x.java.base.connection.ChannelFactory;
 import org.apache.plc4x.java.base.messages.*;
@@ -32,68 +29,79 @@ import org.apache.plc4x.java.modbus.util.ModbusPlcFieldHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public abstract class BaseModbusPlcConnection extends AbstractPlcConnection implements PlcReader, PlcWriter {
 
-<span class="fc" id="L39">    private static final Logger logger = LoggerFactory.getLogger(BaseModbusPlcConnection.class);</span>
+<span class="fc" id="L37">    private static final Logger logger = LoggerFactory.getLogger(BaseModbusPlcConnection.class);</span>
 
     BaseModbusPlcConnection(ChannelFactory channelFactory, String params) {
-<span class="fc" id="L42">        super(channelFactory);</span>
+<span class="fc" id="L40">        super(channelFactory);</span>
 
-<span class="fc bfc" id="L44" title="All 2 branches covered.">        if (!StringUtils.isEmpty(params)) {</span>
-<span class="fc bfc" id="L45" title="All 2 branches covered.">            for (String param : params.split(&quot;&amp;&quot;)) {</span>
-<span class="fc" id="L46">                String[] paramElements = param.split(&quot;=&quot;);</span>
-<span class="fc" id="L47">                String paramName = paramElements[0];</span>
-<span class="pc bpc" id="L48" title="1 of 2 branches missed.">                if (paramElements.length == 2) {</span>
-<span class="nc" id="L49">                    String paramValue = paramElements[1];</span>
-<span class="nc" id="L50">                    switch (paramName) {</span>
+<span class="fc bfc" id="L42" title="All 2 branches covered.">        if (!StringUtils.isEmpty(params)) {</span>
+<span class="fc bfc" id="L43" title="All 2 branches covered.">            for (String param : params.split(&quot;&amp;&quot;)) {</span>
+<span class="fc" id="L44">                String[] paramElements = param.split(&quot;=&quot;);</span>
+<span class="fc" id="L45">                String paramName = paramElements[0];</span>
+<span class="pc bpc" id="L46" title="1 of 2 branches missed.">                if (paramElements.length == 2) {</span>
+<span class="nc" id="L47">                    String paramValue = paramElements[1];</span>
+<span class="nc" id="L48">                    switch (paramName) {</span>
                         default:
-<span class="nc" id="L52">                            logger.debug(&quot;Unknown parameter {} with value {}&quot;, paramName, paramValue);</span>
+<span class="nc" id="L50">                            logger.debug(&quot;Unknown parameter {} with value {}&quot;, paramName, paramValue);</span>
                     }
-<span class="nc" id="L54">                } else {</span>
-<span class="fc" id="L55">                    logger.debug(&quot;Unknown no-value parameter {}&quot;, paramName);</span>
+<span class="nc" id="L52">                } else {</span>
+<span class="fc" id="L53">                    logger.debug(&quot;Unknown no-value parameter {}&quot;, paramName);</span>
                 }
             }
         }
-<span class="fc" id="L59">    }</span>
+<span class="fc" id="L57">    }</span>
 
     @Override
-    public PlcReadRequest.Builder readRequestBuilder() {
-<span class="nc" id="L63">        return new DefaultPlcReadRequest.Builder(new ModbusPlcFieldHandler());</span>
+    public Optional&lt;PlcReadRequest.Builder&gt; readRequestBuilder() {
+<span class="nc" id="L61">        return Optional.of(new DefaultPlcReadRequest.Builder(this, new ModbusPlcFieldHandler()));</span>
     }
 
     @Override
-    public CompletableFuture&lt;PlcReadResponse&lt;?&gt;&gt; read(PlcReadRequest readRequest) {
-<span class="fc" id="L68">        CompletableFuture&lt;InternalPlcReadResponse&gt; future = new CompletableFuture&lt;&gt;();</span>
-<span class="fc" id="L69">        PlcRequestContainer&lt;InternalPlcReadRequest, InternalPlcReadResponse&gt; container =</span>
+    public Optional&lt;PlcWriteRequest.Builder&gt; writeRequestBuilder() {
+<span class="nc" id="L66">        return Optional.of(new DefaultPlcWriteRequest.Builder(this, new ModbusPlcFieldHandler()));</span>
+    }
+
+    @Override
+    public Optional&lt;PlcSubscriptionRequest.Builder&gt; subscriptionRequestBuilder() {
+<span class="nc" id="L71">        return Optional.empty();</span>
+    }
+
+    @Override
+    public Optional&lt;PlcUnsubscriptionRequest.Builder&gt; unsubscriptionRequestBuilder() {
+<span class="nc" id="L76">        return Optional.empty();</span>
+    }
+
+    @Override
+    public CompletableFuture&lt;PlcReadResponse&gt; read(PlcReadRequest readRequest) {
+<span class="fc" id="L81">        CompletableFuture&lt;InternalPlcReadResponse&gt; future = new CompletableFuture&lt;&gt;();</span>
+<span class="fc" id="L82">        PlcRequestContainer&lt;InternalPlcReadRequest, InternalPlcReadResponse&gt; container =</span>
             new PlcRequestContainer&lt;&gt;((InternalPlcReadRequest) readRequest, future);
-<span class="fc" id="L71">        channel.writeAndFlush(container).addListener(f -&gt; {</span>
-<span class="pc bpc" id="L72" title="1 of 2 branches missed.">            if (!f.isSuccess()) {</span>
-<span class="fc" id="L73">                future.completeExceptionally(f.cause());</span>
+<span class="fc" id="L84">        channel.writeAndFlush(container).addListener(f -&gt; {</span>
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">            if (!f.isSuccess()) {</span>
+<span class="fc" id="L86">                future.completeExceptionally(f.cause());</span>
             }
-<span class="fc" id="L75">        });</span>
-<span class="fc" id="L76">        return future</span>
-<span class="fc" id="L77">            .thenApply(PlcReadResponse.class::cast);</span>
+<span class="fc" id="L88">        });</span>
+<span class="fc" id="L89">        return future</span>
+<span class="fc" id="L90">            .thenApply(PlcReadResponse.class::cast);</span>
     }
 
     @Override
-    public PlcWriteRequest.Builder writeRequestBuilder() {
-<span class="nc" id="L82">        return new DefaultPlcWriteRequest.Builder(new ModbusPlcFieldHandler());</span>
-    }
-
-    @Override
-    public CompletableFuture&lt;PlcWriteResponse&lt;?&gt;&gt; write(PlcWriteRequest writeRequest) {
-<span class="fc" id="L87">        CompletableFuture&lt;InternalPlcWriteResponse&gt; future = new CompletableFuture&lt;&gt;();</span>
-<span class="fc" id="L88">        PlcRequestContainer&lt;InternalPlcWriteRequest, InternalPlcWriteResponse&gt; container =</span>
+    public CompletableFuture&lt;PlcWriteResponse&gt; write(PlcWriteRequest writeRequest) {
+<span class="fc" id="L95">        CompletableFuture&lt;InternalPlcWriteResponse&gt; future = new CompletableFuture&lt;&gt;();</span>
+<span class="fc" id="L96">        PlcRequestContainer&lt;InternalPlcWriteRequest, InternalPlcWriteResponse&gt; container =</span>
             new PlcRequestContainer&lt;&gt;((InternalPlcWriteRequest) writeRequest, future);
-<span class="fc" id="L90">        channel.writeAndFlush(container).addListener(f -&gt; {</span>
-<span class="pc bpc" id="L91" title="1 of 2 branches missed.">            if (!f.isSuccess()) {</span>
-<span class="fc" id="L92">                future.completeExceptionally(f.cause());</span>
+<span class="fc" id="L98">        channel.writeAndFlush(container).addListener(f -&gt; {</span>
+<span class="pc bpc" id="L99" title="1 of 2 branches missed.">            if (!f.isSuccess()) {</span>
+<span class="fc" id="L100">                future.completeExceptionally(f.cause());</span>
             }
-<span class="fc" id="L94">        });</span>
-<span class="fc" id="L95">        return future</span>
-<span class="fc" id="L96">            .thenApply(PlcWriteResponse.class::cast);</span>
+<span class="fc" id="L102">        });</span>
+<span class="fc" id="L103">        return future</span>
+<span class="fc" id="L104">            .thenApply(PlcWriteResponse.class::cast);</span>
     }
 
 }

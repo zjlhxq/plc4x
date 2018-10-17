@@ -94,10 +94,10 @@
 <a class="jxr_linenumber" name="L86" href="#L86">86</a>          <a href="../../../../../../org/apache/plc4x/java/api/messages/PlcReadRequest.html">PlcReadRequest</a> readRequest = builder.build();
 <a class="jxr_linenumber" name="L87" href="#L87">87</a>  
 <a class="jxr_linenumber" name="L88" href="#L88">88</a>          <em class="jxr_comment">// Create a supplier that is able to read the batch we just created.</em>
-<a class="jxr_linenumber" name="L89" href="#L89">89</a>          Supplier&lt;PlcReadResponse&lt;?&gt;&gt; plcSupplier = PlcFunctions.batchSupplier(plcAdapter, readRequest);
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>          Supplier&lt;PlcReadResponse&gt; plcSupplier = PlcFunctions.batchSupplier(plcAdapter, readRequest);
 <a class="jxr_linenumber" name="L90" href="#L90">90</a>  
 <a class="jxr_linenumber" name="L91" href="#L91">91</a>          <em class="jxr_comment">// Start polling our plc source in the given interval.</em>
-<a class="jxr_linenumber" name="L92" href="#L92">92</a>          TStream&lt;PlcReadResponse&lt;?&gt;&gt; source = top.poll(plcSupplier, config.getPollingInterval(), TimeUnit.MILLISECONDS);
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>          TStream&lt;PlcReadResponse&gt; source = top.poll(plcSupplier, config.getPollingInterval(), TimeUnit.MILLISECONDS);
 <a class="jxr_linenumber" name="L93" href="#L93">93</a>  
 <a class="jxr_linenumber" name="L94" href="#L94">94</a>          <em class="jxr_comment">// Convert the byte into a string.</em>
 <a class="jxr_linenumber" name="L95" href="#L95">95</a>          TStream&lt;String&gt; jsonSource = source.map(value -&gt; {

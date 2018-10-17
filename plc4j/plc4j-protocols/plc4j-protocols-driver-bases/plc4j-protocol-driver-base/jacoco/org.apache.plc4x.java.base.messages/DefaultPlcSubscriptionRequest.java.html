@@ -21,6 +21,7 @@ package org.apache.plc4x.java.base.messages;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.plc4x.java.api.messages.PlcSubscriptionRequest;
+import org.apache.plc4x.java.api.messages.PlcSubscriptionResponse;
 import org.apache.plc4x.java.api.model.PlcField;
 import org.apache.plc4x.java.api.types.PlcSubscriptionType;
 import org.apache.plc4x.java.base.connection.PlcFieldHandler;
@@ -28,88 +29,102 @@ import org.apache.plc4x.java.base.messages.items.FieldItem;
 
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 
 // TODO: request broken needs finishing.
-<span class="nc" id="L34">public class DefaultPlcSubscriptionRequest implements InternalPlcSubscriptionRequest, InternalPlcFieldRequest {</span>
+public class DefaultPlcSubscriptionRequest implements InternalPlcSubscriptionRequest, InternalPlcFieldRequest {
+
+    private final PlcSubscriber subscriber;
+
+<span class="nc" id="L40">    public DefaultPlcSubscriptionRequest(PlcSubscriber subscriber) {</span>
+<span class="nc" id="L41">        this.subscriber = subscriber;</span>
+<span class="nc" id="L42">    }</span>
+
+    @Override
+    public CompletableFuture&lt;PlcSubscriptionResponse&gt; execute() {
+<span class="nc" id="L46">        return subscriber.subscribe(this);</span>
+    }
 
     @Override
     public int getNumberOfFields() {
-<span class="nc" id="L38">        throw new IllegalStateException(&quot;not available&quot;);</span>
+<span class="nc" id="L51">        throw new IllegalStateException(&quot;not available&quot;);</span>
     }
 
     @Override
     public LinkedHashSet&lt;String&gt; getFieldNames() {
-<span class="nc" id="L43">        throw new IllegalStateException(&quot;not available&quot;);</span>
+<span class="nc" id="L56">        throw new IllegalStateException(&quot;not available&quot;);</span>
     }
 
     @Override
     public PlcField getField(String name) {
-<span class="nc" id="L48">        throw new IllegalStateException(&quot;not available&quot;);</span>
+<span class="nc" id="L61">        throw new IllegalStateException(&quot;not available&quot;);</span>
     }
 
     @Override
     public LinkedList&lt;PlcField&gt; getFields() {
-<span class="nc" id="L53">        throw new IllegalStateException(&quot;not available&quot;);</span>
+<span class="nc" id="L66">        throw new IllegalStateException(&quot;not available&quot;);</span>
     }
 
     @Override
     public PlcSubscriptionType getPlcSubscriptionType() {
-<span class="nc" id="L58">        throw new IllegalStateException(&quot;not available&quot;);</span>
+<span class="nc" id="L71">        throw new IllegalStateException(&quot;not available&quot;);</span>
     }
 
     @Override
     public LinkedList&lt;Pair&lt;String, PlcField&gt;&gt; getNamedFields() {
-<span class="nc" id="L63">        throw new IllegalStateException(&quot;not available&quot;);</span>
+<span class="nc" id="L76">        throw new IllegalStateException(&quot;not available&quot;);</span>
     }
 
     public static class Builder implements PlcSubscriptionRequest.Builder {
 
+        private final PlcSubscriber subscriber;
         private final PlcFieldHandler fieldHandler;
         private final Map&lt;String, BuilderItem&lt;Object&gt;&gt; fields;
 
-<span class="nc" id="L71">        public Builder(PlcFieldHandler fieldHandler) {</span>
-<span class="nc" id="L72">            this.fieldHandler = fieldHandler;</span>
-<span class="nc" id="L73">            fields = new TreeMap&lt;&gt;();</span>
-<span class="nc" id="L74">        }</span>
+<span class="nc" id="L85">        public Builder(PlcSubscriber subscriber, PlcFieldHandler fieldHandler) {</span>
+<span class="nc" id="L86">            this.subscriber = subscriber;</span>
+<span class="nc" id="L87">            this.fieldHandler = fieldHandler;</span>
+<span class="nc" id="L88">            fields = new TreeMap&lt;&gt;();</span>
+<span class="nc" id="L89">        }</span>
 
         @Override
         public PlcSubscriptionRequest.Builder addCyclicField(String name, String fieldQuery, Duration pollingInterval) {
-<span class="nc" id="L78">            return null;</span>
+<span class="nc" id="L93">            return null;</span>
         }
 
         @Override
         public PlcSubscriptionRequest.Builder addChangeOfStateField(String name, String fieldQuery) {
-<span class="nc" id="L83">            return null;</span>
+<span class="nc" id="L98">            return null;</span>
         }
 
         @Override
         public PlcSubscriptionRequest.Builder addEventField(String name, String fieldQuery) {
-<span class="nc" id="L88">            return null;</span>
+<span class="nc" id="L103">            return null;</span>
         }
 
         @Override
         public PlcSubscriptionRequest build() {
-<span class="nc" id="L93">            LinkedHashMap&lt;String, Pair&lt;PlcField, FieldItem&gt;&gt; parsedFields = new LinkedHashMap&lt;&gt;();</span>
-<span class="nc" id="L94">            fields.forEach((name, builderItem) -&gt; {</span>
+<span class="nc" id="L108">            LinkedHashMap&lt;String, Pair&lt;PlcField, FieldItem&gt;&gt; parsedFields = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L109">            fields.forEach((name, builderItem) -&gt; {</span>
                 // Compile the query string.
-<span class="nc" id="L96">                PlcField parsedField = fieldHandler.createField(builderItem.fieldQuery);</span>
+<span class="nc" id="L111">                PlcField parsedField = fieldHandler.createField(builderItem.fieldQuery);</span>
                 // Encode the payload.
                 // TODO: Depending on the field type, handle the FieldItem creation differently.
-<span class="nc" id="L99">                FieldItem fieldItem = builderItem.encoder.apply(parsedField, null);</span>
-<span class="nc" id="L100">                parsedFields.put(name, new ImmutablePair&lt;&gt;(parsedField, fieldItem));</span>
-<span class="nc" id="L101">            });</span>
-<span class="nc" id="L102">            return new DefaultPlcSubscriptionRequest();</span>
+<span class="nc" id="L114">                FieldItem fieldItem = builderItem.encoder.apply(parsedField, null);</span>
+<span class="nc" id="L115">                parsedFields.put(name, new ImmutablePair&lt;&gt;(parsedField, fieldItem));</span>
+<span class="nc" id="L116">            });</span>
+<span class="nc" id="L117">            return new DefaultPlcSubscriptionRequest(subscriber);</span>
         }
 
         private static class BuilderItem&lt;T&gt; {
             private final String fieldQuery;
             private final BiFunction&lt;PlcField, T[], FieldItem&gt; encoder;
 
-<span class="nc" id="L109">            private BuilderItem(String fieldQuery, BiFunction&lt;PlcField, T[], FieldItem&gt; encoder) {</span>
-<span class="nc" id="L110">                this.fieldQuery = fieldQuery;</span>
-<span class="nc" id="L111">                this.encoder = encoder;</span>
-<span class="nc" id="L112">            }</span>
+<span class="nc" id="L124">            private BuilderItem(String fieldQuery, BiFunction&lt;PlcField, T[], FieldItem&gt; encoder) {</span>
+<span class="nc" id="L125">                this.fieldQuery = fieldQuery;</span>
+<span class="nc" id="L126">                this.encoder = encoder;</span>
+<span class="nc" id="L127">            }</span>
         }
 
     }

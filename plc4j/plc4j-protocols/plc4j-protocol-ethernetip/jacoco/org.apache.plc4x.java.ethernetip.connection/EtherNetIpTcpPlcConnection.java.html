@@ -19,6 +19,8 @@ under the License.
 package org.apache.plc4x.java.ethernetip.connection;
 
 import io.netty.channel.*;
+import org.apache.plc4x.java.api.messages.PlcSubscriptionRequest;
+import org.apache.plc4x.java.api.messages.PlcUnsubscriptionRequest;
 import org.apache.plc4x.java.base.connection.ChannelFactory;
 import org.apache.plc4x.java.base.connection.TcpSocketChannelFactory;
 import org.apache.plc4x.java.base.events.ConnectEvent;
@@ -29,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public class EtherNetIpTcpPlcConnection extends BaseEtherNetIpPlcConnection {
@@ -36,49 +39,59 @@ public class EtherNetIpTcpPlcConnection extends BaseEtherNetIpPlcConnection {
     // Port 44818
     private static final int ETHERNET_IP_TCP_PORT = 0xAF12;
 
-<span class="nc" id="L39">    private static final Logger logger = LoggerFactory.getLogger(EtherNetIpTcpPlcConnection.class);</span>
+<span class="nc" id="L42">    private static final Logger logger = LoggerFactory.getLogger(EtherNetIpTcpPlcConnection.class);</span>
 
     public EtherNetIpTcpPlcConnection(InetAddress address, String params) {
-<span class="nc" id="L42">        this(new TcpSocketChannelFactory(address, ETHERNET_IP_TCP_PORT), params);</span>
-<span class="nc" id="L43">        logger.info(&quot;Configured EtherNetIpTcpPlcConnection with: host-name {}&quot;, address.getHostAddress());</span>
-<span class="nc" id="L44">    }</span>
+<span class="nc" id="L45">        this(new TcpSocketChannelFactory(address, ETHERNET_IP_TCP_PORT), params);</span>
+<span class="nc" id="L46">        logger.info(&quot;Configured EtherNetIpTcpPlcConnection with: host-name {}&quot;, address.getHostAddress());</span>
+<span class="nc" id="L47">    }</span>
 
     public EtherNetIpTcpPlcConnection(InetAddress address, int port, String params) {
-<span class="nc" id="L47">        this(new TcpSocketChannelFactory(address, port), params);</span>
-<span class="nc" id="L48">        logger.info(&quot;Configured EtherNetIpTcpPlcConnection with: host-name {}&quot;, address.getHostAddress());</span>
-<span class="nc" id="L49">    }</span>
+<span class="nc" id="L50">        this(new TcpSocketChannelFactory(address, port), params);</span>
+<span class="nc" id="L51">        logger.info(&quot;Configured EtherNetIpTcpPlcConnection with: host-name {}&quot;, address.getHostAddress());</span>
+<span class="nc" id="L52">    }</span>
 
     public EtherNetIpTcpPlcConnection(ChannelFactory channelFactory, String params) {
-<span class="nc" id="L52">        super(channelFactory, params);</span>
-<span class="nc" id="L53">    }</span>
+<span class="nc" id="L55">        super(channelFactory, params);</span>
+<span class="nc" id="L56">    }</span>
+
+    @Override
+    public Optional&lt;PlcSubscriptionRequest.Builder&gt; subscriptionRequestBuilder() {
+<span class="nc" id="L60">        return Optional.empty();</span>
+    }
+
+    @Override
+    public Optional&lt;PlcUnsubscriptionRequest.Builder&gt; unsubscriptionRequestBuilder() {
+<span class="nc" id="L65">        return Optional.empty();</span>
+    }
 
     @Override
     protected ChannelHandler getChannelHandler(CompletableFuture&lt;Void&gt; sessionSetupCompleteFuture) {
-<span class="nc" id="L57">        return new ChannelInitializer() {</span>
+<span class="nc" id="L70">        return new ChannelInitializer() {</span>
             @Override
             protected void initChannel(Channel channel) {
-<span class="nc" id="L60">                ChannelPipeline pipeline = channel.pipeline();</span>
-<span class="nc" id="L61">                pipeline.addLast(new ChannelInboundHandlerAdapter() {</span>
+<span class="nc" id="L73">                ChannelPipeline pipeline = channel.pipeline();</span>
+<span class="nc" id="L74">                pipeline.addLast(new ChannelInboundHandlerAdapter() {</span>
                     @Override
                     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-<span class="nc bnc" id="L64" title="All 2 branches missed.">                        if (evt instanceof ConnectedEvent) {</span>
-<span class="nc" id="L65">                            sessionSetupCompleteFuture.complete(null);</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">                        if (evt instanceof ConnectedEvent) {</span>
+<span class="nc" id="L78">                            sessionSetupCompleteFuture.complete(null);</span>
                         } else {
-<span class="nc" id="L67">                            super.userEventTriggered(ctx, evt);</span>
+<span class="nc" id="L80">                            super.userEventTriggered(ctx, evt);</span>
                         }
-<span class="nc" id="L69">                    }</span>
+<span class="nc" id="L82">                    }</span>
                 });
-<span class="nc" id="L71">                pipeline.addLast(new EnipCodec());</span>
-<span class="nc" id="L72">                pipeline.addLast(new Plc4XEtherNetIpProtocol());</span>
-<span class="nc" id="L73">            }</span>
+<span class="nc" id="L84">                pipeline.addLast(new EnipCodec());</span>
+<span class="nc" id="L85">                pipeline.addLast(new Plc4XEtherNetIpProtocol());</span>
+<span class="nc" id="L86">            }</span>
         };
     }
 
     @Override
     protected void sendChannelCreatedEvent() {
         // Send an event to the pipeline telling the Protocol filters what's going on.
-<span class="nc" id="L80">        channel.pipeline().fireUserEventTriggered(new ConnectEvent());</span>
-<span class="nc" id="L81">    }</span>
+<span class="nc" id="L93">        channel.pipeline().fireUserEventTriggered(new ConnectEvent());</span>
+<span class="nc" id="L94">    }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

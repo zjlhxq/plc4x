@@ -37,8 +37,8 @@
 <a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.ads.connection.AdsTcpPlcConnection;
 <a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.ads.protocol.Plc4x2AdsProtocol;
 <a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.exceptions.PlcConnectionException;
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.messages.PlcProprietaryRequest;
-<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.messages.PlcProprietaryResponse;
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.base.messages.PlcProprietaryRequest;
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.base.messages.PlcProprietaryResponse;
 <a class="jxr_linenumber" name="L34" href="#L34">34</a>  
 <a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> java.io.IOException;
 <a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> java.net.*;
@@ -210,9 +210,9 @@
 <a class="jxr_linenumber" name="L202" href="#L202">202</a>         <strong class="jxr_keyword">if</strong> (ads == <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L203" href="#L203">203</a>             <strong class="jxr_keyword">return</strong> AmsError.of(AdsReturnCode.ADS_CODE_7);
 <a class="jxr_linenumber" name="L204" href="#L204">204</a>         }
-<a class="jxr_linenumber" name="L205" href="#L205">205</a>         CompletableFuture&lt;PlcProprietaryResponse&lt;PlcProprietaryRequest&lt;T&gt;, R&gt;&gt; completableFuture = ads.send(plcProprietaryRequest);
+<a class="jxr_linenumber" name="L205" href="#L205">205</a>         CompletableFuture&lt;PlcProprietaryResponse&lt;R&gt;&gt; completableFuture = ads.send(plcProprietaryRequest);
 <a class="jxr_linenumber" name="L206" href="#L206">206</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L207" href="#L207">207</a>             PlcProprietaryResponse&lt;PlcProprietaryRequest&lt;T&gt;, R&gt; response = completableFuture.get(3, TimeUnit.SECONDS);
+<a class="jxr_linenumber" name="L207" href="#L207">207</a>             PlcProprietaryResponse&lt;R&gt; response = completableFuture.get(3, TimeUnit.SECONDS);
 <a class="jxr_linenumber" name="L208" href="#L208">208</a>             request.getResponseFuture().complete(response.getResponse());
 <a class="jxr_linenumber" name="L209" href="#L209">209</a>             <strong class="jxr_keyword">return</strong> response.getResponse().getAmsHeader().getCode();
 <a class="jxr_linenumber" name="L210" href="#L210">210</a>         } <strong class="jxr_keyword">catch</strong> (ExecutionException | TimeoutException e) {
@@ -237,9 +237,9 @@
 <a class="jxr_linenumber" name="L229" href="#L229">229</a>         }
 <a class="jxr_linenumber" name="L230" href="#L230">230</a> 
 <a class="jxr_linenumber" name="L231" href="#L231">231</a>         <a href="../../../../../../org/apache/plc4x/java/ads/adslib/AmsRouter.html">AdsLibPort</a> port = ports.get(plcProprietaryRequest.getProprietaryRequest().getAmsHeader().getSourceAmsPort().getAsInt());
-<a class="jxr_linenumber" name="L232" href="#L232">232</a>         CompletableFuture&lt;PlcProprietaryResponse&lt;PlcProprietaryRequest&lt;AdsAddDeviceNotificationRequest&gt;, AdsAddDeviceNotificationResponse&gt;&gt; send = ads.send(plcProprietaryRequest);
+<a class="jxr_linenumber" name="L232" href="#L232">232</a>         CompletableFuture&lt;PlcProprietaryResponse&lt;AdsAddDeviceNotificationResponse&gt;&gt; send = ads.send(plcProprietaryRequest);
 <a class="jxr_linenumber" name="L233" href="#L233">233</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L234" href="#L234">234</a>             PlcProprietaryResponse&lt;PlcProprietaryRequest&lt;AdsAddDeviceNotificationRequest&gt;, AdsAddDeviceNotificationResponse&gt; response = send.get(3, TimeUnit.SECONDS);
+<a class="jxr_linenumber" name="L234" href="#L234">234</a>             PlcProprietaryResponse&lt;AdsAddDeviceNotificationResponse&gt; response = send.get(3, TimeUnit.SECONDS);
 <a class="jxr_linenumber" name="L235" href="#L235">235</a>             <strong class="jxr_keyword">if</strong> (response.getResponse().getResult().toAdsReturnCode() != AdsReturnCode.ADS_CODE_0) {
 <a class="jxr_linenumber" name="L236" href="#L236">236</a>                 <strong class="jxr_keyword">return</strong> AmsError.of(response.getResponse().getResult().getAsLong());
 <a class="jxr_linenumber" name="L237" href="#L237">237</a>             }
@@ -266,9 +266,9 @@
 <a class="jxr_linenumber" name="L258" href="#L258">258</a>         }
 <a class="jxr_linenumber" name="L259" href="#L259">259</a> 
 <a class="jxr_linenumber" name="L260" href="#L260">260</a>         <a href="../../../../../../org/apache/plc4x/java/ads/adslib/AmsRouter.html">AdsLibPort</a> adsLibPort = ports.get(port);
-<a class="jxr_linenumber" name="L261" href="#L261">261</a>         CompletableFuture&lt;PlcProprietaryResponse&lt;PlcProprietaryRequest&lt;AdsDeleteDeviceNotificationRequest&gt;, AdsDeleteDeviceNotificationResponse&gt;&gt; send = ads.send(plcProprietaryRequest);
+<a class="jxr_linenumber" name="L261" href="#L261">261</a>         CompletableFuture&lt;PlcProprietaryResponse&lt;AdsDeleteDeviceNotificationResponse&gt;&gt; send = ads.send(plcProprietaryRequest);
 <a class="jxr_linenumber" name="L262" href="#L262">262</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L263" href="#L263">263</a>             PlcProprietaryResponse&lt;PlcProprietaryRequest&lt;AdsDeleteDeviceNotificationRequest&gt;, AdsDeleteDeviceNotificationResponse&gt; response = send.get(3, TimeUnit.SECONDS);
+<a class="jxr_linenumber" name="L263" href="#L263">263</a>             PlcProprietaryResponse&lt;AdsDeleteDeviceNotificationResponse&gt; response = send.get(3, TimeUnit.SECONDS);
 <a class="jxr_linenumber" name="L264" href="#L264">264</a> 
 <a class="jxr_linenumber" name="L265" href="#L265">265</a>             adsLibPort.DelNotification(pAddr, plcProprietaryRequest.getProprietaryRequest().getNotificationHandle());
 <a class="jxr_linenumber" name="L266" href="#L266">266</a>             request.getResponseFuture().complete(response.getResponse());

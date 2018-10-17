@@ -31,9 +31,9 @@ import org.apache.plc4x.java.ads.api.generic.types.Invoke;
 import org.apache.plc4x.java.ads.model.AdsPlcFieldHandler;
 import org.apache.plc4x.java.ads.model.DirectAdsField;
 import org.apache.plc4x.java.ads.model.SymbolicAdsField;
-import org.apache.plc4x.java.api.connection.PlcProprietarySender;
-import org.apache.plc4x.java.api.connection.PlcReader;
-import org.apache.plc4x.java.api.connection.PlcWriter;
+import org.apache.plc4x.java.base.messages.PlcProprietarySender;
+import org.apache.plc4x.java.base.messages.PlcReader;
+import org.apache.plc4x.java.base.messages.PlcWriter;
 import org.apache.plc4x.java.api.exceptions.PlcConnectionException;
 import org.apache.plc4x.java.api.exceptions.PlcRuntimeException;
 import org.apache.plc4x.java.api.messages.*;
@@ -43,14 +43,15 @@ import org.apache.plc4x.java.base.messages.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Optional;
 import java.util.concurrent.*;
 
 public abstract class AdsAbstractPlcConnection extends AbstractPlcConnection implements PlcReader, PlcWriter, PlcProprietarySender {
 
-<span class="fc" id="L50">    private static final Logger LOGGER = LoggerFactory.getLogger(AdsAbstractPlcConnection.class);</span>
+<span class="fc" id="L51">    private static final Logger LOGGER = LoggerFactory.getLogger(AdsAbstractPlcConnection.class);</span>
 
-<span class="fc" id="L52">    protected static final Configuration CONF = new SystemConfiguration();</span>
-<span class="fc" id="L53">    protected static final long SYMBOL_RESOLVE_TIMEOUT = CONF.getLong(&quot;plc4x.adsconnection.symbol.resolve,timeout&quot;, 3000);</span>
+<span class="fc" id="L53">    protected static final Configuration CONF = new SystemConfiguration();</span>
+<span class="fc" id="L54">    protected static final long SYMBOL_RESOLVE_TIMEOUT = CONF.getLong(&quot;plc4x.adsconnection.symbol.resolve,timeout&quot;, 3000);</span>
 
     protected final AmsNetId targetAmsNetId;
 
@@ -63,99 +64,109 @@ public abstract class AdsAbstractPlcConnection extends AbstractPlcConnection imp
     protected final ConcurrentMap&lt;SymbolicAdsField, DirectAdsField&gt; fieldMapping;
 
     protected AdsAbstractPlcConnection(ChannelFactory channelFactory, AmsNetId targetAmsNetId, AmsPort targetAmsPort) {
-<span class="fc" id="L66">        this(channelFactory, targetAmsNetId, targetAmsPort, generateAMSNetId(), generateAMSPort());</span>
-<span class="fc" id="L67">    }</span>
+<span class="fc" id="L67">        this(channelFactory, targetAmsNetId, targetAmsPort, generateAMSNetId(), generateAMSPort());</span>
+<span class="fc" id="L68">    }</span>
 
     protected AdsAbstractPlcConnection(ChannelFactory channelFactory, AmsNetId targetAmsNetId, AmsPort targetAmsPort, AmsNetId sourceAmsNetId, AmsPort sourceAmsPort) {
-<span class="fc" id="L70">        super(channelFactory);</span>
-<span class="fc" id="L71">        this.targetAmsNetId = targetAmsNetId;</span>
-<span class="fc" id="L72">        this.targetAmsPort = targetAmsPort;</span>
-<span class="fc" id="L73">        this.sourceAmsNetId = sourceAmsNetId;</span>
-<span class="fc" id="L74">        this.sourceAmsPort = sourceAmsPort;</span>
-<span class="fc" id="L75">        this.fieldMapping = new ConcurrentHashMap&lt;&gt;();</span>
-<span class="fc" id="L76">    }</span>
+<span class="fc" id="L71">        super(channelFactory);</span>
+<span class="fc" id="L72">        this.targetAmsNetId = targetAmsNetId;</span>
+<span class="fc" id="L73">        this.targetAmsPort = targetAmsPort;</span>
+<span class="fc" id="L74">        this.sourceAmsNetId = sourceAmsNetId;</span>
+<span class="fc" id="L75">        this.sourceAmsPort = sourceAmsPort;</span>
+<span class="fc" id="L76">        this.fieldMapping = new ConcurrentHashMap&lt;&gt;();</span>
+<span class="fc" id="L77">    }</span>
 
     public AmsNetId getTargetAmsNetId() {
-<span class="fc" id="L79">        return targetAmsNetId;</span>
+<span class="fc" id="L80">        return targetAmsNetId;</span>
     }
 
     public AmsPort getTargetAmsPort() {
-<span class="fc" id="L83">        return targetAmsPort;</span>
+<span class="fc" id="L84">        return targetAmsPort;</span>
     }
 
     public AmsNetId getSourceAmsNetId() {
-<span class="fc" id="L87">        return sourceAmsNetId;</span>
+<span class="fc" id="L88">        return sourceAmsNetId;</span>
     }
 
     public AmsPort getSourceAmsPort() {
-<span class="fc" id="L91">        return sourceAmsPort;</span>
+<span class="fc" id="L92">        return sourceAmsPort;</span>
     }
 
     @Override
-    public CompletableFuture&lt;PlcReadResponse&lt;?&gt;&gt; read(PlcReadRequest readRequest) {
-<span class="fc" id="L96">        mapFields(readRequest);</span>
-<span class="fc" id="L97">        CompletableFuture&lt;InternalPlcReadResponse&gt; readFuture = new CompletableFuture&lt;&gt;();</span>
-<span class="fc" id="L98">        ChannelFuture channelFuture = channel.writeAndFlush(new PlcRequestContainer&lt;&gt;((InternalPlcReadRequest) readRequest, readFuture));</span>
-<span class="fc" id="L99">        channelFuture.addListener(future -&gt; {</span>
-<span class="fc bfc" id="L100" title="All 2 branches covered.">            if (!future.isSuccess()) {</span>
-<span class="fc" id="L101">                readFuture.completeExceptionally(future.cause());</span>
+    public CompletableFuture&lt;PlcReadResponse&gt; read(PlcReadRequest readRequest) {
+<span class="fc" id="L97">        mapFields(readRequest);</span>
+<span class="fc" id="L98">        CompletableFuture&lt;InternalPlcReadResponse&gt; readFuture = new CompletableFuture&lt;&gt;();</span>
+<span class="fc" id="L99">        ChannelFuture channelFuture = channel.writeAndFlush(new PlcRequestContainer&lt;&gt;((InternalPlcReadRequest) readRequest, readFuture));</span>
+<span class="fc" id="L100">        channelFuture.addListener(future -&gt; {</span>
+<span class="fc bfc" id="L101" title="All 2 branches covered.">            if (!future.isSuccess()) {</span>
+<span class="fc" id="L102">                readFuture.completeExceptionally(future.cause());</span>
             }
-<span class="fc" id="L103">        });</span>
-<span class="fc" id="L104">        return readFuture</span>
-<span class="fc" id="L105">            .thenApply(PlcReadResponse.class::cast);</span>
+<span class="fc" id="L104">        });</span>
+<span class="fc" id="L105">        return readFuture</span>
+<span class="fc" id="L106">            .thenApply(PlcReadResponse.class::cast);</span>
     }
 
     @Override
-    public PlcReadRequest.Builder readRequestBuilder() {
-<span class="fc" id="L110">        return new DefaultPlcReadRequest.Builder(new AdsPlcFieldHandler());</span>
+    public Optional&lt;PlcReadRequest.Builder&gt; readRequestBuilder() {
+<span class="fc" id="L111">        return Optional.of(new DefaultPlcReadRequest.Builder(this, new AdsPlcFieldHandler()));</span>
     }
 
     @Override
-    public CompletableFuture&lt;PlcWriteResponse&lt;?&gt;&gt; write(PlcWriteRequest writeRequest) {
-<span class="fc" id="L115">        mapFields(writeRequest);</span>
-<span class="fc" id="L116">        CompletableFuture&lt;InternalPlcWriteResponse&gt; writeFuture = new CompletableFuture&lt;&gt;();</span>
-<span class="fc" id="L117">        ChannelFuture channelFuture = channel.writeAndFlush(new PlcRequestContainer&lt;&gt;((InternalPlcWriteRequest) writeRequest, writeFuture));</span>
-<span class="fc" id="L118">        channelFuture.addListener(future -&gt; {</span>
-<span class="pc bpc" id="L119" title="1 of 2 branches missed.">            if (!future.isSuccess()) {</span>
-<span class="fc" id="L120">                writeFuture.completeExceptionally(future.cause());</span>
+    public Optional&lt;PlcWriteRequest.Builder&gt; writeRequestBuilder() {
+<span class="nc" id="L116">        return Optional.of(new DefaultPlcWriteRequest.Builder(this, new AdsPlcFieldHandler()));</span>
+    }
+
+    @Override
+    public Optional&lt;PlcSubscriptionRequest.Builder&gt; subscriptionRequestBuilder() {
+<span class="nc" id="L121">        return Optional.empty();</span>
+    }
+
+    @Override
+    public Optional&lt;PlcUnsubscriptionRequest.Builder&gt; unsubscriptionRequestBuilder() {
+<span class="nc" id="L126">        return Optional.empty();</span>
+    }
+
+    @Override
+    public CompletableFuture&lt;PlcWriteResponse&gt; write(PlcWriteRequest writeRequest) {
+<span class="fc" id="L131">        mapFields(writeRequest);</span>
+<span class="fc" id="L132">        CompletableFuture&lt;InternalPlcWriteResponse&gt; writeFuture = new CompletableFuture&lt;&gt;();</span>
+<span class="fc" id="L133">        ChannelFuture channelFuture = channel.writeAndFlush(new PlcRequestContainer&lt;&gt;((InternalPlcWriteRequest) writeRequest, writeFuture));</span>
+<span class="fc" id="L134">        channelFuture.addListener(future -&gt; {</span>
+<span class="pc bpc" id="L135" title="1 of 2 branches missed.">            if (!future.isSuccess()) {</span>
+<span class="fc" id="L136">                writeFuture.completeExceptionally(future.cause());</span>
             }
-<span class="fc" id="L122">        });</span>
-<span class="fc" id="L123">        return writeFuture</span>
-<span class="fc" id="L124">            .thenApply(PlcWriteResponse.class::cast);</span>
+<span class="fc" id="L138">        });</span>
+<span class="fc" id="L139">        return writeFuture</span>
+<span class="fc" id="L140">            .thenApply(PlcWriteResponse.class::cast);</span>
     }
 
     @Override
-    public PlcWriteRequest.Builder writeRequestBuilder() {
-<span class="nc" id="L129">        return new DefaultPlcWriteRequest.Builder(new AdsPlcFieldHandler());</span>
-    }
-
-    @Override
-    public &lt;PROP_REQUEST, PROP_RESPONSE&gt; CompletableFuture&lt;PlcProprietaryResponse&lt;PlcProprietaryRequest&lt;PROP_REQUEST&gt;, PROP_RESPONSE&gt;&gt; send(PlcProprietaryRequest&lt;PROP_REQUEST&gt; proprietaryRequest) {
-<span class="fc" id="L134">        CompletableFuture&lt;InternalPlcProprietaryResponse&lt;PROP_REQUEST, PROP_RESPONSE&gt;&gt; sendFuture = new CompletableFuture&lt;&gt;();</span>
-<span class="fc" id="L135">        ChannelFuture channelFuture = channel.writeAndFlush(new PlcRequestContainer&lt;&gt;((InternalPlcProprietaryRequest&lt;PROP_REQUEST&gt;) proprietaryRequest, sendFuture));</span>
-<span class="fc" id="L136">        channelFuture.addListener(future -&gt; {</span>
-<span class="pc bpc" id="L137" title="1 of 2 branches missed.">            if (!future.isSuccess()) {</span>
-<span class="fc" id="L138">                sendFuture.completeExceptionally(future.cause());</span>
+    public &lt;T&gt; CompletableFuture&lt;PlcProprietaryResponse&lt;T&gt;&gt; send(PlcProprietaryRequest proprietaryRequest) {
+<span class="fc" id="L145">        CompletableFuture&lt;InternalPlcProprietaryResponse&lt;T&gt;&gt; sendFuture = new CompletableFuture&lt;&gt;();</span>
+<span class="fc" id="L146">        ChannelFuture channelFuture = channel.writeAndFlush(new PlcRequestContainer&lt;&gt;((InternalPlcProprietaryRequest) proprietaryRequest, sendFuture));</span>
+<span class="fc" id="L147">        channelFuture.addListener(future -&gt; {</span>
+<span class="pc bpc" id="L148" title="1 of 2 branches missed.">            if (!future.isSuccess()) {</span>
+<span class="fc" id="L149">                sendFuture.completeExceptionally(future.cause());</span>
             }
-<span class="fc" id="L140">        });</span>
-<span class="fc" id="L141">        return sendFuture</span>
-<span class="fc" id="L142">            .thenApply(PlcProprietaryResponse.class::cast);</span>
+<span class="fc" id="L151">        });</span>
+<span class="fc" id="L152">        return sendFuture</span>
+<span class="fc" id="L153">            .thenApply(PlcProprietaryResponse.class::cast);</span>
     }
 
     protected void mapFields(PlcFieldRequest request) {
-<span class="fc" id="L146">        request.getFields().stream()</span>
-<span class="fc" id="L147">            .parallel()</span>
-<span class="fc" id="L148">            .filter(SymbolicAdsField.class::isInstance)</span>
-<span class="fc" id="L149">            .map(SymbolicAdsField.class::cast)</span>
-<span class="fc" id="L150">            .forEach(this::mapFields);</span>
-<span class="fc" id="L151">    }</span>
+<span class="fc" id="L157">        request.getFields().stream()</span>
+<span class="fc" id="L158">            .parallel()</span>
+<span class="fc" id="L159">            .filter(SymbolicAdsField.class::isInstance)</span>
+<span class="fc" id="L160">            .map(SymbolicAdsField.class::cast)</span>
+<span class="fc" id="L161">            .forEach(this::mapFields);</span>
+<span class="fc" id="L162">    }</span>
 
     protected void mapFields(SymbolicAdsField symbolicAdsField) {
         // If the map doesn't contain an entry for the given symbolicAdsField,
         // resolve it and add it to the map.
-<span class="nc" id="L156">        fieldMapping.computeIfAbsent(symbolicAdsField, symbolicAdsFieldInternal -&gt; {</span>
-<span class="nc" id="L157">            LOGGER.debug(&quot;Resolving {}&quot;, symbolicAdsFieldInternal);</span>
-<span class="nc" id="L158">            AdsReadWriteRequest adsReadWriteRequest = AdsReadWriteRequest.of(</span>
+<span class="nc" id="L167">        fieldMapping.computeIfAbsent(symbolicAdsField, symbolicAdsFieldInternal -&gt; {</span>
+<span class="nc" id="L168">            LOGGER.debug(&quot;Resolving {}&quot;, symbolicAdsFieldInternal);</span>
+<span class="nc" id="L169">            AdsReadWriteRequest adsReadWriteRequest = AdsReadWriteRequest.of(</span>
                 targetAmsNetId,
                 targetAmsPort,
                 sourceAmsNetId,
@@ -163,38 +174,38 @@ public abstract class AdsAbstractPlcConnection extends AbstractPlcConnection imp
                 Invoke.NONE,
                 IndexGroup.ReservedGroups.ADSIGRP_SYM_HNDBYNAME,
                 IndexOffset.NONE,
-<span class="nc" id="L166">                ReadLength.of(IndexOffset.NUM_BYTES),</span>
-<span class="nc" id="L167">                Data.of(symbolicAdsFieldInternal.getSymbolicField())</span>
+<span class="nc" id="L177">                ReadLength.of(IndexOffset.NUM_BYTES),</span>
+<span class="nc" id="L178">                Data.of(symbolicAdsFieldInternal.getSymbolicField())</span>
             );
 
             // TODO: This is blocking, should be changed to be async.
-<span class="nc" id="L171">            CompletableFuture&lt;InternalPlcProprietaryResponse&lt;InternalPlcProprietaryRequest&lt;AdsWriteRequest&gt;, AdsReadWriteResponse&gt;&gt; getHandelFuture = new CompletableFuture&lt;&gt;();</span>
-<span class="nc" id="L172">            channel.writeAndFlush(new PlcRequestContainer&lt;&gt;(new DefaultPlcProprietaryRequest&lt;&gt;(adsReadWriteRequest), getHandelFuture));</span>
-<span class="nc" id="L173">            InternalPlcProprietaryResponse&lt;InternalPlcProprietaryRequest&lt;AdsWriteRequest&gt;, AdsReadWriteResponse&gt; getHandleResponse = getFromFuture(getHandelFuture, SYMBOL_RESOLVE_TIMEOUT);</span>
-<span class="nc" id="L174">            AdsReadWriteResponse response = getHandleResponse.getResponse();</span>
+<span class="nc" id="L182">            CompletableFuture&lt;InternalPlcProprietaryResponse&lt;AdsReadWriteResponse&gt;&gt; getHandelFuture = new CompletableFuture&lt;&gt;();</span>
+<span class="nc" id="L183">            channel.writeAndFlush(new PlcRequestContainer&lt;&gt;(new DefaultPlcProprietaryRequest&lt;&gt;(adsReadWriteRequest), getHandelFuture));</span>
+<span class="nc" id="L184">            InternalPlcProprietaryResponse&lt;AdsReadWriteResponse&gt; getHandleResponse = getFromFuture(getHandelFuture, SYMBOL_RESOLVE_TIMEOUT);</span>
+<span class="nc" id="L185">            AdsReadWriteResponse response = getHandleResponse.getResponse();</span>
 
-<span class="nc bnc" id="L176" title="All 2 branches missed.">            if (response.getResult().toAdsReturnCode() != AdsReturnCode.ADS_CODE_0) {</span>
-<span class="nc" id="L177">                throw new PlcRuntimeException(&quot;Non error code received &quot; + response.getResult());</span>
+<span class="nc bnc" id="L187" title="All 2 branches missed.">            if (response.getResult().toAdsReturnCode() != AdsReturnCode.ADS_CODE_0) {</span>
+<span class="nc" id="L188">                throw new PlcRuntimeException(&quot;Non error code received &quot; + response.getResult());</span>
             }
 
-<span class="nc" id="L180">            IndexOffset symbolHandle = IndexOffset.of(response.getData().getBytes());</span>
-<span class="nc" id="L181">            return DirectAdsField.of(IndexGroup.ReservedGroups.ADSIGRP_SYM_VALBYHND.getAsLong(), symbolHandle.getAsLong(), symbolicAdsFieldInternal.getAdsDataType(), symbolicAdsFieldInternal.getNumberOfElements());</span>
+<span class="nc" id="L191">            IndexOffset symbolHandle = IndexOffset.of(response.getData().getBytes());</span>
+<span class="nc" id="L192">            return DirectAdsField.of(IndexGroup.ReservedGroups.ADSIGRP_SYM_VALBYHND.getAsLong(), symbolHandle.getAsLong(), symbolicAdsFieldInternal.getAdsDataType(), symbolicAdsFieldInternal.getNumberOfElements());</span>
         });
-<span class="nc" id="L183">    }</span>
+<span class="nc" id="L194">    }</span>
 
     protected static AmsNetId generateAMSNetId() {
-<span class="fc" id="L186">        return AmsNetId.of(&quot;0.0.0.0.0.0&quot;);</span>
+<span class="fc" id="L197">        return AmsNetId.of(&quot;0.0.0.0.0.0&quot;);</span>
     }
 
     protected static AmsPort generateAMSPort() {
-<span class="fc" id="L190">        return AmsPort.of(0);</span>
+<span class="fc" id="L201">        return AmsPort.of(0);</span>
     }
 
     @Override
     public void close() throws PlcConnectionException {
-<span class="fc" id="L195">        fieldMapping.values().stream()</span>
-<span class="fc" id="L196">            .parallel()</span>
-<span class="fc" id="L197">            .map(adsField -&gt; AdsWriteRequest.of(</span>
+<span class="fc" id="L206">        fieldMapping.values().stream()</span>
+<span class="fc" id="L207">            .parallel()</span>
+<span class="fc" id="L208">            .map(adsField -&gt; AdsWriteRequest.of(</span>
                 targetAmsNetId,
                 targetAmsPort,
                 sourceAmsNetId,
@@ -202,42 +213,42 @@ public abstract class AdsAbstractPlcConnection extends AbstractPlcConnection imp
                 Invoke.NONE,
                 IndexGroup.ReservedGroups.ADSIGRP_SYM_RELEASEHND,
                 IndexOffset.NONE,
-<span class="fc" id="L205">                Data.of(IndexGroup.of(adsField.getIndexGroup()).getBytes())</span>
+<span class="fc" id="L216">                Data.of(IndexGroup.of(adsField.getIndexGroup()).getBytes())</span>
             ))
-<span class="fc" id="L207">            .map(adsWriteRequest -&gt; new PlcRequestContainer&lt;&gt;(new DefaultPlcProprietaryRequest&lt;&gt;(adsWriteRequest), new CompletableFuture&lt;&gt;()))</span>
+<span class="fc" id="L218">            .map(adsWriteRequest -&gt; new PlcRequestContainer&lt;&gt;(new DefaultPlcProprietaryRequest&lt;&gt;(adsWriteRequest), new CompletableFuture&lt;&gt;()))</span>
             // We don't need a response so we just supply a throw away future.
-<span class="fc" id="L209">            .forEach(channel::write);</span>
-<span class="fc" id="L210">        channel.flush();</span>
-<span class="fc" id="L211">        super.close();</span>
-<span class="fc" id="L212">    }</span>
+<span class="fc" id="L220">            .forEach(channel::write);</span>
+<span class="fc" id="L221">        channel.flush();</span>
+<span class="fc" id="L222">        super.close();</span>
+<span class="fc" id="L223">    }</span>
 
     /**
      * Clears the fieldMapping.
      */
     public void clearMapping() {
-<span class="nc" id="L218">        fieldMapping.clear();</span>
-<span class="nc" id="L219">    }</span>
+<span class="nc" id="L229">        fieldMapping.clear();</span>
+<span class="nc" id="L230">    }</span>
 
     protected &lt;T&gt; T getFromFuture(CompletableFuture&lt;T&gt; future, long timeout) {
         try {
-<span class="fc" id="L223">            return future.get(timeout, TimeUnit.MILLISECONDS);</span>
-<span class="fc" id="L224">        } catch (InterruptedException e) {</span>
-<span class="fc" id="L225">            LOGGER.warn(&quot;Interrupted!&quot;, e);</span>
-<span class="fc" id="L226">            Thread.currentThread().interrupt();</span>
-<span class="fc" id="L227">            throw new PlcRuntimeException(e);</span>
-<span class="fc" id="L228">        } catch (ExecutionException | TimeoutException e) {</span>
-<span class="fc" id="L229">            throw new PlcRuntimeException(e);</span>
+<span class="fc" id="L234">            return future.get(timeout, TimeUnit.MILLISECONDS);</span>
+<span class="fc" id="L235">        } catch (InterruptedException e) {</span>
+<span class="fc" id="L236">            LOGGER.warn(&quot;Interrupted!&quot;, e);</span>
+<span class="fc" id="L237">            Thread.currentThread().interrupt();</span>
+<span class="fc" id="L238">            throw new PlcRuntimeException(e);</span>
+<span class="fc" id="L239">        } catch (ExecutionException | TimeoutException e) {</span>
+<span class="fc" id="L240">            throw new PlcRuntimeException(e);</span>
         }
     }
 
     @Override
     public String toString() {
-<span class="fc" id="L235">        return &quot;AdsAbstractPlcConnection{&quot; +</span>
+<span class="fc" id="L246">        return &quot;AdsAbstractPlcConnection{&quot; +</span>
             &quot;targetAmsNetId=&quot; + targetAmsNetId +
             &quot;, targetAmsPort=&quot; + targetAmsPort +
             &quot;, sourceAmsNetId=&quot; + sourceAmsNetId +
             &quot;, sourceAmsPort=&quot; + sourceAmsPort +
-<span class="fc" id="L240">            &quot;} &quot; + super.toString();</span>
+<span class="fc" id="L251">            &quot;} &quot; + super.toString();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

@@ -24,8 +24,7 @@ import org.apache.camel.PollingConsumer;
 import org.apache.camel.spi.ExceptionHandler;
 import org.apache.camel.support.LoggingExceptionHandler;
 import org.apache.camel.support.ServiceSupport;
-import org.apache.plc4x.java.api.connection.PlcConnection;
-import org.apache.plc4x.java.api.connection.PlcReader;
+import org.apache.plc4x.java.api.PlcConnection;
 import org.apache.plc4x.java.api.exceptions.PlcException;
 import org.apache.plc4x.java.api.messages.PlcReadRequest;
 import org.apache.plc4x.java.api.messages.PlcReadResponse;
@@ -39,96 +38,98 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public class Plc4XPollingConsumer extends ServiceSupport implements PollingConsumer {
-<span class="nc" id="L42">    private static final Logger LOGGER = LoggerFactory.getLogger(Plc4XPollingConsumer.class);</span>
+<span class="nc" id="L41">    private static final Logger LOGGER = LoggerFactory.getLogger(Plc4XPollingConsumer.class);</span>
 
     private Plc4XEndpoint endpoint;
     private ExceptionHandler exceptionHandler;
     private PlcConnection plcConnection;
-    private PlcReader plcReader;
-    private PlcReadRequest readRequest;
+    private PlcReadRequest.Builder requestBuilder;
     private Class dataType;
 
-<span class="nc" id="L51">    public Plc4XPollingConsumer(Plc4XEndpoint endpoint) throws PlcException {</span>
-<span class="nc" id="L52">        this.endpoint = endpoint;</span>
-<span class="nc" id="L53">        this.dataType = endpoint.getDataType();</span>
-<span class="nc" id="L54">        this.exceptionHandler = new LoggingExceptionHandler(endpoint.getCamelContext(), getClass());</span>
-<span class="nc" id="L55">        String plc4xURI = endpoint.getEndpointUri().replaceFirst(&quot;plc4x:/?/?&quot;, &quot;&quot;);</span>
-<span class="nc" id="L56">        this.plcConnection = endpoint.getPlcDriverManager().getConnection(plc4xURI);</span>
-<span class="nc" id="L57">        this.plcReader = plcConnection.getReader().orElseThrow(() -&gt; new PlcException(&quot;This connection doesn't support reading.&quot;));</span>
-<span class="nc" id="L58">        readRequest = plcReader.readRequestBuilder().addItem(&quot;default&quot;, endpoint.getAddress()).build();</span>
-<span class="nc" id="L59">    }</span>
+<span class="nc" id="L49">    public Plc4XPollingConsumer(Plc4XEndpoint endpoint) throws PlcException {</span>
+<span class="nc" id="L50">        this.endpoint = endpoint;</span>
+<span class="nc" id="L51">        this.dataType = endpoint.getDataType();</span>
+<span class="nc" id="L52">        this.exceptionHandler = new LoggingExceptionHandler(endpoint.getCamelContext(), getClass());</span>
+<span class="nc" id="L53">        String plc4xURI = endpoint.getEndpointUri().replaceFirst(&quot;plc4x:/?/?&quot;, &quot;&quot;);</span>
+<span class="nc" id="L54">        this.plcConnection = endpoint.getPlcDriverManager().getConnection(plc4xURI);</span>
+<span class="nc" id="L55">        this.requestBuilder = plcConnection.readRequestBuilder().orElseThrow(() -&gt; new PlcException(&quot;This connection doesn't support reading.&quot;));</span>
+<span class="nc" id="L56">    }</span>
 
     @Override
     public String toString() {
-<span class="nc" id="L63">        return &quot;Plc4XConsumer[&quot; + endpoint + &quot;]&quot;;</span>
+<span class="nc" id="L60">        return &quot;Plc4XConsumer[&quot; + endpoint + &quot;]&quot;;</span>
     }
 
     @Override
     public Endpoint getEndpoint() {
-<span class="nc" id="L68">        return endpoint;</span>
+<span class="nc" id="L65">        return endpoint;</span>
     }
 
     public ExceptionHandler getExceptionHandler() {
-<span class="nc" id="L72">        return exceptionHandler;</span>
+<span class="nc" id="L69">        return exceptionHandler;</span>
     }
 
     public void setExceptionHandler(ExceptionHandler exceptionHandler) {
-<span class="nc" id="L76">        this.exceptionHandler = exceptionHandler;</span>
-<span class="nc" id="L77">    }</span>
+<span class="nc" id="L73">        this.exceptionHandler = exceptionHandler;</span>
+<span class="nc" id="L74">    }</span>
 
     @Override
     public Exchange receive() {
-<span class="nc" id="L81">        Exchange exchange = endpoint.createExchange();</span>
-<span class="nc" id="L82">        CompletableFuture&lt;? extends PlcReadResponse&gt; read = plcReader.read(readRequest);</span>
+<span class="nc" id="L78">        Exchange exchange = endpoint.createExchange();</span>
+<span class="nc" id="L79">        CompletableFuture&lt;? extends PlcReadResponse&gt; read = createReadRequest().execute();</span>
         try {
-<span class="nc" id="L84">            PlcReadResponse plcReadResponse = read.get();</span>
-<span class="nc" id="L85">            exchange.getIn().setBody(unwrapIfSingle(plcReadResponse.getAllObjects(&quot;default&quot;)));</span>
-<span class="nc" id="L86">        } catch (InterruptedException | ExecutionException e) {</span>
-<span class="nc" id="L87">            exchange.setException(e);</span>
-<span class="nc" id="L88">        }</span>
-<span class="nc" id="L89">        return exchange;</span>
+<span class="nc" id="L81">            PlcReadResponse plcReadResponse = read.get();</span>
+<span class="nc" id="L82">            exchange.getIn().setBody(unwrapIfSingle(plcReadResponse.getAllObjects(&quot;default&quot;)));</span>
+<span class="nc" id="L83">        } catch (InterruptedException | ExecutionException e) {</span>
+<span class="nc" id="L84">            exchange.setException(e);</span>
+<span class="nc" id="L85">        }</span>
+<span class="nc" id="L86">        return exchange;</span>
     }
 
     @Override
     public Exchange receiveNoWait() {
-<span class="nc" id="L94">        return null;</span>
+<span class="nc" id="L91">        return null;</span>
     }
 
     @Override
     public Exchange receive(long timeout) {
-<span class="nc" id="L99">        Exchange exchange = endpoint.createExchange();</span>
-<span class="nc" id="L100">        CompletableFuture&lt;? extends PlcReadResponse&gt; read = plcReader.read(readRequest);</span>
+<span class="nc" id="L96">        Exchange exchange = endpoint.createExchange();</span>
+<span class="nc" id="L97">        CompletableFuture&lt;? extends PlcReadResponse&gt; read = createReadRequest().execute();</span>
         try {
-<span class="nc" id="L102">            PlcReadResponse plcReadResponse = read.get(timeout, TimeUnit.MILLISECONDS);</span>
-<span class="nc" id="L103">            exchange.getIn().setBody(unwrapIfSingle(plcReadResponse.getAllObjects(&quot;default&quot;)));</span>
-<span class="nc" id="L104">        } catch (InterruptedException | ExecutionException | TimeoutException e) {</span>
-<span class="nc" id="L105">            exchange.setException(e);</span>
-<span class="nc" id="L106">        }</span>
-<span class="nc" id="L107">        return exchange;</span>
+<span class="nc" id="L99">            PlcReadResponse plcReadResponse = read.get(timeout, TimeUnit.MILLISECONDS);</span>
+<span class="nc" id="L100">            exchange.getIn().setBody(unwrapIfSingle(plcReadResponse.getAllObjects(&quot;default&quot;)));</span>
+<span class="nc" id="L101">        } catch (InterruptedException | ExecutionException | TimeoutException e) {</span>
+<span class="nc" id="L102">            exchange.setException(e);</span>
+<span class="nc" id="L103">        }</span>
+<span class="nc" id="L104">        return exchange;</span>
     }
 
     @Override
     protected void doStart() {
         // We don't seem to need to do anything special here.
-<span class="nc" id="L113">    }</span>
+<span class="nc" id="L110">    }</span>
 
     @Override
     protected void doStop() {
         try {
-<span class="nc" id="L118">            plcConnection.close();</span>
-<span class="nc" id="L119">        } catch (Exception e) {</span>
-<span class="nc" id="L120">            LOGGER.error(&quot;Error closing connection&quot;, e);</span>
-<span class="nc" id="L121">        }</span>
-<span class="nc" id="L122">    }</span>
+<span class="nc" id="L115">            plcConnection.close();</span>
+<span class="nc" id="L116">        } catch (Exception e) {</span>
+<span class="nc" id="L117">            LOGGER.error(&quot;Error closing connection&quot;, e);</span>
+<span class="nc" id="L118">        }</span>
+<span class="nc" id="L119">    }</span>
+
+    private PlcReadRequest createReadRequest() {
+<span class="nc" id="L122">        return requestBuilder.addItem(&quot;default&quot;, endpoint.getAddress()).build();</span>
+    }
 
     private Object unwrapIfSingle(Collection collection) {
-<span class="nc bnc" id="L125" title="All 2 branches missed.">        if (collection.isEmpty()) {</span>
-<span class="nc" id="L126">            return null;</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">        if (collection.isEmpty()) {</span>
+<span class="nc" id="L127">            return null;</span>
         }
-<span class="nc bnc" id="L128" title="All 2 branches missed.">        if (collection.size() == 1) {</span>
-<span class="nc" id="L129">            return collection.iterator().next();</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">        if (collection.size() == 1) {</span>
+<span class="nc" id="L130">            return collection.iterator().next();</span>
         }
-<span class="nc" id="L131">        return collection;</span>
+<span class="nc" id="L132">        return collection;</span>
     }
 
 }
