@@ -18,25 +18,36 @@ under the License.
 */
 package org.apache.plc4x.java.base.messages.items;
 
+import java.util.Objects;
+
 public class DefaultByteArrayFieldItem extends FieldItem&lt;Byte[]&gt; {
 
     public DefaultByteArrayFieldItem(Byte[]... values) {
-<span class="nc" id="L24">        super(values);</span>
-<span class="nc" id="L25">    }</span>
+<span class="nc" id="L26">        super(values);</span>
+<span class="nc bnc" id="L27" title="All 2 branches missed.">        for (Byte[] value : values) {</span>
+<span class="nc" id="L28">            Objects.requireNonNull(value);</span>
+        }
+<span class="nc" id="L30">    }</span>
 
     @Override
     public Object getObject(int index) {
-<span class="nc" id="L29">        return getValue(index);</span>
+<span class="nc" id="L34">        return getValue(index);</span>
     }
 
+    @Override
     public boolean isValidByteArray(int index) {
-<span class="nc" id="L33">        Byte[] value = getValue(index);</span>
-<span class="nc bnc" id="L34" title="All 2 branches missed.">        return value != null;</span>
+<span class="nc" id="L39">        Byte[] value = getValue(index);</span>
+<span class="nc bnc" id="L40" title="All 2 branches missed.">        return value != null;</span>
     }
 
+    @Override
     public Byte[] getByteArray(int index) {
-<span class="nc" id="L38">        return getValue(index);</span>
+<span class="nc" id="L45">        return getValue(index);</span>
     }
+
+    //ToDo: extend conversion methods similar to @see {@link org.apache.plc4x.java.modbus.messages.items.DefaultModbusByteArrayFieldItem}
+
+    //ToDo: implement endianness for correct handling of Byte Arrays at conversion
 
 }
 

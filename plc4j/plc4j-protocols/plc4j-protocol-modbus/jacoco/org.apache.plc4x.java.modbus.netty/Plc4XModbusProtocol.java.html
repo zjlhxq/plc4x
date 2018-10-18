@@ -39,8 +39,8 @@ import org.apache.plc4x.java.api.messages.PlcWriteRequest;
 import org.apache.plc4x.java.api.types.PlcResponseCode;
 import org.apache.plc4x.java.base.messages.*;
 import org.apache.plc4x.java.base.messages.items.DefaultBooleanFieldItem;
-import org.apache.plc4x.java.base.messages.items.DefaultByteArrayFieldItem;
 import org.apache.plc4x.java.base.messages.items.FieldItem;
+import org.apache.plc4x.java.modbus.messages.items.DefaultModbusByteArrayFieldItem;
 import org.apache.plc4x.java.modbus.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -281,7 +281,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 <span class="fc" id="L281">            LOGGER.debug(&quot;{}: Nothing&quot;, readHoldingRegistersResponse);</span>
 <span class="fc" id="L282">            ByteBuf byteBuf = readHoldingRegistersResponse.getRegisters();</span>
             // TODO: use register method
-<span class="fc" id="L284">            DefaultByteArrayFieldItem data = produceRegisterValueList(byteBuf, field.getQuantity());</span>
+<span class="fc" id="L284">            DefaultModbusByteArrayFieldItem data = produceRegisterValueList(byteBuf, field.getQuantity());</span>
 <span class="fc" id="L285">            Map&lt;String, Pair&lt;PlcResponseCode, FieldItem&gt;&gt; responseValues = new HashMap&lt;&gt;();</span>
 <span class="fc" id="L286">            responseValues.put(fieldName, new ImmutablePair&lt;&gt;(PlcResponseCode.OK, data));</span>
 <span class="fc" id="L287">            plcRequestContainer.getResponseFuture().complete(new DefaultPlcReadResponse((InternalPlcReadRequest) request, responseValues));</span>
@@ -291,7 +291,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 <span class="fc" id="L291">            LOGGER.debug(&quot;{}: Nothing&quot;, readInputRegistersResponse);</span>
 <span class="fc" id="L292">            ByteBuf byteBuf = readInputRegistersResponse.getRegisters();</span>
             // TODO: use register method
-<span class="fc" id="L294">            DefaultByteArrayFieldItem data = produceRegisterValueList(byteBuf, field.getQuantity());</span>
+<span class="fc" id="L294">            DefaultModbusByteArrayFieldItem data = produceRegisterValueList(byteBuf, field.getQuantity());</span>
 <span class="fc" id="L295">            Map&lt;String, Pair&lt;PlcResponseCode, FieldItem&gt;&gt; responseValues = new HashMap&lt;&gt;();</span>
 <span class="fc" id="L296">            responseValues.put(fieldName, new ImmutablePair&lt;&gt;(PlcResponseCode.OK, data));</span>
 <span class="fc" id="L297">            plcRequestContainer.getResponseFuture().complete(new DefaultPlcReadResponse((InternalPlcReadRequest) request, responseValues));</span>
@@ -510,7 +510,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 <span class="fc" id="L510">        return new DefaultBooleanFieldItem(data.toArray(new Boolean[0]));</span>
     }
 
-    private DefaultByteArrayFieldItem produceRegisterValueList(ByteBuf byteBuf, int expectedQuantity) throws PlcProtocolException {
+    private DefaultModbusByteArrayFieldItem produceRegisterValueList(ByteBuf byteBuf, int expectedQuantity) throws PlcProtocolException {
 <span class="fc" id="L514">        int readableBytes = byteBuf.readableBytes();</span>
 <span class="pc bpc" id="L515" title="1 of 2 branches missed.">        if (readableBytes % 2 != 0) {</span>
 <span class="nc" id="L516">            throw new PlcProtocolException(&quot;Readables bytes should even: &quot; + readableBytes);</span>
@@ -521,7 +521,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 <span class="fc" id="L521">            byteBuf.readBytes(register);</span>
 <span class="fc" id="L522">            data.add(ArrayUtils.toObject(register));</span>
 <span class="fc" id="L523">        }</span>
-<span class="fc" id="L524">        return new DefaultByteArrayFieldItem(data.toArray(new Byte[0][0]));</span>
+<span class="fc" id="L524">        return new DefaultModbusByteArrayFieldItem(data.toArray(new Byte[0][0]));</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
