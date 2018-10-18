@@ -18,28 +18,30 @@ under the License.
 */
 package org.apache.plc4x.java.base.messages.items;
 
+import org.apache.plc4x.java.api.exceptions.PlcIncompatibleDatatypeException;
+
 public class DefaultStringFieldItem extends FieldItem&lt;String&gt; {
 
     public DefaultStringFieldItem(String... values) {
-<span class="nc" id="L24">        super(values);</span>
-<span class="nc" id="L25">    }</span>
+<span class="nc" id="L26">        super(values);</span>
+<span class="nc" id="L27">    }</span>
 
     @Override
     public Object getObject(int index) {
-<span class="nc" id="L29">        return getString(index);</span>
+<span class="nc" id="L31">        return getString(index);</span>
     }
 
     @Override
     public boolean isValidString(int index) {
-<span class="nc bnc" id="L34" title="All 2 branches missed.">        return (getValue(index) != null);</span>
+<span class="nc bnc" id="L36" title="All 2 branches missed.">        return (getValue(index) != null);</span>
     }
 
     @Override
     public String getString(int index) {
-<span class="nc bnc" id="L39" title="All 2 branches missed.">        if(isValidString(index)) {</span>
-<span class="nc" id="L40">            return getValue(index);</span>
+<span class="nc bnc" id="L41" title="All 2 branches missed.">        if (!isValidString(index)) {</span>
+<span class="nc" id="L42">            throw new PlcIncompatibleDatatypeException(String.class, index);</span>
         }
-<span class="nc" id="L42">        return null;</span>
+<span class="nc" id="L44">        return getValue(index);</span>
     }
 
 }

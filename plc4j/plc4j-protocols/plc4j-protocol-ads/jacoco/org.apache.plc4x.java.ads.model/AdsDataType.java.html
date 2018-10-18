@@ -174,7 +174,7 @@ import java.time.temporal.ChronoUnit;
      * If no size specification is given, the default size of 80 characters will be used: Memory use [Bytes] =  80 + 1 Byte for string terminated Null character;
      * If string size specification is given: Memory use [Bytes] = String Size + 1 Byte for string terminated Null character);
      */
-<span class="fc" id="L177">    STRING(81),</span>
+<span class="fc" id="L177">    STRING(81 * 8),</span>
     /**
      * TIME
      * Duration time. The most siginificant digit is one millisecond. The data type is handled internally like DWORD.
@@ -510,7 +510,7 @@ import java.time.temporal.ChronoUnit;
 <span class="fc" id="L510">        this.upperBound = upperBound;</span>
 <span class="fc" id="L511">        this.typeName = name();</span>
 <span class="fc" id="L512">        this.memoryUse = memoryUse;</span>
-<span class="fc" id="L513">        this.targetByteSize = this.memoryUse * 8;</span>
+<span class="fc" id="L513">        this.targetByteSize = this.memoryUse / 8;</span>
 <span class="fc" id="L514">    }</span>
 
     public String getTypeName() {
@@ -535,6 +535,17 @@ import java.time.temporal.ChronoUnit;
 
     public boolean withinBounds(double other) {
 <span class="pc bpc" id="L537" title="2 of 4 branches missed.">        return other &gt;= lowerBound &amp;&amp; other &lt;= upperBound;</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="nc" id="L542">        return &quot;AdsDataType{&quot; +</span>
+            &quot;typeName='&quot; + typeName + '\'' +
+            &quot;, lowerBound=&quot; + lowerBound +
+            &quot;, upperBound=&quot; + upperBound +
+            &quot;, memoryUse=&quot; + memoryUse +
+            &quot;, targetByteSize=&quot; + targetByteSize +
+<span class="nc" id="L548">            &quot;} &quot; + super.toString();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

@@ -36,14 +36,14 @@
 <a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.ads.api.<strong class="jxr_keyword">generic</strong>.types.AmsPort;
 <a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.ads.api.<strong class="jxr_keyword">generic</strong>.types.Invoke;
 <a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.ads.model.AdsDataType;
-<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.ads.model.DirectAdsField;
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.ads.model.SymbolicAdsField;
-<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.ads.protocol.exception.AdsException;
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.exceptions.PlcException;
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.exceptions.PlcIoException;
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.exceptions.PlcProtocolException;
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.exceptions.PlcProtocolPayloadTooBigException;
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.base.messages.PlcProprietaryRequest;
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.ads.model.AdsField;
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.ads.model.DirectAdsField;
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.ads.model.SymbolicAdsField;
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.ads.protocol.exception.AdsException;
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.exceptions.PlcException;
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.exceptions.PlcIoException;
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.exceptions.PlcProtocolException;
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.exceptions.PlcProtocolPayloadTooBigException;
 <a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.messages.PlcReadRequest;
 <a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.messages.PlcRequest;
 <a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.messages.PlcWriteRequest;
@@ -167,141 +167,141 @@
 <a class="jxr_linenumber" name="L159" href="#L159">159</a>         <strong class="jxr_keyword">int</strong> bytesToBeWritten = bytes.length;
 <a class="jxr_linenumber" name="L160" href="#L160">160</a>         <strong class="jxr_keyword">int</strong> maxTheoreticalSize = directAdsField.getAdsDataType().getTargetByteSize() * directAdsField.getNumberOfElements();
 <a class="jxr_linenumber" name="L161" href="#L161">161</a>         <strong class="jxr_keyword">if</strong> (bytesToBeWritten &gt; maxTheoreticalSize) {
-<a class="jxr_linenumber" name="L162" href="#L162">162</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/api/exceptions/PlcProtocolPayloadTooBigException.html">PlcProtocolPayloadTooBigException</a>(<span class="jxr_string">"Ads"</span>, maxTheoreticalSize, bytesToBeWritten, values);
-<a class="jxr_linenumber" name="L163" href="#L163">163</a>         }
-<a class="jxr_linenumber" name="L164" href="#L164">164</a>         <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/Data.html">Data</a> data = Data.of(bytes);
-<a class="jxr_linenumber" name="L165" href="#L165">165</a>         <a href="../../../../../../org/apache/plc4x/java/ads/api/generic/AmsPacket.html">AmsPacket</a> amsPacket = AdsWriteRequest.of(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId, indexGroup, indexOffset, data);
-<a class="jxr_linenumber" name="L166" href="#L166">166</a>         LOGGER.debug(<span class="jxr_string">"encoded write request {}"</span>, amsPacket);
-<a class="jxr_linenumber" name="L167" href="#L167">167</a>         out.add(amsPacket);
-<a class="jxr_linenumber" name="L168" href="#L168">168</a>         requests.put(invokeId.getAsLong(), msg);
-<a class="jxr_linenumber" name="L169" href="#L169">169</a>     }
-<a class="jxr_linenumber" name="L170" href="#L170">170</a> 
-<a class="jxr_linenumber" name="L171" href="#L171">171</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> encodeReadRequest(PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; msg, List&lt;Object&gt; out) <strong class="jxr_keyword">throws</strong> PlcException {
-<a class="jxr_linenumber" name="L172" href="#L172">172</a>         <a href="../../../../../../org/apache/plc4x/java/api/messages/PlcReadRequest.html">PlcReadRequest</a> readRequest = (PlcReadRequest) msg.getRequest();
-<a class="jxr_linenumber" name="L173" href="#L173">173</a> 
-<a class="jxr_linenumber" name="L174" href="#L174">174</a>         <strong class="jxr_keyword">if</strong> (readRequest.getFields().size() != 1) {
-<a class="jxr_linenumber" name="L175" href="#L175">175</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/api/exceptions/PlcProtocolException.html">PlcProtocolException</a>(<span class="jxr_string">"Only one item supported"</span>);
-<a class="jxr_linenumber" name="L176" href="#L176">176</a>         }
-<a class="jxr_linenumber" name="L177" href="#L177">177</a>         <a href="../../../../../../org/apache/plc4x/java/api/model/PlcField.html">PlcField</a> field = readRequest.getFields().get(0);
-<a class="jxr_linenumber" name="L178" href="#L178">178</a>         <strong class="jxr_keyword">if</strong> (field instanceof SymbolicAdsField) {
-<a class="jxr_linenumber" name="L179" href="#L179">179</a>             <a href="../../../../../../org/apache/plc4x/java/ads/model/DirectAdsField.html">DirectAdsField</a> mappedField = fieldMapping.get(field);
-<a class="jxr_linenumber" name="L180" href="#L180">180</a>             <strong class="jxr_keyword">if</strong> (mappedField == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L181" href="#L181">181</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/api/exceptions/PlcProtocolException.html">PlcProtocolException</a>(<span class="jxr_string">"No field mapping for "</span> + field);
-<a class="jxr_linenumber" name="L182" href="#L182">182</a>             }
-<a class="jxr_linenumber" name="L183" href="#L183">183</a>             LOGGER.debug(<span class="jxr_string">"Replacing {} with {}"</span>, field, mappedField);
-<a class="jxr_linenumber" name="L184" href="#L184">184</a>             field = mappedField;
-<a class="jxr_linenumber" name="L185" href="#L185">185</a>         }
-<a class="jxr_linenumber" name="L186" href="#L186">186</a>         <strong class="jxr_keyword">if</strong> (!(field instanceof DirectAdsField)) {
-<a class="jxr_linenumber" name="L187" href="#L187">187</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/api/exceptions/PlcProtocolException.html">PlcProtocolException</a>(<span class="jxr_string">"PlcField not of type DirectAdsField: "</span> + field.getClass());
-<a class="jxr_linenumber" name="L188" href="#L188">188</a>         }
-<a class="jxr_linenumber" name="L189" href="#L189">189</a>         <a href="../../../../../../org/apache/plc4x/java/ads/model/DirectAdsField.html">DirectAdsField</a> directAdsField = (DirectAdsField) field;
-<a class="jxr_linenumber" name="L190" href="#L190">190</a>         <a href="../../../../../../org/apache/plc4x/java/ads/api/generic/types/Invoke.html">Invoke</a> invokeId = Invoke.of(correlationBuilder.incrementAndGet());
-<a class="jxr_linenumber" name="L191" href="#L191">191</a>         <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/IndexGroup.html">IndexGroup</a> indexGroup = IndexGroup.of(directAdsField.getIndexGroup());
-<a class="jxr_linenumber" name="L192" href="#L192">192</a>         <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/IndexOffset.html">IndexOffset</a> indexOffset = IndexOffset.of(directAdsField.getIndexOffset());
-<a class="jxr_linenumber" name="L193" href="#L193">193</a>         <a href="../../../../../../org/apache/plc4x/java/ads/model/AdsDataType.html">AdsDataType</a> adsDataType = directAdsField.getAdsDataType();
-<a class="jxr_linenumber" name="L194" href="#L194">194</a>         <strong class="jxr_keyword">int</strong> numberOfElements = directAdsField.getNumberOfElements();
-<a class="jxr_linenumber" name="L195" href="#L195">195</a>         <strong class="jxr_keyword">int</strong> readLength = adsDataType.getTargetByteSize() * numberOfElements;
-<a class="jxr_linenumber" name="L196" href="#L196">196</a>         <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/Length.html">Length</a> length = Length.of(readLength);
-<a class="jxr_linenumber" name="L197" href="#L197">197</a>         <a href="../../../../../../org/apache/plc4x/java/ads/api/generic/AmsPacket.html">AmsPacket</a> amsPacket = AdsReadRequest.of(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId, indexGroup, indexOffset, length);
-<a class="jxr_linenumber" name="L198" href="#L198">198</a>         LOGGER.debug(<span class="jxr_string">"encoded read request {}"</span>, amsPacket);
-<a class="jxr_linenumber" name="L199" href="#L199">199</a>         out.add(amsPacket);
-<a class="jxr_linenumber" name="L200" href="#L200">200</a>         requests.put(invokeId.getAsLong(), msg);
-<a class="jxr_linenumber" name="L201" href="#L201">201</a>     }
-<a class="jxr_linenumber" name="L202" href="#L202">202</a> 
-<a class="jxr_linenumber" name="L203" href="#L203">203</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> encodeProprietaryRequest(PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; msg, List&lt;Object&gt; out) <strong class="jxr_keyword">throws</strong> PlcProtocolException {
-<a class="jxr_linenumber" name="L204" href="#L204">204</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/PlcProprietaryRequest.html">PlcProprietaryRequest</a> plcProprietaryRequest = (PlcProprietaryRequest) msg.getRequest();
-<a class="jxr_linenumber" name="L205" href="#L205">205</a>         <strong class="jxr_keyword">if</strong> (!(plcProprietaryRequest.getProprietaryRequest() instanceof AmsPacket)) {
-<a class="jxr_linenumber" name="L206" href="#L206">206</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/api/exceptions/PlcProtocolException.html">PlcProtocolException</a>(<span class="jxr_string">"Unsupported proprietary type for this driver "</span> + plcProprietaryRequest.getProprietaryRequest().getClass());
-<a class="jxr_linenumber" name="L207" href="#L207">207</a>         }
-<a class="jxr_linenumber" name="L208" href="#L208">208</a>         <a href="../../../../../../org/apache/plc4x/java/ads/api/generic/AmsPacket.html">AmsPacket</a> amsPacket = (AmsPacket) plcProprietaryRequest.getProprietaryRequest();
-<a class="jxr_linenumber" name="L209" href="#L209">209</a>         LOGGER.debug(<span class="jxr_string">"encoded proprietary request {}"</span>, amsPacket);
-<a class="jxr_linenumber" name="L210" href="#L210">210</a>         out.add(amsPacket);
-<a class="jxr_linenumber" name="L211" href="#L211">211</a>         requests.put(amsPacket.getAmsHeader().getInvokeId().getAsLong(), msg);
-<a class="jxr_linenumber" name="L212" href="#L212">212</a>     }
-<a class="jxr_linenumber" name="L213" href="#L213">213</a> 
-<a class="jxr_linenumber" name="L214" href="#L214">214</a>     @Override
-<a class="jxr_linenumber" name="L215" href="#L215">215</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> decode(ChannelHandlerContext channelHandlerContext, <a href="../../../../../../org/apache/plc4x/java/ads/api/generic/AmsPacket.html">AmsPacket</a> amsPacket, List&lt;Object&gt; out) <strong class="jxr_keyword">throws</strong> Exception {
-<a class="jxr_linenumber" name="L216" href="#L216">216</a>         LOGGER.trace(<span class="jxr_string">"(--&gt;IN): {}, {}, {}"</span>, channelHandlerContext, amsPacket, out);
-<a class="jxr_linenumber" name="L217" href="#L217">217</a>         <strong class="jxr_keyword">if</strong> (amsPacket instanceof AdsDeviceNotificationRequest) {
-<a class="jxr_linenumber" name="L218" href="#L218">218</a>             LOGGER.debug(<span class="jxr_string">"Received notification {}"</span>, amsPacket);
-<a class="jxr_linenumber" name="L219" href="#L219">219</a>             handleAdsDeviceNotificationRequest((AdsDeviceNotificationRequest) amsPacket);
-<a class="jxr_linenumber" name="L220" href="#L220">220</a>             <strong class="jxr_keyword">return</strong>;
-<a class="jxr_linenumber" name="L221" href="#L221">221</a>         }
-<a class="jxr_linenumber" name="L222" href="#L222">222</a>         PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; plcRequestContainer = requests.remove(amsPacket.getAmsHeader().getInvokeId().getAsLong());
-<a class="jxr_linenumber" name="L223" href="#L223">223</a>         <strong class="jxr_keyword">if</strong> (plcRequestContainer == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L224" href="#L224">224</a>             LOGGER.info(<span class="jxr_string">"Unmapped packet received {}"</span>, amsPacket);
-<a class="jxr_linenumber" name="L225" href="#L225">225</a>             <strong class="jxr_keyword">return</strong>;
-<a class="jxr_linenumber" name="L226" href="#L226">226</a>         }
-<a class="jxr_linenumber" name="L227" href="#L227">227</a>         <a href="../../../../../../org/apache/plc4x/java/api/messages/PlcRequest.html">PlcRequest</a> request = plcRequestContainer.getRequest();
-<a class="jxr_linenumber" name="L228" href="#L228">228</a>         <strong class="jxr_keyword">final</strong> <a href="../../../../../../org/apache/plc4x/java/base/messages/InternalPlcResponse.html">InternalPlcResponse</a> response;
-<a class="jxr_linenumber" name="L229" href="#L229">229</a> 
-<a class="jxr_linenumber" name="L230" href="#L230">230</a>         <em class="jxr_comment">// Handle the response to a read request.</em>
-<a class="jxr_linenumber" name="L231" href="#L231">231</a>         <strong class="jxr_keyword">if</strong> (request instanceof PlcReadRequest) {
-<a class="jxr_linenumber" name="L232" href="#L232">232</a>             <strong class="jxr_keyword">if</strong> (amsPacket instanceof AdsReadResponse) {
-<a class="jxr_linenumber" name="L233" href="#L233">233</a>                 response = decodeReadResponse((AdsReadResponse) amsPacket, plcRequestContainer);
-<a class="jxr_linenumber" name="L234" href="#L234">234</a>             } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L235" href="#L235">235</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/api/exceptions/PlcProtocolException.html">PlcProtocolException</a>(<span class="jxr_string">"Wrong type correlated "</span> + amsPacket);
-<a class="jxr_linenumber" name="L236" href="#L236">236</a>             }
-<a class="jxr_linenumber" name="L237" href="#L237">237</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (request instanceof PlcWriteRequest) {
-<a class="jxr_linenumber" name="L238" href="#L238">238</a>             <strong class="jxr_keyword">if</strong> (amsPacket instanceof AdsWriteResponse) {
-<a class="jxr_linenumber" name="L239" href="#L239">239</a>                 response = decodeWriteResponse((AdsWriteResponse) amsPacket, plcRequestContainer);
-<a class="jxr_linenumber" name="L240" href="#L240">240</a>             } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L241" href="#L241">241</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/api/exceptions/PlcProtocolException.html">PlcProtocolException</a>(<span class="jxr_string">"Wrong type correlated "</span> + amsPacket);
-<a class="jxr_linenumber" name="L242" href="#L242">242</a>             }
-<a class="jxr_linenumber" name="L243" href="#L243">243</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (request instanceof PlcProprietaryRequest) {
-<a class="jxr_linenumber" name="L244" href="#L244">244</a>             response = decodeProprietaryResponse(amsPacket, plcRequestContainer);
-<a class="jxr_linenumber" name="L245" href="#L245">245</a>         } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L246" href="#L246">246</a>             response = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L247" href="#L247">247</a>         }
-<a class="jxr_linenumber" name="L248" href="#L248">248</a>         LOGGER.debug(<span class="jxr_string">"Plc4x response {}"</span>, response);
-<a class="jxr_linenumber" name="L249" href="#L249">249</a> 
-<a class="jxr_linenumber" name="L250" href="#L250">250</a>         <em class="jxr_comment">// Confirm the response being handled.</em>
-<a class="jxr_linenumber" name="L251" href="#L251">251</a>         <strong class="jxr_keyword">if</strong> (response != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L252" href="#L252">252</a>             plcRequestContainer.getResponseFuture().complete(response);
-<a class="jxr_linenumber" name="L253" href="#L253">253</a>         }
-<a class="jxr_linenumber" name="L254" href="#L254">254</a>     }
-<a class="jxr_linenumber" name="L255" href="#L255">255</a> 
-<a class="jxr_linenumber" name="L256" href="#L256">256</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> handleAdsDeviceNotificationRequest(<a href="../../../../../../org/apache/plc4x/java/ads/api/commands/AdsDeviceNotificationRequest.html">AdsDeviceNotificationRequest</a> adsDeviceNotificationRequest) {
-<a class="jxr_linenumber" name="L257" href="#L257">257</a>         <strong class="jxr_keyword">for</strong> (Consumer&lt;AdsDeviceNotificationRequest&gt; deviceNotificationListener : deviceNotificationListeners) {
-<a class="jxr_linenumber" name="L258" href="#L258">258</a>             <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L259" href="#L259">259</a>                 deviceNotificationListener.accept(adsDeviceNotificationRequest);
-<a class="jxr_linenumber" name="L260" href="#L260">260</a>             } <strong class="jxr_keyword">catch</strong> (RuntimeException e) {
-<a class="jxr_linenumber" name="L261" href="#L261">261</a>                 LOGGER.error(<span class="jxr_string">"Exception received from {} while handling {}"</span>, deviceNotificationListener, adsDeviceNotificationRequest, e);
-<a class="jxr_linenumber" name="L262" href="#L262">262</a>             }
-<a class="jxr_linenumber" name="L263" href="#L263">263</a>         }
-<a class="jxr_linenumber" name="L264" href="#L264">264</a>     }
-<a class="jxr_linenumber" name="L265" href="#L265">265</a> 
-<a class="jxr_linenumber" name="L266" href="#L266">266</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> addConsumer(Consumer&lt;AdsDeviceNotificationRequest&gt; adsDeviceNotificationRequestConsumer) {
-<a class="jxr_linenumber" name="L267" href="#L267">267</a>         <strong class="jxr_keyword">return</strong> deviceNotificationListeners.add(adsDeviceNotificationRequestConsumer);
-<a class="jxr_linenumber" name="L268" href="#L268">268</a>     }
-<a class="jxr_linenumber" name="L269" href="#L269">269</a> 
-<a class="jxr_linenumber" name="L270" href="#L270">270</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> removeConsumer(Consumer&lt;AdsDeviceNotificationRequest&gt; adsDeviceNotificationRequestConsumer) {
-<a class="jxr_linenumber" name="L271" href="#L271">271</a>         <strong class="jxr_keyword">return</strong> deviceNotificationListeners.remove(adsDeviceNotificationRequestConsumer);
-<a class="jxr_linenumber" name="L272" href="#L272">272</a>     }
-<a class="jxr_linenumber" name="L273" href="#L273">273</a> 
+<a class="jxr_linenumber" name="L162" href="#L162">162</a>             LOGGER.debug(<span class="jxr_string">"Requested AdsDatatype {} is exceeded by number of bytes {}. Limit {}."</span>, directAdsField.getAdsDataType(), bytesToBeWritten, maxTheoreticalSize);
+<a class="jxr_linenumber" name="L163" href="#L163">163</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/api/exceptions/PlcProtocolPayloadTooBigException.html">PlcProtocolPayloadTooBigException</a>(<span class="jxr_string">"ADS"</span>, maxTheoreticalSize, bytesToBeWritten, values);
+<a class="jxr_linenumber" name="L164" href="#L164">164</a>         }
+<a class="jxr_linenumber" name="L165" href="#L165">165</a>         <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/Data.html">Data</a> data = Data.of(bytes);
+<a class="jxr_linenumber" name="L166" href="#L166">166</a>         <a href="../../../../../../org/apache/plc4x/java/ads/api/generic/AmsPacket.html">AmsPacket</a> amsPacket = AdsWriteRequest.of(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId, indexGroup, indexOffset, data);
+<a class="jxr_linenumber" name="L167" href="#L167">167</a>         LOGGER.debug(<span class="jxr_string">"encoded write request {}"</span>, amsPacket);
+<a class="jxr_linenumber" name="L168" href="#L168">168</a>         out.add(amsPacket);
+<a class="jxr_linenumber" name="L169" href="#L169">169</a>         requests.put(invokeId.getAsLong(), msg);
+<a class="jxr_linenumber" name="L170" href="#L170">170</a>     }
+<a class="jxr_linenumber" name="L171" href="#L171">171</a> 
+<a class="jxr_linenumber" name="L172" href="#L172">172</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> encodeReadRequest(PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; msg, List&lt;Object&gt; out) <strong class="jxr_keyword">throws</strong> PlcException {
+<a class="jxr_linenumber" name="L173" href="#L173">173</a>         <a href="../../../../../../org/apache/plc4x/java/api/messages/PlcReadRequest.html">PlcReadRequest</a> readRequest = (PlcReadRequest) msg.getRequest();
+<a class="jxr_linenumber" name="L174" href="#L174">174</a> 
+<a class="jxr_linenumber" name="L175" href="#L175">175</a>         <strong class="jxr_keyword">if</strong> (readRequest.getFields().size() != 1) {
+<a class="jxr_linenumber" name="L176" href="#L176">176</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/api/exceptions/PlcProtocolException.html">PlcProtocolException</a>(<span class="jxr_string">"Only one item supported"</span>);
+<a class="jxr_linenumber" name="L177" href="#L177">177</a>         }
+<a class="jxr_linenumber" name="L178" href="#L178">178</a>         <a href="../../../../../../org/apache/plc4x/java/api/model/PlcField.html">PlcField</a> field = readRequest.getFields().get(0);
+<a class="jxr_linenumber" name="L179" href="#L179">179</a>         <strong class="jxr_keyword">if</strong> (field instanceof SymbolicAdsField) {
+<a class="jxr_linenumber" name="L180" href="#L180">180</a>             <a href="../../../../../../org/apache/plc4x/java/ads/model/DirectAdsField.html">DirectAdsField</a> mappedField = fieldMapping.get(field);
+<a class="jxr_linenumber" name="L181" href="#L181">181</a>             <strong class="jxr_keyword">if</strong> (mappedField == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L182" href="#L182">182</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/api/exceptions/PlcProtocolException.html">PlcProtocolException</a>(<span class="jxr_string">"No field mapping for "</span> + field);
+<a class="jxr_linenumber" name="L183" href="#L183">183</a>             }
+<a class="jxr_linenumber" name="L184" href="#L184">184</a>             LOGGER.debug(<span class="jxr_string">"Replacing {} with {}"</span>, field, mappedField);
+<a class="jxr_linenumber" name="L185" href="#L185">185</a>             field = mappedField;
+<a class="jxr_linenumber" name="L186" href="#L186">186</a>         }
+<a class="jxr_linenumber" name="L187" href="#L187">187</a>         <strong class="jxr_keyword">if</strong> (!(field instanceof DirectAdsField)) {
+<a class="jxr_linenumber" name="L188" href="#L188">188</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/api/exceptions/PlcProtocolException.html">PlcProtocolException</a>(<span class="jxr_string">"PlcField not of type DirectAdsField: "</span> + field.getClass());
+<a class="jxr_linenumber" name="L189" href="#L189">189</a>         }
+<a class="jxr_linenumber" name="L190" href="#L190">190</a>         <a href="../../../../../../org/apache/plc4x/java/ads/model/DirectAdsField.html">DirectAdsField</a> directAdsField = (DirectAdsField) field;
+<a class="jxr_linenumber" name="L191" href="#L191">191</a>         <a href="../../../../../../org/apache/plc4x/java/ads/api/generic/types/Invoke.html">Invoke</a> invokeId = Invoke.of(correlationBuilder.incrementAndGet());
+<a class="jxr_linenumber" name="L192" href="#L192">192</a>         <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/IndexGroup.html">IndexGroup</a> indexGroup = IndexGroup.of(directAdsField.getIndexGroup());
+<a class="jxr_linenumber" name="L193" href="#L193">193</a>         <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/IndexOffset.html">IndexOffset</a> indexOffset = IndexOffset.of(directAdsField.getIndexOffset());
+<a class="jxr_linenumber" name="L194" href="#L194">194</a>         <a href="../../../../../../org/apache/plc4x/java/ads/model/AdsDataType.html">AdsDataType</a> adsDataType = directAdsField.getAdsDataType();
+<a class="jxr_linenumber" name="L195" href="#L195">195</a>         <strong class="jxr_keyword">int</strong> numberOfElements = directAdsField.getNumberOfElements();
+<a class="jxr_linenumber" name="L196" href="#L196">196</a>         <strong class="jxr_keyword">int</strong> readLength = adsDataType.getTargetByteSize() * numberOfElements;
+<a class="jxr_linenumber" name="L197" href="#L197">197</a>         <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/Length.html">Length</a> length = Length.of(readLength);
+<a class="jxr_linenumber" name="L198" href="#L198">198</a>         <a href="../../../../../../org/apache/plc4x/java/ads/api/generic/AmsPacket.html">AmsPacket</a> amsPacket = AdsReadRequest.of(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, invokeId, indexGroup, indexOffset, length);
+<a class="jxr_linenumber" name="L199" href="#L199">199</a>         LOGGER.debug(<span class="jxr_string">"encoded read request {}"</span>, amsPacket);
+<a class="jxr_linenumber" name="L200" href="#L200">200</a>         out.add(amsPacket);
+<a class="jxr_linenumber" name="L201" href="#L201">201</a>         requests.put(invokeId.getAsLong(), msg);
+<a class="jxr_linenumber" name="L202" href="#L202">202</a>     }
+<a class="jxr_linenumber" name="L203" href="#L203">203</a> 
+<a class="jxr_linenumber" name="L204" href="#L204">204</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> encodeProprietaryRequest(PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; msg, List&lt;Object&gt; out) <strong class="jxr_keyword">throws</strong> PlcProtocolException {
+<a class="jxr_linenumber" name="L205" href="#L205">205</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/PlcProprietaryRequest.html">PlcProprietaryRequest</a> plcProprietaryRequest = (PlcProprietaryRequest) msg.getRequest();
+<a class="jxr_linenumber" name="L206" href="#L206">206</a>         <strong class="jxr_keyword">if</strong> (!(plcProprietaryRequest.getProprietaryRequest() instanceof AmsPacket)) {
+<a class="jxr_linenumber" name="L207" href="#L207">207</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/api/exceptions/PlcProtocolException.html">PlcProtocolException</a>(<span class="jxr_string">"Unsupported proprietary type for this driver "</span> + plcProprietaryRequest.getProprietaryRequest().getClass());
+<a class="jxr_linenumber" name="L208" href="#L208">208</a>         }
+<a class="jxr_linenumber" name="L209" href="#L209">209</a>         <a href="../../../../../../org/apache/plc4x/java/ads/api/generic/AmsPacket.html">AmsPacket</a> amsPacket = (AmsPacket) plcProprietaryRequest.getProprietaryRequest();
+<a class="jxr_linenumber" name="L210" href="#L210">210</a>         LOGGER.debug(<span class="jxr_string">"encoded proprietary request {}"</span>, amsPacket);
+<a class="jxr_linenumber" name="L211" href="#L211">211</a>         out.add(amsPacket);
+<a class="jxr_linenumber" name="L212" href="#L212">212</a>         requests.put(amsPacket.getAmsHeader().getInvokeId().getAsLong(), msg);
+<a class="jxr_linenumber" name="L213" href="#L213">213</a>     }
+<a class="jxr_linenumber" name="L214" href="#L214">214</a> 
+<a class="jxr_linenumber" name="L215" href="#L215">215</a>     @Override
+<a class="jxr_linenumber" name="L216" href="#L216">216</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> decode(ChannelHandlerContext channelHandlerContext, <a href="../../../../../../org/apache/plc4x/java/ads/api/generic/AmsPacket.html">AmsPacket</a> amsPacket, List&lt;Object&gt; out) <strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="L217" href="#L217">217</a>         LOGGER.trace(<span class="jxr_string">"(--&gt;IN): {}, {}, {}"</span>, channelHandlerContext, amsPacket, out);
+<a class="jxr_linenumber" name="L218" href="#L218">218</a>         <strong class="jxr_keyword">if</strong> (amsPacket instanceof AdsDeviceNotificationRequest) {
+<a class="jxr_linenumber" name="L219" href="#L219">219</a>             LOGGER.debug(<span class="jxr_string">"Received notification {}"</span>, amsPacket);
+<a class="jxr_linenumber" name="L220" href="#L220">220</a>             handleAdsDeviceNotificationRequest((AdsDeviceNotificationRequest) amsPacket);
+<a class="jxr_linenumber" name="L221" href="#L221">221</a>             <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L222" href="#L222">222</a>         }
+<a class="jxr_linenumber" name="L223" href="#L223">223</a>         PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; plcRequestContainer = requests.remove(amsPacket.getAmsHeader().getInvokeId().getAsLong());
+<a class="jxr_linenumber" name="L224" href="#L224">224</a>         <strong class="jxr_keyword">if</strong> (plcRequestContainer == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L225" href="#L225">225</a>             LOGGER.info(<span class="jxr_string">"Unmapped packet received {}"</span>, amsPacket);
+<a class="jxr_linenumber" name="L226" href="#L226">226</a>             <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L227" href="#L227">227</a>         }
+<a class="jxr_linenumber" name="L228" href="#L228">228</a>         <a href="../../../../../../org/apache/plc4x/java/api/messages/PlcRequest.html">PlcRequest</a> request = plcRequestContainer.getRequest();
+<a class="jxr_linenumber" name="L229" href="#L229">229</a>         <strong class="jxr_keyword">final</strong> <a href="../../../../../../org/apache/plc4x/java/base/messages/InternalPlcResponse.html">InternalPlcResponse</a> response;
+<a class="jxr_linenumber" name="L230" href="#L230">230</a> 
+<a class="jxr_linenumber" name="L231" href="#L231">231</a>         <em class="jxr_comment">// Handle the response to a read request.</em>
+<a class="jxr_linenumber" name="L232" href="#L232">232</a>         <strong class="jxr_keyword">if</strong> (request instanceof PlcReadRequest) {
+<a class="jxr_linenumber" name="L233" href="#L233">233</a>             <strong class="jxr_keyword">if</strong> (amsPacket instanceof AdsReadResponse) {
+<a class="jxr_linenumber" name="L234" href="#L234">234</a>                 response = decodeReadResponse((AdsReadResponse) amsPacket, plcRequestContainer);
+<a class="jxr_linenumber" name="L235" href="#L235">235</a>             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L236" href="#L236">236</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/api/exceptions/PlcProtocolException.html">PlcProtocolException</a>(<span class="jxr_string">"Wrong type correlated "</span> + amsPacket);
+<a class="jxr_linenumber" name="L237" href="#L237">237</a>             }
+<a class="jxr_linenumber" name="L238" href="#L238">238</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (request instanceof PlcWriteRequest) {
+<a class="jxr_linenumber" name="L239" href="#L239">239</a>             <strong class="jxr_keyword">if</strong> (amsPacket instanceof AdsWriteResponse) {
+<a class="jxr_linenumber" name="L240" href="#L240">240</a>                 response = decodeWriteResponse((AdsWriteResponse) amsPacket, plcRequestContainer);
+<a class="jxr_linenumber" name="L241" href="#L241">241</a>             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L242" href="#L242">242</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/api/exceptions/PlcProtocolException.html">PlcProtocolException</a>(<span class="jxr_string">"Wrong type correlated "</span> + amsPacket);
+<a class="jxr_linenumber" name="L243" href="#L243">243</a>             }
+<a class="jxr_linenumber" name="L244" href="#L244">244</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (request instanceof PlcProprietaryRequest) {
+<a class="jxr_linenumber" name="L245" href="#L245">245</a>             response = decodeProprietaryResponse(amsPacket, plcRequestContainer);
+<a class="jxr_linenumber" name="L246" href="#L246">246</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L247" href="#L247">247</a>             response = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L248" href="#L248">248</a>         }
+<a class="jxr_linenumber" name="L249" href="#L249">249</a>         LOGGER.debug(<span class="jxr_string">"Plc4x response {}"</span>, response);
+<a class="jxr_linenumber" name="L250" href="#L250">250</a> 
+<a class="jxr_linenumber" name="L251" href="#L251">251</a>         <em class="jxr_comment">// Confirm the response being handled.</em>
+<a class="jxr_linenumber" name="L252" href="#L252">252</a>         <strong class="jxr_keyword">if</strong> (response != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L253" href="#L253">253</a>             plcRequestContainer.getResponseFuture().complete(response);
+<a class="jxr_linenumber" name="L254" href="#L254">254</a>         }
+<a class="jxr_linenumber" name="L255" href="#L255">255</a>     }
+<a class="jxr_linenumber" name="L256" href="#L256">256</a> 
+<a class="jxr_linenumber" name="L257" href="#L257">257</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> handleAdsDeviceNotificationRequest(<a href="../../../../../../org/apache/plc4x/java/ads/api/commands/AdsDeviceNotificationRequest.html">AdsDeviceNotificationRequest</a> adsDeviceNotificationRequest) {
+<a class="jxr_linenumber" name="L258" href="#L258">258</a>         <strong class="jxr_keyword">for</strong> (Consumer&lt;AdsDeviceNotificationRequest&gt; deviceNotificationListener : deviceNotificationListeners) {
+<a class="jxr_linenumber" name="L259" href="#L259">259</a>             <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L260" href="#L260">260</a>                 deviceNotificationListener.accept(adsDeviceNotificationRequest);
+<a class="jxr_linenumber" name="L261" href="#L261">261</a>             } <strong class="jxr_keyword">catch</strong> (RuntimeException e) {
+<a class="jxr_linenumber" name="L262" href="#L262">262</a>                 LOGGER.error(<span class="jxr_string">"Exception received from {} while handling {}"</span>, deviceNotificationListener, adsDeviceNotificationRequest, e);
+<a class="jxr_linenumber" name="L263" href="#L263">263</a>             }
+<a class="jxr_linenumber" name="L264" href="#L264">264</a>         }
+<a class="jxr_linenumber" name="L265" href="#L265">265</a>     }
+<a class="jxr_linenumber" name="L266" href="#L266">266</a> 
+<a class="jxr_linenumber" name="L267" href="#L267">267</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> addConsumer(Consumer&lt;AdsDeviceNotificationRequest&gt; adsDeviceNotificationRequestConsumer) {
+<a class="jxr_linenumber" name="L268" href="#L268">268</a>         <strong class="jxr_keyword">return</strong> deviceNotificationListeners.add(adsDeviceNotificationRequestConsumer);
+<a class="jxr_linenumber" name="L269" href="#L269">269</a>     }
+<a class="jxr_linenumber" name="L270" href="#L270">270</a> 
+<a class="jxr_linenumber" name="L271" href="#L271">271</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> removeConsumer(Consumer&lt;AdsDeviceNotificationRequest&gt; adsDeviceNotificationRequestConsumer) {
+<a class="jxr_linenumber" name="L272" href="#L272">272</a>         <strong class="jxr_keyword">return</strong> deviceNotificationListeners.remove(adsDeviceNotificationRequestConsumer);
+<a class="jxr_linenumber" name="L273" href="#L273">273</a>     }
 <a class="jxr_linenumber" name="L274" href="#L274">274</a> 
-<a class="jxr_linenumber" name="L275" href="#L275">275</a>     @SuppressWarnings(<span class="jxr_string">"unchecked"</span>)
-<a class="jxr_linenumber" name="L276" href="#L276">276</a>     <strong class="jxr_keyword">private</strong> <a href="../../../../../../org/apache/plc4x/java/base/messages/InternalPlcResponse.html">InternalPlcResponse</a> decodeWriteResponse(<a href="../../../../../../org/apache/plc4x/java/ads/api/commands/AdsWriteResponse.html">AdsWriteResponse</a> responseMessage, PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; requestContainer) {
-<a class="jxr_linenumber" name="L277" href="#L277">277</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/InternalPlcWriteRequest.html">InternalPlcWriteRequest</a> plcWriteRequest = (InternalPlcWriteRequest) requestContainer.getRequest();
-<a class="jxr_linenumber" name="L278" href="#L278">278</a>         <a href="../../../../../../org/apache/plc4x/java/api/types/PlcResponseCode.html">PlcResponseCode</a> responseCode = decodeResponseCode(responseMessage.getResult());
-<a class="jxr_linenumber" name="L279" href="#L279">279</a> 
-<a class="jxr_linenumber" name="L280" href="#L280">280</a>         <em class="jxr_comment">// TODO: does every item has the same ads response or is this whole aggregation broken?</em>
-<a class="jxr_linenumber" name="L281" href="#L281">281</a>         Map&lt;String, PlcResponseCode&gt; responseItems = plcWriteRequest.getFieldNames()
-<a class="jxr_linenumber" name="L282" href="#L282">282</a>             .stream()
-<a class="jxr_linenumber" name="L283" href="#L283">283</a>             .collect(Collectors.toMap(
-<a class="jxr_linenumber" name="L284" href="#L284">284</a>                 fieldName -&gt; fieldName,
-<a class="jxr_linenumber" name="L285" href="#L285">285</a>                 __ -&gt; responseCode
-<a class="jxr_linenumber" name="L286" href="#L286">286</a>             ));
-<a class="jxr_linenumber" name="L287" href="#L287">287</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/base/messages/DefaultPlcWriteResponse.html">DefaultPlcWriteResponse</a>(plcWriteRequest, responseItems);
-<a class="jxr_linenumber" name="L288" href="#L288">288</a>     }
-<a class="jxr_linenumber" name="L289" href="#L289">289</a> 
-<a class="jxr_linenumber" name="L290" href="#L290">290</a>     @SuppressWarnings(<span class="jxr_string">"unchecked"</span>)
-<a class="jxr_linenumber" name="L291" href="#L291">291</a>     <strong class="jxr_keyword">private</strong> <a href="../../../../../../org/apache/plc4x/java/base/messages/InternalPlcResponse.html">InternalPlcResponse</a> decodeReadResponse(<a href="../../../../../../org/apache/plc4x/java/ads/api/commands/AdsReadResponse.html">AdsReadResponse</a> responseMessage, PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; requestContainer) {
-<a class="jxr_linenumber" name="L292" href="#L292">292</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/InternalPlcReadRequest.html">InternalPlcReadRequest</a> plcReadRequest = (InternalPlcReadRequest) requestContainer.getRequest();
-<a class="jxr_linenumber" name="L293" href="#L293">293</a> 
-<a class="jxr_linenumber" name="L294" href="#L294">294</a>         <em class="jxr_comment">// TODO: only single requests supported for now</em>
-<a class="jxr_linenumber" name="L295" href="#L295">295</a>         <a href="../../../../../../org/apache/plc4x/java/ads/model/DirectAdsField.html">DirectAdsField</a> field = (DirectAdsField) plcReadRequest.getFields().get(0);
-<a class="jxr_linenumber" name="L296" href="#L296">296</a> 
+<a class="jxr_linenumber" name="L275" href="#L275">275</a> 
+<a class="jxr_linenumber" name="L276" href="#L276">276</a>     @SuppressWarnings(<span class="jxr_string">"unchecked"</span>)
+<a class="jxr_linenumber" name="L277" href="#L277">277</a>     <strong class="jxr_keyword">private</strong> <a href="../../../../../../org/apache/plc4x/java/base/messages/InternalPlcResponse.html">InternalPlcResponse</a> decodeWriteResponse(<a href="../../../../../../org/apache/plc4x/java/ads/api/commands/AdsWriteResponse.html">AdsWriteResponse</a> responseMessage, PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; requestContainer) {
+<a class="jxr_linenumber" name="L278" href="#L278">278</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/InternalPlcWriteRequest.html">InternalPlcWriteRequest</a> plcWriteRequest = (InternalPlcWriteRequest) requestContainer.getRequest();
+<a class="jxr_linenumber" name="L279" href="#L279">279</a>         <a href="../../../../../../org/apache/plc4x/java/api/types/PlcResponseCode.html">PlcResponseCode</a> responseCode = decodeResponseCode(responseMessage.getResult());
+<a class="jxr_linenumber" name="L280" href="#L280">280</a> 
+<a class="jxr_linenumber" name="L281" href="#L281">281</a>         <em class="jxr_comment">// TODO: does every item has the same ads response or is this whole aggregation broken?</em>
+<a class="jxr_linenumber" name="L282" href="#L282">282</a>         Map&lt;String, PlcResponseCode&gt; responseItems = plcWriteRequest.getFieldNames()
+<a class="jxr_linenumber" name="L283" href="#L283">283</a>             .stream()
+<a class="jxr_linenumber" name="L284" href="#L284">284</a>             .collect(Collectors.toMap(
+<a class="jxr_linenumber" name="L285" href="#L285">285</a>                 fieldName -&gt; fieldName,
+<a class="jxr_linenumber" name="L286" href="#L286">286</a>                 __ -&gt; responseCode
+<a class="jxr_linenumber" name="L287" href="#L287">287</a>             ));
+<a class="jxr_linenumber" name="L288" href="#L288">288</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/base/messages/DefaultPlcWriteResponse.html">DefaultPlcWriteResponse</a>(plcWriteRequest, responseItems);
+<a class="jxr_linenumber" name="L289" href="#L289">289</a>     }
+<a class="jxr_linenumber" name="L290" href="#L290">290</a> 
+<a class="jxr_linenumber" name="L291" href="#L291">291</a>     @SuppressWarnings(<span class="jxr_string">"unchecked"</span>)
+<a class="jxr_linenumber" name="L292" href="#L292">292</a>     <strong class="jxr_keyword">private</strong> <a href="../../../../../../org/apache/plc4x/java/base/messages/InternalPlcResponse.html">InternalPlcResponse</a> decodeReadResponse(<a href="../../../../../../org/apache/plc4x/java/ads/api/commands/AdsReadResponse.html">AdsReadResponse</a> responseMessage, PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; requestContainer) {
+<a class="jxr_linenumber" name="L293" href="#L293">293</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/InternalPlcReadRequest.html">InternalPlcReadRequest</a> plcReadRequest = (InternalPlcReadRequest) requestContainer.getRequest();
+<a class="jxr_linenumber" name="L294" href="#L294">294</a> 
+<a class="jxr_linenumber" name="L295" href="#L295">295</a>         <em class="jxr_comment">// TODO: only single requests supported for now</em>
+<a class="jxr_linenumber" name="L296" href="#L296">296</a>         <a href="../../../../../../org/apache/plc4x/java/ads/model/AdsField.html">AdsField</a> field = (AdsField) plcReadRequest.getFields().get(0);
 <a class="jxr_linenumber" name="L297" href="#L297">297</a> 
 <a class="jxr_linenumber" name="L298" href="#L298">298</a>         <a href="../../../../../../org/apache/plc4x/java/api/types/PlcResponseCode.html">PlcResponseCode</a> responseCode = decodeResponseCode(responseMessage.getResult());
 <a class="jxr_linenumber" name="L299" href="#L299">299</a>         byte[] bytes = responseMessage.getData().getBytes();

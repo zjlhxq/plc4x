@@ -182,7 +182,7 @@
 <a class="jxr_linenumber" name="L174" href="#L174">174</a> <em class="jxr_javadoccomment">     * If no size specification is given, the default size of 80 characters will be used: Memory use [Bytes] =  80 + 1 Byte for string terminated Null character;</em>
 <a class="jxr_linenumber" name="L175" href="#L175">175</a> <em class="jxr_javadoccomment">     * If string size specification is given: Memory use [Bytes] = String Size + 1 Byte for string terminated Null character);</em>
 <a class="jxr_linenumber" name="L176" href="#L176">176</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L177" href="#L177">177</a>     STRING(81),
+<a class="jxr_linenumber" name="L177" href="#L177">177</a>     STRING(81 * 8),
 <a class="jxr_linenumber" name="L178" href="#L178">178</a>     <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L179" href="#L179">179</a> <em class="jxr_javadoccomment">     * TIME</em>
 <a class="jxr_linenumber" name="L180" href="#L180">180</a> <em class="jxr_javadoccomment">     * Duration time. The most siginificant digit is one millisecond. The data type is handled internally like DWORD.</em>
@@ -518,7 +518,7 @@
 <a class="jxr_linenumber" name="L510" href="#L510">510</a>         <strong class="jxr_keyword">this</strong>.upperBound = upperBound;
 <a class="jxr_linenumber" name="L511" href="#L511">511</a>         <strong class="jxr_keyword">this</strong>.typeName = name();
 <a class="jxr_linenumber" name="L512" href="#L512">512</a>         <strong class="jxr_keyword">this</strong>.memoryUse = memoryUse;
-<a class="jxr_linenumber" name="L513" href="#L513">513</a>         <strong class="jxr_keyword">this</strong>.targetByteSize = <strong class="jxr_keyword">this</strong>.memoryUse * 8;
+<a class="jxr_linenumber" name="L513" href="#L513">513</a>         <strong class="jxr_keyword">this</strong>.targetByteSize = <strong class="jxr_keyword">this</strong>.memoryUse / 8;
 <a class="jxr_linenumber" name="L514" href="#L514">514</a>     }
 <a class="jxr_linenumber" name="L515" href="#L515">515</a> 
 <a class="jxr_linenumber" name="L516" href="#L516">516</a>     <strong class="jxr_keyword">public</strong> String getTypeName() {
@@ -544,7 +544,18 @@
 <a class="jxr_linenumber" name="L536" href="#L536">536</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> withinBounds(<strong class="jxr_keyword">double</strong> other) {
 <a class="jxr_linenumber" name="L537" href="#L537">537</a>         <strong class="jxr_keyword">return</strong> other &gt;= lowerBound &amp;&amp; other &lt;= upperBound;
 <a class="jxr_linenumber" name="L538" href="#L538">538</a>     }
-<a class="jxr_linenumber" name="L539" href="#L539">539</a> }
+<a class="jxr_linenumber" name="L539" href="#L539">539</a> 
+<a class="jxr_linenumber" name="L540" href="#L540">540</a>     @Override
+<a class="jxr_linenumber" name="L541" href="#L541">541</a>     <strong class="jxr_keyword">public</strong> String toString() {
+<a class="jxr_linenumber" name="L542" href="#L542">542</a>         <strong class="jxr_keyword">return</strong> <span class="jxr_string">"AdsDataType{"</span> +
+<a class="jxr_linenumber" name="L543" href="#L543">543</a>             <span class="jxr_string">"typeName='"</span> + typeName + '\'' +
+<a class="jxr_linenumber" name="L544" href="#L544">544</a>             <span class="jxr_string">", lowerBound="</span> + lowerBound +
+<a class="jxr_linenumber" name="L545" href="#L545">545</a>             <span class="jxr_string">", upperBound="</span> + upperBound +
+<a class="jxr_linenumber" name="L546" href="#L546">546</a>             <span class="jxr_string">", memoryUse="</span> + memoryUse +
+<a class="jxr_linenumber" name="L547" href="#L547">547</a>             <span class="jxr_string">", targetByteSize="</span> + targetByteSize +
+<a class="jxr_linenumber" name="L548" href="#L548">548</a>             <span class="jxr_string">"} "</span> + <strong class="jxr_keyword">super</strong>.toString();
+<a class="jxr_linenumber" name="L549" href="#L549">549</a>     }
+<a class="jxr_linenumber" name="L550" href="#L550">550</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2017&#x2013;2018 <a href="https://www.apache.org/">The Apache Software Foundation</a>. All rights reserved.</div>

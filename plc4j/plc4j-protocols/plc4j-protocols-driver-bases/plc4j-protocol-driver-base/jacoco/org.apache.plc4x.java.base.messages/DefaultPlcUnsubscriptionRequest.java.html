@@ -18,19 +18,19 @@
  */
 package org.apache.plc4x.java.base.messages;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.plc4x.java.api.messages.PlcUnsubscriptionRequest;
 import org.apache.plc4x.java.api.messages.PlcUnsubscriptionResponse;
-import org.apache.plc4x.java.api.model.PlcField;
 import org.apache.plc4x.java.api.model.PlcSubscriptionHandle;
 import org.apache.plc4x.java.base.model.InternalPlcSubscriptionHandle;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-// TODO: request broken needs finishing.
-public class DefaultPlcUnsubscriptionRequest implements InternalPlcUnsubscriptionRequest, InternalPlcFieldRequest {
+public class DefaultPlcUnsubscriptionRequest implements InternalPlcUnsubscriptionRequest, InternalPlcRequest {
 
     private final PlcSubscriber subscriber;
 
@@ -47,33 +47,8 @@ public class DefaultPlcUnsubscriptionRequest implements InternalPlcUnsubscriptio
     }
 
     @Override
-    public int getNumberOfFields() {
-<span class="nc" id="L51">        throw new IllegalStateException(&quot;not available&quot;);</span>
-    }
-
-    @Override
-    public LinkedHashSet&lt;String&gt; getFieldNames() {
-<span class="nc" id="L56">        throw new IllegalStateException(&quot;not available&quot;);</span>
-    }
-
-    @Override
-    public PlcField getField(String name) {
-<span class="nc" id="L61">        throw new IllegalStateException(&quot;not available&quot;);</span>
-    }
-
-    @Override
-    public LinkedList&lt;PlcField&gt; getFields() {
-<span class="nc" id="L66">        throw new IllegalStateException(&quot;not available&quot;);</span>
-    }
-
-    @Override
     public Collection&lt;? extends InternalPlcSubscriptionHandle&gt; getInternalPlcSubscriptionHandles() {
-<span class="nc" id="L71">        return internalPlcSubscriptionHandles;</span>
-    }
-
-    @Override
-    public LinkedList&lt;Pair&lt;String, PlcField&gt;&gt; getNamedFields() {
-<span class="nc" id="L76">        throw new IllegalStateException(&quot;not available&quot;);</span>
+<span class="nc" id="L51">        return internalPlcSubscriptionHandles;</span>
     }
 
     public static class Builder implements PlcUnsubscriptionRequest.Builder {
@@ -81,32 +56,32 @@ public class DefaultPlcUnsubscriptionRequest implements InternalPlcUnsubscriptio
         private final PlcSubscriber subscriber;
         private List&lt;InternalPlcSubscriptionHandle&gt; plcSubscriptionHandles;
 
-<span class="nc" id="L84">        public Builder(PlcSubscriber subscriber) {</span>
-<span class="nc" id="L85">            this.subscriber = subscriber;</span>
-<span class="nc" id="L86">            plcSubscriptionHandles = new ArrayList&lt;&gt;();</span>
-<span class="nc" id="L87">        }</span>
+<span class="nc" id="L59">        public Builder(PlcSubscriber subscriber) {</span>
+<span class="nc" id="L60">            this.subscriber = subscriber;</span>
+<span class="nc" id="L61">            plcSubscriptionHandles = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L62">        }</span>
 
         public PlcUnsubscriptionRequest.Builder addHandle(PlcSubscriptionHandle plcSubscriptionHandle) {
-<span class="nc" id="L90">            plcSubscriptionHandles.add((InternalPlcSubscriptionHandle) plcSubscriptionHandle);</span>
-<span class="nc" id="L91">            return this;</span>
+<span class="nc" id="L65">            plcSubscriptionHandles.add((InternalPlcSubscriptionHandle) plcSubscriptionHandle);</span>
+<span class="nc" id="L66">            return this;</span>
         }
 
         @Override
         public PlcUnsubscriptionRequest.Builder addHandle(PlcSubscriptionHandle plcSubscriptionHandle1, PlcSubscriptionHandle... plcSubscriptionHandles) {
-<span class="nc" id="L96">            this.plcSubscriptionHandles.add((InternalPlcSubscriptionHandle) plcSubscriptionHandle1);</span>
-<span class="nc" id="L97">            this.plcSubscriptionHandles.addAll(Arrays.stream(plcSubscriptionHandles).map(InternalPlcSubscriptionHandle.class::cast).collect(Collectors.toList()));</span>
-<span class="nc" id="L98">            return null;</span>
+<span class="nc" id="L71">            this.plcSubscriptionHandles.add((InternalPlcSubscriptionHandle) plcSubscriptionHandle1);</span>
+<span class="nc" id="L72">            this.plcSubscriptionHandles.addAll(Arrays.stream(plcSubscriptionHandles).map(InternalPlcSubscriptionHandle.class::cast).collect(Collectors.toList()));</span>
+<span class="nc" id="L73">            return this;</span>
         }
 
         @Override
         public PlcUnsubscriptionRequest.Builder addHandles(Collection&lt;PlcSubscriptionHandle&gt; plcSubscriptionHandles) {
-<span class="nc" id="L103">            this.plcSubscriptionHandles.addAll(plcSubscriptionHandles.stream().map(InternalPlcSubscriptionHandle.class::cast).collect(Collectors.toList()));</span>
-<span class="nc" id="L104">            return null;</span>
+<span class="nc" id="L78">            this.plcSubscriptionHandles.addAll(plcSubscriptionHandles.stream().map(InternalPlcSubscriptionHandle.class::cast).collect(Collectors.toList()));</span>
+<span class="nc" id="L79">            return this;</span>
         }
 
         @Override
         public PlcUnsubscriptionRequest build() {
-<span class="nc" id="L109">            return new DefaultPlcUnsubscriptionRequest(subscriber, plcSubscriptionHandles);</span>
+<span class="nc" id="L84">            return new DefaultPlcUnsubscriptionRequest(subscriber, plcSubscriptionHandles);</span>
         }
 
 

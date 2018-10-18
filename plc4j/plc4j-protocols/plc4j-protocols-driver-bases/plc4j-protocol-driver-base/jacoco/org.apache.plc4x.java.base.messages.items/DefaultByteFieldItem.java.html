@@ -18,134 +18,139 @@ under the License.
 */
 package org.apache.plc4x.java.base.messages.items;
 
+import org.apache.plc4x.java.api.exceptions.PlcIncompatibleDatatypeException;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
 public class DefaultByteFieldItem extends FieldItem&lt;Byte&gt; {
 
     public DefaultByteFieldItem(Byte... values) {
-<span class="nc" id="L27">        super(values);</span>
-<span class="nc" id="L28">    }</span>
+<span class="nc" id="L29">        super(values);</span>
+<span class="nc" id="L30">    }</span>
 
     @Override
     public Object getObject(int index) {
-<span class="nc" id="L32">        return getLong(index);</span>
+<span class="nc" id="L34">        return getLong(index);</span>
     }
 
     @Override
     public boolean isValidBoolean(int index) {
-<span class="nc bnc" id="L37" title="All 2 branches missed.">        return (getValue(index) != null);</span>
+<span class="nc bnc" id="L39" title="All 2 branches missed.">        return (getValue(index) != null);</span>
     }
 
     @Override
     public Boolean getBoolean(int index) {
-<span class="nc bnc" id="L42" title="All 2 branches missed.">        if (isValidBoolean(index)) {</span>
-<span class="nc bnc" id="L43" title="All 2 branches missed.">            return getValue(index) != 0L;</span>
+<span class="nc bnc" id="L44" title="All 2 branches missed.">        if (!isValidBoolean(index)) {</span>
+<span class="nc" id="L45">            throw new PlcIncompatibleDatatypeException(Boolean.class, index);</span>
         }
-<span class="nc" id="L45">        return null;</span>
+<span class="nc bnc" id="L47" title="All 2 branches missed.">        return getValue(index) != 0L;</span>
     }
 
     @Override
     public boolean isValidByte(int index) {
-<span class="nc" id="L50">        Byte value = getValue(index);</span>
-<span class="nc bnc" id="L51" title="All 2 branches missed.">        return (value != null);</span>
+<span class="nc" id="L52">        Byte value = getValue(index);</span>
+<span class="nc bnc" id="L53" title="All 2 branches missed.">        return (value != null);</span>
     }
 
     @Override
     public Byte getByte(int index) {
-<span class="nc bnc" id="L56" title="All 2 branches missed.">        if (isValidByte(index)) {</span>
-<span class="nc" id="L57">            return getValue(index);</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">        if (!isValidByte(index)) {</span>
+<span class="nc" id="L59">            throw new PlcIncompatibleDatatypeException(Byte.class, index);</span>
         }
-<span class="nc" id="L59">        return null;</span>
+<span class="nc" id="L61">        return getValue(index);</span>
     }
 
     @Override
     public boolean isValidShort(int index) {
-<span class="nc" id="L64">        Byte value = getValue(index);</span>
-<span class="nc bnc" id="L65" title="All 2 branches missed.">        return (value != null);</span>
+<span class="nc" id="L66">        Byte value = getValue(index);</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">        return (value != null);</span>
     }
 
     @Override
     public Short getShort(int index) {
-<span class="nc bnc" id="L70" title="All 2 branches missed.">        if (isValidShort(index)) {</span>
-<span class="nc" id="L71">            return getValue(index).shortValue();</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">        if (!isValidShort(index)) {</span>
+<span class="nc" id="L73">            throw new PlcIncompatibleDatatypeException(Short.class, index);</span>
         }
-<span class="nc" id="L73">        return null;</span>
+<span class="nc" id="L75">        return getValue(index).shortValue();</span>
     }
 
     @Override
     public boolean isValidInteger(int index) {
-<span class="nc" id="L78">        Byte value = getValue(index);</span>
-<span class="nc bnc" id="L79" title="All 2 branches missed.">        return (value != null);</span>
+<span class="nc" id="L80">        Byte value = getValue(index);</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        return (value != null);</span>
     }
 
     @Override
     public Integer getInteger(int index) {
-<span class="nc bnc" id="L84" title="All 2 branches missed.">        if (isValidInteger(index)) {</span>
-<span class="nc" id="L85">            return getValue(index).intValue();</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">        if (!isValidInteger(index)) {</span>
+<span class="nc" id="L87">            throw new PlcIncompatibleDatatypeException(Integer.class, index);</span>
         }
-<span class="nc" id="L87">        return null;</span>
-    }
-
-    public boolean isValidBigInteger(int index) {
-<span class="nc" id="L91">        Byte value = getValue(index);</span>
-<span class="nc bnc" id="L92" title="All 2 branches missed.">        return value != null;</span>
-    }
-
-    public BigInteger getBigInteger(int index) {
-<span class="nc bnc" id="L96" title="All 2 branches missed.">        if (isValidBigInteger(index)) {</span>
-<span class="nc" id="L97">            return BigInteger.valueOf(getValue(index));</span>
-        }
-<span class="nc" id="L99">        return null;</span>
+<span class="nc" id="L89">        return getValue(index).intValue();</span>
     }
 
     @Override
     public boolean isValidLong(int index) {
-<span class="nc bnc" id="L104" title="All 2 branches missed.">        return (getValue(index) != null);</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">        return (getValue(index) != null);</span>
     }
 
     @Override
     public Long getLong(int index) {
-<span class="nc bnc" id="L109" title="All 2 branches missed.">        if (isValidFloat(index)) {</span>
-<span class="nc" id="L110">            return getValue(index).longValue();</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">        if (!isValidLong(index)) {</span>
+<span class="nc" id="L100">            throw new PlcIncompatibleDatatypeException(Long.class, index);</span>
         }
-<span class="nc" id="L112">        return null;</span>
+<span class="nc" id="L102">        return getValue(index).longValue();</span>
+    }
+
+    public boolean isValidBigInteger(int index) {
+<span class="nc" id="L106">        Byte value = getValue(index);</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">        return value != null;</span>
+    }
+
+    public BigInteger getBigInteger(int index) {
+<span class="nc bnc" id="L111" title="All 2 branches missed.">        if (!isValidBigInteger(index)) {</span>
+<span class="nc" id="L112">            throw new PlcIncompatibleDatatypeException(BigInteger.class, index);</span>
+        }
+<span class="nc" id="L114">        return BigInteger.valueOf(getValue(index));</span>
     }
 
     @Override
     public boolean isValidFloat(int index) {
-<span class="nc" id="L117">        Byte value = getValue(index);</span>
-<span class="nc bnc" id="L118" title="All 6 branches missed.">        return (value != null) &amp;&amp; (value &lt;= Float.MAX_VALUE) &amp;&amp; (value &gt;= Float.MIN_VALUE);</span>
+<span class="nc" id="L119">        Byte value = getValue(index);</span>
+<span class="nc bnc" id="L120" title="All 6 branches missed.">        return (value != null) &amp;&amp; (value &lt;= Float.MAX_VALUE) &amp;&amp; (value &gt;= Float.MIN_VALUE);</span>
     }
 
     @Override
     public Float getFloat(int index) {
-<span class="nc bnc" id="L123" title="All 2 branches missed.">        if (isValidFloat(index)) {</span>
-<span class="nc" id="L124">            return getValue(index).floatValue();</span>
+<span class="nc bnc" id="L125" title="All 2 branches missed.">        if (!isValidFloat(index)) {</span>
+<span class="nc" id="L126">            throw new PlcIncompatibleDatatypeException(Float.class, index);</span>
         }
-<span class="nc" id="L126">        return null;</span>
+<span class="nc" id="L128">        return getValue(index).floatValue();</span>
     }
 
     @Override
     public boolean isValidDouble(int index) {
-<span class="nc" id="L131">        Byte value = getValue(index);</span>
-<span class="nc bnc" id="L132" title="All 6 branches missed.">        return (value != null) &amp;&amp; (value &lt;= Double.MAX_VALUE) &amp;&amp; (value &gt;= Double.MIN_VALUE);</span>
+<span class="nc" id="L133">        Byte value = getValue(index);</span>
+<span class="nc bnc" id="L134" title="All 6 branches missed.">        return (value != null) &amp;&amp; (value &lt;= Double.MAX_VALUE) &amp;&amp; (value &gt;= Double.MIN_VALUE);</span>
     }
 
     @Override
     public Double getDouble(int index) {
-<span class="nc bnc" id="L137" title="All 2 branches missed.">        if (isValidDouble(index)) {</span>
-<span class="nc" id="L138">            return getValue(index).doubleValue();</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">        if (!isValidDouble(index)) {</span>
+<span class="nc" id="L140">            throw new PlcIncompatibleDatatypeException(Double.class, index);</span>
         }
-<span class="nc" id="L140">        return null;</span>
+<span class="nc" id="L142">        return getValue(index).doubleValue();</span>
     }
 
     public boolean isValidBigDecimal(int index) {
-<span class="nc bnc" id="L144" title="All 2 branches missed.">        return getValue(index) != null;</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">        return getValue(index) != null;</span>
     }
 
     public BigDecimal getBigDecimal(int index) {
-<span class="nc" id="L148">        return new BigDecimal(getValue(index));</span>
+<span class="nc bnc" id="L150" title="All 2 branches missed.">        if(!isValidBigDecimal(index)) {</span>
+<span class="nc" id="L151">            throw new PlcIncompatibleDatatypeException(BigDecimal.class, index);</span>
+        }
+<span class="nc" id="L153">        return new BigDecimal(getValue(index));</span>
     }
 
 }

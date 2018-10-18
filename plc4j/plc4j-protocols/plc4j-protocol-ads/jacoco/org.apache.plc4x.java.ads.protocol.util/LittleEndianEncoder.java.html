@@ -56,16 +56,16 @@ public class LittleEndianEncoder {
 <span class="nc" id="L56">            result = encodeInteger(adsDataType, Arrays.stream(values).map(Integer.class::cast));</span>
 <span class="fc bfc" id="L57" title="All 2 branches covered.">        } else if (valueType == Long.class) {</span>
 <span class="fc" id="L58">            result = encodeLong(adsDataType, Arrays.stream(values).map(Long.class::cast));</span>
-<span class="pc bpc" id="L59" title="1 of 2 branches missed.">        } else if (valueType == BigInteger.class) {</span>
-<span class="nc" id="L60">            result = encodeBigInteger(adsDataType, Arrays.stream(values).map(BigInteger.class::cast));</span>
+<span class="fc bfc" id="L59" title="All 2 branches covered.">        } else if (valueType == BigInteger.class) {</span>
+<span class="fc" id="L60">            result = encodeBigInteger(adsDataType, Arrays.stream(values).map(BigInteger.class::cast));</span>
 <span class="fc bfc" id="L61" title="All 2 branches covered.">        } else if (valueType == LocalTime.class) {</span>
 <span class="fc" id="L62">            result = encodeLocalTime(adsDataType, Arrays.stream(values).map(LocalTime.class::cast));</span>
 <span class="fc bfc" id="L63" title="All 2 branches covered.">        } else if (valueType == LocalDate.class) {</span>
 <span class="fc" id="L64">            result = encodeLocalDate(adsDataType, Arrays.stream(values).map(LocalDate.class::cast));</span>
 <span class="pc bpc" id="L65" title="1 of 2 branches missed.">        } else if (valueType == LocalDateTime.class) {</span>
 <span class="nc" id="L66">            result = encodeLocalDateTime(adsDataType, Arrays.stream(values).map(LocalDateTime.class::cast));</span>
-<span class="pc bpc" id="L67" title="1 of 2 branches missed.">        } else if (valueType == Float.class) {</span>
-<span class="nc" id="L68">            result = encodeFloat(adsDataType, Arrays.stream(values).map(Float.class::cast));</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">        } else if (valueType == Float.class) {</span>
+<span class="fc" id="L68">            result = encodeFloat(adsDataType, Arrays.stream(values).map(Float.class::cast));</span>
 <span class="fc bfc" id="L69" title="All 2 branches covered.">        } else if (valueType == Double.class) {</span>
 <span class="fc" id="L70">            result = encodeDouble(adsDataType, Arrays.stream(values).map(Double.class::cast));</span>
 <span class="pc bpc" id="L71" title="1 of 2 branches missed.">        } else if (valueType == String.class) {</span>
@@ -116,15 +116,15 @@ public class LittleEndianEncoder {
     }
 
     private static Stream&lt;byte[]&gt; encodeFloat(AdsDataType adsDataType, Stream&lt;Float&gt; floatStream) {
-<span class="nc" id="L119">        return floatStream</span>
-<span class="nc" id="L120">            .peek(value -&gt; checkBound(adsDataType, value))</span>
+<span class="fc" id="L119">        return floatStream</span>
+<span class="fc" id="L120">            .peek(value -&gt; checkBound(adsDataType, value))</span>
             // TODO: check how ads expects this data
-<span class="nc" id="L122">            .map(Float::floatToIntBits)</span>
-<span class="nc" id="L123">            .map(intValue -&gt; new byte[]{</span>
-<span class="nc" id="L124">                (byte) (intValue &amp; 0x000000ff),</span>
-<span class="nc" id="L125">                (byte) ((intValue &amp; 0x0000ff00) &gt;&gt; 8),</span>
-<span class="nc" id="L126">                (byte) ((intValue &amp; 0x00ff0000) &gt;&gt; 16),</span>
-<span class="nc" id="L127">                (byte) ((intValue &amp; 0xff000000) &gt;&gt; 24),</span>
+<span class="fc" id="L122">            .map(Float::floatToIntBits)</span>
+<span class="fc" id="L123">            .map(intValue -&gt; new byte[]{</span>
+<span class="fc" id="L124">                (byte) (intValue &amp; 0x000000ff),</span>
+<span class="fc" id="L125">                (byte) ((intValue &amp; 0x0000ff00) &gt;&gt; 8),</span>
+<span class="fc" id="L126">                (byte) ((intValue &amp; 0x00ff0000) &gt;&gt; 16),</span>
+<span class="fc" id="L127">                (byte) ((intValue &amp; 0xff000000) &gt;&gt; 24),</span>
             });
     }
 
@@ -173,16 +173,16 @@ public class LittleEndianEncoder {
 
     private static Stream&lt;byte[]&gt; encodeBigInteger(AdsDataType adsDataType, Stream&lt;BigInteger&gt; bigIntegerStream) {
         // TODO: add boundchecks and add optional extension
-<span class="nc" id="L176">        return bigIntegerStream</span>
-<span class="nc" id="L177">            .map(bigIntValue -&gt; {</span>
-<span class="nc" id="L178">                byte[] bytes = bigIntValue.toByteArray();</span>
-<span class="nc bnc" id="L179" title="All 2 branches missed.">                if (bytes[0] == 0x0) {</span>
+<span class="fc" id="L176">        return bigIntegerStream</span>
+<span class="fc" id="L177">            .map(bigIntValue -&gt; {</span>
+<span class="fc" id="L178">                byte[] bytes = bigIntValue.toByteArray();</span>
+<span class="pc bpc" id="L179" title="1 of 2 branches missed.">                if (bytes[0] == 0x0) {</span>
 <span class="nc" id="L180">                    byte[] subArray = ArrayUtils.subarray(bytes, 1, bytes.length);</span>
 <span class="nc" id="L181">                    ArrayUtils.reverse(subArray);</span>
 <span class="nc" id="L182">                    return subArray;</span>
                 } else {
-<span class="nc" id="L184">                    ArrayUtils.reverse(bytes);</span>
-<span class="nc" id="L185">                    return bytes;</span>
+<span class="fc" id="L184">                    ArrayUtils.reverse(bytes);</span>
+<span class="fc" id="L185">                    return bytes;</span>
                 }
             });
     }
@@ -191,83 +191,75 @@ public class LittleEndianEncoder {
 <span class="fc" id="L191">        return localTimeStream</span>
 <span class="fc" id="L192">            .map(localTime -&gt; ChronoUnit.MILLIS.between(LocalTime.of(0, 0), localTime))</span>
 <span class="fc" id="L193">            .peek(value -&gt; checkBound(adsDataType, value))</span>
-<span class="fc" id="L194">            .map(time -&gt; new byte[]{</span>
-<span class="fc" id="L195">                (byte) (time &amp; 0x00000000_000000ffL),</span>
-<span class="fc" id="L196">                (byte) ((time &amp; 0x00000000_0000ff00L) &gt;&gt; 8),</span>
-<span class="fc" id="L197">                (byte) ((time &amp; 0x00000000_00ff0000L) &gt;&gt; 16),</span>
-<span class="fc" id="L198">                (byte) ((time &amp; 0x00000000_ff000000L) &gt;&gt; 24),</span>
-
-<span class="fc" id="L200">                (byte) ((time &amp; 0x000000ff_00000000L) &gt;&gt; 32),</span>
-<span class="fc" id="L201">                (byte) ((time &amp; 0x0000ff00_00000000L) &gt;&gt; 40),</span>
-<span class="fc" id="L202">                (byte) ((time &amp; 0x00ff0000_00000000L) &gt;&gt; 48),</span>
-<span class="fc" id="L203">                (byte) ((time &amp; 0xff000000_00000000L) &gt;&gt; 56),</span>
+<span class="fc" id="L194">            .map(Long::intValue)</span>
+<span class="fc" id="L195">            .map(time -&gt; new byte[]{</span>
+<span class="fc" id="L196">                (byte) (time &amp; 0x00000000_000000ffL),</span>
+<span class="fc" id="L197">                (byte) ((time &amp; 0x00000000_0000ff00L) &gt;&gt; 8),</span>
+<span class="fc" id="L198">                (byte) ((time &amp; 0x00000000_00ff0000L) &gt;&gt; 16),</span>
+<span class="fc" id="L199">                (byte) ((time &amp; 0x00000000_ff000000L) &gt;&gt; 24),</span>
             });
     }
 
     private static Stream&lt;byte[]&gt; encodeLocalDate(AdsDataType adsDataType, Stream&lt;LocalDate&gt; localDateStream) {
-<span class="fc" id="L208">        return localDateStream</span>
+<span class="fc" id="L204">        return localDateStream</span>
             // TODO: fixme: which offset should we use?
-<span class="fc" id="L210">            .map(localDate -&gt; localDate.atTime(0, 0).toInstant(ZoneOffset.UTC))</span>
-<span class="fc" id="L211">            .map(Instant::getEpochSecond)</span>
-<span class="fc" id="L212">            .peek(value -&gt; checkBound(adsDataType, value))</span>
-<span class="fc" id="L213">            .map(time -&gt; new byte[]{</span>
-<span class="fc" id="L214">                (byte) (time &amp; 0x00000000_000000ffL),</span>
-<span class="fc" id="L215">                (byte) ((time &amp; 0x00000000_0000ff00L) &gt;&gt; 8),</span>
-<span class="fc" id="L216">                (byte) ((time &amp; 0x00000000_00ff0000L) &gt;&gt; 16),</span>
-<span class="fc" id="L217">                (byte) ((time &amp; 0x00000000_ff000000L) &gt;&gt; 24),</span>
-
-<span class="fc" id="L219">                (byte) ((time &amp; 0x000000ff_00000000L) &gt;&gt; 32),</span>
-<span class="fc" id="L220">                (byte) ((time &amp; 0x0000ff00_00000000L) &gt;&gt; 40),</span>
-<span class="fc" id="L221">                (byte) ((time &amp; 0x00ff0000_00000000L) &gt;&gt; 48),</span>
-<span class="fc" id="L222">                (byte) ((time &amp; 0xff000000_00000000L) &gt;&gt; 56),</span>
+<span class="fc" id="L206">            .map(localDate -&gt; localDate.atTime(0, 0).toInstant(ZoneOffset.UTC))</span>
+<span class="fc" id="L207">            .map(Instant::getEpochSecond)</span>
+<span class="fc" id="L208">            .peek(value -&gt; checkBound(adsDataType, value))</span>
+<span class="fc" id="L209">            .map(Long::intValue)</span>
+<span class="fc" id="L210">            .map(time -&gt; new byte[]{</span>
+<span class="fc" id="L211">                (byte) (time &amp; 0x00000000_000000ffL),</span>
+<span class="fc" id="L212">                (byte) ((time &amp; 0x00000000_0000ff00L) &gt;&gt; 8),</span>
+<span class="fc" id="L213">                (byte) ((time &amp; 0x00000000_00ff0000L) &gt;&gt; 16),</span>
+<span class="fc" id="L214">                (byte) ((time &amp; 0x00000000_ff000000L) &gt;&gt; 24),</span>
             });
     }
 
     private static Stream&lt;byte[]&gt; encodeLocalDateTime(AdsDataType adsDataType, Stream&lt;LocalDateTime&gt; localDateTimeStream) {
-<span class="nc" id="L227">        return localDateTimeStream</span>
+<span class="nc" id="L219">        return localDateTimeStream</span>
             // TODO: fixme: which offset should we use?
-<span class="nc" id="L229">            .map(localDateTime -&gt; localDateTime.toInstant(ZoneOffset.UTC))</span>
-<span class="nc" id="L230">            .map(Instant::getEpochSecond)</span>
-<span class="nc" id="L231">            .peek(value -&gt; checkBound(adsDataType, value))</span>
-<span class="nc" id="L232">            .map(time -&gt; new byte[]{</span>
-<span class="nc" id="L233">                (byte) (time &amp; 0x00000000_000000ffL),</span>
-<span class="nc" id="L234">                (byte) ((time &amp; 0x00000000_0000ff00L) &gt;&gt; 8),</span>
-<span class="nc" id="L235">                (byte) ((time &amp; 0x00000000_00ff0000L) &gt;&gt; 16),</span>
-<span class="nc" id="L236">                (byte) ((time &amp; 0x00000000_ff000000L) &gt;&gt; 24),</span>
+<span class="nc" id="L221">            .map(localDateTime -&gt; localDateTime.toInstant(ZoneOffset.UTC))</span>
+<span class="nc" id="L222">            .map(Instant::getEpochSecond)</span>
+<span class="nc" id="L223">            .peek(value -&gt; checkBound(adsDataType, value))</span>
+<span class="nc" id="L224">            .map(time -&gt; new byte[]{</span>
+<span class="nc" id="L225">                (byte) (time &amp; 0x00000000_000000ffL),</span>
+<span class="nc" id="L226">                (byte) ((time &amp; 0x00000000_0000ff00L) &gt;&gt; 8),</span>
+<span class="nc" id="L227">                (byte) ((time &amp; 0x00000000_00ff0000L) &gt;&gt; 16),</span>
+<span class="nc" id="L228">                (byte) ((time &amp; 0x00000000_ff000000L) &gt;&gt; 24),</span>
 
-<span class="nc" id="L238">                (byte) ((time &amp; 0x000000ff_00000000L) &gt;&gt; 32),</span>
-<span class="nc" id="L239">                (byte) ((time &amp; 0x0000ff00_00000000L) &gt;&gt; 40),</span>
-<span class="nc" id="L240">                (byte) ((time &amp; 0x00ff0000_00000000L) &gt;&gt; 48),</span>
-<span class="nc" id="L241">                (byte) ((time &amp; 0xff000000_00000000L) &gt;&gt; 56),</span>
+<span class="nc" id="L230">                (byte) ((time &amp; 0x000000ff_00000000L) &gt;&gt; 32),</span>
+<span class="nc" id="L231">                (byte) ((time &amp; 0x0000ff00_00000000L) &gt;&gt; 40),</span>
+<span class="nc" id="L232">                (byte) ((time &amp; 0x00ff0000_00000000L) &gt;&gt; 48),</span>
+<span class="nc" id="L233">                (byte) ((time &amp; 0xff000000_00000000L) &gt;&gt; 56),</span>
             });
     }
 
 
     private static Stream&lt;byte[]&gt; encodeShort(AdsDataType adsDataType, Stream&lt;Short&gt; shortStream) {
-<span class="nc" id="L247">        return shortStream</span>
-<span class="nc" id="L248">            .peek(value -&gt; checkBound(adsDataType, value))</span>
-<span class="nc" id="L249">            .map(shortValue -&gt; new byte[]{</span>
-<span class="nc" id="L250">                (byte) (shortValue &amp; 0x00ff),</span>
-<span class="nc" id="L251">                (byte) ((shortValue &amp; 0xff00) &gt;&gt; 8),</span>
+<span class="nc" id="L239">        return shortStream</span>
+<span class="nc" id="L240">            .peek(value -&gt; checkBound(adsDataType, value))</span>
+<span class="nc" id="L241">            .map(shortValue -&gt; new byte[]{</span>
+<span class="nc" id="L242">                (byte) (shortValue &amp; 0x00ff),</span>
+<span class="nc" id="L243">                (byte) ((shortValue &amp; 0xff00) &gt;&gt; 8),</span>
             });
     }
 
     private static Stream&lt;byte[]&gt; encodeByte(AdsDataType adsDataType, Stream&lt;Byte&gt; byteStream) {
-<span class="nc" id="L256">        return byteStream</span>
-<span class="nc" id="L257">            .peek(value -&gt; checkBound(adsDataType, value))</span>
-<span class="nc" id="L258">            .map(aByte -&gt; new byte[]{aByte});</span>
+<span class="nc" id="L248">        return byteStream</span>
+<span class="nc" id="L249">            .peek(value -&gt; checkBound(adsDataType, value))</span>
+<span class="nc" id="L250">            .map(aByte -&gt; new byte[]{aByte});</span>
     }
 
     private static Stream&lt;byte[]&gt; encodeBoolean(AdsDataType adsDataType, Stream&lt;Boolean&gt; booleanStream) {
         // TODO: add boundchecks and add optional extension
-<span class="fc" id="L263">        return booleanStream</span>
-<span class="pc bpc" id="L264" title="1 of 2 branches missed.">            .map(booleanValue -&gt; new byte[]{booleanValue ? (byte) 0x01 : (byte) 0x00});</span>
+<span class="fc" id="L255">        return booleanStream</span>
+<span class="pc bpc" id="L256" title="1 of 2 branches missed.">            .map(booleanValue -&gt; new byte[]{booleanValue ? (byte) 0x01 : (byte) 0x00});</span>
     }
 
     private static void checkBound(AdsDataType adsDataType, double other) {
-<span class="pc bpc" id="L268" title="1 of 2 branches missed.">        if (!adsDataType.withinBounds(other)) {</span>
-<span class="nc" id="L269">            throw new PlcRuntimeException(other + &quot; not within bounds of &quot; + adsDataType);</span>
+<span class="pc bpc" id="L260" title="1 of 2 branches missed.">        if (!adsDataType.withinBounds(other)) {</span>
+<span class="nc" id="L261">            throw new PlcRuntimeException(other + &quot; not within bounds of &quot; + adsDataType);</span>
         }
-<span class="fc" id="L271">    }</span>
+<span class="fc" id="L263">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
