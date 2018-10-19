@@ -71,7 +71,7 @@
 <a class="jxr_linenumber" name="L63" href="#L63">63</a>              <strong class="jxr_keyword">if</strong> (!messagesQueue.isEmpty() &amp;&amp; messageOnTheWay.compareAndSet(false, <strong class="jxr_keyword">true</strong>)) {
 <a class="jxr_linenumber" name="L64" href="#L64">64</a>                  <a href="../../../../../../../org/apache/plc4x/java/ads/protocol/util/SingleMessageRateLimiter.html">ToSend</a> pop = messagesQueue.pop();
 <a class="jxr_linenumber" name="L65" href="#L65">65</a>                  LOGGER.debug(<span class="jxr_string">"Sending {}"</span>, pop);
-<a class="jxr_linenumber" name="L66" href="#L66">66</a>                  pop.channelHandlerContext.writeAndFlush(pop.toSend, pop.promise);
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>                  pop.channelHandlerContext.writeAndFlush(pop.objectToSend, pop.promise);
 <a class="jxr_linenumber" name="L67" href="#L67">67</a>                  LOGGER.debug(<span class="jxr_string">"Send {}"</span>, pop);
 <a class="jxr_linenumber" name="L68" href="#L68">68</a>              }
 <a class="jxr_linenumber" name="L69" href="#L69">69</a>          }, 100, 10, TimeUnit.MILLISECONDS);
@@ -111,12 +111,12 @@
 <a class="jxr_linenumber" name="L103" href="#L103">103</a> 
 <a class="jxr_linenumber" name="L104" href="#L104">104</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../../../org/apache/plc4x/java/ads/protocol/util/SingleMessageRateLimiter.html">ToSend</a> {
 <a class="jxr_linenumber" name="L105" href="#L105">105</a>         <strong class="jxr_keyword">final</strong> ChannelHandlerContext channelHandlerContext;
-<a class="jxr_linenumber" name="L106" href="#L106">106</a>         <strong class="jxr_keyword">final</strong> Object toSend;
+<a class="jxr_linenumber" name="L106" href="#L106">106</a>         <strong class="jxr_keyword">final</strong> Object objectToSend;
 <a class="jxr_linenumber" name="L107" href="#L107">107</a>         <strong class="jxr_keyword">final</strong> ChannelPromise promise;
 <a class="jxr_linenumber" name="L108" href="#L108">108</a> 
-<a class="jxr_linenumber" name="L109" href="#L109">109</a>         <strong class="jxr_keyword">private</strong> <a href="../../../../../../../org/apache/plc4x/java/ads/protocol/util/SingleMessageRateLimiter.html">ToSend</a>(ChannelHandlerContext channelHandlerContext, Object toSend, ChannelPromise promise) {
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>         <strong class="jxr_keyword">private</strong> <a href="../../../../../../../org/apache/plc4x/java/ads/protocol/util/SingleMessageRateLimiter.html">ToSend</a>(ChannelHandlerContext channelHandlerContext, Object objectToSend, ChannelPromise promise) {
 <a class="jxr_linenumber" name="L110" href="#L110">110</a>             <strong class="jxr_keyword">this</strong>.channelHandlerContext = channelHandlerContext;
-<a class="jxr_linenumber" name="L111" href="#L111">111</a>             <strong class="jxr_keyword">this</strong>.toSend = toSend;
+<a class="jxr_linenumber" name="L111" href="#L111">111</a>             <strong class="jxr_keyword">this</strong>.objectToSend = objectToSend;
 <a class="jxr_linenumber" name="L112" href="#L112">112</a>             <strong class="jxr_keyword">this</strong>.promise = promise;
 <a class="jxr_linenumber" name="L113" href="#L113">113</a>         }
 <a class="jxr_linenumber" name="L114" href="#L114">114</a> 
@@ -124,7 +124,7 @@
 <a class="jxr_linenumber" name="L116" href="#L116">116</a>         <strong class="jxr_keyword">public</strong> String toString() {
 <a class="jxr_linenumber" name="L117" href="#L117">117</a>             <strong class="jxr_keyword">return</strong> <span class="jxr_string">"ToSend{"</span> +
 <a class="jxr_linenumber" name="L118" href="#L118">118</a>                 <span class="jxr_string">"channelHandlerContext="</span> + channelHandlerContext +
-<a class="jxr_linenumber" name="L119" href="#L119">119</a>                 <span class="jxr_string">", toSend="</span> + toSend +
+<a class="jxr_linenumber" name="L119" href="#L119">119</a>                 <span class="jxr_string">", objectToSend="</span> + objectToSend +
 <a class="jxr_linenumber" name="L120" href="#L120">120</a>                 <span class="jxr_string">", promise="</span> + promise +
 <a class="jxr_linenumber" name="L121" href="#L121">121</a>                 '}';
 <a class="jxr_linenumber" name="L122" href="#L122">122</a>         }

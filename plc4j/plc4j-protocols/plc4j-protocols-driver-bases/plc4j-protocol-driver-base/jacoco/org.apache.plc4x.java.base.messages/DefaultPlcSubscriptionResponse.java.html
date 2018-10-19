@@ -20,6 +20,7 @@ package org.apache.plc4x.java.base.messages;
 
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.plc4x.java.api.exceptions.PlcRuntimeException;
 import org.apache.plc4x.java.api.messages.PlcSubscriptionRequest;
 import org.apache.plc4x.java.api.model.PlcField;
 import org.apache.plc4x.java.api.model.PlcSubscriptionHandle;
@@ -35,42 +36,50 @@ public class DefaultPlcSubscriptionResponse implements InternalPlcSubscriptionRe
 
     private final Map&lt;String, Pair&lt;PlcResponseCode, PlcSubscriptionHandle&gt;&gt; values;
 
-<span class="nc" id="L38">    public DefaultPlcSubscriptionResponse(InternalPlcSubscriptionRequest request, Map&lt;String, Pair&lt;PlcResponseCode, PlcSubscriptionHandle&gt;&gt; values) {</span>
-<span class="nc" id="L39">        this.request = request;</span>
-<span class="nc" id="L40">        this.values = values;</span>
-<span class="nc" id="L41">    }</span>
+<span class="nc" id="L39">    public DefaultPlcSubscriptionResponse(InternalPlcSubscriptionRequest request, Map&lt;String, Pair&lt;PlcResponseCode, PlcSubscriptionHandle&gt;&gt; values) {</span>
+<span class="nc" id="L40">        this.request = request;</span>
+<span class="nc" id="L41">        this.values = values;</span>
+<span class="nc" id="L42">    }</span>
 
     @Override
     public PlcSubscriptionHandle getSubscriptionHandle(String name) {
-        // TODO: add safety
-<span class="nc" id="L46">        return values.get(name).getValue();</span>
+<span class="nc" id="L46">        Pair&lt;PlcResponseCode, PlcSubscriptionHandle&gt; response = values.get(name);</span>
+<span class="nc bnc" id="L47" title="All 2 branches missed.">        if (response == null) {</span>
+<span class="nc" id="L48">            return null;</span>
+        }
+<span class="nc bnc" id="L50" title="All 2 branches missed.">        if (response.getKey() != PlcResponseCode.OK) {</span>
+<span class="nc" id="L51">            throw new PlcRuntimeException(&quot;Item &quot; + name + &quot; failed to subscribe: &quot; + response.getKey());</span>
+        }
+<span class="nc" id="L53">        return response.getValue();</span>
     }
 
     @Override
     public Collection&lt;String&gt; getFieldNames() {
-<span class="nc" id="L51">        return values.keySet();</span>
+<span class="nc" id="L58">        return values.keySet();</span>
     }
 
     @Override
     public PlcField getField(String name) {
-        // TODO: or should subscription handle be a successor of PlcField?
-<span class="nc" id="L57">        throw new NotImplementedException(&quot;field access not implemented&quot;);</span>
+<span class="nc" id="L63">        throw new NotImplementedException(&quot;field access not possible as these come async&quot;);</span>
     }
 
     @Override
     public PlcResponseCode getResponseCode(String name) {
-        // TODO: add safety
-<span class="nc" id="L63">        return values.get(name).getKey();</span>
+<span class="nc" id="L68">        Pair&lt;PlcResponseCode, PlcSubscriptionHandle&gt; response = values.get(name);</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">        if (response == null) {</span>
+<span class="nc" id="L70">            return null;</span>
+        }
+<span class="nc" id="L72">        return response.getKey();</span>
     }
 
     @Override
     public PlcSubscriptionRequest getRequest() {
-<span class="nc" id="L68">        return request;</span>
+<span class="nc" id="L77">        return request;</span>
     }
 
     @Override
     public Collection&lt;PlcSubscriptionHandle&gt; getSubscriptionHandles() {
-<span class="nc" id="L73">        return values.values().stream().map(Pair::getValue).collect(Collectors.toList());</span>
+<span class="nc" id="L82">        return values.values().stream().map(Pair::getValue).collect(Collectors.toList());</span>
     }
 
 }

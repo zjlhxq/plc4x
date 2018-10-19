@@ -33,7 +33,7 @@ public class DigestUtil {
 <span class="fc" id="L33">        CRC16.isReflectOut(),</span>
 <span class="fc" id="L34">        CRC16.getFinalXor());</span>
 
-<span class="fc" id="L36">    private static CRC crc16 = new CRC(CRC16_ADS);</span>
+<span class="fc" id="L36">    private static CRC crc = new CRC(CRC16_ADS);</span>
 
     private DigestUtil() {
         // Utility class
@@ -43,16 +43,16 @@ public class DigestUtil {
 <span class="fc bfc" id="L43" title="All 2 branches covered.">        if (byteReadables.length == 1) {</span>
 <span class="fc" id="L44">            return calculateCrc16(byteReadables[0].getBytes());</span>
         }
-<span class="fc" id="L46">        long currentCrcValue = crc16.init();</span>
+<span class="fc" id="L46">        long currentCrcValue = crc.init();</span>
 <span class="fc bfc" id="L47" title="All 2 branches covered.">        for (ByteReadable byteReadable : byteReadables) {</span>
-<span class="fc" id="L48">            currentCrcValue = crc16.update(currentCrcValue, byteReadable.getBytes());</span>
+<span class="fc" id="L48">            currentCrcValue = crc.update(currentCrcValue, byteReadable.getBytes());</span>
         }
-<span class="fc" id="L50">        short finalCrc = crc16.finalCRC16(currentCrcValue);</span>
+<span class="fc" id="L50">        short finalCrc = crc.finalCRC16(currentCrcValue);</span>
 <span class="fc" id="L51">        return Short.toUnsignedInt(Short.reverseBytes(finalCrc));</span>
     }
 
     public static int calculateCrc16(byte[] bytes) {
-<span class="fc" id="L55">        short finalCrc = (short) crc16.calculateCRC(bytes);</span>
+<span class="fc" id="L55">        short finalCrc = (short) crc.calculateCRC(bytes);</span>
 <span class="fc" id="L56">        return Short.toUnsignedInt(Short.reverseBytes(finalCrc));</span>
     }
 
