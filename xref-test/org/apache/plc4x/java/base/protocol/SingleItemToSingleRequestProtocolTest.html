@@ -37,7 +37,7 @@
 <a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.model.PlcField;
 <a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.types.PlcResponseCode;
 <a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.base.messages.*;
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.base.messages.items.FieldItem;
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.base.messages.items.BaseDefaultFieldItem;
 <a class="jxr_linenumber" name="L33" href="#L33">33</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.base.model.InternalPlcSubscriptionHandle;
 <a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.base.model.SubscriptionPlcField;
 <a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> org.assertj.core.api.WithAssertions;
@@ -292,8 +292,8 @@
 <a class="jxr_linenumber" name="L284" href="#L284">284</a>             InternalPlcReadRequest request = (InternalPlcReadRequest) plcRequestContainer.getRequest();
 <a class="jxr_linenumber" name="L285" href="#L285">285</a>             String fieldName = request.getFieldNames().iterator().next();
 <a class="jxr_linenumber" name="L286" href="#L286">286</a>             CompletableFuture responseFuture = plcRequestContainer.getResponseFuture();
-<a class="jxr_linenumber" name="L287" href="#L287">287</a>             HashMap&lt;String, Pair&lt;PlcResponseCode, FieldItem&gt;&gt; responseFields = <strong class="jxr_keyword">new</strong> HashMap&lt;&gt;();
-<a class="jxr_linenumber" name="L288" href="#L288">288</a>             responseFields.put(fieldName, Pair.of(PlcResponseCode.OK, mock(FieldItem.<strong class="jxr_keyword">class</strong>)));
+<a class="jxr_linenumber" name="L287" href="#L287">287</a>             HashMap&lt;String, Pair&lt;PlcResponseCode, BaseDefaultFieldItem&gt;&gt; responseFields = <strong class="jxr_keyword">new</strong> HashMap&lt;&gt;();
+<a class="jxr_linenumber" name="L288" href="#L288">288</a>             responseFields.put(fieldName, Pair.of(PlcResponseCode.OK, mock(BaseDefaultFieldItem.<strong class="jxr_keyword">class</strong>)));
 <a class="jxr_linenumber" name="L289" href="#L289">289</a>             responseFuture.complete(<strong class="jxr_keyword">new</strong> DefaultPlcReadResponse(request, responseFields));
 <a class="jxr_linenumber" name="L290" href="#L290">290</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L291" href="#L291">291</a>         }
@@ -302,13 +302,13 @@
 <a class="jxr_linenumber" name="L294" href="#L294">294</a>     @Nested
 <a class="jxr_linenumber" name="L295" href="#L295">295</a>     <strong class="jxr_keyword">class</strong> <a href="../../../../../../org/apache/plc4x/java/base/protocol/SingleItemToSingleRequestProtocolTest.html">Decoding</a> {
 <a class="jxr_linenumber" name="L296" href="#L296">296</a>         @Test
-<a class="jxr_linenumber" name="L297" href="#L297">297</a>         <strong class="jxr_keyword">void</strong> tryFinish() <strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="L297" href="#L297">297</a>         <strong class="jxr_keyword">void</strong> tryFinish() {
 <a class="jxr_linenumber" name="L298" href="#L298">298</a>             SUT.tryFinish(1, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">new</strong> CompletableFuture&lt;&gt;());
 <a class="jxr_linenumber" name="L299" href="#L299">299</a>             <em class="jxr_comment">// TODO: add Assertions.</em>
 <a class="jxr_linenumber" name="L300" href="#L300">300</a>         }
 <a class="jxr_linenumber" name="L301" href="#L301">301</a> 
 <a class="jxr_linenumber" name="L302" href="#L302">302</a>         @Test
-<a class="jxr_linenumber" name="L303" href="#L303">303</a>         <strong class="jxr_keyword">void</strong> errored() <strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="L303" href="#L303">303</a>         <strong class="jxr_keyword">void</strong> errored() {
 <a class="jxr_linenumber" name="L304" href="#L304">304</a>             SUT.errored(1, mock(Throwable.<strong class="jxr_keyword">class</strong>), <strong class="jxr_keyword">new</strong> CompletableFuture&lt;&gt;());
 <a class="jxr_linenumber" name="L305" href="#L305">305</a>             <em class="jxr_comment">// TODO: add Assertions.</em>
 <a class="jxr_linenumber" name="L306" href="#L306">306</a>         }
@@ -393,12 +393,12 @@
 <a class="jxr_linenumber" name="L385" href="#L385">385</a>         }
 <a class="jxr_linenumber" name="L386" href="#L386">386</a> 
 <a class="jxr_linenumber" name="L387" href="#L387">387</a>         @Test
-<a class="jxr_linenumber" name="L388" href="#L388">388</a>         <strong class="jxr_keyword">void</strong> subscribe() <strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="L388" href="#L388">388</a>         <strong class="jxr_keyword">void</strong> subscribe() {
 <a class="jxr_linenumber" name="L389" href="#L389">389</a>             <em class="jxr_comment">// TODO: implement once available</em>
 <a class="jxr_linenumber" name="L390" href="#L390">390</a>         }
 <a class="jxr_linenumber" name="L391" href="#L391">391</a> 
 <a class="jxr_linenumber" name="L392" href="#L392">392</a>         @Test
-<a class="jxr_linenumber" name="L393" href="#L393">393</a>         <strong class="jxr_keyword">void</strong> unsubcribe() <strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="L393" href="#L393">393</a>         <strong class="jxr_keyword">void</strong> unsubcribe() {
 <a class="jxr_linenumber" name="L394" href="#L394">394</a>             <em class="jxr_comment">// TODO: implement once available</em>
 <a class="jxr_linenumber" name="L395" href="#L395">395</a>         }
 <a class="jxr_linenumber" name="L396" href="#L396">396</a> 
@@ -427,13 +427,13 @@
 <a class="jxr_linenumber" name="L419" href="#L419">419</a> 
 <a class="jxr_linenumber" name="L420" href="#L420">420</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../../org/apache/plc4x/java/base/protocol/SingleItemToSingleRequestProtocolTest.html">TestDefaultPlcWriteRequest</a> <strong class="jxr_keyword">extends</strong> DefaultPlcWriteRequest {
 <a class="jxr_linenumber" name="L421" href="#L421">421</a> 
-<a class="jxr_linenumber" name="L422" href="#L422">422</a>         <strong class="jxr_keyword">private</strong> <a href="../../../../../../org/apache/plc4x/java/base/protocol/SingleItemToSingleRequestProtocolTest.html">TestDefaultPlcWriteRequest</a>(PlcWriter writer, LinkedHashMap&lt;String, Pair&lt;PlcField, FieldItem&gt;&gt; fields) {
+<a class="jxr_linenumber" name="L422" href="#L422">422</a>         <strong class="jxr_keyword">private</strong> <a href="../../../../../../org/apache/plc4x/java/base/protocol/SingleItemToSingleRequestProtocolTest.html">TestDefaultPlcWriteRequest</a>(PlcWriter writer, LinkedHashMap&lt;String, Pair&lt;PlcField, BaseDefaultFieldItem&gt;&gt; fields) {
 <a class="jxr_linenumber" name="L423" href="#L423">423</a>             <strong class="jxr_keyword">super</strong>(writer, fields);
 <a class="jxr_linenumber" name="L424" href="#L424">424</a>         }
 <a class="jxr_linenumber" name="L425" href="#L425">425</a> 
 <a class="jxr_linenumber" name="L426" href="#L426">426</a>         <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <a href="../../../../../../org/apache/plc4x/java/base/protocol/SingleItemToSingleRequestProtocolTest.html">TestDefaultPlcWriteRequest</a> build(PlcWriter writer) {
-<a class="jxr_linenumber" name="L427" href="#L427">427</a>             LinkedHashMap&lt;String, Pair&lt;PlcField, FieldItem&gt;&gt; fields = <strong class="jxr_keyword">new</strong> LinkedHashMap&lt;&gt;();
-<a class="jxr_linenumber" name="L428" href="#L428">428</a>             IntStream.rangeClosed(1, 5).forEach(i -&gt; fields.put(<span class="jxr_string">"writeField"</span> + i, Pair.of(mock(PlcField.<strong class="jxr_keyword">class</strong>), mock(FieldItem.<strong class="jxr_keyword">class</strong>))));
+<a class="jxr_linenumber" name="L427" href="#L427">427</a>             LinkedHashMap&lt;String, Pair&lt;PlcField, BaseDefaultFieldItem&gt;&gt; fields = <strong class="jxr_keyword">new</strong> LinkedHashMap&lt;&gt;();
+<a class="jxr_linenumber" name="L428" href="#L428">428</a>             IntStream.rangeClosed(1, 5).forEach(i -&gt; fields.put(<span class="jxr_string">"writeField"</span> + i, Pair.of(mock(PlcField.<strong class="jxr_keyword">class</strong>), mock(BaseDefaultFieldItem.<strong class="jxr_keyword">class</strong>))));
 <a class="jxr_linenumber" name="L429" href="#L429">429</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/base/protocol/SingleItemToSingleRequestProtocolTest.html">TestDefaultPlcWriteRequest</a>(writer, fields);
 <a class="jxr_linenumber" name="L430" href="#L430">430</a>         }
 <a class="jxr_linenumber" name="L431" href="#L431">431</a>     }

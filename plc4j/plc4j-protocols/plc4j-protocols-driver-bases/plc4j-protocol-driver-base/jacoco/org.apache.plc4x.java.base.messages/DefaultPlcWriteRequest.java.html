@@ -26,7 +26,7 @@ import org.apache.plc4x.java.api.messages.PlcWriteRequest;
 import org.apache.plc4x.java.api.messages.PlcWriteResponse;
 import org.apache.plc4x.java.api.model.PlcField;
 import org.apache.plc4x.java.base.connection.PlcFieldHandler;
-import org.apache.plc4x.java.base.messages.items.FieldItem;
+import org.apache.plc4x.java.base.messages.items.BaseDefaultFieldItem;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -41,12 +41,12 @@ import java.util.stream.Collectors;
 public class DefaultPlcWriteRequest implements InternalPlcWriteRequest, InternalPlcFieldRequest {
 
     private final PlcWriter writer;
-    private final LinkedHashMap&lt;String, Pair&lt;PlcField, FieldItem&gt;&gt; fields;
+    private final LinkedHashMap&lt;String, Pair&lt;PlcField, BaseDefaultFieldItem&gt;&gt; fields;
 
-<span class="fc" id="L46">    protected DefaultPlcWriteRequest(PlcWriter writer, LinkedHashMap&lt;String, Pair&lt;PlcField, FieldItem&gt;&gt; fields) {</span>
-<span class="fc" id="L47">        this.writer = writer;</span>
-<span class="fc" id="L48">        this.fields = fields;</span>
-<span class="fc" id="L49">    }</span>
+<span class="nc" id="L46">    protected DefaultPlcWriteRequest(PlcWriter writer, LinkedHashMap&lt;String, Pair&lt;PlcField, BaseDefaultFieldItem&gt;&gt; fields) {</span>
+<span class="nc" id="L47">        this.writer = writer;</span>
+<span class="nc" id="L48">        this.fields = fields;</span>
+<span class="nc" id="L49">    }</span>
 
     @Override
     public CompletableFuture&lt;PlcWriteResponse&gt; execute() {
@@ -55,13 +55,13 @@ public class DefaultPlcWriteRequest implements InternalPlcWriteRequest, Internal
 
     @Override
     public int getNumberOfFields() {
-<span class="fc" id="L58">        return fields.size();</span>
+<span class="nc" id="L58">        return fields.size();</span>
     }
 
     @Override
     public LinkedHashSet&lt;String&gt; getFieldNames() {
         // TODO: Check if this already is a LinkedHashSet.
-<span class="fc" id="L64">        return new LinkedHashSet&lt;&gt;(fields.keySet());</span>
+<span class="nc" id="L64">        return new LinkedHashSet&lt;&gt;(fields.keySet());</span>
     }
 
     @Override
@@ -74,12 +74,12 @@ public class DefaultPlcWriteRequest implements InternalPlcWriteRequest, Internal
 <span class="nc" id="L74">        return fields.values().stream().map(Pair::getKey).collect(Collectors.toCollection(LinkedList::new));</span>
     }
 
-    public FieldItem getFieldItem(String name) {
+    public BaseDefaultFieldItem getFieldItem(String name) {
 <span class="nc" id="L78">        return fields.get(name).getValue();</span>
     }
 
     @Override
-    public LinkedList&lt;FieldItem&gt; getFieldItems() {
+    public LinkedList&lt;BaseDefaultFieldItem&gt; getFieldItems() {
 <span class="nc" id="L83">        return fields.values().stream().map(Pair::getValue).collect(Collectors.toCollection(LinkedList::new));</span>
     }
 
@@ -96,16 +96,16 @@ public class DefaultPlcWriteRequest implements InternalPlcWriteRequest, Internal
     }
 
     @Override
-    public LinkedList&lt;Triple&lt;String, PlcField, FieldItem&gt;&gt; getNamedFieldTriples() {
-<span class="fc" id="L100">        return fields.entrySet()</span>
-<span class="fc" id="L101">            .stream()</span>
-<span class="fc" id="L102">            .map(stringPairEntry -&gt;</span>
-<span class="fc" id="L103">                Triple.of(</span>
-<span class="fc" id="L104">                    stringPairEntry.getKey(),</span>
-<span class="fc" id="L105">                    stringPairEntry.getValue().getKey(),</span>
-<span class="fc" id="L106">                    stringPairEntry.getValue().getValue()</span>
+    public LinkedList&lt;Triple&lt;String, PlcField, BaseDefaultFieldItem&gt;&gt; getNamedFieldTriples() {
+<span class="nc" id="L100">        return fields.entrySet()</span>
+<span class="nc" id="L101">            .stream()</span>
+<span class="nc" id="L102">            .map(stringPairEntry -&gt;</span>
+<span class="nc" id="L103">                Triple.of(</span>
+<span class="nc" id="L104">                    stringPairEntry.getKey(),</span>
+<span class="nc" id="L105">                    stringPairEntry.getValue().getKey(),</span>
+<span class="nc" id="L106">                    stringPairEntry.getValue().getValue()</span>
                 )
-<span class="fc" id="L108">            ).collect(Collectors.toCollection(LinkedList::new));</span>
+<span class="nc" id="L108">            ).collect(Collectors.toCollection(LinkedList::new));</span>
     }
 
     @Override
@@ -118,7 +118,7 @@ public class DefaultPlcWriteRequest implements InternalPlcWriteRequest, Internal
         private final PlcWriter writer;
         private final PlcFieldHandler fieldHandler;
         private final Map&lt;String, BuilderItem&lt;Object&gt;&gt; fields;
-        private final Map&lt;Class&lt;?&gt;, BiFunction&lt;PlcField, Object[], FieldItem&gt;&gt; handlerMap;
+        private final Map&lt;Class&lt;?&gt;, BiFunction&lt;PlcField, Object[], BaseDefaultFieldItem&gt;&gt; handlerMap;
 
 <span class="nc" id="L123">        public Builder(PlcWriter writer, PlcFieldHandler fieldHandler) {</span>
 <span class="nc" id="L124">            this.writer = writer;</span>
@@ -229,7 +229,7 @@ public class DefaultPlcWriteRequest implements InternalPlcWriteRequest, Internal
 <span class="nc" id="L229">                    throw new IllegalArgumentException(&quot;Invalid class found &quot; + value.getClass() + &quot;. should all be &quot; + checkedClazz);</span>
                 }
             }
-<span class="nc" id="L232">            BiFunction&lt;PlcField, Object[], FieldItem&gt; plcFieldFieldItemBiFunction = handlerMap.get(checkedClazz);</span>
+<span class="nc" id="L232">            BiFunction&lt;PlcField, Object[], BaseDefaultFieldItem&gt; plcFieldFieldItemBiFunction = handlerMap.get(checkedClazz);</span>
 <span class="nc bnc" id="L233" title="All 2 branches missed.">            if (plcFieldFieldItemBiFunction == null) {</span>
 <span class="nc" id="L234">                throw new IllegalArgumentException(&quot;no field handler for &quot; + checkedClazz + &quot; found&quot;);</span>
             }
@@ -238,19 +238,19 @@ public class DefaultPlcWriteRequest implements InternalPlcWriteRequest, Internal
 
         @Override
         public PlcWriteRequest build() {
-<span class="nc" id="L241">            LinkedHashMap&lt;String, Pair&lt;PlcField, FieldItem&gt;&gt; parsedFields = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L241">            LinkedHashMap&lt;String, Pair&lt;PlcField, BaseDefaultFieldItem&gt;&gt; parsedFields = new LinkedHashMap&lt;&gt;();</span>
 <span class="nc" id="L242">            fields.forEach((name, builderItem) -&gt; {</span>
                 // Compile the query string.
 <span class="nc" id="L244">                PlcField parsedField = fieldHandler.createField(builderItem.fieldQuery);</span>
                 // Encode the payload.
                 // TODO: Depending on the field type, handle the FieldItem creation differently.
-<span class="nc" id="L247">                FieldItem fieldItem = builderItem.encoder.apply(parsedField, builderItem.values);</span>
+<span class="nc" id="L247">                BaseDefaultFieldItem fieldItem = builderItem.encoder.apply(parsedField, builderItem.values);</span>
 <span class="nc" id="L248">                parsedFields.put(name, new ImmutablePair&lt;&gt;(parsedField, fieldItem));</span>
 <span class="nc" id="L249">            });</span>
 <span class="nc" id="L250">            return new DefaultPlcWriteRequest(writer, parsedFields);</span>
         }
 
-        private Builder addItem(String name, String fieldQuery, Object[] values, BiFunction&lt;PlcField, Object[], FieldItem&gt; encoder) {
+        private Builder addItem(String name, String fieldQuery, Object[] values, BiFunction&lt;PlcField, Object[], BaseDefaultFieldItem&gt; encoder) {
 <span class="nc bnc" id="L254" title="All 2 branches missed.">            if (fields.containsKey(name)) {</span>
 <span class="nc" id="L255">                throw new PlcRuntimeException(&quot;Duplicate field definition '&quot; + name + &quot;'&quot;);</span>
             }
@@ -261,9 +261,9 @@ public class DefaultPlcWriteRequest implements InternalPlcWriteRequest, Internal
         private static class BuilderItem&lt;T&gt; {
             private final String fieldQuery;
             private final T[] values;
-            private final BiFunction&lt;PlcField, T[], FieldItem&gt; encoder;
+            private final BiFunction&lt;PlcField, T[], BaseDefaultFieldItem&gt; encoder;
 
-<span class="nc" id="L266">            private BuilderItem(String fieldQuery, T[] values, BiFunction&lt;PlcField, T[], FieldItem&gt; encoder) {</span>
+<span class="nc" id="L266">            private BuilderItem(String fieldQuery, T[] values, BiFunction&lt;PlcField, T[], BaseDefaultFieldItem&gt; encoder) {</span>
 <span class="nc" id="L267">                this.fieldQuery = fieldQuery;</span>
 <span class="nc" id="L268">                this.values = values;</span>
 <span class="nc" id="L269">                this.encoder = encoder;</span>

@@ -46,8 +46,8 @@
 <a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.messages.PlcWriteRequest;
 <a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.types.PlcResponseCode;
 <a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.base.messages.*;
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.base.messages.items.DefaultBooleanFieldItem;
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.base.messages.items.FieldItem;
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.base.messages.items.BaseDefaultFieldItem;
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.base.messages.items.DefaultBooleanFieldItem;
 <a class="jxr_linenumber" name="L43" href="#L43">43</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.modbus.messages.items.DefaultModbusByteArrayFieldItem;
 <a class="jxr_linenumber" name="L44" href="#L44">44</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.modbus.model.*;
 <a class="jxr_linenumber" name="L45" href="#L45">45</a>  <strong class="jxr_keyword">import</strong> org.slf4j.Logger;
@@ -271,7 +271,7 @@
 <a class="jxr_linenumber" name="L263" href="#L263">263</a>             LOGGER.debug(<span class="jxr_string">"{}: Nothing"</span>, readCoilsResponse);
 <a class="jxr_linenumber" name="L264" href="#L264">264</a>             ByteBuf byteBuf = readCoilsResponse.getCoilStatus();
 <a class="jxr_linenumber" name="L265" href="#L265">265</a>             DefaultBooleanFieldItem data = produceCoilValueList(byteBuf, field.getQuantity());
-<a class="jxr_linenumber" name="L266" href="#L266">266</a>             Map&lt;String, Pair&lt;PlcResponseCode, FieldItem&gt;&gt; responseValues = <strong class="jxr_keyword">new</strong> HashMap&lt;&gt;();
+<a class="jxr_linenumber" name="L266" href="#L266">266</a>             Map&lt;String, Pair&lt;PlcResponseCode, BaseDefaultFieldItem&gt;&gt; responseValues = <strong class="jxr_keyword">new</strong> HashMap&lt;&gt;();
 <a class="jxr_linenumber" name="L267" href="#L267">267</a>             responseValues.put(fieldName, <strong class="jxr_keyword">new</strong> ImmutablePair&lt;&gt;(PlcResponseCode.OK, data));
 <a class="jxr_linenumber" name="L268" href="#L268">268</a>             plcRequestContainer.getResponseFuture().complete(<strong class="jxr_keyword">new</strong> DefaultPlcReadResponse((InternalPlcReadRequest) request, responseValues));
 <a class="jxr_linenumber" name="L269" href="#L269">269</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (modbusPdu instanceof ReadDiscreteInputsResponse) {
@@ -280,7 +280,7 @@
 <a class="jxr_linenumber" name="L272" href="#L272">272</a>             LOGGER.debug(<span class="jxr_string">"{}: Nothing"</span>, readDiscreteInputsResponse);
 <a class="jxr_linenumber" name="L273" href="#L273">273</a>             ByteBuf byteBuf = readDiscreteInputsResponse.getInputStatus();
 <a class="jxr_linenumber" name="L274" href="#L274">274</a>             DefaultBooleanFieldItem data = produceCoilValueList(byteBuf, field.getQuantity());
-<a class="jxr_linenumber" name="L275" href="#L275">275</a>             Map&lt;String, Pair&lt;PlcResponseCode, FieldItem&gt;&gt; responseValues = <strong class="jxr_keyword">new</strong> HashMap&lt;&gt;();
+<a class="jxr_linenumber" name="L275" href="#L275">275</a>             Map&lt;String, Pair&lt;PlcResponseCode, BaseDefaultFieldItem&gt;&gt; responseValues = <strong class="jxr_keyword">new</strong> HashMap&lt;&gt;();
 <a class="jxr_linenumber" name="L276" href="#L276">276</a>             responseValues.put(fieldName, <strong class="jxr_keyword">new</strong> ImmutablePair&lt;&gt;(PlcResponseCode.OK, data));
 <a class="jxr_linenumber" name="L277" href="#L277">277</a>             plcRequestContainer.getResponseFuture().complete(<strong class="jxr_keyword">new</strong> DefaultPlcReadResponse((InternalPlcReadRequest) request, responseValues));
 <a class="jxr_linenumber" name="L278" href="#L278">278</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (modbusPdu instanceof ReadHoldingRegistersResponse) {
@@ -290,7 +290,7 @@
 <a class="jxr_linenumber" name="L282" href="#L282">282</a>             ByteBuf byteBuf = readHoldingRegistersResponse.getRegisters();
 <a class="jxr_linenumber" name="L283" href="#L283">283</a>             <em class="jxr_comment">// TODO: use register method</em>
 <a class="jxr_linenumber" name="L284" href="#L284">284</a>             <a href="../../../../../../org/apache/plc4x/java/modbus/messages/items/DefaultModbusByteArrayFieldItem.html">DefaultModbusByteArrayFieldItem</a> data = produceRegisterValueList(byteBuf, field.getQuantity());
-<a class="jxr_linenumber" name="L285" href="#L285">285</a>             Map&lt;String, Pair&lt;PlcResponseCode, FieldItem&gt;&gt; responseValues = <strong class="jxr_keyword">new</strong> HashMap&lt;&gt;();
+<a class="jxr_linenumber" name="L285" href="#L285">285</a>             Map&lt;String, Pair&lt;PlcResponseCode, BaseDefaultFieldItem&gt;&gt; responseValues = <strong class="jxr_keyword">new</strong> HashMap&lt;&gt;();
 <a class="jxr_linenumber" name="L286" href="#L286">286</a>             responseValues.put(fieldName, <strong class="jxr_keyword">new</strong> ImmutablePair&lt;&gt;(PlcResponseCode.OK, data));
 <a class="jxr_linenumber" name="L287" href="#L287">287</a>             plcRequestContainer.getResponseFuture().complete(<strong class="jxr_keyword">new</strong> DefaultPlcReadResponse((InternalPlcReadRequest) request, responseValues));
 <a class="jxr_linenumber" name="L288" href="#L288">288</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (modbusPdu instanceof ReadInputRegistersResponse) {
@@ -300,7 +300,7 @@
 <a class="jxr_linenumber" name="L292" href="#L292">292</a>             ByteBuf byteBuf = readInputRegistersResponse.getRegisters();
 <a class="jxr_linenumber" name="L293" href="#L293">293</a>             <em class="jxr_comment">// TODO: use register method</em>
 <a class="jxr_linenumber" name="L294" href="#L294">294</a>             <a href="../../../../../../org/apache/plc4x/java/modbus/messages/items/DefaultModbusByteArrayFieldItem.html">DefaultModbusByteArrayFieldItem</a> data = produceRegisterValueList(byteBuf, field.getQuantity());
-<a class="jxr_linenumber" name="L295" href="#L295">295</a>             Map&lt;String, Pair&lt;PlcResponseCode, FieldItem&gt;&gt; responseValues = <strong class="jxr_keyword">new</strong> HashMap&lt;&gt;();
+<a class="jxr_linenumber" name="L295" href="#L295">295</a>             Map&lt;String, Pair&lt;PlcResponseCode, BaseDefaultFieldItem&gt;&gt; responseValues = <strong class="jxr_keyword">new</strong> HashMap&lt;&gt;();
 <a class="jxr_linenumber" name="L296" href="#L296">296</a>             responseValues.put(fieldName, <strong class="jxr_keyword">new</strong> ImmutablePair&lt;&gt;(PlcResponseCode.OK, data));
 <a class="jxr_linenumber" name="L297" href="#L297">297</a>             plcRequestContainer.getResponseFuture().complete(<strong class="jxr_keyword">new</strong> DefaultPlcReadResponse((InternalPlcReadRequest) request, responseValues));
 <a class="jxr_linenumber" name="L298" href="#L298">298</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (modbusPdu instanceof MaskWriteRegisterResponse) {

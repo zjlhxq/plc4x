@@ -42,7 +42,7 @@
 <a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.base.PlcMessageToMessageCodec;
 <a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.base.events.ConnectedEvent;
 <a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.base.messages.*;
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.base.messages.items.FieldItem;
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.base.messages.items.BaseDefaultFieldItem;
 <a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.s7.messages.items.*;
 <a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.s7.model.S7Field;
 <a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.s7.netty.events.S7ConnectedEvent;
@@ -201,7 +201,7 @@
 <a class="jxr_linenumber" name="L193" href="#L193">193</a>             <strong class="jxr_keyword">if</strong>(!(writeRequest instanceof DefaultPlcWriteRequest)) {
 <a class="jxr_linenumber" name="L194" href="#L194">194</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> PlcException(<span class="jxr_string">"The writeRequest should have been of type DefaultPlcWriteRequest"</span>);
 <a class="jxr_linenumber" name="L195" href="#L195">195</a>             }
-<a class="jxr_linenumber" name="L196" href="#L196">196</a>             FieldItem fieldItem = ((DefaultPlcWriteRequest) writeRequest).getFieldItem(fieldName);
+<a class="jxr_linenumber" name="L196" href="#L196">196</a>             BaseDefaultFieldItem fieldItem = ((DefaultPlcWriteRequest) writeRequest).getFieldItem(fieldName);
 <a class="jxr_linenumber" name="L197" href="#L197">197</a> 
 <a class="jxr_linenumber" name="L198" href="#L198">198</a>             <em class="jxr_comment">// The number of elements provided in the request must match the number defined in the field, or</em>
 <a class="jxr_linenumber" name="L199" href="#L199">199</a>             <em class="jxr_comment">// bad things are going to happen.</em>
@@ -419,7 +419,7 @@
 <a class="jxr_linenumber" name="L411" href="#L411">411</a>                 <span class="jxr_string">"The number of requested items doesn't match the number of returned items"</span>);
 <a class="jxr_linenumber" name="L412" href="#L412">412</a>         }
 <a class="jxr_linenumber" name="L413" href="#L413">413</a> 
-<a class="jxr_linenumber" name="L414" href="#L414">414</a>         Map&lt;String, Pair&lt;PlcResponseCode, FieldItem&gt;&gt; values = <strong class="jxr_keyword">new</strong> HashMap&lt;&gt;();
+<a class="jxr_linenumber" name="L414" href="#L414">414</a>         Map&lt;String, Pair&lt;PlcResponseCode, BaseDefaultFieldItem&gt;&gt; values = <strong class="jxr_keyword">new</strong> HashMap&lt;&gt;();
 <a class="jxr_linenumber" name="L415" href="#L415">415</a>         List&lt;VarPayloadItem&gt; payloadItems = payload.getItems();
 <a class="jxr_linenumber" name="L416" href="#L416">416</a>         <strong class="jxr_keyword">int</strong> index = 0;
 <a class="jxr_linenumber" name="L417" href="#L417">417</a>         <strong class="jxr_keyword">for</strong> (String fieldName : plcReadRequest.getFieldNames()) {
@@ -427,7 +427,7 @@
 <a class="jxr_linenumber" name="L419" href="#L419">419</a>             <a href="../../../../../../org/apache/plc4x/java/s7/netty/model/payloads/items/VarPayloadItem.html">VarPayloadItem</a> payloadItem = payloadItems.get(index);
 <a class="jxr_linenumber" name="L420" href="#L420">420</a> 
 <a class="jxr_linenumber" name="L421" href="#L421">421</a>             PlcResponseCode responseCode = decodeResponseCode(payloadItem.getReturnCode());
-<a class="jxr_linenumber" name="L422" href="#L422">422</a>             FieldItem fieldItem = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L422" href="#L422">422</a>             BaseDefaultFieldItem fieldItem = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L423" href="#L423">423</a>             ByteBuf data = Unpooled.wrappedBuffer(payloadItem.getData());
 <a class="jxr_linenumber" name="L424" href="#L424">424</a>             <strong class="jxr_keyword">if</strong> (responseCode == PlcResponseCode.OK) {
 <a class="jxr_linenumber" name="L425" href="#L425">425</a>                 <em class="jxr_comment">// TODO 2018-09-27 jf: array returning only implemented for BOOL, BYTE, INTEGERS, FP</em>
@@ -580,7 +580,7 @@
 <a class="jxr_linenumber" name="L572" href="#L572">572</a>                         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> PlcProtocolException(<span class="jxr_string">"Unsupported type "</span> + field.getDataType());
 <a class="jxr_linenumber" name="L573" href="#L573">573</a>                 }
 <a class="jxr_linenumber" name="L574" href="#L574">574</a>             }
-<a class="jxr_linenumber" name="L575" href="#L575">575</a>             Pair&lt;PlcResponseCode, FieldItem&gt; result = <strong class="jxr_keyword">new</strong> ImmutablePair&lt;&gt;(responseCode, fieldItem);
+<a class="jxr_linenumber" name="L575" href="#L575">575</a>             Pair&lt;PlcResponseCode, BaseDefaultFieldItem&gt; result = <strong class="jxr_keyword">new</strong> ImmutablePair&lt;&gt;(responseCode, fieldItem);
 <a class="jxr_linenumber" name="L576" href="#L576">576</a>             values.put(fieldName, result);
 <a class="jxr_linenumber" name="L577" href="#L577">577</a>             index++;
 <a class="jxr_linenumber" name="L578" href="#L578">578</a>         }

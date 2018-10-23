@@ -34,7 +34,7 @@
 <a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.messages.PlcWriteResponse;
 <a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.model.PlcField;
 <a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.base.connection.PlcFieldHandler;
-<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.base.messages.items.FieldItem;
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.base.messages.items.BaseDefaultFieldItem;
 <a class="jxr_linenumber" name="L30" href="#L30">30</a>  
 <a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> java.math.BigDecimal;
 <a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> java.math.BigInteger;
@@ -49,9 +49,9 @@
 <a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../../org/apache/plc4x/java/base/messages/DefaultPlcWriteRequest.html">DefaultPlcWriteRequest</a> <strong class="jxr_keyword">implements</strong> InternalPlcWriteRequest, <a href="../../../../../../org/apache/plc4x/java/base/messages/InternalPlcFieldRequest.html">InternalPlcFieldRequest</a> {
 <a class="jxr_linenumber" name="L42" href="#L42">42</a>  
 <a class="jxr_linenumber" name="L43" href="#L43">43</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a href="../../../../../../org/apache/plc4x/java/base/messages/PlcWriter.html">PlcWriter</a> writer;
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> LinkedHashMap&lt;String, Pair&lt;PlcField, FieldItem&gt;&gt; fields;
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> LinkedHashMap&lt;String, Pair&lt;PlcField, BaseDefaultFieldItem&gt;&gt; fields;
 <a class="jxr_linenumber" name="L45" href="#L45">45</a>  
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>      <strong class="jxr_keyword">protected</strong> <a href="../../../../../../org/apache/plc4x/java/base/messages/DefaultPlcWriteRequest.html">DefaultPlcWriteRequest</a>(<a href="../../../../../../org/apache/plc4x/java/base/messages/PlcWriter.html">PlcWriter</a> writer, LinkedHashMap&lt;String, Pair&lt;PlcField, FieldItem&gt;&gt; fields) {
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>      <strong class="jxr_keyword">protected</strong> <a href="../../../../../../org/apache/plc4x/java/base/messages/DefaultPlcWriteRequest.html">DefaultPlcWriteRequest</a>(<a href="../../../../../../org/apache/plc4x/java/base/messages/PlcWriter.html">PlcWriter</a> writer, LinkedHashMap&lt;String, Pair&lt;PlcField, BaseDefaultFieldItem&gt;&gt; fields) {
 <a class="jxr_linenumber" name="L47" href="#L47">47</a>          <strong class="jxr_keyword">this</strong>.writer = writer;
 <a class="jxr_linenumber" name="L48" href="#L48">48</a>          <strong class="jxr_keyword">this</strong>.fields = fields;
 <a class="jxr_linenumber" name="L49" href="#L49">49</a>      }
@@ -82,12 +82,12 @@
 <a class="jxr_linenumber" name="L74" href="#L74">74</a>          <strong class="jxr_keyword">return</strong> fields.values().stream().map(Pair::getKey).collect(Collectors.toCollection(LinkedList::<strong class="jxr_keyword">new</strong>));
 <a class="jxr_linenumber" name="L75" href="#L75">75</a>      }
 <a class="jxr_linenumber" name="L76" href="#L76">76</a>  
-<a class="jxr_linenumber" name="L77" href="#L77">77</a>      <strong class="jxr_keyword">public</strong> <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> getFieldItem(String name) {
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>      <strong class="jxr_keyword">public</strong> <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> getFieldItem(String name) {
 <a class="jxr_linenumber" name="L78" href="#L78">78</a>          <strong class="jxr_keyword">return</strong> fields.get(name).getValue();
 <a class="jxr_linenumber" name="L79" href="#L79">79</a>      }
 <a class="jxr_linenumber" name="L80" href="#L80">80</a>  
 <a class="jxr_linenumber" name="L81" href="#L81">81</a>      @Override
-<a class="jxr_linenumber" name="L82" href="#L82">82</a>      <strong class="jxr_keyword">public</strong> LinkedList&lt;FieldItem&gt; getFieldItems() {
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>      <strong class="jxr_keyword">public</strong> LinkedList&lt;BaseDefaultFieldItem&gt; getFieldItems() {
 <a class="jxr_linenumber" name="L83" href="#L83">83</a>          <strong class="jxr_keyword">return</strong> fields.values().stream().map(Pair::getValue).collect(Collectors.toCollection(LinkedList::<strong class="jxr_keyword">new</strong>));
 <a class="jxr_linenumber" name="L84" href="#L84">84</a>      }
 <a class="jxr_linenumber" name="L85" href="#L85">85</a>  
@@ -104,7 +104,7 @@
 <a class="jxr_linenumber" name="L96" href="#L96">96</a>      }
 <a class="jxr_linenumber" name="L97" href="#L97">97</a>  
 <a class="jxr_linenumber" name="L98" href="#L98">98</a>      @Override
-<a class="jxr_linenumber" name="L99" href="#L99">99</a>      <strong class="jxr_keyword">public</strong> LinkedList&lt;Triple&lt;String, PlcField, FieldItem&gt;&gt; getNamedFieldTriples() {
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>      <strong class="jxr_keyword">public</strong> LinkedList&lt;Triple&lt;String, PlcField, BaseDefaultFieldItem&gt;&gt; getNamedFieldTriples() {
 <a class="jxr_linenumber" name="L100" href="#L100">100</a>         <strong class="jxr_keyword">return</strong> fields.entrySet()
 <a class="jxr_linenumber" name="L101" href="#L101">101</a>             .stream()
 <a class="jxr_linenumber" name="L102" href="#L102">102</a>             .map(stringPairEntry -&gt;
@@ -126,7 +126,7 @@
 <a class="jxr_linenumber" name="L118" href="#L118">118</a>         <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a href="../../../../../../org/apache/plc4x/java/base/messages/PlcWriter.html">PlcWriter</a> writer;
 <a class="jxr_linenumber" name="L119" href="#L119">119</a>         <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a href="../../../../../../org/apache/plc4x/java/base/connection/PlcFieldHandler.html">PlcFieldHandler</a> fieldHandler;
 <a class="jxr_linenumber" name="L120" href="#L120">120</a>         <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> Map&lt;String, BuilderItem&lt;Object&gt;&gt; fields;
-<a class="jxr_linenumber" name="L121" href="#L121">121</a>         <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> Map&lt;Class&lt;?&gt;, BiFunction&lt;PlcField, Object[], FieldItem&gt;&gt; handlerMap;
+<a class="jxr_linenumber" name="L121" href="#L121">121</a>         <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> Map&lt;Class&lt;?&gt;, BiFunction&lt;PlcField, Object[], BaseDefaultFieldItem&gt;&gt; handlerMap;
 <a class="jxr_linenumber" name="L122" href="#L122">122</a> 
 <a class="jxr_linenumber" name="L123" href="#L123">123</a>         <strong class="jxr_keyword">public</strong> <a href="../../../../../../org/apache/plc4x/java/api/messages/PlcWriteRequest.html">Builder</a>(<a href="../../../../../../org/apache/plc4x/java/base/messages/PlcWriter.html">PlcWriter</a> writer, <a href="../../../../../../org/apache/plc4x/java/base/connection/PlcFieldHandler.html">PlcFieldHandler</a> fieldHandler) {
 <a class="jxr_linenumber" name="L124" href="#L124">124</a>             <strong class="jxr_keyword">this</strong>.writer = writer;
@@ -237,7 +237,7 @@
 <a class="jxr_linenumber" name="L229" href="#L229">229</a>                     <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"Invalid class found "</span> + value.getClass() + <span class="jxr_string">". should all be "</span> + checkedClazz);
 <a class="jxr_linenumber" name="L230" href="#L230">230</a>                 }
 <a class="jxr_linenumber" name="L231" href="#L231">231</a>             }
-<a class="jxr_linenumber" name="L232" href="#L232">232</a>             BiFunction&lt;PlcField, Object[], FieldItem&gt; plcFieldFieldItemBiFunction = handlerMap.get(checkedClazz);
+<a class="jxr_linenumber" name="L232" href="#L232">232</a>             BiFunction&lt;PlcField, Object[], BaseDefaultFieldItem&gt; plcFieldFieldItemBiFunction = handlerMap.get(checkedClazz);
 <a class="jxr_linenumber" name="L233" href="#L233">233</a>             <strong class="jxr_keyword">if</strong> (plcFieldFieldItemBiFunction == <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L234" href="#L234">234</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"no field handler for "</span> + checkedClazz + <span class="jxr_string">" found"</span>);
 <a class="jxr_linenumber" name="L235" href="#L235">235</a>             }
@@ -246,19 +246,19 @@
 <a class="jxr_linenumber" name="L238" href="#L238">238</a> 
 <a class="jxr_linenumber" name="L239" href="#L239">239</a>         @Override
 <a class="jxr_linenumber" name="L240" href="#L240">240</a>         <strong class="jxr_keyword">public</strong> <a href="../../../../../../org/apache/plc4x/java/api/messages/PlcWriteRequest.html">PlcWriteRequest</a> build() {
-<a class="jxr_linenumber" name="L241" href="#L241">241</a>             LinkedHashMap&lt;String, Pair&lt;PlcField, FieldItem&gt;&gt; parsedFields = <strong class="jxr_keyword">new</strong> LinkedHashMap&lt;&gt;();
+<a class="jxr_linenumber" name="L241" href="#L241">241</a>             LinkedHashMap&lt;String, Pair&lt;PlcField, BaseDefaultFieldItem&gt;&gt; parsedFields = <strong class="jxr_keyword">new</strong> LinkedHashMap&lt;&gt;();
 <a class="jxr_linenumber" name="L242" href="#L242">242</a>             fields.forEach((name, builderItem) -&gt; {
 <a class="jxr_linenumber" name="L243" href="#L243">243</a>                 <em class="jxr_comment">// Compile the query string.</em>
 <a class="jxr_linenumber" name="L244" href="#L244">244</a>                 <a href="../../../../../../org/apache/plc4x/java/api/model/PlcField.html">PlcField</a> parsedField = fieldHandler.createField(builderItem.fieldQuery);
 <a class="jxr_linenumber" name="L245" href="#L245">245</a>                 <em class="jxr_comment">// Encode the payload.</em>
 <a class="jxr_linenumber" name="L246" href="#L246">246</a>                 <em class="jxr_comment">// TODO: Depending on the field type, handle the FieldItem creation differently.</em>
-<a class="jxr_linenumber" name="L247" href="#L247">247</a>                 <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldItem = builderItem.encoder.apply(parsedField, builderItem.values);
+<a class="jxr_linenumber" name="L247" href="#L247">247</a>                 <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldItem = builderItem.encoder.apply(parsedField, builderItem.values);
 <a class="jxr_linenumber" name="L248" href="#L248">248</a>                 parsedFields.put(name, <strong class="jxr_keyword">new</strong> ImmutablePair&lt;&gt;(parsedField, fieldItem));
 <a class="jxr_linenumber" name="L249" href="#L249">249</a>             });
 <a class="jxr_linenumber" name="L250" href="#L250">250</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/base/messages/DefaultPlcWriteRequest.html">DefaultPlcWriteRequest</a>(writer, parsedFields);
 <a class="jxr_linenumber" name="L251" href="#L251">251</a>         }
 <a class="jxr_linenumber" name="L252" href="#L252">252</a> 
-<a class="jxr_linenumber" name="L253" href="#L253">253</a>         <strong class="jxr_keyword">private</strong> <a href="../../../../../../org/apache/plc4x/java/api/messages/PlcWriteRequest.html">Builder</a> addItem(String name, String fieldQuery, Object[] values, BiFunction&lt;PlcField, Object[], FieldItem&gt; encoder) {
+<a class="jxr_linenumber" name="L253" href="#L253">253</a>         <strong class="jxr_keyword">private</strong> <a href="../../../../../../org/apache/plc4x/java/api/messages/PlcWriteRequest.html">Builder</a> addItem(String name, String fieldQuery, Object[] values, BiFunction&lt;PlcField, Object[], BaseDefaultFieldItem&gt; encoder) {
 <a class="jxr_linenumber" name="L254" href="#L254">254</a>             <strong class="jxr_keyword">if</strong> (fields.containsKey(name)) {
 <a class="jxr_linenumber" name="L255" href="#L255">255</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/api/exceptions/PlcRuntimeException.html">PlcRuntimeException</a>(<span class="jxr_string">"Duplicate field definition '"</span> + name + <span class="jxr_string">"'"</span>);
 <a class="jxr_linenumber" name="L256" href="#L256">256</a>             }
@@ -269,9 +269,9 @@
 <a class="jxr_linenumber" name="L261" href="#L261">261</a>         <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">class</strong> BuilderItem&lt;T&gt; {
 <a class="jxr_linenumber" name="L262" href="#L262">262</a>             <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> String fieldQuery;
 <a class="jxr_linenumber" name="L263" href="#L263">263</a>             <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> T[] values;
-<a class="jxr_linenumber" name="L264" href="#L264">264</a>             <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> BiFunction&lt;PlcField, T[], FieldItem&gt; encoder;
+<a class="jxr_linenumber" name="L264" href="#L264">264</a>             <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> BiFunction&lt;PlcField, T[], BaseDefaultFieldItem&gt; encoder;
 <a class="jxr_linenumber" name="L265" href="#L265">265</a> 
-<a class="jxr_linenumber" name="L266" href="#L266">266</a>             <strong class="jxr_keyword">private</strong> <a href="../../../../../../org/apache/plc4x/java/base/messages/DefaultPlcSubscriptionRequest.html">BuilderItem</a>(String fieldQuery, T[] values, BiFunction&lt;PlcField, T[], FieldItem&gt; encoder) {
+<a class="jxr_linenumber" name="L266" href="#L266">266</a>             <strong class="jxr_keyword">private</strong> <a href="../../../../../../org/apache/plc4x/java/base/messages/DefaultPlcSubscriptionRequest.html">BuilderItem</a>(String fieldQuery, T[] values, BiFunction&lt;PlcField, T[], BaseDefaultFieldItem&gt; encoder) {
 <a class="jxr_linenumber" name="L267" href="#L267">267</a>                 <strong class="jxr_keyword">this</strong>.fieldQuery = fieldQuery;
 <a class="jxr_linenumber" name="L268" href="#L268">268</a>                 <strong class="jxr_keyword">this</strong>.values = values;
 <a class="jxr_linenumber" name="L269" href="#L269">269</a>                 <strong class="jxr_keyword">this</strong>.encoder = encoder;

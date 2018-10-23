@@ -22,9 +22,9 @@ import org.apache.plc4x.java.api.exceptions.PlcInvalidFieldException;
 import org.apache.plc4x.java.api.exceptions.PlcRuntimeException;
 import org.apache.plc4x.java.api.model.PlcField;
 import org.apache.plc4x.java.base.connection.DefaultPlcFieldHandler;
+import org.apache.plc4x.java.base.messages.items.BaseDefaultFieldItem;
 import org.apache.plc4x.java.base.messages.items.DefaultLocalDateTimeFieldItem;
 import org.apache.plc4x.java.base.messages.items.DefaultLongFieldItem;
-import org.apache.plc4x.java.base.messages.items.FieldItem;
 import org.apache.plc4x.java.s7.messages.items.*;
 import org.apache.plc4x.java.s7.model.S7Field;
 import org.apache.plc4x.java.s7.netty.model.types.TransportSize;
@@ -46,7 +46,7 @@ import java.util.List;
     }
 
     @Override
-    public FieldItem encodeBoolean(PlcField field, Object[] values) {
+    public BaseDefaultFieldItem encodeBoolean(PlcField field, Object[] values) {
 <span class="nc" id="L50">        S7Field s7Field = (S7Field) field;</span>
         // All of these types are declared as Bit or Bit-String types.
 <span class="nc bnc" id="L52" title="All 4 branches missed.">        if ((s7Field.getDataType() == TransportSize.BOOL) || (s7Field.getDataType() == TransportSize.BYTE) ||</span>
@@ -58,7 +58,7 @@ import java.util.List;
     }
 
     @Override
-    public FieldItem encodeByte(PlcField field, Object[] values) {
+    public BaseDefaultFieldItem encodeByte(PlcField field, Object[] values) {
 <span class="nc" id="L62">        S7Field s7Field = (S7Field) field;</span>
 <span class="nc bnc" id="L63" title="All 4 branches missed.">        if ((s7Field.getDataType() == TransportSize.BYTE) || (s7Field.getDataType() == TransportSize.SINT) ||</span>
 <span class="nc bnc" id="L64" title="All 4 branches missed.">            (s7Field.getDataType() == TransportSize.USINT) || (s7Field.getDataType() == TransportSize.CHAR)) {</span>
@@ -68,7 +68,7 @@ import java.util.List;
     }
 
     @Override
-    public FieldItem encodeShort(PlcField field, Object[] values) {
+    public BaseDefaultFieldItem encodeShort(PlcField field, Object[] values) {
 <span class="nc" id="L72">        S7Field s7Field = (S7Field) field;</span>
 <span class="nc bnc" id="L73" title="All 4 branches missed.">        if ((s7Field.getDataType() == TransportSize.WORD) || (s7Field.getDataType() == TransportSize.INT) ||</span>
 <span class="nc bnc" id="L74" title="All 2 branches missed.">            (s7Field.getDataType() == TransportSize.UINT)) {</span>
@@ -78,7 +78,7 @@ import java.util.List;
     }
 
     @Override
-    public FieldItem encodeInteger(PlcField field, Object[] values) {
+    public BaseDefaultFieldItem encodeInteger(PlcField field, Object[] values) {
 <span class="nc" id="L82">        S7Field s7Field = (S7Field) field;</span>
 <span class="nc bnc" id="L83" title="All 4 branches missed.">        if ((s7Field.getDataType() == TransportSize.DWORD) || (s7Field.getDataType() == TransportSize.DINT) ||</span>
 <span class="nc bnc" id="L84" title="All 2 branches missed.">            (s7Field.getDataType() == TransportSize.UDINT)) {</span>
@@ -88,7 +88,7 @@ import java.util.List;
     }
 
     @Override
-    public FieldItem encodeBigInteger(PlcField field, Object[] values) {
+    public BaseDefaultFieldItem encodeBigInteger(PlcField field, Object[] values) {
 <span class="nc" id="L92">        S7Field s7Field = (S7Field) field;</span>
 <span class="nc bnc" id="L93" title="All 4 branches missed.">        if ((s7Field.getDataType() == TransportSize.DWORD) || (s7Field.getDataType() == TransportSize.DINT) ||</span>
 <span class="nc bnc" id="L94" title="All 2 branches missed.">            (s7Field.getDataType() == TransportSize.UDINT)) {</span>
@@ -98,7 +98,7 @@ import java.util.List;
     }
 
     @Override
-    public FieldItem encodeLong(PlcField field, Object[] values) {
+    public BaseDefaultFieldItem encodeLong(PlcField field, Object[] values) {
 <span class="nc" id="L102">        S7Field s7Field = (S7Field) field;</span>
 <span class="nc bnc" id="L103" title="All 4 branches missed.">        if ((s7Field.getDataType() == TransportSize.LWORD) || (s7Field.getDataType() == TransportSize.LINT) ||</span>
 <span class="nc bnc" id="L104" title="All 2 branches missed.">            (s7Field.getDataType() == TransportSize.ULINT)) {</span>
@@ -108,7 +108,7 @@ import java.util.List;
     }
 
     @Override
-    public FieldItem encodeFloat(PlcField field, Object[] values) {
+    public BaseDefaultFieldItem encodeFloat(PlcField field, Object[] values) {
 <span class="nc" id="L112">        S7Field s7Field = (S7Field) field;</span>
 <span class="nc bnc" id="L113" title="All 2 branches missed.">        if (s7Field.getDataType() == TransportSize.REAL) {</span>
 <span class="nc" id="L114">            return internalEncodeFloatingPoint(field, values);</span>
@@ -117,7 +117,7 @@ import java.util.List;
     }
 
     @Override
-    public FieldItem encodeDouble(PlcField field, Object[] values) {
+    public BaseDefaultFieldItem encodeDouble(PlcField field, Object[] values) {
 <span class="nc" id="L121">        S7Field s7Field = (S7Field) field;</span>
 <span class="nc bnc" id="L122" title="All 2 branches missed.">        if (s7Field.getDataType() == TransportSize.LREAL) {</span>
 <span class="nc" id="L123">            return internalEncodeFloatingPoint(field, values);</span>
@@ -126,7 +126,7 @@ import java.util.List;
     }
 
     @Override
-    public FieldItem encodeString(PlcField field, Object[] values) {
+    public BaseDefaultFieldItem encodeString(PlcField field, Object[] values) {
 <span class="nc" id="L130">        S7Field s7Field = (S7Field) field;</span>
 <span class="nc bnc" id="L131" title="All 4 branches missed.">        if ((s7Field.getDataType() == TransportSize.CHAR) || (s7Field.getDataType() == TransportSize.WCHAR) ||</span>
 <span class="nc bnc" id="L132" title="All 4 branches missed.">            (s7Field.getDataType() == TransportSize.STRING) || (s7Field.getDataType() == TransportSize.WSTRING)) {</span>
@@ -136,7 +136,7 @@ import java.util.List;
     }
 
     @Override
-    public FieldItem encodeTime(PlcField field, Object[] values) {
+    public BaseDefaultFieldItem encodeTime(PlcField field, Object[] values) {
 <span class="nc" id="L140">        S7Field s7Field = (S7Field) field;</span>
 <span class="nc bnc" id="L141" title="All 2 branches missed.">        if (s7Field.getDataType() == TransportSize.TIME) {</span>
 <span class="nc" id="L142">            return internalEncodeTemporal(field, values);</span>
@@ -145,7 +145,7 @@ import java.util.List;
     }
 
     @Override
-    public FieldItem encodeDate(PlcField field, Object[] values) {
+    public BaseDefaultFieldItem encodeDate(PlcField field, Object[] values) {
 <span class="nc" id="L149">        S7Field s7Field = (S7Field) field;</span>
 <span class="nc bnc" id="L150" title="All 2 branches missed.">        if (s7Field.getDataType() == TransportSize.DATE) {</span>
 <span class="nc" id="L151">            return internalEncodeTemporal(field, values);</span>
@@ -154,7 +154,7 @@ import java.util.List;
     }
 
     @Override
-    public FieldItem encodeDateTime(PlcField field, Object[] values) {
+    public BaseDefaultFieldItem encodeDateTime(PlcField field, Object[] values) {
 <span class="nc" id="L158">        S7Field s7Field = (S7Field) field;</span>
 <span class="nc bnc" id="L159" title="All 2 branches missed.">        if (s7Field.getDataType() == TransportSize.DATE_AND_TIME) {</span>
 <span class="nc" id="L160">            return internalEncodeTemporal(field, values);</span>
@@ -162,7 +162,7 @@ import java.util.List;
 <span class="nc" id="L162">        throw new PlcRuntimeException(&quot;Invalid encoder for type &quot; + s7Field.getDataType().name());</span>
     }
 
-    private FieldItem internalEncodeBoolean(PlcField field, Object[] values) {
+    private BaseDefaultFieldItem internalEncodeBoolean(PlcField field, Object[] values) {
 <span class="nc" id="L166">        S7Field s7Field = (S7Field) field;</span>
 <span class="nc bnc" id="L167" title="All 2 branches missed.">        switch (s7Field.getDataType()) {</span>
             case BOOL:
@@ -213,11 +213,11 @@ import java.util.List;
 <span class="nc" id="L213">        return new S7BooleanFieldItem(s7Field.getDataType(), booleanValues.toArray(new Boolean[0]));</span>
     }
 
-    private FieldItem internalEncodeInteger(PlcField field, Object[] values) {
+    private BaseDefaultFieldItem internalEncodeInteger(PlcField field, Object[] values) {
 <span class="nc" id="L217">        S7Field s7Field = (S7Field) field;</span>
         BigInteger minValue;
         BigInteger maxValue;
-        Class&lt;? extends FieldItem&gt; fieldType;
+        Class&lt;? extends BaseDefaultFieldItem&gt; fieldType;
 <span class="nc bnc" id="L221" title="All 13 branches missed.">        switch (s7Field.getDataType()) {</span>
             case BYTE:
 <span class="nc" id="L223">                minValue = BigInteger.valueOf((long) Byte.MIN_VALUE);</span>
@@ -336,7 +336,7 @@ import java.util.List;
         }
     }
 
-    private FieldItem internalEncodeFloatingPoint(PlcField field, Object[] values) {
+    private BaseDefaultFieldItem internalEncodeFloatingPoint(PlcField field, Object[] values) {
 <span class="nc" id="L340">        S7Field s7Field = (S7Field) field;</span>
         Double minValue;
         Double maxValue;
@@ -380,7 +380,7 @@ import java.util.List;
 <span class="nc" id="L380">        return new S7FloatingPointFieldItem(s7Field.getDataType(), floatingPointValues);</span>
     }
 
-    private FieldItem internalEncodeString(PlcField field, Object[] values) {
+    private BaseDefaultFieldItem internalEncodeString(PlcField field, Object[] values) {
 <span class="nc" id="L384">        S7Field s7Field = (S7Field) field;</span>
         int maxLength;
         boolean encoding16Bit;
@@ -472,7 +472,7 @@ import java.util.List;
 <span class="nc" id="L472">        return new S7StringFieldItem(s7Field.getDataType(), stringValues.toArray(new String[0]));</span>
     }
 
-    private FieldItem internalEncodeTemporal(PlcField field, Object[] values) {
+    private BaseDefaultFieldItem internalEncodeTemporal(PlcField field, Object[] values) {
 <span class="nc" id="L476">        S7Field s7Field = (S7Field) field;</span>
 <span class="nc bnc" id="L477" title="All 2 branches missed.">        switch (s7Field.getDataType()) {</span>
             case TIME:

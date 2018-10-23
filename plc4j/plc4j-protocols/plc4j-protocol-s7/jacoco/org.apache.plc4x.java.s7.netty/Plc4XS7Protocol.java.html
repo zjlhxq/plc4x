@@ -34,7 +34,7 @@ import org.apache.plc4x.java.api.types.PlcResponseCode;
 import org.apache.plc4x.java.base.PlcMessageToMessageCodec;
 import org.apache.plc4x.java.base.events.ConnectedEvent;
 import org.apache.plc4x.java.base.messages.*;
-import org.apache.plc4x.java.base.messages.items.FieldItem;
+import org.apache.plc4x.java.base.messages.items.BaseDefaultFieldItem;
 import org.apache.plc4x.java.s7.messages.items.*;
 import org.apache.plc4x.java.s7.model.S7Field;
 import org.apache.plc4x.java.s7.netty.events.S7ConnectedEvent;
@@ -193,7 +193,7 @@ public class Plc4XS7Protocol extends PlcMessageToMessageCodec&lt;S7Message, PlcR
 <span class="nc bnc" id="L193" title="All 2 branches missed.">            if(!(writeRequest instanceof DefaultPlcWriteRequest)) {</span>
 <span class="nc" id="L194">                throw new PlcException(&quot;The writeRequest should have been of type DefaultPlcWriteRequest&quot;);</span>
             }
-<span class="nc" id="L196">            FieldItem fieldItem = ((DefaultPlcWriteRequest) writeRequest).getFieldItem(fieldName);</span>
+<span class="nc" id="L196">            BaseDefaultFieldItem fieldItem = ((DefaultPlcWriteRequest) writeRequest).getFieldItem(fieldName);</span>
 
             // The number of elements provided in the request must match the number defined in the field, or
             // bad things are going to happen.
@@ -411,7 +411,7 @@ public class Plc4XS7Protocol extends PlcMessageToMessageCodec&lt;S7Message, PlcR
                 &quot;The number of requested items doesn't match the number of returned items&quot;);
         }
 
-<span class="nc" id="L414">        Map&lt;String, Pair&lt;PlcResponseCode, FieldItem&gt;&gt; values = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L414">        Map&lt;String, Pair&lt;PlcResponseCode, BaseDefaultFieldItem&gt;&gt; values = new HashMap&lt;&gt;();</span>
 <span class="nc" id="L415">        List&lt;VarPayloadItem&gt; payloadItems = payload.getItems();</span>
 <span class="nc" id="L416">        int index = 0;</span>
 <span class="nc bnc" id="L417" title="All 2 branches missed.">        for (String fieldName : plcReadRequest.getFieldNames()) {</span>
@@ -419,7 +419,7 @@ public class Plc4XS7Protocol extends PlcMessageToMessageCodec&lt;S7Message, PlcR
 <span class="nc" id="L419">            VarPayloadItem payloadItem = payloadItems.get(index);</span>
 
 <span class="nc" id="L421">            PlcResponseCode responseCode = decodeResponseCode(payloadItem.getReturnCode());</span>
-<span class="nc" id="L422">            FieldItem fieldItem = null;</span>
+<span class="nc" id="L422">            BaseDefaultFieldItem fieldItem = null;</span>
 <span class="nc" id="L423">            ByteBuf data = Unpooled.wrappedBuffer(payloadItem.getData());</span>
 <span class="nc bnc" id="L424" title="All 2 branches missed.">            if (responseCode == PlcResponseCode.OK) {</span>
                 // TODO 2018-09-27 jf: array returning only implemented for BOOL, BYTE, INTEGERS, FP
@@ -572,7 +572,7 @@ public class Plc4XS7Protocol extends PlcMessageToMessageCodec&lt;S7Message, PlcR
 <span class="nc" id="L572">                        throw new PlcProtocolException(&quot;Unsupported type &quot; + field.getDataType());</span>
                 }
             }
-<span class="nc" id="L575">            Pair&lt;PlcResponseCode, FieldItem&gt; result = new ImmutablePair&lt;&gt;(responseCode, fieldItem);</span>
+<span class="nc" id="L575">            Pair&lt;PlcResponseCode, BaseDefaultFieldItem&gt; result = new ImmutablePair&lt;&gt;(responseCode, fieldItem);</span>
 <span class="nc" id="L576">            values.put(fieldName, result);</span>
 <span class="nc" id="L577">            index++;</span>
 <span class="nc" id="L578">        }</span>

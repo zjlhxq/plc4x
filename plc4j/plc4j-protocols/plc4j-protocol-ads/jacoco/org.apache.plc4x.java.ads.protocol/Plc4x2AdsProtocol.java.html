@@ -42,7 +42,7 @@ import org.apache.plc4x.java.api.messages.PlcWriteRequest;
 import org.apache.plc4x.java.api.model.PlcField;
 import org.apache.plc4x.java.api.types.PlcResponseCode;
 import org.apache.plc4x.java.base.messages.*;
-import org.apache.plc4x.java.base.messages.items.FieldItem;
+import org.apache.plc4x.java.base.messages.items.BaseDefaultFieldItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -152,7 +152,7 @@ public class Plc4x2AdsProtocol extends MessageToMessageCodec&lt;AmsPacket, PlcRe
 <span class="fc" id="L152">        IndexGroup indexGroup = IndexGroup.of(directAdsField.getIndexGroup());</span>
 <span class="fc" id="L153">        IndexOffset indexOffset = IndexOffset.of(directAdsField.getIndexOffset());</span>
 
-<span class="fc" id="L155">        FieldItem fieldItem = writeRequest.getFieldItems().get(0);</span>
+<span class="fc" id="L155">        BaseDefaultFieldItem fieldItem = writeRequest.getFieldItems().get(0);</span>
 <span class="fc" id="L156">        Object[] values = fieldItem.getValues();</span>
 
 <span class="fc" id="L158">        byte[] bytes = encodeData(directAdsField.getAdsDataType(), values);</span>
@@ -297,10 +297,10 @@ public class Plc4x2AdsProtocol extends MessageToMessageCodec&lt;AmsPacket, PlcRe
 
 <span class="fc" id="L298">        PlcResponseCode responseCode = decodeResponseCode(responseMessage.getResult());</span>
 <span class="fc" id="L299">        byte[] bytes = responseMessage.getData().getBytes();</span>
-<span class="fc" id="L300">        FieldItem&lt;?&gt; fieldItem = decodeData(field.getAdsDataType(), bytes);</span>
+<span class="fc" id="L300">        BaseDefaultFieldItem&lt;?&gt; fieldItem = decodeData(field.getAdsDataType(), bytes);</span>
 
         // TODO: does every item has the same ads response or is this whole aggregation broken?
-<span class="fc" id="L303">        Map&lt;String, Pair&lt;PlcResponseCode, FieldItem&gt;&gt; responseItems = plcReadRequest.getFieldNames()</span>
+<span class="fc" id="L303">        Map&lt;String, Pair&lt;PlcResponseCode, BaseDefaultFieldItem&gt;&gt; responseItems = plcReadRequest.getFieldNames()</span>
 <span class="fc" id="L304">            .stream()</span>
 <span class="fc" id="L305">            .collect(Collectors.toMap(</span>
 <span class="fc" id="L306">                fieldName -&gt; fieldName,</span>

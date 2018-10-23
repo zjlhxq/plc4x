@@ -50,7 +50,7 @@
 <a class="jxr_linenumber" name="L42" href="#L42">42</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.model.PlcField;
 <a class="jxr_linenumber" name="L43" href="#L43">43</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.types.PlcResponseCode;
 <a class="jxr_linenumber" name="L44" href="#L44">44</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.base.messages.*;
-<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.base.messages.items.FieldItem;
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.base.messages.items.BaseDefaultFieldItem;
 <a class="jxr_linenumber" name="L46" href="#L46">46</a>  <strong class="jxr_keyword">import</strong> org.slf4j.Logger;
 <a class="jxr_linenumber" name="L47" href="#L47">47</a>  <strong class="jxr_keyword">import</strong> org.slf4j.LoggerFactory;
 <a class="jxr_linenumber" name="L48" href="#L48">48</a>  
@@ -160,7 +160,7 @@
 <a class="jxr_linenumber" name="L152" href="#L152">152</a>         <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/IndexGroup.html">IndexGroup</a> indexGroup = IndexGroup.of(directAdsField.getIndexGroup());
 <a class="jxr_linenumber" name="L153" href="#L153">153</a>         <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/IndexOffset.html">IndexOffset</a> indexOffset = IndexOffset.of(directAdsField.getIndexOffset());
 <a class="jxr_linenumber" name="L154" href="#L154">154</a> 
-<a class="jxr_linenumber" name="L155" href="#L155">155</a>         FieldItem fieldItem = writeRequest.getFieldItems().get(0);
+<a class="jxr_linenumber" name="L155" href="#L155">155</a>         BaseDefaultFieldItem fieldItem = writeRequest.getFieldItems().get(0);
 <a class="jxr_linenumber" name="L156" href="#L156">156</a>         Object[] values = fieldItem.getValues();
 <a class="jxr_linenumber" name="L157" href="#L157">157</a> 
 <a class="jxr_linenumber" name="L158" href="#L158">158</a>         byte[] bytes = encodeData(directAdsField.getAdsDataType(), values);
@@ -305,10 +305,10 @@
 <a class="jxr_linenumber" name="L297" href="#L297">297</a> 
 <a class="jxr_linenumber" name="L298" href="#L298">298</a>         PlcResponseCode responseCode = decodeResponseCode(responseMessage.getResult());
 <a class="jxr_linenumber" name="L299" href="#L299">299</a>         byte[] bytes = responseMessage.getData().getBytes();
-<a class="jxr_linenumber" name="L300" href="#L300">300</a>         FieldItem&lt;?&gt; fieldItem = decodeData(field.getAdsDataType(), bytes);
+<a class="jxr_linenumber" name="L300" href="#L300">300</a>         BaseDefaultFieldItem&lt;?&gt; fieldItem = decodeData(field.getAdsDataType(), bytes);
 <a class="jxr_linenumber" name="L301" href="#L301">301</a> 
 <a class="jxr_linenumber" name="L302" href="#L302">302</a>         <em class="jxr_comment">// TODO: does every item has the same ads response or is this whole aggregation broken?</em>
-<a class="jxr_linenumber" name="L303" href="#L303">303</a>         Map&lt;String, Pair&lt;PlcResponseCode, FieldItem&gt;&gt; responseItems = plcReadRequest.getFieldNames()
+<a class="jxr_linenumber" name="L303" href="#L303">303</a>         Map&lt;String, Pair&lt;PlcResponseCode, BaseDefaultFieldItem&gt;&gt; responseItems = plcReadRequest.getFieldNames()
 <a class="jxr_linenumber" name="L304" href="#L304">304</a>             .stream()
 <a class="jxr_linenumber" name="L305" href="#L305">305</a>             .collect(Collectors.toMap(
 <a class="jxr_linenumber" name="L306" href="#L306">306</a>                 fieldName -&gt; fieldName,

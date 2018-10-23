@@ -38,8 +38,8 @@ import org.apache.plc4x.java.api.messages.PlcRequest;
 import org.apache.plc4x.java.api.messages.PlcWriteRequest;
 import org.apache.plc4x.java.api.types.PlcResponseCode;
 import org.apache.plc4x.java.base.messages.*;
+import org.apache.plc4x.java.base.messages.items.BaseDefaultFieldItem;
 import org.apache.plc4x.java.base.messages.items.DefaultBooleanFieldItem;
-import org.apache.plc4x.java.base.messages.items.FieldItem;
 import org.apache.plc4x.java.modbus.messages.items.DefaultModbusByteArrayFieldItem;
 import org.apache.plc4x.java.modbus.model.*;
 import org.slf4j.Logger;
@@ -263,7 +263,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 <span class="fc" id="L263">            LOGGER.debug(&quot;{}: Nothing&quot;, readCoilsResponse);</span>
 <span class="fc" id="L264">            ByteBuf byteBuf = readCoilsResponse.getCoilStatus();</span>
 <span class="fc" id="L265">            DefaultBooleanFieldItem data = produceCoilValueList(byteBuf, field.getQuantity());</span>
-<span class="fc" id="L266">            Map&lt;String, Pair&lt;PlcResponseCode, FieldItem&gt;&gt; responseValues = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L266">            Map&lt;String, Pair&lt;PlcResponseCode, BaseDefaultFieldItem&gt;&gt; responseValues = new HashMap&lt;&gt;();</span>
 <span class="fc" id="L267">            responseValues.put(fieldName, new ImmutablePair&lt;&gt;(PlcResponseCode.OK, data));</span>
 <span class="fc" id="L268">            plcRequestContainer.getResponseFuture().complete(new DefaultPlcReadResponse((InternalPlcReadRequest) request, responseValues));</span>
 <span class="fc bfc" id="L269" title="All 2 branches covered.">        } else if (modbusPdu instanceof ReadDiscreteInputsResponse) {</span>
@@ -272,7 +272,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 <span class="fc" id="L272">            LOGGER.debug(&quot;{}: Nothing&quot;, readDiscreteInputsResponse);</span>
 <span class="fc" id="L273">            ByteBuf byteBuf = readDiscreteInputsResponse.getInputStatus();</span>
 <span class="fc" id="L274">            DefaultBooleanFieldItem data = produceCoilValueList(byteBuf, field.getQuantity());</span>
-<span class="fc" id="L275">            Map&lt;String, Pair&lt;PlcResponseCode, FieldItem&gt;&gt; responseValues = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L275">            Map&lt;String, Pair&lt;PlcResponseCode, BaseDefaultFieldItem&gt;&gt; responseValues = new HashMap&lt;&gt;();</span>
 <span class="fc" id="L276">            responseValues.put(fieldName, new ImmutablePair&lt;&gt;(PlcResponseCode.OK, data));</span>
 <span class="fc" id="L277">            plcRequestContainer.getResponseFuture().complete(new DefaultPlcReadResponse((InternalPlcReadRequest) request, responseValues));</span>
 <span class="fc bfc" id="L278" title="All 2 branches covered.">        } else if (modbusPdu instanceof ReadHoldingRegistersResponse) {</span>
@@ -282,7 +282,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 <span class="fc" id="L282">            ByteBuf byteBuf = readHoldingRegistersResponse.getRegisters();</span>
             // TODO: use register method
 <span class="fc" id="L284">            DefaultModbusByteArrayFieldItem data = produceRegisterValueList(byteBuf, field.getQuantity());</span>
-<span class="fc" id="L285">            Map&lt;String, Pair&lt;PlcResponseCode, FieldItem&gt;&gt; responseValues = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L285">            Map&lt;String, Pair&lt;PlcResponseCode, BaseDefaultFieldItem&gt;&gt; responseValues = new HashMap&lt;&gt;();</span>
 <span class="fc" id="L286">            responseValues.put(fieldName, new ImmutablePair&lt;&gt;(PlcResponseCode.OK, data));</span>
 <span class="fc" id="L287">            plcRequestContainer.getResponseFuture().complete(new DefaultPlcReadResponse((InternalPlcReadRequest) request, responseValues));</span>
 <span class="fc bfc" id="L288" title="All 2 branches covered.">        } else if (modbusPdu instanceof ReadInputRegistersResponse) {</span>
@@ -292,7 +292,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 <span class="fc" id="L292">            ByteBuf byteBuf = readInputRegistersResponse.getRegisters();</span>
             // TODO: use register method
 <span class="fc" id="L294">            DefaultModbusByteArrayFieldItem data = produceRegisterValueList(byteBuf, field.getQuantity());</span>
-<span class="fc" id="L295">            Map&lt;String, Pair&lt;PlcResponseCode, FieldItem&gt;&gt; responseValues = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L295">            Map&lt;String, Pair&lt;PlcResponseCode, BaseDefaultFieldItem&gt;&gt; responseValues = new HashMap&lt;&gt;();</span>
 <span class="fc" id="L296">            responseValues.put(fieldName, new ImmutablePair&lt;&gt;(PlcResponseCode.OK, data));</span>
 <span class="fc" id="L297">            plcRequestContainer.getResponseFuture().complete(new DefaultPlcReadResponse((InternalPlcReadRequest) request, responseValues));</span>
 <span class="pc bpc" id="L298" title="1 of 2 branches missed.">        } else if (modbusPdu instanceof MaskWriteRegisterResponse) {</span>

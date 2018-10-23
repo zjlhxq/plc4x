@@ -29,7 +29,7 @@
 <a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> org.apache.commons.lang3.tuple.Pair;
 <a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.model.PlcField;
 <a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.types.PlcResponseCode;
-<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.base.messages.items.FieldItem;
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.base.messages.items.BaseDefaultFieldItem;
 <a class="jxr_linenumber" name="L25" href="#L25">25</a>  
 <a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> java.math.BigDecimal;
 <a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> java.math.BigInteger;
@@ -44,9 +44,9 @@
 <a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../../org/apache/plc4x/java/base/messages/DefaultPlcReadResponse.html">DefaultPlcReadResponse</a> <strong class="jxr_keyword">implements</strong> <a href="../../../../../../org/apache/plc4x/java/base/messages/InternalPlcReadResponse.html">InternalPlcReadResponse</a> {
 <a class="jxr_linenumber" name="L37" href="#L37">37</a>  
 <a class="jxr_linenumber" name="L38" href="#L38">38</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a href="../../../../../../org/apache/plc4x/java/base/messages/InternalPlcReadRequest.html">InternalPlcReadRequest</a> request;
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> Map&lt;String, Pair&lt;PlcResponseCode, FieldItem&gt;&gt; values;
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> Map&lt;String, Pair&lt;PlcResponseCode, BaseDefaultFieldItem&gt;&gt; values;
 <a class="jxr_linenumber" name="L40" href="#L40">40</a>  
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>      <strong class="jxr_keyword">public</strong> <a href="../../../../../../org/apache/plc4x/java/base/messages/DefaultPlcReadResponse.html">DefaultPlcReadResponse</a>(<a href="../../../../../../org/apache/plc4x/java/base/messages/InternalPlcReadRequest.html">InternalPlcReadRequest</a> request, Map&lt;String, Pair&lt;PlcResponseCode, FieldItem&gt;&gt; fields) {
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>      <strong class="jxr_keyword">public</strong> <a href="../../../../../../org/apache/plc4x/java/base/messages/DefaultPlcReadResponse.html">DefaultPlcReadResponse</a>(<a href="../../../../../../org/apache/plc4x/java/base/messages/InternalPlcReadRequest.html">InternalPlcReadRequest</a> request, Map&lt;String, Pair&lt;PlcResponseCode, BaseDefaultFieldItem&gt;&gt; fields) {
 <a class="jxr_linenumber" name="L42" href="#L42">42</a>          <strong class="jxr_keyword">this</strong>.request = request;
 <a class="jxr_linenumber" name="L43" href="#L43">43</a>          <strong class="jxr_keyword">this</strong>.values = fields;
 <a class="jxr_linenumber" name="L44" href="#L44">44</a>      }
@@ -58,7 +58,7 @@
 <a class="jxr_linenumber" name="L50" href="#L50">50</a>  
 <a class="jxr_linenumber" name="L51" href="#L51">51</a>      @Override
 <a class="jxr_linenumber" name="L52" href="#L52">52</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> getNumberOfValues(String name) {
-<a class="jxr_linenumber" name="L53" href="#L53">53</a>          <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>          <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L54" href="#L54">54</a>          <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L55" href="#L55">55</a>              <strong class="jxr_keyword">return</strong> fieldInternal.getNumberOfValues();
 <a class="jxr_linenumber" name="L56" href="#L56">56</a>          }
@@ -84,7 +84,7 @@
 <a class="jxr_linenumber" name="L76" href="#L76">76</a>      }
 <a class="jxr_linenumber" name="L77" href="#L77">77</a>  
 <a class="jxr_linenumber" name="L78" href="#L78">78</a>      @Override
-<a class="jxr_linenumber" name="L79" href="#L79">79</a>      <strong class="jxr_keyword">public</strong> Map&lt;String, Pair&lt;PlcResponseCode, FieldItem&gt;&gt; getValues() {
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>      <strong class="jxr_keyword">public</strong> Map&lt;String, Pair&lt;PlcResponseCode, BaseDefaultFieldItem&gt;&gt; getValues() {
 <a class="jxr_linenumber" name="L80" href="#L80">80</a>          <strong class="jxr_keyword">return</strong> values;
 <a class="jxr_linenumber" name="L81" href="#L81">81</a>      }
 <a class="jxr_linenumber" name="L82" href="#L82">82</a>  
@@ -95,7 +95,7 @@
 <a class="jxr_linenumber" name="L87" href="#L87">87</a>  
 <a class="jxr_linenumber" name="L88" href="#L88">88</a>      @Override
 <a class="jxr_linenumber" name="L89" href="#L89">89</a>      <strong class="jxr_keyword">public</strong> Object getObject(String name, <strong class="jxr_keyword">int</strong> index) {
-<a class="jxr_linenumber" name="L90" href="#L90">90</a>          <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>          <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L91" href="#L91">91</a>          <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L92" href="#L92">92</a>              <strong class="jxr_keyword">return</strong> fieldInternal.getObject(index);
 <a class="jxr_linenumber" name="L93" href="#L93">93</a>          }
@@ -115,7 +115,7 @@
 <a class="jxr_linenumber" name="L107" href="#L107">107</a> 
 <a class="jxr_linenumber" name="L108" href="#L108">108</a>     @Override
 <a class="jxr_linenumber" name="L109" href="#L109">109</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> isValidBoolean(String name, <strong class="jxr_keyword">int</strong> index) {
-<a class="jxr_linenumber" name="L110" href="#L110">110</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L110" href="#L110">110</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L111" href="#L111">111</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L112" href="#L112">112</a>             <strong class="jxr_keyword">return</strong> fieldInternal.isValidBoolean(index);
 <a class="jxr_linenumber" name="L113" href="#L113">113</a>         }
@@ -129,7 +129,7 @@
 <a class="jxr_linenumber" name="L121" href="#L121">121</a> 
 <a class="jxr_linenumber" name="L122" href="#L122">122</a>     @Override
 <a class="jxr_linenumber" name="L123" href="#L123">123</a>     <strong class="jxr_keyword">public</strong> Boolean getBoolean(String name, <strong class="jxr_keyword">int</strong> index) {
-<a class="jxr_linenumber" name="L124" href="#L124">124</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L124" href="#L124">124</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L125" href="#L125">125</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L126" href="#L126">126</a>             <strong class="jxr_keyword">return</strong> fieldInternal.getBoolean(index);
 <a class="jxr_linenumber" name="L127" href="#L127">127</a>         }
@@ -138,7 +138,7 @@
 <a class="jxr_linenumber" name="L130" href="#L130">130</a> 
 <a class="jxr_linenumber" name="L131" href="#L131">131</a>     @Override
 <a class="jxr_linenumber" name="L132" href="#L132">132</a>     <strong class="jxr_keyword">public</strong> Collection&lt;Boolean&gt; getAllBooleans(String name) {
-<a class="jxr_linenumber" name="L133" href="#L133">133</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L133" href="#L133">133</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L134" href="#L134">134</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L135" href="#L135">135</a>             <strong class="jxr_keyword">int</strong> num = fieldInternal.getNumberOfValues();
 <a class="jxr_linenumber" name="L136" href="#L136">136</a>             List&lt;Boolean&gt; values = <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;(num);
@@ -157,7 +157,7 @@
 <a class="jxr_linenumber" name="L149" href="#L149">149</a> 
 <a class="jxr_linenumber" name="L150" href="#L150">150</a>     @Override
 <a class="jxr_linenumber" name="L151" href="#L151">151</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> isValidByte(String name, <strong class="jxr_keyword">int</strong> index) {
-<a class="jxr_linenumber" name="L152" href="#L152">152</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L152" href="#L152">152</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L153" href="#L153">153</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L154" href="#L154">154</a>             <strong class="jxr_keyword">return</strong> fieldInternal.isValidByte(index);
 <a class="jxr_linenumber" name="L155" href="#L155">155</a>         }
@@ -171,7 +171,7 @@
 <a class="jxr_linenumber" name="L163" href="#L163">163</a> 
 <a class="jxr_linenumber" name="L164" href="#L164">164</a>     @Override
 <a class="jxr_linenumber" name="L165" href="#L165">165</a>     <strong class="jxr_keyword">public</strong> Byte getByte(String name, <strong class="jxr_keyword">int</strong> index) {
-<a class="jxr_linenumber" name="L166" href="#L166">166</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L166" href="#L166">166</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L167" href="#L167">167</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L168" href="#L168">168</a>             <strong class="jxr_keyword">return</strong> fieldInternal.getByte(index);
 <a class="jxr_linenumber" name="L169" href="#L169">169</a>         }
@@ -180,7 +180,7 @@
 <a class="jxr_linenumber" name="L172" href="#L172">172</a> 
 <a class="jxr_linenumber" name="L173" href="#L173">173</a>     @Override
 <a class="jxr_linenumber" name="L174" href="#L174">174</a>     <strong class="jxr_keyword">public</strong> Collection&lt;Byte&gt; getAllBytes(String name) {
-<a class="jxr_linenumber" name="L175" href="#L175">175</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L175" href="#L175">175</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L176" href="#L176">176</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L177" href="#L177">177</a>             <strong class="jxr_keyword">int</strong> num = fieldInternal.getNumberOfValues();
 <a class="jxr_linenumber" name="L178" href="#L178">178</a>             List&lt;Byte&gt; values = <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;(num);
@@ -199,7 +199,7 @@
 <a class="jxr_linenumber" name="L191" href="#L191">191</a> 
 <a class="jxr_linenumber" name="L192" href="#L192">192</a>     @Override
 <a class="jxr_linenumber" name="L193" href="#L193">193</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> isValidShort(String name, <strong class="jxr_keyword">int</strong> index) {
-<a class="jxr_linenumber" name="L194" href="#L194">194</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L194" href="#L194">194</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L195" href="#L195">195</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L196" href="#L196">196</a>             <strong class="jxr_keyword">return</strong> fieldInternal.isValidShort(index);
 <a class="jxr_linenumber" name="L197" href="#L197">197</a>         }
@@ -213,7 +213,7 @@
 <a class="jxr_linenumber" name="L205" href="#L205">205</a> 
 <a class="jxr_linenumber" name="L206" href="#L206">206</a>     @Override
 <a class="jxr_linenumber" name="L207" href="#L207">207</a>     <strong class="jxr_keyword">public</strong> Short getShort(String name, <strong class="jxr_keyword">int</strong> index) {
-<a class="jxr_linenumber" name="L208" href="#L208">208</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L208" href="#L208">208</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L209" href="#L209">209</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L210" href="#L210">210</a>             <strong class="jxr_keyword">return</strong> fieldInternal.getShort(index);
 <a class="jxr_linenumber" name="L211" href="#L211">211</a>         }
@@ -222,7 +222,7 @@
 <a class="jxr_linenumber" name="L214" href="#L214">214</a> 
 <a class="jxr_linenumber" name="L215" href="#L215">215</a>     @Override
 <a class="jxr_linenumber" name="L216" href="#L216">216</a>     <strong class="jxr_keyword">public</strong> Collection&lt;Short&gt; getAllShorts(String name) {
-<a class="jxr_linenumber" name="L217" href="#L217">217</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L217" href="#L217">217</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L218" href="#L218">218</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L219" href="#L219">219</a>             <strong class="jxr_keyword">int</strong> num = fieldInternal.getNumberOfValues();
 <a class="jxr_linenumber" name="L220" href="#L220">220</a>             List&lt;Short&gt; values = <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;(num);
@@ -241,7 +241,7 @@
 <a class="jxr_linenumber" name="L233" href="#L233">233</a> 
 <a class="jxr_linenumber" name="L234" href="#L234">234</a>     @Override
 <a class="jxr_linenumber" name="L235" href="#L235">235</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> isValidInteger(String name, <strong class="jxr_keyword">int</strong> index) {
-<a class="jxr_linenumber" name="L236" href="#L236">236</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L236" href="#L236">236</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L237" href="#L237">237</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L238" href="#L238">238</a>             <strong class="jxr_keyword">return</strong> fieldInternal.isValidInteger(index);
 <a class="jxr_linenumber" name="L239" href="#L239">239</a>         }
@@ -255,7 +255,7 @@
 <a class="jxr_linenumber" name="L247" href="#L247">247</a> 
 <a class="jxr_linenumber" name="L248" href="#L248">248</a>     @Override
 <a class="jxr_linenumber" name="L249" href="#L249">249</a>     <strong class="jxr_keyword">public</strong> Integer getInteger(String name, <strong class="jxr_keyword">int</strong> index) {
-<a class="jxr_linenumber" name="L250" href="#L250">250</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L250" href="#L250">250</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L251" href="#L251">251</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L252" href="#L252">252</a>             <strong class="jxr_keyword">return</strong> fieldInternal.getInteger(index);
 <a class="jxr_linenumber" name="L253" href="#L253">253</a>         }
@@ -264,7 +264,7 @@
 <a class="jxr_linenumber" name="L256" href="#L256">256</a> 
 <a class="jxr_linenumber" name="L257" href="#L257">257</a>     @Override
 <a class="jxr_linenumber" name="L258" href="#L258">258</a>     <strong class="jxr_keyword">public</strong> Collection&lt;Integer&gt; getAllIntegers(String name) {
-<a class="jxr_linenumber" name="L259" href="#L259">259</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L259" href="#L259">259</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L260" href="#L260">260</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L261" href="#L261">261</a>             <strong class="jxr_keyword">int</strong> num = fieldInternal.getNumberOfValues();
 <a class="jxr_linenumber" name="L262" href="#L262">262</a>             List&lt;Integer&gt; values = <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;(num);
@@ -283,7 +283,7 @@
 <a class="jxr_linenumber" name="L275" href="#L275">275</a> 
 <a class="jxr_linenumber" name="L276" href="#L276">276</a>     @Override
 <a class="jxr_linenumber" name="L277" href="#L277">277</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> isValidBigInteger(String name, <strong class="jxr_keyword">int</strong> index) {
-<a class="jxr_linenumber" name="L278" href="#L278">278</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L278" href="#L278">278</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L279" href="#L279">279</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L280" href="#L280">280</a>             <strong class="jxr_keyword">return</strong> fieldInternal.isValidInteger(index);
 <a class="jxr_linenumber" name="L281" href="#L281">281</a>         }
@@ -297,7 +297,7 @@
 <a class="jxr_linenumber" name="L289" href="#L289">289</a> 
 <a class="jxr_linenumber" name="L290" href="#L290">290</a>     @Override
 <a class="jxr_linenumber" name="L291" href="#L291">291</a>     <strong class="jxr_keyword">public</strong> BigInteger getBigInteger(String name, <strong class="jxr_keyword">int</strong> index) {
-<a class="jxr_linenumber" name="L292" href="#L292">292</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L292" href="#L292">292</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L293" href="#L293">293</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L294" href="#L294">294</a>             <strong class="jxr_keyword">return</strong> fieldInternal.getBigInteger(index);
 <a class="jxr_linenumber" name="L295" href="#L295">295</a>         }
@@ -306,7 +306,7 @@
 <a class="jxr_linenumber" name="L298" href="#L298">298</a> 
 <a class="jxr_linenumber" name="L299" href="#L299">299</a>     @Override
 <a class="jxr_linenumber" name="L300" href="#L300">300</a>     <strong class="jxr_keyword">public</strong> Collection&lt;BigInteger&gt; getAllBigIntegers(String name) {
-<a class="jxr_linenumber" name="L301" href="#L301">301</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L301" href="#L301">301</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L302" href="#L302">302</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L303" href="#L303">303</a>             <strong class="jxr_keyword">int</strong> num = fieldInternal.getNumberOfValues();
 <a class="jxr_linenumber" name="L304" href="#L304">304</a>             List&lt;BigInteger&gt; values = <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;(num);
@@ -325,7 +325,7 @@
 <a class="jxr_linenumber" name="L317" href="#L317">317</a> 
 <a class="jxr_linenumber" name="L318" href="#L318">318</a>     @Override
 <a class="jxr_linenumber" name="L319" href="#L319">319</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> isValidLong(String name, <strong class="jxr_keyword">int</strong> index) {
-<a class="jxr_linenumber" name="L320" href="#L320">320</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L320" href="#L320">320</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L321" href="#L321">321</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L322" href="#L322">322</a>             <strong class="jxr_keyword">return</strong> fieldInternal.isValidLong(index);
 <a class="jxr_linenumber" name="L323" href="#L323">323</a>         }
@@ -339,7 +339,7 @@
 <a class="jxr_linenumber" name="L331" href="#L331">331</a> 
 <a class="jxr_linenumber" name="L332" href="#L332">332</a>     @Override
 <a class="jxr_linenumber" name="L333" href="#L333">333</a>     <strong class="jxr_keyword">public</strong> Long getLong(String name, <strong class="jxr_keyword">int</strong> index) {
-<a class="jxr_linenumber" name="L334" href="#L334">334</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L334" href="#L334">334</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L335" href="#L335">335</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L336" href="#L336">336</a>             <strong class="jxr_keyword">return</strong> fieldInternal.getLong(index);
 <a class="jxr_linenumber" name="L337" href="#L337">337</a>         }
@@ -348,7 +348,7 @@
 <a class="jxr_linenumber" name="L340" href="#L340">340</a> 
 <a class="jxr_linenumber" name="L341" href="#L341">341</a>     @Override
 <a class="jxr_linenumber" name="L342" href="#L342">342</a>     <strong class="jxr_keyword">public</strong> Collection&lt;Long&gt; getAllLongs(String name) {
-<a class="jxr_linenumber" name="L343" href="#L343">343</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L343" href="#L343">343</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L344" href="#L344">344</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L345" href="#L345">345</a>             <strong class="jxr_keyword">int</strong> num = fieldInternal.getNumberOfValues();
 <a class="jxr_linenumber" name="L346" href="#L346">346</a>             List&lt;Long&gt; values = <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;(num);
@@ -367,7 +367,7 @@
 <a class="jxr_linenumber" name="L359" href="#L359">359</a> 
 <a class="jxr_linenumber" name="L360" href="#L360">360</a>     @Override
 <a class="jxr_linenumber" name="L361" href="#L361">361</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> isValidFloat(String name, <strong class="jxr_keyword">int</strong> index) {
-<a class="jxr_linenumber" name="L362" href="#L362">362</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L362" href="#L362">362</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L363" href="#L363">363</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L364" href="#L364">364</a>             <strong class="jxr_keyword">return</strong> fieldInternal.isValidFloat(index);
 <a class="jxr_linenumber" name="L365" href="#L365">365</a>         }
@@ -381,7 +381,7 @@
 <a class="jxr_linenumber" name="L373" href="#L373">373</a> 
 <a class="jxr_linenumber" name="L374" href="#L374">374</a>     @Override
 <a class="jxr_linenumber" name="L375" href="#L375">375</a>     <strong class="jxr_keyword">public</strong> Float getFloat(String name, <strong class="jxr_keyword">int</strong> index) {
-<a class="jxr_linenumber" name="L376" href="#L376">376</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L376" href="#L376">376</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L377" href="#L377">377</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L378" href="#L378">378</a>             <strong class="jxr_keyword">return</strong> fieldInternal.getFloat(index);
 <a class="jxr_linenumber" name="L379" href="#L379">379</a>         }
@@ -390,7 +390,7 @@
 <a class="jxr_linenumber" name="L382" href="#L382">382</a> 
 <a class="jxr_linenumber" name="L383" href="#L383">383</a>     @Override
 <a class="jxr_linenumber" name="L384" href="#L384">384</a>     <strong class="jxr_keyword">public</strong> Collection&lt;Float&gt; getAllFloats(String name) {
-<a class="jxr_linenumber" name="L385" href="#L385">385</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L385" href="#L385">385</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L386" href="#L386">386</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L387" href="#L387">387</a>             <strong class="jxr_keyword">int</strong> num = fieldInternal.getNumberOfValues();
 <a class="jxr_linenumber" name="L388" href="#L388">388</a>             List&lt;Float&gt; values = <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;(num);
@@ -409,7 +409,7 @@
 <a class="jxr_linenumber" name="L401" href="#L401">401</a> 
 <a class="jxr_linenumber" name="L402" href="#L402">402</a>     @Override
 <a class="jxr_linenumber" name="L403" href="#L403">403</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> isValidDouble(String name, <strong class="jxr_keyword">int</strong> index) {
-<a class="jxr_linenumber" name="L404" href="#L404">404</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L404" href="#L404">404</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L405" href="#L405">405</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L406" href="#L406">406</a>             <strong class="jxr_keyword">return</strong> fieldInternal.isValidDouble(index);
 <a class="jxr_linenumber" name="L407" href="#L407">407</a>         }
@@ -423,7 +423,7 @@
 <a class="jxr_linenumber" name="L415" href="#L415">415</a> 
 <a class="jxr_linenumber" name="L416" href="#L416">416</a>     @Override
 <a class="jxr_linenumber" name="L417" href="#L417">417</a>     <strong class="jxr_keyword">public</strong> Double getDouble(String name, <strong class="jxr_keyword">int</strong> index) {
-<a class="jxr_linenumber" name="L418" href="#L418">418</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L418" href="#L418">418</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L419" href="#L419">419</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L420" href="#L420">420</a>             <strong class="jxr_keyword">return</strong> fieldInternal.getDouble(index);
 <a class="jxr_linenumber" name="L421" href="#L421">421</a>         }
@@ -432,7 +432,7 @@
 <a class="jxr_linenumber" name="L424" href="#L424">424</a> 
 <a class="jxr_linenumber" name="L425" href="#L425">425</a>     @Override
 <a class="jxr_linenumber" name="L426" href="#L426">426</a>     <strong class="jxr_keyword">public</strong> Collection&lt;Double&gt; getAllDoubles(String name) {
-<a class="jxr_linenumber" name="L427" href="#L427">427</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L427" href="#L427">427</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L428" href="#L428">428</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L429" href="#L429">429</a>             <strong class="jxr_keyword">int</strong> num = fieldInternal.getNumberOfValues();
 <a class="jxr_linenumber" name="L430" href="#L430">430</a>             List&lt;Double&gt; values = <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;(num);
@@ -451,7 +451,7 @@
 <a class="jxr_linenumber" name="L443" href="#L443">443</a> 
 <a class="jxr_linenumber" name="L444" href="#L444">444</a>     @Override
 <a class="jxr_linenumber" name="L445" href="#L445">445</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> isValidBigDecimal(String name, <strong class="jxr_keyword">int</strong> index) {
-<a class="jxr_linenumber" name="L446" href="#L446">446</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L446" href="#L446">446</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L447" href="#L447">447</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L448" href="#L448">448</a>             <strong class="jxr_keyword">return</strong> fieldInternal.isValidBigDecimal(index);
 <a class="jxr_linenumber" name="L449" href="#L449">449</a>         }
@@ -465,7 +465,7 @@
 <a class="jxr_linenumber" name="L457" href="#L457">457</a> 
 <a class="jxr_linenumber" name="L458" href="#L458">458</a>     @Override
 <a class="jxr_linenumber" name="L459" href="#L459">459</a>     <strong class="jxr_keyword">public</strong> BigDecimal getBigDecimal(String name, <strong class="jxr_keyword">int</strong> index) {
-<a class="jxr_linenumber" name="L460" href="#L460">460</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L460" href="#L460">460</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L461" href="#L461">461</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L462" href="#L462">462</a>             <strong class="jxr_keyword">return</strong> fieldInternal.getBigDecimal(index);
 <a class="jxr_linenumber" name="L463" href="#L463">463</a>         }
@@ -474,7 +474,7 @@
 <a class="jxr_linenumber" name="L466" href="#L466">466</a> 
 <a class="jxr_linenumber" name="L467" href="#L467">467</a>     @Override
 <a class="jxr_linenumber" name="L468" href="#L468">468</a>     <strong class="jxr_keyword">public</strong> Collection&lt;BigDecimal&gt; getAllBigDecimals(String name) {
-<a class="jxr_linenumber" name="L469" href="#L469">469</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L469" href="#L469">469</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L470" href="#L470">470</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L471" href="#L471">471</a>             <strong class="jxr_keyword">int</strong> num = fieldInternal.getNumberOfValues();
 <a class="jxr_linenumber" name="L472" href="#L472">472</a>             List&lt;BigDecimal&gt; values = <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;(num);
@@ -493,7 +493,7 @@
 <a class="jxr_linenumber" name="L485" href="#L485">485</a> 
 <a class="jxr_linenumber" name="L486" href="#L486">486</a>     @Override
 <a class="jxr_linenumber" name="L487" href="#L487">487</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> isValidString(String name, <strong class="jxr_keyword">int</strong> index) {
-<a class="jxr_linenumber" name="L488" href="#L488">488</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L488" href="#L488">488</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L489" href="#L489">489</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L490" href="#L490">490</a>             <strong class="jxr_keyword">return</strong> fieldInternal.isValidString(index);
 <a class="jxr_linenumber" name="L491" href="#L491">491</a>         }
@@ -507,7 +507,7 @@
 <a class="jxr_linenumber" name="L499" href="#L499">499</a> 
 <a class="jxr_linenumber" name="L500" href="#L500">500</a>     @Override
 <a class="jxr_linenumber" name="L501" href="#L501">501</a>     <strong class="jxr_keyword">public</strong> String getString(String name, <strong class="jxr_keyword">int</strong> index) {
-<a class="jxr_linenumber" name="L502" href="#L502">502</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L502" href="#L502">502</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L503" href="#L503">503</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L504" href="#L504">504</a>             <strong class="jxr_keyword">return</strong> fieldInternal.getString(index);
 <a class="jxr_linenumber" name="L505" href="#L505">505</a>         }
@@ -516,7 +516,7 @@
 <a class="jxr_linenumber" name="L508" href="#L508">508</a> 
 <a class="jxr_linenumber" name="L509" href="#L509">509</a>     @Override
 <a class="jxr_linenumber" name="L510" href="#L510">510</a>     <strong class="jxr_keyword">public</strong> Collection&lt;String&gt; getAllStrings(String name) {
-<a class="jxr_linenumber" name="L511" href="#L511">511</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L511" href="#L511">511</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L512" href="#L512">512</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L513" href="#L513">513</a>             <strong class="jxr_keyword">int</strong> num = fieldInternal.getNumberOfValues();
 <a class="jxr_linenumber" name="L514" href="#L514">514</a>             List&lt;String&gt; values = <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;(num);
@@ -535,7 +535,7 @@
 <a class="jxr_linenumber" name="L527" href="#L527">527</a> 
 <a class="jxr_linenumber" name="L528" href="#L528">528</a>     @Override
 <a class="jxr_linenumber" name="L529" href="#L529">529</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> isValidTime(String name, <strong class="jxr_keyword">int</strong> index) {
-<a class="jxr_linenumber" name="L530" href="#L530">530</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L530" href="#L530">530</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L531" href="#L531">531</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L532" href="#L532">532</a>             <strong class="jxr_keyword">return</strong> fieldInternal.isValidTime(index);
 <a class="jxr_linenumber" name="L533" href="#L533">533</a>         }
@@ -549,7 +549,7 @@
 <a class="jxr_linenumber" name="L541" href="#L541">541</a> 
 <a class="jxr_linenumber" name="L542" href="#L542">542</a>     @Override
 <a class="jxr_linenumber" name="L543" href="#L543">543</a>     <strong class="jxr_keyword">public</strong> LocalTime getTime(String name, <strong class="jxr_keyword">int</strong> index) {
-<a class="jxr_linenumber" name="L544" href="#L544">544</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L544" href="#L544">544</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L545" href="#L545">545</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L546" href="#L546">546</a>             <strong class="jxr_keyword">return</strong> fieldInternal.getTime(index);
 <a class="jxr_linenumber" name="L547" href="#L547">547</a>         }
@@ -558,7 +558,7 @@
 <a class="jxr_linenumber" name="L550" href="#L550">550</a> 
 <a class="jxr_linenumber" name="L551" href="#L551">551</a>     @Override
 <a class="jxr_linenumber" name="L552" href="#L552">552</a>     <strong class="jxr_keyword">public</strong> Collection&lt;LocalTime&gt; getAllTimes(String name) {
-<a class="jxr_linenumber" name="L553" href="#L553">553</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L553" href="#L553">553</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L554" href="#L554">554</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L555" href="#L555">555</a>             <strong class="jxr_keyword">int</strong> num = fieldInternal.getNumberOfValues();
 <a class="jxr_linenumber" name="L556" href="#L556">556</a>             List&lt;LocalTime&gt; values = <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;(num);
@@ -577,7 +577,7 @@
 <a class="jxr_linenumber" name="L569" href="#L569">569</a> 
 <a class="jxr_linenumber" name="L570" href="#L570">570</a>     @Override
 <a class="jxr_linenumber" name="L571" href="#L571">571</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> isValidDate(String name, <strong class="jxr_keyword">int</strong> index) {
-<a class="jxr_linenumber" name="L572" href="#L572">572</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L572" href="#L572">572</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L573" href="#L573">573</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L574" href="#L574">574</a>             <strong class="jxr_keyword">return</strong> fieldInternal.isValidDate(index);
 <a class="jxr_linenumber" name="L575" href="#L575">575</a>         }
@@ -591,7 +591,7 @@
 <a class="jxr_linenumber" name="L583" href="#L583">583</a> 
 <a class="jxr_linenumber" name="L584" href="#L584">584</a>     @Override
 <a class="jxr_linenumber" name="L585" href="#L585">585</a>     <strong class="jxr_keyword">public</strong> LocalDate getDate(String name, <strong class="jxr_keyword">int</strong> index) {
-<a class="jxr_linenumber" name="L586" href="#L586">586</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L586" href="#L586">586</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L587" href="#L587">587</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L588" href="#L588">588</a>             <strong class="jxr_keyword">return</strong> fieldInternal.getDate(index);
 <a class="jxr_linenumber" name="L589" href="#L589">589</a>         }
@@ -600,7 +600,7 @@
 <a class="jxr_linenumber" name="L592" href="#L592">592</a> 
 <a class="jxr_linenumber" name="L593" href="#L593">593</a>     @Override
 <a class="jxr_linenumber" name="L594" href="#L594">594</a>     <strong class="jxr_keyword">public</strong> Collection&lt;LocalDate&gt; getAllDates(String name) {
-<a class="jxr_linenumber" name="L595" href="#L595">595</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L595" href="#L595">595</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L596" href="#L596">596</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L597" href="#L597">597</a>             <strong class="jxr_keyword">int</strong> num = fieldInternal.getNumberOfValues();
 <a class="jxr_linenumber" name="L598" href="#L598">598</a>             List&lt;LocalDate&gt; values = <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;(num);
@@ -619,7 +619,7 @@
 <a class="jxr_linenumber" name="L611" href="#L611">611</a> 
 <a class="jxr_linenumber" name="L612" href="#L612">612</a>     @Override
 <a class="jxr_linenumber" name="L613" href="#L613">613</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> isValidDateTime(String name, <strong class="jxr_keyword">int</strong> index) {
-<a class="jxr_linenumber" name="L614" href="#L614">614</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L614" href="#L614">614</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L615" href="#L615">615</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L616" href="#L616">616</a>             <strong class="jxr_keyword">return</strong> fieldInternal.isValidDateTime(index);
 <a class="jxr_linenumber" name="L617" href="#L617">617</a>         }
@@ -633,7 +633,7 @@
 <a class="jxr_linenumber" name="L625" href="#L625">625</a> 
 <a class="jxr_linenumber" name="L626" href="#L626">626</a>     @Override
 <a class="jxr_linenumber" name="L627" href="#L627">627</a>     <strong class="jxr_keyword">public</strong> LocalDateTime getDateTime(String name, <strong class="jxr_keyword">int</strong> index) {
-<a class="jxr_linenumber" name="L628" href="#L628">628</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L628" href="#L628">628</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L629" href="#L629">629</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L630" href="#L630">630</a>             <strong class="jxr_keyword">return</strong> fieldInternal.getDateTime(index);
 <a class="jxr_linenumber" name="L631" href="#L631">631</a>         }
@@ -642,7 +642,7 @@
 <a class="jxr_linenumber" name="L634" href="#L634">634</a> 
 <a class="jxr_linenumber" name="L635" href="#L635">635</a>     @Override
 <a class="jxr_linenumber" name="L636" href="#L636">636</a>     <strong class="jxr_keyword">public</strong> Collection&lt;LocalDateTime&gt; getAllDateTimes(String name) {
-<a class="jxr_linenumber" name="L637" href="#L637">637</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L637" href="#L637">637</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L638" href="#L638">638</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L639" href="#L639">639</a>             <strong class="jxr_keyword">int</strong> num = fieldInternal.getNumberOfValues();
 <a class="jxr_linenumber" name="L640" href="#L640">640</a>             List&lt;LocalDateTime&gt; values = <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;(num);
@@ -656,7 +656,7 @@
 <a class="jxr_linenumber" name="L648" href="#L648">648</a> 
 <a class="jxr_linenumber" name="L649" href="#L649">649</a>     @Override
 <a class="jxr_linenumber" name="L650" href="#L650">650</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> isValidByteArray(String name) {
-<a class="jxr_linenumber" name="L651" href="#L651">651</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L651" href="#L651">651</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L652" href="#L652">652</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L653" href="#L653">653</a>             <strong class="jxr_keyword">return</strong> fieldInternal.isValidByteArray(0);
 <a class="jxr_linenumber" name="L654" href="#L654">654</a>         }
@@ -665,7 +665,7 @@
 <a class="jxr_linenumber" name="L657" href="#L657">657</a> 
 <a class="jxr_linenumber" name="L658" href="#L658">658</a>     @Override
 <a class="jxr_linenumber" name="L659" href="#L659">659</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> isValidByteArray(String name, <strong class="jxr_keyword">int</strong> index) {
-<a class="jxr_linenumber" name="L660" href="#L660">660</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L660" href="#L660">660</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L661" href="#L661">661</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L662" href="#L662">662</a>             <strong class="jxr_keyword">return</strong> fieldInternal.isValidDateTime(index);
 <a class="jxr_linenumber" name="L663" href="#L663">663</a>         }
@@ -674,7 +674,7 @@
 <a class="jxr_linenumber" name="L666" href="#L666">666</a> 
 <a class="jxr_linenumber" name="L667" href="#L667">667</a>     @Override
 <a class="jxr_linenumber" name="L668" href="#L668">668</a>     <strong class="jxr_keyword">public</strong> Byte[] getByteArray(String name) {
-<a class="jxr_linenumber" name="L669" href="#L669">669</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L669" href="#L669">669</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L670" href="#L670">670</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L671" href="#L671">671</a>             <strong class="jxr_keyword">return</strong> fieldInternal.getByteArray(0);
 <a class="jxr_linenumber" name="L672" href="#L672">672</a>         }
@@ -683,7 +683,7 @@
 <a class="jxr_linenumber" name="L675" href="#L675">675</a> 
 <a class="jxr_linenumber" name="L676" href="#L676">676</a>     @Override
 <a class="jxr_linenumber" name="L677" href="#L677">677</a>     <strong class="jxr_keyword">public</strong> Byte[] getByteArray(String name, <strong class="jxr_keyword">int</strong> index) {
-<a class="jxr_linenumber" name="L678" href="#L678">678</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L678" href="#L678">678</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L679" href="#L679">679</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L680" href="#L680">680</a>             <strong class="jxr_keyword">return</strong> fieldInternal.getByteArray(index);
 <a class="jxr_linenumber" name="L681" href="#L681">681</a>         }
@@ -692,7 +692,7 @@
 <a class="jxr_linenumber" name="L684" href="#L684">684</a> 
 <a class="jxr_linenumber" name="L685" href="#L685">685</a>     @Override
 <a class="jxr_linenumber" name="L686" href="#L686">686</a>     <strong class="jxr_keyword">public</strong> Collection&lt;Byte[]&gt; getAllByteArrays(String name) {
-<a class="jxr_linenumber" name="L687" href="#L687">687</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> fieldInternal = getFieldInternal(name);
+<a class="jxr_linenumber" name="L687" href="#L687">687</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
 <a class="jxr_linenumber" name="L688" href="#L688">688</a>         <strong class="jxr_keyword">if</strong> (fieldInternal != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L689" href="#L689">689</a>             <strong class="jxr_keyword">int</strong> num = fieldInternal.getNumberOfValues();
 <a class="jxr_linenumber" name="L690" href="#L690">690</a>             List&lt;Byte[]&gt; values = <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;(num);
@@ -704,7 +704,7 @@
 <a class="jxr_linenumber" name="L696" href="#L696">696</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="L697" href="#L697">697</a>     }
 <a class="jxr_linenumber" name="L698" href="#L698">698</a> 
-<a class="jxr_linenumber" name="L699" href="#L699">699</a>     <strong class="jxr_keyword">private</strong> <a href="../../../../../../org/apache/plc4x/java/base/messages/items/FieldItem.html">FieldItem</a> getFieldInternal(String name) {
+<a class="jxr_linenumber" name="L699" href="#L699">699</a>     <strong class="jxr_keyword">private</strong> <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> getFieldInternal(String name) {
 <a class="jxr_linenumber" name="L700" href="#L700">700</a>         <em class="jxr_comment">// If this field doesn't exist, ignore it.</em>
 <a class="jxr_linenumber" name="L701" href="#L701">701</a>         <strong class="jxr_keyword">if</strong> (values.get(name) == <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L702" href="#L702">702</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
