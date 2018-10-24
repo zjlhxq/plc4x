@@ -350,7 +350,7 @@ public class S7Protocol extends ChannelDuplexHandler {
 <span class="fc" id="L350">        buf.writeByte(parameter.getSequenceNumber());</span>
 
         // A response parameter has some more fields.
-<span class="pc bpc" id="L353" title="1 of 2 branches missed.">        if((parameter instanceof CpuServicesResponseParameter)) {</span>
+<span class="pc bpc" id="L353" title="1 of 2 branches missed.">        if(parameter instanceof CpuServicesResponseParameter) {</span>
 <span class="nc" id="L354">            CpuServicesResponseParameter responseParameter = (CpuServicesResponseParameter) parameter;</span>
 <span class="nc" id="L355">            buf.writeByte(responseParameter.getDataUnitReferenceNumber());</span>
 <span class="nc bnc" id="L356" title="All 2 branches missed.">            buf.writeByte(responseParameter.isLastDataUnit() ? 0x00 : 0x01);</span>
@@ -567,7 +567,7 @@ public class S7Protocol extends ChannelDuplexHandler {
             // This is a response to a READ_VAR request.
 <span class="nc bnc" id="L568" title="All 4 branches missed.">            else if ((readWriteVarParameter.getType() == ParameterType.READ_VAR) &amp;&amp; isResponse) {</span>
 <span class="nc" id="L569">                DataTransportSize dataTransportSize = DataTransportSize.valueOf(userData.readByte());</span>
-<span class="nc bnc" id="L570" title="All 2 branches missed.">                short length = (dataTransportSize.isSizeInBits()) ?</span>
+<span class="nc bnc" id="L570" title="All 2 branches missed.">                short length = dataTransportSize.isSizeInBits() ?</span>
 <span class="nc" id="L571">                    (short) Math.ceil(userData.readShort() / 8.0) : userData.readShort();</span>
 <span class="nc" id="L572">                byte[] data = new byte[length];</span>
 <span class="nc" id="L573">                userData.readBytes(data);</span>
@@ -692,7 +692,7 @@ public class S7Protocol extends ChannelDuplexHandler {
 <span class="nc" id="L692">            return new CpuServicesRequestParameter(functionGroup, subFunctionGroup, sequenceNumber);</span>
         } else {
 <span class="fc" id="L694">            byte dataUnitReferenceNumber = in.readByte();</span>
-<span class="pc bpc" id="L695" title="1 of 2 branches missed.">            boolean lastDataUnit = (in.readByte() == 0x00);</span>
+<span class="pc bpc" id="L695" title="1 of 2 branches missed.">            boolean lastDataUnit = in.readByte() == 0x00;</span>
 <span class="fc" id="L696">            ParameterError error = ParameterError.valueOf(in.readShort());</span>
 <span class="fc" id="L697">            return new CpuServicesResponseParameter(functionGroup, subFunctionGroup, sequenceNumber,</span>
                 dataUnitReferenceNumber, lastDataUnit, error);
@@ -739,64 +739,59 @@ public class S7Protocol extends ChannelDuplexHandler {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-    @Override
-    public void flush(ChannelHandlerContext ctx) throws Exception {
-<span class="fc" id="L744">        super.flush(ctx);</span>
-<span class="fc" id="L745">    }</span>
-
     private synchronized void trySendingMessages(ChannelHandlerContext ctx) {
-<span class="pc bpc" id="L748" title="1 of 2 branches missed.">        while(sentButUnacknowledgedTpdus.size() &lt; maxAmqCaller) {</span>
+<span class="pc bpc" id="L743" title="1 of 2 branches missed.">        while(sentButUnacknowledgedTpdus.size() &lt; maxAmqCaller) {</span>
             // Get the TPDU that is up next in the queue.
-<span class="fc" id="L750">            DataTpdu curTpdu = (DataTpdu) queue.current();</span>
+<span class="fc" id="L745">            DataTpdu curTpdu = (DataTpdu) queue.current();</span>
 
-<span class="pc bpc" id="L752" title="1 of 2 branches missed.">            if (curTpdu != null) {</span>
+<span class="pc bpc" id="L747" title="1 of 2 branches missed.">            if (curTpdu != null) {</span>
                 // Send the TPDU.
                 try {
-<span class="fc" id="L755">                    ChannelFuture channelFuture = queue.removeAndWrite();</span>
-<span class="fc" id="L756">                    ctx.flush();</span>
-<span class="pc bpc" id="L757" title="1 of 2 branches missed.">                    if (channelFuture == null) {</span>
-<span class="nc" id="L758">                        break;</span>
+<span class="fc" id="L750">                    ChannelFuture channelFuture = queue.removeAndWrite();</span>
+<span class="fc" id="L751">                    ctx.flush();</span>
+<span class="pc bpc" id="L752" title="1 of 2 branches missed.">                    if (channelFuture == null) {</span>
+<span class="nc" id="L753">                        break;</span>
                     }
-<span class="nc" id="L760">                } catch (Exception e) {</span>
-<span class="nc" id="L761">                    logger.error(&quot;Error sending more queues messages&quot;, e);</span>
-<span class="nc" id="L762">                    ctx.fireExceptionCaught(e);</span>
-<span class="fc" id="L763">                }</span>
+<span class="nc" id="L755">                } catch (Exception e) {</span>
+<span class="nc" id="L756">                    logger.error(&quot;Error sending more queues messages&quot;, e);</span>
+<span class="nc" id="L757">                    ctx.fireExceptionCaught(e);</span>
+<span class="fc" id="L758">                }</span>
 
-<span class="pc bpc" id="L765" title="1 of 2 branches missed.">                if(curTpdu.getParent() != null) {</span>
+<span class="pc bpc" id="L760" title="1 of 2 branches missed.">                if(curTpdu.getParent() != null) {</span>
                     // Add it to the list of sentButUnacknowledgedTpdus.
                     // (It seems that the S7 drops the value of the COTP reference id, so we have to use the S7 one)
-<span class="fc" id="L768">                    S7RequestMessage s7RequestMessage = (S7RequestMessage) curTpdu.getParent();</span>
-<span class="fc" id="L769">                    sentButUnacknowledgedTpdus.put(s7RequestMessage.getTpduReference(), curTpdu);</span>
+<span class="fc" id="L763">                    S7RequestMessage s7RequestMessage = (S7RequestMessage) curTpdu.getParent();</span>
+<span class="fc" id="L764">                    sentButUnacknowledgedTpdus.put(s7RequestMessage.getTpduReference(), curTpdu);</span>
 
-<span class="fc" id="L771">                    logger.debug(&quot;S7 Message with id {} sent&quot;, s7RequestMessage.getTpduReference());</span>
-<span class="fc" id="L772">                }</span>
+<span class="fc" id="L766">                    logger.debug(&quot;S7 Message with id {} sent&quot;, s7RequestMessage.getTpduReference());</span>
+<span class="fc" id="L767">                }</span>
                 // TODO: Eventually remove this.
                 break;
             } else {
                 break;
             }
         }
-<span class="fc" id="L779">        ctx.flush();</span>
-<span class="fc" id="L780">    }</span>
+<span class="fc" id="L774">        ctx.flush();</span>
+<span class="fc" id="L775">    }</span>
 
     private S7ControllerType lookupControllerType(String articleNumber) {
-<span class="pc bpc" id="L783" title="1 of 2 branches missed.">        if(!articleNumber.startsWith(&quot;6ES7 &quot;)) {</span>
-<span class="nc" id="L784">            return S7ControllerType.S7_ANY;</span>
+<span class="pc bpc" id="L778" title="1 of 2 branches missed.">        if(!articleNumber.startsWith(&quot;6ES7 &quot;)) {</span>
+<span class="nc" id="L779">            return S7ControllerType.S7_ANY;</span>
         }
 
-<span class="fc" id="L787">        String model = articleNumber.substring(articleNumber.indexOf(&quot; &quot;) + 1, articleNumber.indexOf(&quot; &quot;) + 2);</span>
-<span class="pc bpc" id="L788" title="4 of 5 branches missed.">        switch (model) {</span>
+<span class="fc" id="L782">        String model = articleNumber.substring(articleNumber.indexOf(' ') + 1, articleNumber.indexOf(' ') + 2);</span>
+<span class="pc bpc" id="L783" title="4 of 5 branches missed.">        switch (model) {</span>
             case &quot;2&quot;:
-<span class="nc" id="L790">                return S7ControllerType.S7_1200;</span>
+<span class="nc" id="L785">                return S7ControllerType.S7_1200;</span>
             case &quot;5&quot;:
-<span class="fc" id="L792">                return S7ControllerType.S7_1500;</span>
+<span class="fc" id="L787">                return S7ControllerType.S7_1500;</span>
             case &quot;3&quot;:
-<span class="nc" id="L794">                return S7ControllerType.S7_300;</span>
+<span class="nc" id="L789">                return S7ControllerType.S7_300;</span>
             case &quot;4&quot;:
-<span class="nc" id="L796">                return S7ControllerType.S7_400;</span>
+<span class="nc" id="L791">                return S7ControllerType.S7_400;</span>
             default:
-<span class="nc" id="L798">                logger.info(&quot;Looking up unknown article number &quot; + articleNumber);</span>
-<span class="nc" id="L799">                return S7ControllerType.S7_ANY;</span>
+<span class="nc" id="L793">                logger.info(&quot;Looking up unknown article number &quot; + articleNumber);</span>
+<span class="nc" id="L794">                return S7ControllerType.S7_ANY;</span>
         }
     }
 
