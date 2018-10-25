@@ -108,7 +108,7 @@
 <a class="jxr_linenumber" name="L100" href="#L100">100</a>         PlcAuthentication plcAuthentication = argPair.getRight();
 <a class="jxr_linenumber" name="L101" href="#L101">101</a>         ObjectPool&lt;PlcConnection&gt; pool = poolMap.get(argPair);
 <a class="jxr_linenumber" name="L102" href="#L102">102</a>         <strong class="jxr_keyword">if</strong> (pool == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L103" href="#L103">103</a>             Lock lock = readWriteLock.readLock();
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>             Lock lock = readWriteLock.writeLock();
 <a class="jxr_linenumber" name="L104" href="#L104">104</a>             lock.lock();
 <a class="jxr_linenumber" name="L105" href="#L105">105</a>             <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L106" href="#L106">106</a>                 poolMap.computeIfAbsent(argPair, pair -&gt; poolCreator.createPool(<strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/utils/connectionpool/PooledPlcConnectionFactory.html">PooledPlcConnectionFactory</a>() {
@@ -158,25 +158,31 @@
 <a class="jxr_linenumber" name="L150" href="#L150">150</a> 
 <a class="jxr_linenumber" name="L151" href="#L151">151</a>     <em class="jxr_comment">// TODO: maybe export to jmx</em>
 <a class="jxr_linenumber" name="L152" href="#L152">152</a>     <strong class="jxr_keyword">public</strong> Map&lt;String, Number&gt; getStatistics() {
-<a class="jxr_linenumber" name="L153" href="#L153">153</a>         HashMap&lt;String, Number&gt; statistics = <strong class="jxr_keyword">new</strong> HashMap&lt;&gt;();
-<a class="jxr_linenumber" name="L154" href="#L154">154</a>         <strong class="jxr_keyword">for</strong> (Map.Entry&lt;Pair&lt;String, PlcAuthentication&gt;, ObjectPool&lt;PlcConnection&gt;&gt; poolEntry : poolMap.entrySet()) {
-<a class="jxr_linenumber" name="L155" href="#L155">155</a>             Pair&lt;String, PlcAuthentication&gt; pair = poolEntry.getKey();
-<a class="jxr_linenumber" name="L156" href="#L156">156</a>             ObjectPool&lt;PlcConnection&gt; objectPool = poolEntry.getValue();
-<a class="jxr_linenumber" name="L157" href="#L157">157</a>             String url = pair.getLeft();
-<a class="jxr_linenumber" name="L158" href="#L158">158</a>             PlcAuthentication plcAuthentication = pair.getRight();
-<a class="jxr_linenumber" name="L159" href="#L159">159</a> 
-<a class="jxr_linenumber" name="L160" href="#L160">160</a>             String authSuffix = plcAuthentication != noPlcAuthentication ? <span class="jxr_string">"/"</span> + plcAuthentication : <span class="jxr_string">""</span>;
-<a class="jxr_linenumber" name="L161" href="#L161">161</a>             statistics.put(url + authSuffix + <span class="jxr_string">".numActive"</span>, objectPool.getNumActive());
-<a class="jxr_linenumber" name="L162" href="#L162">162</a>             statistics.put(url + authSuffix + <span class="jxr_string">".numIdle"</span>, objectPool.getNumIdle());
-<a class="jxr_linenumber" name="L163" href="#L163">163</a>         }
-<a class="jxr_linenumber" name="L164" href="#L164">164</a> 
-<a class="jxr_linenumber" name="L165" href="#L165">165</a>         <strong class="jxr_keyword">return</strong> statistics;
-<a class="jxr_linenumber" name="L166" href="#L166">166</a>     }
+<a class="jxr_linenumber" name="L153" href="#L153">153</a>         Lock lock = readWriteLock.readLock();
+<a class="jxr_linenumber" name="L154" href="#L154">154</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L155" href="#L155">155</a>             lock.lock();
+<a class="jxr_linenumber" name="L156" href="#L156">156</a>             HashMap&lt;String, Number&gt; statistics = <strong class="jxr_keyword">new</strong> HashMap&lt;&gt;();
+<a class="jxr_linenumber" name="L157" href="#L157">157</a>             <strong class="jxr_keyword">for</strong> (Map.Entry&lt;Pair&lt;String, PlcAuthentication&gt;, ObjectPool&lt;PlcConnection&gt;&gt; poolEntry : poolMap.entrySet()) {
+<a class="jxr_linenumber" name="L158" href="#L158">158</a>                 Pair&lt;String, PlcAuthentication&gt; pair = poolEntry.getKey();
+<a class="jxr_linenumber" name="L159" href="#L159">159</a>                 ObjectPool&lt;PlcConnection&gt; objectPool = poolEntry.getValue();
+<a class="jxr_linenumber" name="L160" href="#L160">160</a>                 String url = pair.getLeft();
+<a class="jxr_linenumber" name="L161" href="#L161">161</a>                 PlcAuthentication plcAuthentication = pair.getRight();
+<a class="jxr_linenumber" name="L162" href="#L162">162</a> 
+<a class="jxr_linenumber" name="L163" href="#L163">163</a>                 String authSuffix = plcAuthentication != noPlcAuthentication ? <span class="jxr_string">"/"</span> + plcAuthentication : <span class="jxr_string">""</span>;
+<a class="jxr_linenumber" name="L164" href="#L164">164</a>                 statistics.put(url + authSuffix + <span class="jxr_string">".numActive"</span>, objectPool.getNumActive());
+<a class="jxr_linenumber" name="L165" href="#L165">165</a>                 statistics.put(url + authSuffix + <span class="jxr_string">".numIdle"</span>, objectPool.getNumIdle());
+<a class="jxr_linenumber" name="L166" href="#L166">166</a>             }
 <a class="jxr_linenumber" name="L167" href="#L167">167</a> 
-<a class="jxr_linenumber" name="L168" href="#L168">168</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../../org/apache/plc4x/java/utils/connectionpool/PooledPlcDriverManager.html">NoPlcAuthentication</a> <strong class="jxr_keyword">implements</strong> PlcAuthentication {
-<a class="jxr_linenumber" name="L169" href="#L169">169</a> 
-<a class="jxr_linenumber" name="L170" href="#L170">170</a>     }
-<a class="jxr_linenumber" name="L171" href="#L171">171</a> }
+<a class="jxr_linenumber" name="L168" href="#L168">168</a>             <strong class="jxr_keyword">return</strong> statistics;
+<a class="jxr_linenumber" name="L169" href="#L169">169</a>         } <strong class="jxr_keyword">finally</strong> {
+<a class="jxr_linenumber" name="L170" href="#L170">170</a>             lock.unlock();
+<a class="jxr_linenumber" name="L171" href="#L171">171</a>         }
+<a class="jxr_linenumber" name="L172" href="#L172">172</a>     }
+<a class="jxr_linenumber" name="L173" href="#L173">173</a> 
+<a class="jxr_linenumber" name="L174" href="#L174">174</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../../org/apache/plc4x/java/utils/connectionpool/PooledPlcDriverManager.html">NoPlcAuthentication</a> <strong class="jxr_keyword">implements</strong> PlcAuthentication {
+<a class="jxr_linenumber" name="L175" href="#L175">175</a> 
+<a class="jxr_linenumber" name="L176" href="#L176">176</a>     }
+<a class="jxr_linenumber" name="L177" href="#L177">177</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2017&#x2013;2018 <a href="https://www.apache.org/">The Apache Software Foundation</a>. All rights reserved.</div>

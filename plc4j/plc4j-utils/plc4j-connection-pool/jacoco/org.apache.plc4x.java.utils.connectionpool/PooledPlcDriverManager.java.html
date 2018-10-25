@@ -100,7 +100,7 @@ public class PooledPlcDriverManager extends PlcDriverManager {
 <span class="fc" id="L100">        PlcAuthentication plcAuthentication = argPair.getRight();</span>
 <span class="fc" id="L101">        ObjectPool&lt;PlcConnection&gt; pool = poolMap.get(argPair);</span>
 <span class="fc bfc" id="L102" title="All 2 branches covered.">        if (pool == null) {</span>
-<span class="fc" id="L103">            Lock lock = readWriteLock.readLock();</span>
+<span class="fc" id="L103">            Lock lock = readWriteLock.writeLock();</span>
 <span class="fc" id="L104">            lock.lock();</span>
             try {
 <span class="fc" id="L106">                poolMap.computeIfAbsent(argPair, pair -&gt; poolCreator.createPool(new PooledPlcConnectionFactory() {</span>
@@ -150,19 +150,25 @@ public class PooledPlcDriverManager extends PlcDriverManager {
 
     // TODO: maybe export to jmx
     public Map&lt;String, Number&gt; getStatistics() {
-<span class="fc" id="L153">        HashMap&lt;String, Number&gt; statistics = new HashMap&lt;&gt;();</span>
-<span class="fc bfc" id="L154" title="All 2 branches covered.">        for (Map.Entry&lt;Pair&lt;String, PlcAuthentication&gt;, ObjectPool&lt;PlcConnection&gt;&gt; poolEntry : poolMap.entrySet()) {</span>
-<span class="fc" id="L155">            Pair&lt;String, PlcAuthentication&gt; pair = poolEntry.getKey();</span>
-<span class="fc" id="L156">            ObjectPool&lt;PlcConnection&gt; objectPool = poolEntry.getValue();</span>
-<span class="fc" id="L157">            String url = pair.getLeft();</span>
-<span class="fc" id="L158">            PlcAuthentication plcAuthentication = pair.getRight();</span>
+<span class="fc" id="L153">        Lock lock = readWriteLock.readLock();</span>
+        try {
+<span class="fc" id="L155">            lock.lock();</span>
+<span class="fc" id="L156">            HashMap&lt;String, Number&gt; statistics = new HashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L157" title="All 2 branches covered.">            for (Map.Entry&lt;Pair&lt;String, PlcAuthentication&gt;, ObjectPool&lt;PlcConnection&gt;&gt; poolEntry : poolMap.entrySet()) {</span>
+<span class="fc" id="L158">                Pair&lt;String, PlcAuthentication&gt; pair = poolEntry.getKey();</span>
+<span class="fc" id="L159">                ObjectPool&lt;PlcConnection&gt; objectPool = poolEntry.getValue();</span>
+<span class="fc" id="L160">                String url = pair.getLeft();</span>
+<span class="fc" id="L161">                PlcAuthentication plcAuthentication = pair.getRight();</span>
 
-<span class="fc bfc" id="L160" title="All 2 branches covered.">            String authSuffix = plcAuthentication != noPlcAuthentication ? &quot;/&quot; + plcAuthentication : &quot;&quot;;</span>
-<span class="fc" id="L161">            statistics.put(url + authSuffix + &quot;.numActive&quot;, objectPool.getNumActive());</span>
-<span class="fc" id="L162">            statistics.put(url + authSuffix + &quot;.numIdle&quot;, objectPool.getNumIdle());</span>
-<span class="fc" id="L163">        }</span>
+<span class="fc bfc" id="L163" title="All 2 branches covered.">                String authSuffix = plcAuthentication != noPlcAuthentication ? &quot;/&quot; + plcAuthentication : &quot;&quot;;</span>
+<span class="fc" id="L164">                statistics.put(url + authSuffix + &quot;.numActive&quot;, objectPool.getNumActive());</span>
+<span class="fc" id="L165">                statistics.put(url + authSuffix + &quot;.numIdle&quot;, objectPool.getNumIdle());</span>
+<span class="fc" id="L166">            }</span>
 
-<span class="fc" id="L165">        return statistics;</span>
+<span class="fc" id="L168">            return statistics;</span>
+        } finally {
+<span class="fc" id="L170">            lock.unlock();</span>
+        }
     }
 
     private static final class NoPlcAuthentication implements PlcAuthentication {
