@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PooledPlcDriverManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PLC4J: Utils: Connection Pool</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.java.utils.connectionpool</a> &gt; <span class="el_source">PooledPlcDriverManager.java</span></div><h1>PooledPlcDriverManager.java</h1><pre class="source lang-java linenums">/*
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the &quot;License&quot;); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+ */
+
+package org.apache.plc4x.java.utils.connectionpool;
+
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.pool2.ObjectPool;
+import org.apache.commons.pool2.impl.GenericObjectPool;
+import org.apache.plc4x.java.PlcDriverManager;
+import org.apache.plc4x.java.api.PlcConnection;
+import org.apache.plc4x.java.api.authentication.PlcAuthentication;
+import org.apache.plc4x.java.api.exceptions.PlcConnectionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.Proxy;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+public class PooledPlcDriverManager extends PlcDriverManager {
+
+<span class="fc" id="L43">    private final static Logger LOGGER = LoggerFactory.getLogger(PooledPlcDriverManager.class);</span>
+
+    private PoolCreator poolCreator;
+
+<span class="pc" id="L47">    private ReadWriteLock readWriteLock = new ReentrantReadWriteLock();</span>
+
+<span class="pc" id="L49">    private ConcurrentMap&lt;Pair&lt;String, PlcAuthentication&gt;, ObjectPool&lt;PlcConnection&gt;&gt; poolMap = new ConcurrentHashMap&lt;&gt;();</span>
+
+    // Marker class do detected a non null value
+<span class="fc" id="L52">    private static final NoPlcAuthentication noPlcAuthentication = new NoPlcAuthentication();</span>
+
+    public PooledPlcDriverManager() {
+<span class="nc" id="L55">        this(GenericObjectPool::new);</span>
+<span class="nc" id="L56">    }</span>
+
+    public PooledPlcDriverManager(ClassLoader classLoader) {
+<span class="nc" id="L59">        super(classLoader);</span>
+<span class="nc" id="L60">        this.poolCreator = GenericObjectPool::new;</span>
+<span class="nc" id="L61">    }</span>
+
+<span class="fc" id="L63">    public PooledPlcDriverManager(PoolCreator poolCreator) {</span>
+<span class="fc" id="L64">        this.poolCreator = poolCreator;</span>
+<span class="fc" id="L65">    }</span>
+
+    public PooledPlcDriverManager(ClassLoader classLoader, PoolCreator poolCreator) {
+<span class="nc" id="L68">        super(classLoader);</span>
+<span class="nc" id="L69">        this.poolCreator = poolCreator;</span>
+<span class="nc" id="L70">    }</span>
+
+    @Override
+    public PlcConnection getConnection(String url) throws PlcConnectionException {
+<span class="fc" id="L74">        return getConnection(url, noPlcAuthentication);</span>
+    }
+
+    @Override
+    public PlcConnection getConnection(String url, PlcAuthentication authentication) throws PlcConnectionException {
+<span class="fc" id="L79">        Pair&lt;String, PlcAuthentication&gt; argPair = Pair.of(url, authentication);</span>
+<span class="fc" id="L80">        ObjectPool&lt;PlcConnection&gt; pool = retrieveFromPool(argPair);</span>
+        try {
+<span class="fc" id="L82">            LOGGER.debug(&quot;Try to borrow an object for url {} and authentication {}&quot;, url, authentication);</span>
+<span class="fc" id="L83">            PlcConnection plcConnection = pool.borrowObject();</span>
+<span class="fc" id="L84">            return (PlcConnection) Proxy.newProxyInstance(classLoader, new Class[]{PlcConnection.class}, (o, method, objects) -&gt; {</span>
+<span class="fc bfc" id="L85" title="All 2 branches covered.">                if (method.getName().equals(&quot;close&quot;)) {</span>
+<span class="fc" id="L86">                    LOGGER.debug(&quot;close called on {}. Returning to {}&quot;, plcConnection, pool);</span>
+<span class="fc" id="L87">                    pool.returnObject(plcConnection);</span>
+<span class="fc" id="L88">                    return null;</span>
+                } else {
+<span class="fc" id="L90">                    return method.invoke(plcConnection, objects);</span>
+                }
+            });
+<span class="nc" id="L93">        } catch (Exception e) {</span>
+<span class="nc" id="L94">            throw new PlcConnectionException(e);</span>
+        }
+    }
+
+    private ObjectPool&lt;PlcConnection&gt; retrieveFromPool(Pair&lt;String, PlcAuthentication&gt; argPair) {
+<span class="fc" id="L99">        String url = argPair.getLeft();</span>
+<span class="fc" id="L100">        PlcAuthentication plcAuthentication = argPair.getRight();</span>
+<span class="fc" id="L101">        ObjectPool&lt;PlcConnection&gt; pool = poolMap.get(argPair);</span>
+<span class="fc bfc" id="L102" title="All 2 branches covered.">        if (pool == null) {</span>
+<span class="fc" id="L103">            Lock lock = readWriteLock.readLock();</span>
+<span class="fc" id="L104">            lock.lock();</span>
+            try {
+<span class="fc" id="L106">                poolMap.computeIfAbsent(argPair, pair -&gt; poolCreator.createPool(new PooledPlcConnectionFactory() {</span>
+                    @Override
+                    public PlcConnection create() throws PlcConnectionException {
+<span class="fc bfc" id="L109" title="All 2 branches covered.">                        if (plcAuthentication == noPlcAuthentication) {</span>
+<span class="fc" id="L110">                            LOGGER.debug(&quot;getting actual connection for {}&quot;, url);</span>
+<span class="fc" id="L111">                            return PooledPlcDriverManager.super.getConnection(url);</span>
+                        } else {
+<span class="fc" id="L113">                            LOGGER.debug(&quot;getting actual connection for {} and plcAuthentication {}&quot;, url, plcAuthentication);</span>
+<span class="fc" id="L114">                            return PooledPlcDriverManager.super.getConnection(url, plcAuthentication);</span>
+                        }
+                    }
+                }));
+<span class="fc" id="L118">                pool = poolMap.get(argPair);</span>
+            } finally {
+<span class="fc" id="L120">                lock.unlock();</span>
+            }
+        }
+<span class="fc" id="L123">        return pool;</span>
+    }
+
+    @FunctionalInterface
+    interface PoolCreator {
+        ObjectPool&lt;PlcConnection&gt; createPool(PooledPlcConnectionFactory pooledPlcConnectionFactory);
+    }
+
+    // TODO: maybe add a Thread which calls this cyclic
+    public void removedUnusedPools() {
+<span class="nc" id="L133">        Lock lock = readWriteLock.writeLock();</span>
+<span class="nc" id="L134">        lock.lock();</span>
+        try {
+<span class="nc" id="L136">            Set&lt;Pair&lt;String, PlcAuthentication&gt;&gt; itemsToBeremoved = new LinkedHashSet&lt;&gt;();</span>
+<span class="nc" id="L137">            poolMap.forEach((key, value) -&gt; {</span>
+                // TODO: check if this pool has been used in the last time and if not remove it.
+                // TODO: evicting empty pools for now
+<span class="nc bnc" id="L140" title="All 4 branches missed.">                if (value.getNumActive() == 0 &amp;&amp; value.getNumIdle() == 0) {</span>
+<span class="nc" id="L141">                    LOGGER.info(&quot;Removing unused pool {}&quot;, value);</span>
+<span class="nc" id="L142">                    itemsToBeremoved.add(key);</span>
+                }
+<span class="nc" id="L144">            });</span>
+<span class="nc" id="L145">            itemsToBeremoved.forEach(poolMap::remove);</span>
+        } finally {
+<span class="nc" id="L147">            lock.unlock();</span>
+        }
+<span class="nc" id="L149">    }</span>
+
+    // TODO: maybe export to jmx
+    public Map&lt;String, Number&gt; getStatistics() {
+<span class="fc" id="L153">        HashMap&lt;String, Number&gt; statistics = new HashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L154" title="All 2 branches covered.">        for (Map.Entry&lt;Pair&lt;String, PlcAuthentication&gt;, ObjectPool&lt;PlcConnection&gt;&gt; poolEntry : poolMap.entrySet()) {</span>
+<span class="fc" id="L155">            Pair&lt;String, PlcAuthentication&gt; pair = poolEntry.getKey();</span>
+<span class="fc" id="L156">            ObjectPool&lt;PlcConnection&gt; objectPool = poolEntry.getValue();</span>
+<span class="fc" id="L157">            String url = pair.getLeft();</span>
+<span class="fc" id="L158">            PlcAuthentication plcAuthentication = pair.getRight();</span>
+
+<span class="fc bfc" id="L160" title="All 2 branches covered.">            String authSuffix = plcAuthentication != noPlcAuthentication ? &quot;/&quot; + plcAuthentication : &quot;&quot;;</span>
+<span class="fc" id="L161">            statistics.put(url + authSuffix + &quot;.numActive&quot;, objectPool.getNumActive());</span>
+<span class="fc" id="L162">            statistics.put(url + authSuffix + &quot;.numIdle&quot;, objectPool.getNumIdle());</span>
+<span class="fc" id="L163">        }</span>
+
+<span class="fc" id="L165">        return statistics;</span>
+    }
+
+    private static final class NoPlcAuthentication implements PlcAuthentication {
+
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
