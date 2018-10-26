@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TypeSafePlcWriteRequest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PLC4J: API</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.java.api.messages.specific</a> &gt; <span class="el_source">TypeSafePlcWriteRequest.java</span></div><h1>TypeSafePlcWriteRequest.java</h1><pre class="source lang-java linenums">/*
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+&quot;License&quot;); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+&quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+*/
+package org.apache.plc4x.java.api.messages.specific;
+
+import org.apache.plc4x.java.api.messages.PlcWriteRequest;
+import org.apache.plc4x.java.api.messages.items.WriteRequestItem;
+import org.apache.plc4x.java.api.model.Address;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+
+public class TypeSafePlcWriteRequest&lt;T&gt; extends PlcWriteRequest {
+
+    private final Class&lt;T&gt; dataType;
+
+<span class="fc" id="L33">    public TypeSafePlcWriteRequest(Class&lt;T&gt; dataType) {</span>
+<span class="fc" id="L34">        Objects.requireNonNull(dataType, &quot;Data type must not be null&quot;);</span>
+<span class="fc" id="L35">        this.dataType = dataType;</span>
+<span class="fc" id="L36">    }</span>
+
+    public TypeSafePlcWriteRequest(Class&lt;T&gt; dataType, PlcWriteRequest plcWriteRequest) {
+<span class="fc" id="L39">        this(dataType);</span>
+<span class="fc" id="L40">        Objects.requireNonNull(plcWriteRequest, &quot;PLC write request must not be null&quot;);</span>
+<span class="fc" id="L41">        Objects.requireNonNull(plcWriteRequest.getRequestItems(), &quot;plc write request item on &quot; + plcWriteRequest + &quot; must not be null&quot;);</span>
+<span class="fc bfc" id="L42" title="All 2 branches covered.">        for (WriteRequestItem&lt;?&gt; WriteRequestItem : plcWriteRequest.getRequestItems()) {</span>
+<span class="fc" id="L43">            addItem(WriteRequestItem);</span>
+<span class="fc" id="L44">        }</span>
+<span class="fc" id="L45">    }</span>
+
+    @SafeVarargs
+    public TypeSafePlcWriteRequest(Class&lt;T&gt; dataType, Address address, T... values) {
+<span class="fc" id="L49">        this(dataType);</span>
+<span class="fc" id="L50">        Objects.requireNonNull(address, &quot;Address must not be null&quot;);</span>
+<span class="fc" id="L51">        addItem(new WriteRequestItem&lt;&gt;(dataType, address, values));</span>
+<span class="fc" id="L52">    }</span>
+
+    @SafeVarargs
+    public TypeSafePlcWriteRequest(Class&lt;T&gt; dataType, WriteRequestItem&lt;T&gt;... requestItems) {
+<span class="fc" id="L56">        this(dataType);</span>
+<span class="fc" id="L57">        Objects.requireNonNull(requestItems, &quot;Request item must not be null&quot;);</span>
+<span class="fc bfc" id="L58" title="All 2 branches covered.">        for (WriteRequestItem&lt;T&gt; requestItem : requestItems) {</span>
+<span class="fc" id="L59">            getRequestItems().add(requestItem);</span>
+        }
+<span class="fc" id="L61">    }</span>
+
+    @Override
+    public void addItem(WriteRequestItem&lt;?&gt; writeRequestItem) {
+<span class="fc" id="L65">        Objects.requireNonNull(writeRequestItem, &quot;Write request item must not be null&quot;);</span>
+<span class="fc bfc" id="L66" title="All 2 branches covered.">        if (writeRequestItem.getDatatype() != dataType) {</span>
+<span class="fc" id="L67">            throw new IllegalArgumentException(&quot;Incompatible dataType &quot; + writeRequestItem.getDatatype());</span>
+        }
+<span class="fc" id="L69">        super.addItem(writeRequestItem);</span>
+<span class="fc" id="L70">    }</span>
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public List&lt;WriteRequestItem&lt;T&gt;&gt; getCheckedRequestItems() {
+<span class="fc" id="L74">        return (List) getRequestItems();</span>
+    }
+
+    @Override
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public Optional&lt;WriteRequestItem&lt;T&gt;&gt; getRequestItem() {
+<span class="fc" id="L80">        return (Optional&lt;WriteRequestItem&lt;T&gt;&gt;) super.getRequestItem();</span>
+    }
+
+    public Class&lt;T&gt; getDataType() {
+<span class="fc" id="L84">        return dataType;</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="nc" id="L89">        return &quot;TypeSafePlcWriteRequest{&quot; +</span>
+            &quot;dataType=&quot; + dataType +
+<span class="nc" id="L91">            &quot;} &quot; + super.toString();</span>
+    }
+
+    @Override
+    public boolean equals(Object o) {
+<span class="nc bnc" id="L96" title="All 2 branches missed.">        if (this == o) {</span>
+<span class="nc" id="L97">            return true;</span>
+        }
+<span class="nc bnc" id="L99" title="All 2 branches missed.">        if (!(o instanceof TypeSafePlcWriteRequest)) {</span>
+<span class="nc" id="L100">            return false;</span>
+        }
+<span class="nc bnc" id="L102" title="All 2 branches missed.">        if (!super.equals(o)) {</span>
+<span class="nc" id="L103">            return false;</span>
+        }
+<span class="nc" id="L105">        TypeSafePlcWriteRequest&lt;?&gt; that = (TypeSafePlcWriteRequest&lt;?&gt;) o;</span>
+<span class="nc" id="L106">        return Objects.equals(dataType, that.dataType);</span>
+    }
+
+    @Override
+    public int hashCode() {
+
+<span class="nc" id="L112">        return Objects.hash(super.hashCode(), dataType);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

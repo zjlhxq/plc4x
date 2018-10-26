@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Plc4xSourceTask.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Integrations: Apache Kafka</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.kafka.source</a> &gt; <span class="el_source">Plc4xSourceTask.java</span></div><h1>Plc4xSourceTask.java</h1><pre class="source lang-java linenums">/*
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+&quot;License&quot;); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+&quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+*/
+package org.apache.plc4x.kafka.source;
+
+import org.apache.kafka.common.config.ConfigException;
+import org.apache.kafka.connect.data.Schema;
+import org.apache.kafka.connect.errors.ConnectException;
+import org.apache.kafka.connect.source.SourceRecord;
+import org.apache.kafka.connect.source.SourceTask;
+import org.apache.plc4x.java.PlcDriverManager;
+import org.apache.plc4x.java.api.connection.PlcConnection;
+import org.apache.plc4x.java.api.connection.PlcReader;
+import org.apache.plc4x.java.api.exceptions.PlcConnectionException;
+import org.apache.plc4x.java.api.exceptions.PlcInvalidAddressException;
+import org.apache.plc4x.java.api.messages.PlcReadRequest;
+import org.apache.plc4x.java.api.messages.PlcReadResponse;
+import org.apache.plc4x.java.api.messages.items.ReadResponseItem;
+import org.apache.plc4x.java.api.model.Address;
+import org.apache.plc4x.kafka.util.VersionUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+<span class="nc" id="L43">public class Plc4xSourceTask extends SourceTask {</span>
+
+<span class="nc" id="L45">    static final Logger log = LoggerFactory.getLogger(Plc4xSourceTask.class);</span>
+
+    private Plc4xSourceConfig config;
+    private PlcConnection plcConnection;
+    private PlcReader reader;
+    private PlcReadRequest readRequest;
+<span class="nc" id="L51">    private AtomicBoolean running = new AtomicBoolean(false);</span>
+    private String topic;
+<span class="nc" id="L53">    private Schema keySchema = Schema.STRING_SCHEMA;</span>
+    private Schema valueSchema;
+<span class="nc" id="L55">    private long offset = 0;</span>
+<span class="nc" id="L56">    private final Map&lt;Class&lt;?&gt;, Schema&gt; typeSchemas = initTypeSchemas();</span>
+
+    @Override
+    public String version() {
+<span class="nc" id="L60">        return VersionUtil.getVersion();</span>
+    }
+
+    @Override
+    public void start(Map&lt;String, String&gt; properties) {
+        try {
+<span class="nc" id="L66">            config = new Plc4xSourceConfig(properties);</span>
+<span class="nc" id="L67">        } catch (ConfigException e) {</span>
+<span class="nc" id="L68">            throw new ConnectException(&quot;Couldn't start Plc4xSourceTask due to configuration error&quot;, e);</span>
+<span class="nc" id="L69">        }</span>
+<span class="nc" id="L70">        final String url = config.getString(Plc4xSourceConfig.PLC_CONNECTION_STRING_CONFIG);</span>
+
+        try {
+<span class="nc" id="L73">            plcConnection = new PlcDriverManager().getConnection(url);</span>
+<span class="nc" id="L74">            Optional&lt;PlcReader&gt; readerOptional = plcConnection.getReader();</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">            if(!readerOptional.isPresent()) {</span>
+<span class="nc" id="L76">                throw new ConnectException(&quot;PlcReader not available for this type of connection&quot;);</span>
+            }
+<span class="nc" id="L78">            reader = readerOptional.get();</span>
+<span class="nc" id="L79">            Class&lt;?&gt; dataType = config.getClass(Plc4xSourceConfig.PLC_DATATYPE_CONFIG);</span>
+<span class="nc" id="L80">            String addressString = config.getString(Plc4xSourceConfig.PLC_ADDRESS);</span>
+<span class="nc" id="L81">            Address address = plcConnection.parseAddress(addressString);</span>
+<span class="nc" id="L82">            readRequest = new PlcReadRequest(dataType, address);</span>
+<span class="nc" id="L83">            topic = config.getString(Plc4xSourceConfig.PLC_TOPIC);</span>
+<span class="nc" id="L84">            valueSchema = typeSchemas.get(dataType);</span>
+<span class="nc" id="L85">            running.set(true);</span>
+<span class="nc" id="L86">        } catch (PlcConnectionException e) {</span>
+<span class="nc" id="L87">            throw new ConnectException(&quot;Caught exception while connecting to PLC&quot;, e);</span>
+<span class="nc" id="L88">        } catch (PlcInvalidAddressException e) {</span>
+<span class="nc" id="L89">            throw new ConnectException(&quot;Invalid PLC address&quot;, e);</span>
+<span class="nc" id="L90">        }</span>
+<span class="nc" id="L91">    }</span>
+
+    private Map&lt;Class&lt;?&gt;, Schema&gt; initTypeSchemas() {
+<span class="nc" id="L94">        Map&lt;Class&lt;?&gt;, Schema&gt; map = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L95">        map.put(Boolean.class, Schema.BOOLEAN_SCHEMA);</span>
+<span class="nc" id="L96">        map.put(Integer.class, Schema.INT32_SCHEMA);</span>
+        // TODO add other
+<span class="nc" id="L98">        return map;</span>
+    }
+
+    @Override
+    public void stop() {
+<span class="nc bnc" id="L103" title="All 2 branches missed.">        if(plcConnection != null) {</span>
+<span class="nc" id="L104">            running.set(false);</span>
+            try {
+<span class="nc" id="L106">                plcConnection.close();</span>
+<span class="nc" id="L107">            } catch (Exception e) {</span>
+<span class="nc" id="L108">                throw new RuntimeException(&quot;Caught exception while closing connection to PLC&quot;, e);</span>
+<span class="nc" id="L109">            }</span>
+        }
+<span class="nc" id="L111">    }</span>
+
+    @Override
+    public List&lt;SourceRecord&gt; poll() throws InterruptedException {
+<span class="nc bnc" id="L115" title="All 6 branches missed.">        if((plcConnection != null) &amp;&amp; plcConnection.isConnected() &amp;&amp; (reader != null)) {</span>
+<span class="nc" id="L116">            final List&lt;SourceRecord&gt; results = new LinkedList&lt;&gt;();</span>
+
+            try {
+<span class="nc" id="L119">                PlcReadResponse plcReadResponse = reader.read(readRequest).get();</span>
+
+<span class="nc bnc" id="L121" title="All 2 branches missed.">                for (ReadResponseItem&lt;?&gt; responseItem : plcReadResponse.getResponseItems()) {</span>
+<span class="nc" id="L122">                    Address address = responseItem.getRequestItem().getAddress();</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">                    for (Object value : responseItem.getValues()) {</span>
+<span class="nc" id="L124">                        Map&lt;String, String&gt; sourcePartition = Collections.singletonMap(&quot;address&quot;, address.toString());</span>
+<span class="nc" id="L125">                        Map&lt;String, Long&gt; sourceOffset = Collections.singletonMap(&quot;offset&quot;, offset);</span>
+<span class="nc" id="L126">                        SourceRecord record = new SourceRecord(sourcePartition, sourceOffset, topic, keySchema, address.toString(), valueSchema, value);</span>
+<span class="nc" id="L127">                        results.add(record);</span>
+<span class="nc" id="L128">                        offset++; // TODO: figure out how to track offsets</span>
+<span class="nc" id="L129">                    }</span>
+<span class="nc" id="L130">                }</span>
+<span class="nc" id="L131">            } catch (ExecutionException e) {</span>
+<span class="nc" id="L132">                log.error(&quot;Error reading values from PLC&quot;, e);</span>
+<span class="nc" id="L133">            }</span>
+
+<span class="nc" id="L135">            return results;</span>
+        }
+<span class="nc" id="L137">        return null;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

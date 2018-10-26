@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Plc4xSinkTask.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Integrations: Apache Kafka</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.kafka.sink</a> &gt; <span class="el_source">Plc4xSinkTask.java</span></div><h1>Plc4xSinkTask.java</h1><pre class="source lang-java linenums">/*
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+&quot;License&quot;); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+&quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+*/
+package org.apache.plc4x.kafka.sink;
+
+import org.apache.kafka.common.config.ConfigException;
+import org.apache.kafka.connect.errors.ConnectException;
+import org.apache.kafka.connect.sink.SinkRecord;
+import org.apache.kafka.connect.sink.SinkTask;
+import org.apache.plc4x.java.PlcDriverManager;
+import org.apache.plc4x.java.api.connection.PlcConnection;
+import org.apache.plc4x.java.api.connection.PlcWriter;
+import org.apache.plc4x.java.api.exceptions.PlcConnectionException;
+import org.apache.plc4x.java.api.exceptions.PlcException;
+import org.apache.plc4x.java.api.messages.PlcWriteRequest;
+import org.apache.plc4x.java.api.messages.PlcWriteResponse;
+import org.apache.plc4x.java.api.messages.items.WriteRequestItem;
+import org.apache.plc4x.java.api.messages.items.WriteResponseItem;
+import org.apache.plc4x.java.api.model.Address;
+import org.apache.plc4x.java.api.types.ResponseCode;
+import org.apache.plc4x.kafka.util.VersionUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+<span class="nc" id="L44">public class Plc4xSinkTask extends SinkTask {</span>
+
+<span class="nc" id="L46">    private static Logger log = LoggerFactory.getLogger(Plc4xSinkTask.class);</span>
+
+    private Plc4xSinkConfig config;
+    private PlcConnection plcConnection;
+    private PlcWriter writer;
+<span class="nc" id="L51">    private AtomicBoolean running = new AtomicBoolean(false);</span>
+
+    @Override
+    public String version() {
+<span class="nc" id="L55">        return VersionUtil.getVersion();</span>
+    }
+
+    @Override
+    public void start(Map&lt;String, String&gt; properties) {
+        try {
+<span class="nc" id="L61">            config = new Plc4xSinkConfig(properties);</span>
+<span class="nc" id="L62">        } catch (ConfigException e) {</span>
+<span class="nc" id="L63">            throw new ConnectException(&quot;Couldn't start JdbcSourceTask due to configuration error&quot;, e);</span>
+<span class="nc" id="L64">        }</span>
+<span class="nc" id="L65">        final String url = config.getString(Plc4xSinkConfig.PLC_CONNECTION_STRING_CONFIG);</span>
+
+        try {
+<span class="nc" id="L68">            plcConnection = new PlcDriverManager().getConnection(url);</span>
+<span class="nc" id="L69">            Optional&lt;PlcWriter&gt; writerOptional = plcConnection.getWriter();</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">            if(!writerOptional.isPresent()) {</span>
+<span class="nc" id="L71">                throw new ConnectException(&quot;PlcWriter not available for this type of connection&quot;);</span>
+            }
+<span class="nc" id="L73">            writer = writerOptional.get();</span>
+<span class="nc" id="L74">            running.set(true);</span>
+<span class="nc" id="L75">        } catch (PlcConnectionException e) {</span>
+<span class="nc" id="L76">            throw new ConnectException(&quot;Caught exception while connecting to PLC&quot;, e);</span>
+<span class="nc" id="L77">        }</span>
+<span class="nc" id="L78">    }</span>
+
+    @Override
+    public void stop() {
+<span class="nc bnc" id="L82" title="All 2 branches missed.">        if(plcConnection != null) {</span>
+<span class="nc" id="L83">            running.set(false);</span>
+            try {
+<span class="nc" id="L85">                plcConnection.close();</span>
+<span class="nc" id="L86">            } catch (Exception e) {</span>
+<span class="nc" id="L87">                throw new RuntimeException(&quot;Caught exception while closing connection to PLC&quot;, e);</span>
+<span class="nc" id="L88">            }</span>
+        }
+<span class="nc" id="L90">    }</span>
+
+    @Override
+    public void put(Collection&lt;SinkRecord&gt; records) {
+<span class="nc bnc" id="L94" title="All 6 branches missed.">        if((plcConnection != null) &amp;&amp; plcConnection.isConnected() &amp;&amp; (writer != null)) {</span>
+            // Prepare the write request.
+<span class="nc" id="L96">            List&lt;WriteRequestItem&lt;?&gt;&gt; writeRequestItems = new ArrayList&lt;&gt;(records.size());</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">            for (SinkRecord record : records) {</span>
+                // TODO: Somehow get the payload from the kafka SinkRecord and create a writeRequestItem from that ...
+                // TODO: Replace this dummy with something real ...
+<span class="nc" id="L100">                Map&lt;String, Object&gt; value = new HashMap&lt;&gt;(); //(Map&lt;String, String&gt;) record.value()</span>
+<span class="nc" id="L101">                String addressString = (String) value.get(&quot;address&quot;);</span>
+<span class="nc" id="L102">                List&lt;Byte&gt; values = (List&lt;Byte&gt;) value.get(&quot;values&quot;);</span>
+
+                try {
+<span class="nc" id="L105">                    Address address = plcConnection.parseAddress(addressString);</span>
+<span class="nc" id="L106">                    writeRequestItems.add(new WriteRequestItem&lt;&gt;(Byte.class, address, values.toArray(new Byte[0])));</span>
+<span class="nc" id="L107">                } catch (PlcException e) {</span>
+                    // TODO: Do Something if the address string wasn't parsable by the current driver ...
+<span class="nc" id="L109">                    log.error(&quot;Error parsing address string &quot; + addressString, e);</span>
+<span class="nc" id="L110">                }</span>
+<span class="nc" id="L111">            }</span>
+<span class="nc" id="L112">            PlcWriteRequest writeRequest = new PlcWriteRequest(writeRequestItems);</span>
+
+            // Send the write request to the PLC.
+            try {
+<span class="nc" id="L116">                PlcWriteResponse plcWriteResponse = writer.write(writeRequest).get();</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">                for (WriteResponseItem&lt;?&gt; responseItem : plcWriteResponse.getResponseItems()) {</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">                    if(responseItem.getResponseCode() != ResponseCode.OK) {</span>
+                        // TODO: Do Something if writing this particular item wasn't successful ...
+<span class="nc" id="L120">                        log.error(&quot;Error writing a value to PLC&quot;);</span>
+                    }
+<span class="nc" id="L122">                }</span>
+<span class="nc" id="L123">            } catch (ExecutionException | InterruptedException e) {</span>
+<span class="nc" id="L124">                log.error(&quot;Error writing values to PLC&quot;, e);</span>
+<span class="nc" id="L125">            }</span>
+        }
+<span class="nc" id="L127">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

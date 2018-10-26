@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PlcReadRequest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">PLC4J: API</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.java.api.messages</a> &gt; <span class="el_source">PlcReadRequest.java</span></div><h1>PlcReadRequest.java</h1><pre class="source lang-java linenums">/*
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+&quot;License&quot;); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+&quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+*/
+package org.apache.plc4x.java.api.messages;
+
+import org.apache.plc4x.java.api.messages.items.ReadRequestItem;
+import org.apache.plc4x.java.api.messages.specific.TypeSafePlcReadRequest;
+import org.apache.plc4x.java.api.model.Address;
+
+import java.util.List;
+import java.util.Objects;
+
+/**
+ * Request to read one or more values from a plc.
+ * The {@link PlcReadRequest} is a container for one or more {@link ReadRequestItem}s that are contained.
+ * &lt;p&gt;
+ * By default this is NOT typesafe as it can contain {@link ReadRequestItem}s for different types.
+ * If there are only {@link ReadRequestItem}s of the same type one can use the {@link TypeSafePlcReadRequest} to enforce
+ * type safety.
+ * &lt;p&gt;
+ * Provides a builder for object construction through {@link PlcReadRequest#builder()}.
+ *
+ * @see TypeSafePlcReadRequest
+ */
+public class PlcReadRequest extends PlcRequest&lt;ReadRequestItem&lt;?&gt;&gt; {
+
+<span class="fc" id="L42">    public PlcReadRequest() {</span>
+        // Exists for construction of inherited classes
+<span class="fc" id="L44">    }</span>
+
+<span class="fc" id="L46">    public PlcReadRequest(ReadRequestItem&lt;?&gt; requestItem) {</span>
+<span class="fc" id="L47">        addItem(requestItem);</span>
+<span class="fc" id="L48">    }</span>
+
+<span class="fc" id="L50">    public PlcReadRequest(Class&lt;?&gt; dataType, Address address) {</span>
+<span class="fc" id="L51">        addItem(new ReadRequestItem&lt;&gt;(dataType, address));</span>
+<span class="fc" id="L52">    }</span>
+
+<span class="fc" id="L54">    public PlcReadRequest(Class&lt;?&gt; dataType, Address address, int size) {</span>
+<span class="fc" id="L55">        Objects.requireNonNull(dataType, &quot;Data type must not be null&quot;);</span>
+<span class="fc" id="L56">        Objects.requireNonNull(address, &quot;Address must not be null&quot;);</span>
+<span class="fc" id="L57">        addItem(new ReadRequestItem&lt;&gt;(dataType, address, size));</span>
+<span class="fc" id="L58">    }</span>
+
+    public PlcReadRequest(List&lt;ReadRequestItem&lt;?&gt;&gt; requestItems) {
+<span class="fc" id="L61">        super(requestItems);</span>
+<span class="fc" id="L62">    }</span>
+
+    public static Builder builder() {
+<span class="fc" id="L65">        return new Builder();</span>
+    }
+
+<span class="fc" id="L68">    public static class Builder extends PlcRequest.Builder&lt;ReadRequestItem&lt;?&gt;&gt; {</span>
+
+        public final Builder addItem(Class&lt;?&gt; dataType, Address address) {
+<span class="fc" id="L71">            checkType(dataType);</span>
+<span class="fc" id="L72">            requests.add(new ReadRequestItem&lt;&gt;(dataType, address));</span>
+<span class="fc" id="L73">            return this;</span>
+        }
+
+        public final Builder addItem(Class&lt;?&gt; dataType, Address address, int size) {
+<span class="fc" id="L77">            checkType(dataType);</span>
+<span class="fc" id="L78">            requests.add(new ReadRequestItem&lt;&gt;(dataType, address, size));</span>
+<span class="fc" id="L79">            return this;</span>
+        }
+
+        public final Builder addItem(ReadRequestItem readRequestItem) {
+<span class="fc" id="L83">            checkType(readRequestItem.getDatatype());</span>
+<span class="fc" id="L84">            requests.add(readRequestItem);</span>
+<span class="fc" id="L85">            return this;</span>
+        }
+
+        public final PlcReadRequest build() {
+<span class="fc bfc" id="L89" title="All 2 branches covered.">            if (requests.isEmpty()) {</span>
+<span class="fc" id="L90">                throw new IllegalStateException(&quot;No requests added&quot;);</span>
+            }
+            PlcReadRequest plcReadRequest;
+<span class="fc bfc" id="L93" title="All 2 branches covered.">            if (mixed) {</span>
+<span class="fc" id="L94">                plcReadRequest = new PlcReadRequest();</span>
+            } else {
+<span class="fc" id="L96">                plcReadRequest = new TypeSafePlcReadRequest&lt;&gt;(firstType);</span>
+            }
+<span class="fc bfc" id="L98" title="All 2 branches covered.">            for (ReadRequestItem request : requests) {</span>
+<span class="fc" id="L99">                plcReadRequest.addItem(request);</span>
+<span class="fc" id="L100">            }</span>
+<span class="fc" id="L101">            return plcReadRequest;</span>
+        }
+
+        @SuppressWarnings(&quot;unchecked&quot;)
+        public final &lt;T&gt; TypeSafePlcReadRequest&lt;T&gt; build(Class&lt;T&gt; type) {
+<span class="fc bfc" id="L106" title="All 2 branches covered.">            if (firstType != type) {</span>
+<span class="fc" id="L107">                throw new ClassCastException(&quot;Incompatible type &quot; + type + &quot;. Required &quot; + firstType);</span>
+            }
+<span class="fc bfc" id="L109" title="All 2 branches covered.">            if (mixed) {</span>
+<span class="fc" id="L110">                throw new IllegalStateException(&quot;Mixed types contained&quot;);</span>
+            }
+<span class="fc" id="L112">            return (TypeSafePlcReadRequest&lt;T&gt;) build();</span>
+        }
+
+    }
+
+    @Override
+    public String toString() {
+<span class="fc" id="L119">        return &quot;PlcReadRequest{} &quot; + super.toString();</span>
+    }
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

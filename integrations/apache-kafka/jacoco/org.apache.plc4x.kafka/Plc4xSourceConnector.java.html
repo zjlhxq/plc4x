@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Plc4xSourceConnector.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Integrations: Apache Kafka</a> &gt; <a href="index.source.html" class="el_package">org.apache.plc4x.kafka</a> &gt; <span class="el_source">Plc4xSourceConnector.java</span></div><h1>Plc4xSourceConnector.java</h1><pre class="source lang-java linenums">/*
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+&quot;License&quot;); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+&quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+*/
+package org.apache.plc4x.kafka;
+
+import org.apache.kafka.common.config.AbstractConfig;
+import org.apache.kafka.common.config.ConfigDef;
+import org.apache.kafka.connect.connector.Task;
+import org.apache.kafka.connect.source.SourceConnector;
+import org.apache.kafka.connect.util.ConnectorUtils;
+import org.apache.plc4x.kafka.util.VersionUtil;
+
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+<span class="nc" id="L33">public class Plc4xSourceConnector extends SourceConnector {</span>
+    static final String TOPIC_CONFIG = &quot;topic&quot;;
+    private static final String TOPIC_DOC = &quot;Kafka topic to publish to&quot;;
+
+    static final String URL_CONFIG = &quot;url&quot;;
+    private static final String URL_DOC = &quot;Connection string used by PLC4X to connect to the PLC&quot;;
+
+    static final String QUERIES_CONFIG = &quot;queries&quot;;
+    private static final String QUERIES_DOC = &quot;Field queries to be sent to the PLC&quot;;
+
+    static final String RATE_CONFIG = &quot;rate&quot;;
+<span class="nc" id="L44">    private static final Integer RATE_DEFAULT = 1000;</span>
+    private static final String RATE_DOC = &quot;Polling rate&quot;;
+
+<span class="nc" id="L47">    static final ConfigDef CONFIG_DEF = new ConfigDef()</span>
+<span class="nc" id="L48">        .define(TOPIC_CONFIG, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, TOPIC_DOC)</span>
+<span class="nc" id="L49">        .define(URL_CONFIG, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, URL_DOC)</span>
+<span class="nc" id="L50">        .define(QUERIES_CONFIG, ConfigDef.Type.LIST, ConfigDef.Importance.HIGH, QUERIES_DOC)</span>
+<span class="nc" id="L51">        .define(RATE_CONFIG, ConfigDef.Type.INT, RATE_DEFAULT, ConfigDef.Importance.MEDIUM, RATE_DOC);</span>
+
+    private String topic;
+    private String url;
+    private List&lt;String&gt; queries;
+    private Integer rate;
+
+    @Override
+    public Class&lt;? extends Task&gt; taskClass() {
+<span class="nc" id="L60">        return Plc4xSourceTask.class;</span>
+    }
+
+    @Override
+    public List&lt;Map&lt;String, String&gt;&gt; taskConfigs(int maxTasks) {
+<span class="nc" id="L65">        List&lt;Map&lt;String, String&gt;&gt; configs = new LinkedList&lt;&gt;();</span>
+<span class="nc" id="L66">        List&lt;List&lt;String&gt;&gt; queryGroups = ConnectorUtils.groupPartitions(queries, maxTasks);</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">        for (List&lt;String&gt; queryGroup: queryGroups) {</span>
+<span class="nc" id="L68">            Map&lt;String, String&gt; taskConfig = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L69">            taskConfig.put(TOPIC_CONFIG, topic);</span>
+<span class="nc" id="L70">            taskConfig.put(URL_CONFIG, url);</span>
+<span class="nc" id="L71">            taskConfig.put(QUERIES_CONFIG, String.join(&quot;,&quot;, queryGroup));</span>
+<span class="nc" id="L72">            taskConfig.put(RATE_CONFIG, rate.toString());</span>
+<span class="nc" id="L73">            configs.add(taskConfig);</span>
+<span class="nc" id="L74">        }</span>
+<span class="nc" id="L75">        return configs;</span>
+    }
+
+    @Override
+    public void start(Map&lt;String, String&gt; props) {
+<span class="nc" id="L80">        AbstractConfig config = new AbstractConfig(Plc4xSourceConnector.CONFIG_DEF, props);</span>
+<span class="nc" id="L81">        topic = config.getString(TOPIC_CONFIG);</span>
+<span class="nc" id="L82">        url = config.getString(URL_CONFIG);</span>
+<span class="nc" id="L83">        queries = config.getList(QUERIES_CONFIG);</span>
+<span class="nc" id="L84">        rate = config.getInt(RATE_CONFIG);</span>
+<span class="nc" id="L85">    }</span>
+
+    @Override
+<span class="nc" id="L88">    public void stop() {}</span>
+
+    @Override
+    public ConfigDef config() {
+<span class="nc" id="L92">        return CONFIG_DEF;</span>
+    }
+
+    @Override
+    public String version() {
+<span class="nc" id="L97">        return VersionUtil.getVersion();</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
