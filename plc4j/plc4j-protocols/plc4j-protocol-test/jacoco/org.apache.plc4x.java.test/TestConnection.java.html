@@ -21,7 +21,9 @@ package org.apache.plc4x.java.test;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.plc4x.java.api.PlcConnection;
+import org.apache.plc4x.java.api.exceptions.PlcUnsupportedOperationException;
 import org.apache.plc4x.java.api.messages.*;
+import org.apache.plc4x.java.api.metadata.PlcConnectionMetadata;
 import org.apache.plc4x.java.api.types.PlcResponseCode;
 import org.apache.plc4x.java.base.messages.*;
 import org.apache.plc4x.java.base.messages.items.BaseDefaultFieldItem;
@@ -35,90 +37,110 @@ import java.util.concurrent.CompletableFuture;
  * Connection to a test device.
  * This class is not thread-safe.
  */
-class TestConnection implements PlcConnection, PlcReader, PlcWriter {
+class TestConnection implements PlcConnection, PlcConnectionMetadata, PlcReader, PlcWriter {
     private final TestDevice device;
-<span class="nc" id="L40">    private boolean connected = false;</span>
+<span class="nc" id="L42">    private boolean connected = false;</span>
 
-<span class="nc" id="L42">    TestConnection(TestDevice device) {</span>
-<span class="nc" id="L43">        this.device = device;</span>
-<span class="nc" id="L44">    }</span>
+<span class="nc" id="L44">    TestConnection(TestDevice device) {</span>
+<span class="nc" id="L45">        this.device = device;</span>
+<span class="nc" id="L46">    }</span>
 
     @Override
     public void connect() {
-<span class="nc" id="L48">        connected = true;</span>
-<span class="nc" id="L49">    }</span>
+<span class="nc" id="L50">        connected = true;</span>
+<span class="nc" id="L51">    }</span>
 
     @Override
     public boolean isConnected() {
-<span class="nc" id="L53">        return connected;</span>
+<span class="nc" id="L55">        return connected;</span>
     }
 
     @Override
     public void close() {
-<span class="nc" id="L58">        connected = false;</span>
-<span class="nc" id="L59">    }</span>
+<span class="nc" id="L60">        connected = false;</span>
+<span class="nc" id="L61">    }</span>
 
     @Override
-    public Optional&lt;PlcReadRequest.Builder&gt; readRequestBuilder() {
-<span class="nc" id="L63">        return Optional.of(new DefaultPlcReadRequest.Builder(this, new TestFieldHandler()));</span>
+    public PlcConnectionMetadata getMetadata() {
+<span class="nc" id="L65">        return this;</span>
     }
 
     @Override
-    public Optional&lt;PlcWriteRequest.Builder&gt; writeRequestBuilder() {
-<span class="nc" id="L68">        return Optional.of(new DefaultPlcWriteRequest.Builder(this, new TestFieldHandler()));</span>
+    public boolean canRead() {
+<span class="nc" id="L70">        return true;</span>
     }
 
     @Override
-    public Optional&lt;PlcSubscriptionRequest.Builder&gt; subscriptionRequestBuilder() {
-<span class="nc" id="L73">        return Optional.empty();</span>
+    public boolean canWrite() {
+<span class="nc" id="L75">        return true;</span>
     }
 
     @Override
-    public Optional&lt;PlcUnsubscriptionRequest.Builder&gt; unsubscriptionRequestBuilder() {
-<span class="nc" id="L78">        return Optional.empty();</span>
+    public boolean canSubscribe() {
+<span class="nc" id="L80">        return false;</span>
+    }
+
+    @Override
+    public PlcReadRequest.Builder readRequestBuilder() {
+<span class="nc" id="L85">        return new DefaultPlcReadRequest.Builder(this, new TestFieldHandler());</span>
+    }
+
+    @Override
+    public PlcWriteRequest.Builder writeRequestBuilder() {
+<span class="nc" id="L90">        return new DefaultPlcWriteRequest.Builder(this, new TestFieldHandler());</span>
+    }
+
+    @Override
+    public PlcSubscriptionRequest.Builder subscriptionRequestBuilder() {
+<span class="nc" id="L95">        throw new PlcUnsupportedOperationException(&quot;The connection does not support subscription&quot;);</span>
+    }
+
+    @Override
+    public PlcUnsubscriptionRequest.Builder unsubscriptionRequestBuilder() {
+<span class="nc" id="L100">        throw new PlcUnsupportedOperationException(&quot;The connection does not support subscription&quot;);</span>
     }
 
     @Override
     public CompletableFuture&lt;PlcReadResponse&gt; read(PlcReadRequest readRequest) {
-<span class="nc bnc" id="L83" title="All 2 branches missed.">        if(!(readRequest instanceof InternalPlcReadRequest)) {</span>
-<span class="nc" id="L84">            throw new IllegalArgumentException(&quot;Read request doesn't implement InternalPlcReadRequest&quot;);</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">        if(!(readRequest instanceof InternalPlcReadRequest)) {</span>
+<span class="nc" id="L106">            throw new IllegalArgumentException(&quot;Read request doesn't implement InternalPlcReadRequest&quot;);</span>
         }
-<span class="nc" id="L86">        InternalPlcReadRequest request = (InternalPlcReadRequest) readRequest;</span>
-<span class="nc" id="L87">        Map&lt;String, Pair&lt;PlcResponseCode, BaseDefaultFieldItem&gt;&gt; fields = new HashMap&lt;&gt;();</span>
-<span class="nc bnc" id="L88" title="All 2 branches missed.">        for (String fieldName : request.getFieldNames()) {</span>
-<span class="nc" id="L89">            TestField field = (TestField) request.getField(fieldName);</span>
-<span class="nc" id="L90">            Optional&lt;BaseDefaultFieldItem&gt; fieldItemOptional = device.get(field);</span>
+<span class="nc" id="L108">        InternalPlcReadRequest request = (InternalPlcReadRequest) readRequest;</span>
+<span class="nc" id="L109">        Map&lt;String, Pair&lt;PlcResponseCode, BaseDefaultFieldItem&gt;&gt; fields = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">        for (String fieldName : request.getFieldNames()) {</span>
+<span class="nc" id="L111">            TestField field = (TestField) request.getField(fieldName);</span>
+<span class="nc" id="L112">            Optional&lt;BaseDefaultFieldItem&gt; fieldItemOptional = device.get(field);</span>
             ImmutablePair&lt;PlcResponseCode, BaseDefaultFieldItem&gt; fieldPair;
-<span class="nc" id="L92">            boolean present = fieldItemOptional.isPresent();</span>
-<span class="nc bnc" id="L93" title="All 2 branches missed.">            fieldPair = present</span>
-<span class="nc" id="L94">                ? new ImmutablePair&lt;&gt;(PlcResponseCode.OK, fieldItemOptional.get())</span>
+<span class="nc" id="L114">            boolean present = fieldItemOptional.isPresent();</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">            fieldPair = present</span>
+<span class="nc" id="L116">                ? new ImmutablePair&lt;&gt;(PlcResponseCode.OK, fieldItemOptional.get())</span>
                 : new ImmutablePair&lt;&gt;(PlcResponseCode.NOT_FOUND, null);
-<span class="nc" id="L96">            fields.put(fieldName, fieldPair);</span>
-<span class="nc" id="L97">        }</span>
-<span class="nc" id="L98">        PlcReadResponse response = new DefaultPlcReadResponse(request, fields);</span>
-<span class="nc" id="L99">        return CompletableFuture.completedFuture(response);</span>
+<span class="nc" id="L118">            fields.put(fieldName, fieldPair);</span>
+<span class="nc" id="L119">        }</span>
+<span class="nc" id="L120">        PlcReadResponse response = new DefaultPlcReadResponse(request, fields);</span>
+<span class="nc" id="L121">        return CompletableFuture.completedFuture(response);</span>
     }
 
     @Override
     public CompletableFuture&lt;PlcWriteResponse&gt; write(PlcWriteRequest writeRequest) {
-<span class="nc bnc" id="L104" title="All 2 branches missed.">        if(!(writeRequest instanceof InternalPlcWriteRequest)) {</span>
-<span class="nc" id="L105">            throw new IllegalArgumentException(&quot;Read request doesn't implement InternalPlcWriteRequest&quot;);</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">        if(!(writeRequest instanceof InternalPlcWriteRequest)) {</span>
+<span class="nc" id="L127">            throw new IllegalArgumentException(&quot;Read request doesn't implement InternalPlcWriteRequest&quot;);</span>
         }
-<span class="nc" id="L107">        InternalPlcWriteRequest request = (InternalPlcWriteRequest) writeRequest;</span>
-<span class="nc" id="L108">        Map&lt;String, PlcResponseCode&gt; fields = new HashMap&lt;&gt;();</span>
-<span class="nc bnc" id="L109" title="All 2 branches missed.">        for (String fieldName : request.getFieldNames()) {</span>
-<span class="nc" id="L110">            TestField field = (TestField) request.getField(fieldName);</span>
-<span class="nc" id="L111">            BaseDefaultFieldItem fieldItem = request.getFieldItem(fieldName);</span>
-<span class="nc" id="L112">            device.set(field, fieldItem);</span>
-<span class="nc" id="L113">            fields.put(fieldName, PlcResponseCode.OK);</span>
-<span class="nc" id="L114">        }</span>
-<span class="nc" id="L115">        PlcWriteResponse response = new DefaultPlcWriteResponse(request, fields);</span>
-<span class="nc" id="L116">        return CompletableFuture.completedFuture(response);</span>
+<span class="nc" id="L129">        InternalPlcWriteRequest request = (InternalPlcWriteRequest) writeRequest;</span>
+<span class="nc" id="L130">        Map&lt;String, PlcResponseCode&gt; fields = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L131" title="All 2 branches missed.">        for (String fieldName : request.getFieldNames()) {</span>
+<span class="nc" id="L132">            TestField field = (TestField) request.getField(fieldName);</span>
+<span class="nc" id="L133">            BaseDefaultFieldItem fieldItem = request.getFieldItem(fieldName);</span>
+<span class="nc" id="L134">            device.set(field, fieldItem);</span>
+<span class="nc" id="L135">            fields.put(fieldName, PlcResponseCode.OK);</span>
+<span class="nc" id="L136">        }</span>
+<span class="nc" id="L137">        PlcWriteResponse response = new DefaultPlcWriteResponse(request, fields);</span>
+<span class="nc" id="L138">        return CompletableFuture.completedFuture(response);</span>
     }
 
     @Override
     public String toString() {
-<span class="nc" id="L121">        return String.format(&quot;test:%s&quot;, device);</span>
+<span class="nc" id="L143">        return String.format(&quot;test:%s&quot;, device);</span>
     }
 
 }

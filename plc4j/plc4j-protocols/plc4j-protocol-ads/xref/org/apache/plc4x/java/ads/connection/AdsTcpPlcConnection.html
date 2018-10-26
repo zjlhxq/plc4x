@@ -318,38 +318,43 @@
 <a class="jxr_linenumber" name="L310" href="#L310">310</a>     }
 <a class="jxr_linenumber" name="L311" href="#L311">311</a> 
 <a class="jxr_linenumber" name="L312" href="#L312">312</a>     @Override
-<a class="jxr_linenumber" name="L313" href="#L313">313</a>     <strong class="jxr_keyword">public</strong> Optional&lt;PlcSubscriptionRequest.Builder&gt; subscriptionRequestBuilder() {
-<a class="jxr_linenumber" name="L314" href="#L314">314</a>         <strong class="jxr_keyword">return</strong> Optional.of(<strong class="jxr_keyword">new</strong> DefaultPlcSubscriptionRequest.Builder(<strong class="jxr_keyword">this</strong>, <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/ads/model/AdsPlcFieldHandler.html">AdsPlcFieldHandler</a>()));
+<a class="jxr_linenumber" name="L313" href="#L313">313</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> canSubscribe() {
+<a class="jxr_linenumber" name="L314" href="#L314">314</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
 <a class="jxr_linenumber" name="L315" href="#L315">315</a>     }
 <a class="jxr_linenumber" name="L316" href="#L316">316</a> 
 <a class="jxr_linenumber" name="L317" href="#L317">317</a>     @Override
-<a class="jxr_linenumber" name="L318" href="#L318">318</a>     <strong class="jxr_keyword">public</strong> Optional&lt;PlcUnsubscriptionRequest.Builder&gt; unsubscriptionRequestBuilder() {
-<a class="jxr_linenumber" name="L319" href="#L319">319</a>         <strong class="jxr_keyword">return</strong> Optional.of(<strong class="jxr_keyword">new</strong> DefaultPlcUnsubscriptionRequest.Builder(<strong class="jxr_keyword">this</strong>));
+<a class="jxr_linenumber" name="L318" href="#L318">318</a>     <strong class="jxr_keyword">public</strong> PlcSubscriptionRequest.Builder subscriptionRequestBuilder() {
+<a class="jxr_linenumber" name="L319" href="#L319">319</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> DefaultPlcSubscriptionRequest.Builder(<strong class="jxr_keyword">this</strong>, <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/ads/model/AdsPlcFieldHandler.html">AdsPlcFieldHandler</a>());
 <a class="jxr_linenumber" name="L320" href="#L320">320</a>     }
 <a class="jxr_linenumber" name="L321" href="#L321">321</a> 
 <a class="jxr_linenumber" name="L322" href="#L322">322</a>     @Override
-<a class="jxr_linenumber" name="L323" href="#L323">323</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> close() <strong class="jxr_keyword">throws</strong> PlcConnectionException {
-<a class="jxr_linenumber" name="L324" href="#L324">324</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L325" href="#L325">325</a>             consumerRegistrations.values().forEach(getChannel().pipeline().get(Plc4x2AdsProtocol.<strong class="jxr_keyword">class</strong>)::removeConsumer);
-<a class="jxr_linenumber" name="L326" href="#L326">326</a>             List&lt;PlcSubscriptionHandle&gt; collect = consumerRegistrations.keySet().stream()
-<a class="jxr_linenumber" name="L327" href="#L327">327</a>                 .map(InternalPlcConsumerRegistration::getAssociatedHandles)
-<a class="jxr_linenumber" name="L328" href="#L328">328</a>                 .flatMap(Collection::stream)
-<a class="jxr_linenumber" name="L329" href="#L329">329</a>                 .map(PlcSubscriptionHandle.<strong class="jxr_keyword">class</strong>::<strong class="jxr_keyword">cast</strong>)
-<a class="jxr_linenumber" name="L330" href="#L330">330</a>                 .collect(Collectors.toList());
-<a class="jxr_linenumber" name="L331" href="#L331">331</a> 
-<a class="jxr_linenumber" name="L332" href="#L332">332</a>             PlcUnsubscriptionRequest plcUnsubscriptionRequest = <strong class="jxr_keyword">new</strong> DefaultPlcUnsubscriptionRequest.Builder(<strong class="jxr_keyword">this</strong>).addHandles(collect).build();
-<a class="jxr_linenumber" name="L333" href="#L333">333</a>             unsubscribe(plcUnsubscriptionRequest).get(5, TimeUnit.SECONDS);
-<a class="jxr_linenumber" name="L334" href="#L334">334</a> 
-<a class="jxr_linenumber" name="L335" href="#L335">335</a>             consumerRegistrations.clear();
-<a class="jxr_linenumber" name="L336" href="#L336">336</a>         } <strong class="jxr_keyword">catch</strong> (InterruptedException e) {
-<a class="jxr_linenumber" name="L337" href="#L337">337</a>             LOGGER.warn(<span class="jxr_string">"Exception while closing"</span>, e);
-<a class="jxr_linenumber" name="L338" href="#L338">338</a>             Thread.currentThread().interrupt();
-<a class="jxr_linenumber" name="L339" href="#L339">339</a>         } <strong class="jxr_keyword">catch</strong> (RuntimeException | ExecutionException | TimeoutException e) {
-<a class="jxr_linenumber" name="L340" href="#L340">340</a>             LOGGER.warn(<span class="jxr_string">"Exception while closing"</span>, e);
-<a class="jxr_linenumber" name="L341" href="#L341">341</a>         }
-<a class="jxr_linenumber" name="L342" href="#L342">342</a>         <strong class="jxr_keyword">super</strong>.close();
-<a class="jxr_linenumber" name="L343" href="#L343">343</a>     }
-<a class="jxr_linenumber" name="L344" href="#L344">344</a> }
+<a class="jxr_linenumber" name="L323" href="#L323">323</a>     <strong class="jxr_keyword">public</strong> PlcUnsubscriptionRequest.Builder unsubscriptionRequestBuilder() {
+<a class="jxr_linenumber" name="L324" href="#L324">324</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> DefaultPlcUnsubscriptionRequest.Builder(<strong class="jxr_keyword">this</strong>);
+<a class="jxr_linenumber" name="L325" href="#L325">325</a>     }
+<a class="jxr_linenumber" name="L326" href="#L326">326</a> 
+<a class="jxr_linenumber" name="L327" href="#L327">327</a>     @Override
+<a class="jxr_linenumber" name="L328" href="#L328">328</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> close() <strong class="jxr_keyword">throws</strong> PlcConnectionException {
+<a class="jxr_linenumber" name="L329" href="#L329">329</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L330" href="#L330">330</a>             consumerRegistrations.values().forEach(getChannel().pipeline().get(Plc4x2AdsProtocol.<strong class="jxr_keyword">class</strong>)::removeConsumer);
+<a class="jxr_linenumber" name="L331" href="#L331">331</a>             List&lt;PlcSubscriptionHandle&gt; collect = consumerRegistrations.keySet().stream()
+<a class="jxr_linenumber" name="L332" href="#L332">332</a>                 .map(InternalPlcConsumerRegistration::getAssociatedHandles)
+<a class="jxr_linenumber" name="L333" href="#L333">333</a>                 .flatMap(Collection::stream)
+<a class="jxr_linenumber" name="L334" href="#L334">334</a>                 .map(PlcSubscriptionHandle.<strong class="jxr_keyword">class</strong>::<strong class="jxr_keyword">cast</strong>)
+<a class="jxr_linenumber" name="L335" href="#L335">335</a>                 .collect(Collectors.toList());
+<a class="jxr_linenumber" name="L336" href="#L336">336</a> 
+<a class="jxr_linenumber" name="L337" href="#L337">337</a>             PlcUnsubscriptionRequest plcUnsubscriptionRequest = <strong class="jxr_keyword">new</strong> DefaultPlcUnsubscriptionRequest.Builder(<strong class="jxr_keyword">this</strong>).addHandles(collect).build();
+<a class="jxr_linenumber" name="L338" href="#L338">338</a>             unsubscribe(plcUnsubscriptionRequest).get(5, TimeUnit.SECONDS);
+<a class="jxr_linenumber" name="L339" href="#L339">339</a> 
+<a class="jxr_linenumber" name="L340" href="#L340">340</a>             consumerRegistrations.clear();
+<a class="jxr_linenumber" name="L341" href="#L341">341</a>         } <strong class="jxr_keyword">catch</strong> (InterruptedException e) {
+<a class="jxr_linenumber" name="L342" href="#L342">342</a>             LOGGER.warn(<span class="jxr_string">"Exception while closing"</span>, e);
+<a class="jxr_linenumber" name="L343" href="#L343">343</a>             Thread.currentThread().interrupt();
+<a class="jxr_linenumber" name="L344" href="#L344">344</a>         } <strong class="jxr_keyword">catch</strong> (RuntimeException | ExecutionException | TimeoutException e) {
+<a class="jxr_linenumber" name="L345" href="#L345">345</a>             LOGGER.warn(<span class="jxr_string">"Exception while closing"</span>, e);
+<a class="jxr_linenumber" name="L346" href="#L346">346</a>         }
+<a class="jxr_linenumber" name="L347" href="#L347">347</a>         <strong class="jxr_keyword">super</strong>.close();
+<a class="jxr_linenumber" name="L348" href="#L348">348</a>     }
+<a class="jxr_linenumber" name="L349" href="#L349">349</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2017&#x2013;2018 <a href="https://www.apache.org/">The Apache Software Foundation</a>. All rights reserved.</div>

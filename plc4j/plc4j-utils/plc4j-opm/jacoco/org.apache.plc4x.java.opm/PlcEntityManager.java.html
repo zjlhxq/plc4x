@@ -93,11 +93,11 @@ public class PlcEntityManager {
 
 <span class="nc" id="L94">        try (PlcConnection connection = driverManager.getConnection(source)) {</span>
 
-<span class="nc bnc" id="L96" title="All 2 branches missed.">            if (!connection.readRequestBuilder().isPresent()) {</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">            if (!connection.getMetadata().canRead()) {</span>
 <span class="nc" id="L97">                throw new OPMException(&quot;Unable to get Reader for connection with url '&quot; + source + &quot;'&quot;);</span>
             }
 
-<span class="nc" id="L100">            PlcReadRequest.Builder requestBuilder = connection.readRequestBuilder().get();</span>
+<span class="nc" id="L100">            PlcReadRequest.Builder requestBuilder = connection.readRequestBuilder();</span>
 
             // Do the necessary queries for all fields
             // HashMap&lt;ReadRequestItem&lt;?&gt;, Field&gt; requestItems = new HashMap&lt;&gt;();
@@ -249,7 +249,7 @@ public class PlcEntityManager {
 <span class="nc" id="L249">        try (PlcConnection connection = driverManager.getConnection(plcEntity.value())) {</span>
             // Catch the exception, if no reader present (see below)
             // Build the query
-<span class="nc" id="L252">            PlcReadRequest.Builder builder = connection.readRequestBuilder().get();</span>
+<span class="nc" id="L252">            PlcReadRequest.Builder builder = connection.readRequestBuilder();</span>
 <span class="nc bnc" id="L253" title="All 2 branches missed.">            for (Field field : superclass.getDeclaredFields()) {</span>
                 // Check if the field has an annotation
 <span class="nc" id="L255">                PlcField plcField = field.getDeclaredAnnotation(PlcField.class);</span>
@@ -294,7 +294,7 @@ public class PlcEntityManager {
             // Catch the exception, if no reader present (see below)
 
             // Assume to do the query here...
-<span class="nc" id="L297">            PlcReadRequest request = connection.readRequestBuilder().orElseThrow(IllegalStateException::new)</span>
+<span class="nc" id="L297">            PlcReadRequest request = connection.readRequestBuilder()</span>
 <span class="nc" id="L298">                .addItem(m.getName(), annotation.value())</span>
 <span class="nc" id="L299">                .build();</span>
 

@@ -58,7 +58,7 @@
 <a class="jxr_linenumber" name="L50" href="#L50">50</a>  
 <a class="jxr_linenumber" name="L51" href="#L51">51</a>          openConnection();
 <a class="jxr_linenumber" name="L52" href="#L52">52</a>  
-<a class="jxr_linenumber" name="L53" href="#L53">53</a>          <strong class="jxr_keyword">if</strong> (!plcConnection.writeRequestBuilder().isPresent()) {
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>          <strong class="jxr_keyword">if</strong> (!plcConnection.getMetadata().canWrite()) {
 <a class="jxr_linenumber" name="L54" href="#L54">54</a>              <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> ConnectException(<span class="jxr_string">"Writing not supported on this connection"</span>);
 <a class="jxr_linenumber" name="L55" href="#L55">55</a>          }
 <a class="jxr_linenumber" name="L56" href="#L56">56</a>      }
@@ -73,7 +73,7 @@
 <a class="jxr_linenumber" name="L65" href="#L65">65</a>          <strong class="jxr_keyword">for</strong> (SinkRecord record: records) {
 <a class="jxr_linenumber" name="L66" href="#L66">66</a>              String query = record.key().toString();
 <a class="jxr_linenumber" name="L67" href="#L67">67</a>              Object value = record.value();
-<a class="jxr_linenumber" name="L68" href="#L68">68</a>              PlcWriteRequest.Builder builder = plcConnection.writeRequestBuilder().get();
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>              PlcWriteRequest.Builder builder = plcConnection.writeRequestBuilder();
 <a class="jxr_linenumber" name="L69" href="#L69">69</a>              <a href="../../../../org/apache/plc4x/java/api/messages/PlcWriteRequest.html">PlcWriteRequest</a> plcRequest = addToBuilder(builder, query, value).build();
 <a class="jxr_linenumber" name="L70" href="#L70">70</a>              doWrite(plcRequest);
 <a class="jxr_linenumber" name="L71" href="#L71">71</a>          }

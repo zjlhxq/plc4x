@@ -25,18 +25,24 @@ import io.netty.util.Timer;
 import org.apache.plc4x.java.api.PlcConnection;
 import org.apache.plc4x.java.api.exceptions.PlcConnectionException;
 import org.apache.plc4x.java.api.exceptions.PlcIoException;
+import org.apache.plc4x.java.api.exceptions.PlcUnsupportedOperationException;
+import org.apache.plc4x.java.api.messages.PlcReadRequest;
+import org.apache.plc4x.java.api.messages.PlcSubscriptionRequest;
+import org.apache.plc4x.java.api.messages.PlcUnsubscriptionRequest;
+import org.apache.plc4x.java.api.messages.PlcWriteRequest;
+import org.apache.plc4x.java.api.metadata.PlcConnectionMetadata;
 
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-public abstract class AbstractPlcConnection implements PlcConnection {
+public abstract class AbstractPlcConnection implements PlcConnection, PlcConnectionMetadata {
 
     /**
      * a {@link HashedWheelTimer} shall be only instantiated once.
      */
     // TODO: maybe find a way to make this configurable per jvm
-<span class="nc" id="L39">    protected final static Timer timer = new HashedWheelTimer();</span>
+<span class="nc" id="L45">    protected final static Timer timer = new HashedWheelTimer();</span>
 
     protected final ChannelFactory channelFactory;
 
@@ -47,14 +53,14 @@ public abstract class AbstractPlcConnection implements PlcConnection {
     protected boolean connected;
 
     protected AbstractPlcConnection(ChannelFactory channelFactory) {
-<span class="nc" id="L50">        this(channelFactory, false);</span>
-<span class="nc" id="L51">    }</span>
-
-<span class="nc" id="L53">    protected AbstractPlcConnection(ChannelFactory channelFactory, boolean awaitSessionSetupComplete) {</span>
-<span class="nc" id="L54">        this.channelFactory = channelFactory;</span>
-<span class="nc" id="L55">        this.awaitSessionSetupComplete = awaitSessionSetupComplete;</span>
-<span class="nc" id="L56">        this.connected = false;</span>
+<span class="nc" id="L56">        this(channelFactory, false);</span>
 <span class="nc" id="L57">    }</span>
+
+<span class="nc" id="L59">    protected AbstractPlcConnection(ChannelFactory channelFactory, boolean awaitSessionSetupComplete) {</span>
+<span class="nc" id="L60">        this.channelFactory = channelFactory;</span>
+<span class="nc" id="L61">        this.awaitSessionSetupComplete = awaitSessionSetupComplete;</span>
+<span class="nc" id="L62">        this.connected = false;</span>
+<span class="nc" id="L63">    }</span>
 
     @Override
     public void connect() throws PlcConnectionException {
@@ -62,54 +68,94 @@ public abstract class AbstractPlcConnection implements PlcConnection {
             // As we don't just want to wait till the connection is established,
             // define a future we can use to signal back that the s7 session is
             // finished initializing.
-<span class="nc" id="L65">            CompletableFuture&lt;Void&gt; sessionSetupCompleteFuture = new CompletableFuture&lt;&gt;();</span>
+<span class="nc" id="L71">            CompletableFuture&lt;Void&gt; sessionSetupCompleteFuture = new CompletableFuture&lt;&gt;();</span>
 
             // Have the channel factory create a new channel instance.
-<span class="nc" id="L68">            channel = channelFactory.createChannel(getChannelHandler(sessionSetupCompleteFuture));</span>
-<span class="nc" id="L69">            channel.closeFuture().addListener(future -&gt; {</span>
-<span class="nc bnc" id="L70" title="All 2 branches missed.">                if (!sessionSetupCompleteFuture.isDone()) {</span>
-<span class="nc" id="L71">                    sessionSetupCompleteFuture.completeExceptionally(</span>
+<span class="nc" id="L74">            channel = channelFactory.createChannel(getChannelHandler(sessionSetupCompleteFuture));</span>
+<span class="nc" id="L75">            channel.closeFuture().addListener(future -&gt; {</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">                if (!sessionSetupCompleteFuture.isDone()) {</span>
+<span class="nc" id="L77">                    sessionSetupCompleteFuture.completeExceptionally(</span>
                         new PlcIoException(&quot;Connection terminated by remote&quot;));
                 }
-<span class="nc" id="L74">            });</span>
+<span class="nc" id="L80">            });</span>
             // Send an event to the pipeline telling the Protocol filters what's going on.
-<span class="nc" id="L76">            sendChannelCreatedEvent();</span>
+<span class="nc" id="L82">            sendChannelCreatedEvent();</span>
 
             // Wait till the connection is established.
-<span class="nc bnc" id="L79" title="All 2 branches missed.">            if (awaitSessionSetupComplete) {</span>
-<span class="nc" id="L80">                sessionSetupCompleteFuture.get();</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">            if (awaitSessionSetupComplete) {</span>
+<span class="nc" id="L86">                sessionSetupCompleteFuture.get();</span>
             }
 
             // Set the connection to &quot;connected&quot;
-<span class="nc" id="L84">            connected = true;</span>
-<span class="nc" id="L85">        } catch (InterruptedException e) {</span>
-<span class="nc" id="L86">            Thread.currentThread().interrupt();</span>
-<span class="nc" id="L87">            throw new PlcConnectionException(e);</span>
-<span class="nc" id="L88">        } catch (ExecutionException e) {</span>
-<span class="nc" id="L89">            throw new PlcConnectionException(e);</span>
-<span class="nc" id="L90">        }</span>
-<span class="nc" id="L91">    }</span>
-
-    @Override
-    public void close() throws PlcConnectionException {
-<span class="nc" id="L95">        channel = null;</span>
-<span class="nc" id="L96">        connected = false;</span>
+<span class="nc" id="L90">            connected = true;</span>
+<span class="nc" id="L91">        } catch (InterruptedException e) {</span>
+<span class="nc" id="L92">            Thread.currentThread().interrupt();</span>
+<span class="nc" id="L93">            throw new PlcConnectionException(e);</span>
+<span class="nc" id="L94">        } catch (ExecutionException e) {</span>
+<span class="nc" id="L95">            throw new PlcConnectionException(e);</span>
+<span class="nc" id="L96">        }</span>
 <span class="nc" id="L97">    }</span>
 
     @Override
+    public void close() throws PlcConnectionException {
+<span class="nc" id="L101">        channel = null;</span>
+<span class="nc" id="L102">        connected = false;</span>
+<span class="nc" id="L103">    }</span>
+
+    @Override
     public boolean isConnected() {
-<span class="nc" id="L101">        return connected;</span>
+<span class="nc" id="L107">        return connected;</span>
+    }
+
+    @Override
+    public PlcConnectionMetadata getMetadata() {
+<span class="nc" id="L112">        return this;</span>
+    }
+
+    @Override
+    public boolean canRead() {
+<span class="nc" id="L117">        return false;</span>
+    }
+
+    @Override
+    public boolean canWrite() {
+<span class="nc" id="L122">        return false;</span>
+    }
+
+    @Override
+    public boolean canSubscribe() {
+<span class="nc" id="L127">        return false;</span>
+    }
+
+    @Override
+    public PlcReadRequest.Builder readRequestBuilder() {
+<span class="nc" id="L132">        throw new PlcUnsupportedOperationException(&quot;The connection does not support reading&quot;);</span>
+    }
+
+    @Override
+    public PlcWriteRequest.Builder writeRequestBuilder() {
+<span class="nc" id="L137">        throw new PlcUnsupportedOperationException(&quot;The connection does not support writing&quot;);</span>
+    }
+
+    @Override
+    public PlcSubscriptionRequest.Builder subscriptionRequestBuilder() {
+<span class="nc" id="L142">        throw new PlcUnsupportedOperationException(&quot;The connection does not support subscription&quot;);</span>
+    }
+
+    @Override
+    public PlcUnsubscriptionRequest.Builder unsubscriptionRequestBuilder() {
+<span class="nc" id="L147">        throw new PlcUnsupportedOperationException(&quot;The connection does not support subscription&quot;);</span>
     }
 
     public Channel getChannel() {
-<span class="nc" id="L105">        return channel;</span>
+<span class="nc" id="L151">        return channel;</span>
     }
 
     protected abstract ChannelHandler getChannelHandler(CompletableFuture&lt;Void&gt; sessionSetupCompleteFuture);
 
     protected void sendChannelCreatedEvent() {
         // Implemented in sub-classes, if needed.
-<span class="nc" id="L112">    }</span>
+<span class="nc" id="L158">    }</span>
 
     /**
      * Can be used to check and cast a parameter to its required internal type (can be used for general type checking too).
@@ -120,12 +166,12 @@ public abstract class AbstractPlcConnection implements PlcConnection {
      * @return the cast type of {@code clazz}.
      */
     protected &lt;T&gt; T checkInternal(Object o, Class&lt;T&gt; clazz) {
-<span class="nc" id="L123">        Objects.requireNonNull(o);</span>
-<span class="nc" id="L124">        Objects.requireNonNull(clazz);</span>
-<span class="nc bnc" id="L125" title="All 2 branches missed.">        if (!clazz.isInstance(o)) {</span>
-<span class="nc" id="L126">            throw new IllegalArgumentException(&quot;illegal type &quot; + o.getClass() + &quot;. Expected &quot; + clazz);</span>
+<span class="nc" id="L169">        Objects.requireNonNull(o);</span>
+<span class="nc" id="L170">        Objects.requireNonNull(clazz);</span>
+<span class="nc bnc" id="L171" title="All 2 branches missed.">        if (!clazz.isInstance(o)) {</span>
+<span class="nc" id="L172">            throw new IllegalArgumentException(&quot;illegal type &quot; + o.getClass() + &quot;. Expected &quot; + clazz);</span>
         }
-<span class="nc" id="L128">        return clazz.cast(o);</span>
+<span class="nc" id="L174">        return clazz.cast(o);</span>
     }
 
 }

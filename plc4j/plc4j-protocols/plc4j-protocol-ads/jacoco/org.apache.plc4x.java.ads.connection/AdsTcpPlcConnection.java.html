@@ -310,36 +310,41 @@ public class AdsTcpPlcConnection extends AdsAbstractPlcConnection implements Plc
 <span class="nc" id="L310">    }</span>
 
     @Override
-    public Optional&lt;PlcSubscriptionRequest.Builder&gt; subscriptionRequestBuilder() {
-<span class="nc" id="L314">        return Optional.of(new DefaultPlcSubscriptionRequest.Builder(this, new AdsPlcFieldHandler()));</span>
+    public boolean canSubscribe() {
+<span class="nc" id="L314">        return true;</span>
     }
 
     @Override
-    public Optional&lt;PlcUnsubscriptionRequest.Builder&gt; unsubscriptionRequestBuilder() {
-<span class="nc" id="L319">        return Optional.of(new DefaultPlcUnsubscriptionRequest.Builder(this));</span>
+    public PlcSubscriptionRequest.Builder subscriptionRequestBuilder() {
+<span class="nc" id="L319">        return new DefaultPlcSubscriptionRequest.Builder(this, new AdsPlcFieldHandler());</span>
+    }
+
+    @Override
+    public PlcUnsubscriptionRequest.Builder unsubscriptionRequestBuilder() {
+<span class="nc" id="L324">        return new DefaultPlcUnsubscriptionRequest.Builder(this);</span>
     }
 
     @Override
     public void close() throws PlcConnectionException {
         try {
-<span class="fc" id="L325">            consumerRegistrations.values().forEach(getChannel().pipeline().get(Plc4x2AdsProtocol.class)::removeConsumer);</span>
-<span class="fc" id="L326">            List&lt;PlcSubscriptionHandle&gt; collect = consumerRegistrations.keySet().stream()</span>
-<span class="fc" id="L327">                .map(InternalPlcConsumerRegistration::getAssociatedHandles)</span>
-<span class="fc" id="L328">                .flatMap(Collection::stream)</span>
-<span class="fc" id="L329">                .map(PlcSubscriptionHandle.class::cast)</span>
-<span class="fc" id="L330">                .collect(Collectors.toList());</span>
+<span class="fc" id="L330">            consumerRegistrations.values().forEach(getChannel().pipeline().get(Plc4x2AdsProtocol.class)::removeConsumer);</span>
+<span class="fc" id="L331">            List&lt;PlcSubscriptionHandle&gt; collect = consumerRegistrations.keySet().stream()</span>
+<span class="fc" id="L332">                .map(InternalPlcConsumerRegistration::getAssociatedHandles)</span>
+<span class="fc" id="L333">                .flatMap(Collection::stream)</span>
+<span class="fc" id="L334">                .map(PlcSubscriptionHandle.class::cast)</span>
+<span class="fc" id="L335">                .collect(Collectors.toList());</span>
 
-<span class="fc" id="L332">            PlcUnsubscriptionRequest plcUnsubscriptionRequest = new DefaultPlcUnsubscriptionRequest.Builder(this).addHandles(collect).build();</span>
-<span class="fc" id="L333">            unsubscribe(plcUnsubscriptionRequest).get(5, TimeUnit.SECONDS);</span>
+<span class="fc" id="L337">            PlcUnsubscriptionRequest plcUnsubscriptionRequest = new DefaultPlcUnsubscriptionRequest.Builder(this).addHandles(collect).build();</span>
+<span class="fc" id="L338">            unsubscribe(plcUnsubscriptionRequest).get(5, TimeUnit.SECONDS);</span>
 
-<span class="fc" id="L335">            consumerRegistrations.clear();</span>
-<span class="nc" id="L336">        } catch (InterruptedException e) {</span>
-<span class="nc" id="L337">            LOGGER.warn(&quot;Exception while closing&quot;, e);</span>
-<span class="nc" id="L338">            Thread.currentThread().interrupt();</span>
-<span class="nc" id="L339">        } catch (RuntimeException | ExecutionException | TimeoutException e) {</span>
-<span class="nc" id="L340">            LOGGER.warn(&quot;Exception while closing&quot;, e);</span>
-<span class="pc" id="L341">        }</span>
-<span class="fc" id="L342">        super.close();</span>
-<span class="fc" id="L343">    }</span>
+<span class="fc" id="L340">            consumerRegistrations.clear();</span>
+<span class="nc" id="L341">        } catch (InterruptedException e) {</span>
+<span class="nc" id="L342">            LOGGER.warn(&quot;Exception while closing&quot;, e);</span>
+<span class="nc" id="L343">            Thread.currentThread().interrupt();</span>
+<span class="nc" id="L344">        } catch (RuntimeException | ExecutionException | TimeoutException e) {</span>
+<span class="nc" id="L345">            LOGGER.warn(&quot;Exception while closing&quot;, e);</span>
+<span class="pc" id="L346">        }</span>
+<span class="fc" id="L347">        super.close();</span>
+<span class="fc" id="L348">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

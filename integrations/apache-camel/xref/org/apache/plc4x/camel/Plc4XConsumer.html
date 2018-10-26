@@ -87,7 +87,7 @@
 <a class="jxr_linenumber" name="L79" href="#L79">79</a>      @Override
 <a class="jxr_linenumber" name="L80" href="#L80">80</a>      <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> doStart() <strong class="jxr_keyword">throws</strong> InterruptedException, ExecutionException, PlcException {
 <a class="jxr_linenumber" name="L81" href="#L81">81</a>          <em class="jxr_comment">// TODO: Is it correct to only support one field?</em>
-<a class="jxr_linenumber" name="L82" href="#L82">82</a>          PlcSubscriptionRequest request = plcConnection.subscriptionRequestBuilder().get()
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>          PlcSubscriptionRequest request = plcConnection.subscriptionRequestBuilder()
 <a class="jxr_linenumber" name="L83" href="#L83">83</a>              .addCyclicField(<span class="jxr_string">"default"</span>, fieldQuery, Duration.of(3, ChronoUnit.SECONDS)).build();
 <a class="jxr_linenumber" name="L84" href="#L84">84</a>          subscriptionResponse = request.execute().get();
 <a class="jxr_linenumber" name="L85" href="#L85">85</a>          <em class="jxr_comment">// TODO: we need to return the plcSubscriptionResponse here too as we need this to unsubscribe...</em>
@@ -97,7 +97,7 @@
 <a class="jxr_linenumber" name="L89" href="#L89">89</a>  
 <a class="jxr_linenumber" name="L90" href="#L90">90</a>      @Override
 <a class="jxr_linenumber" name="L91" href="#L91">91</a>      <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> doStop() <strong class="jxr_keyword">throws</strong> InterruptedException, ExecutionException, TimeoutException, PlcException {
-<a class="jxr_linenumber" name="L92" href="#L92">92</a>          PlcUnsubscriptionRequest request = plcConnection.unsubscriptionRequestBuilder().get().addHandles(subscriptionResponse.getSubscriptionHandles()).build();
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>          PlcUnsubscriptionRequest request = plcConnection.unsubscriptionRequestBuilder().addHandles(subscriptionResponse.getSubscriptionHandles()).build();
 <a class="jxr_linenumber" name="L93" href="#L93">93</a>          CompletableFuture&lt;? <strong class="jxr_keyword">extends</strong> PlcUnsubscriptionResponse&gt; unsubscriptionFuture = request.execute();
 <a class="jxr_linenumber" name="L94" href="#L94">94</a>          PlcUnsubscriptionResponse unsubscriptionResponse = unsubscriptionFuture.get(5, TimeUnit.SECONDS);
 <a class="jxr_linenumber" name="L95" href="#L95">95</a>          <em class="jxr_comment">// TODO: Handle the response ...</em>
