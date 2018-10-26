@@ -400,51 +400,48 @@
 <a class="jxr_linenumber" name="L392" href="#L392">392</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (clazz == String.<strong class="jxr_keyword">class</strong>) {
 <a class="jxr_linenumber" name="L393" href="#L393">393</a>             <strong class="jxr_keyword">return</strong> response.getString(sourceFieldName);
 <a class="jxr_linenumber" name="L394" href="#L394">394</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (clazz == LocalTime.<strong class="jxr_keyword">class</strong>) {
-<a class="jxr_linenumber" name="L395" href="#L395">395</a>             <em class="jxr_comment">// TODO: where are the methods for this?</em>
-<a class="jxr_linenumber" name="L396" href="#L396">396</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> UnsupportedOperationException(<span class="jxr_string">"no supported yet for "</span> + clazz);
-<a class="jxr_linenumber" name="L397" href="#L397">397</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (clazz == LocalDate.<strong class="jxr_keyword">class</strong>) {
-<a class="jxr_linenumber" name="L398" href="#L398">398</a>             <em class="jxr_comment">// TODO: where are the methods for this?</em>
-<a class="jxr_linenumber" name="L399" href="#L399">399</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> UnsupportedOperationException(<span class="jxr_string">"no supported yet for "</span> + clazz);
-<a class="jxr_linenumber" name="L400" href="#L400">400</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (clazz == LocalDateTime.<strong class="jxr_keyword">class</strong>) {
-<a class="jxr_linenumber" name="L401" href="#L401">401</a>             <em class="jxr_comment">// TODO: where are the methods for this?</em>
-<a class="jxr_linenumber" name="L402" href="#L402">402</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> UnsupportedOperationException(<span class="jxr_string">"no supported yet for "</span> + clazz);
-<a class="jxr_linenumber" name="L403" href="#L403">403</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (clazz == byte[].<strong class="jxr_keyword">class</strong>) {
-<a class="jxr_linenumber" name="L404" href="#L404">404</a>             <strong class="jxr_keyword">return</strong> ArrayUtils.toPrimitive(response.getByteArray(sourceFieldName));
-<a class="jxr_linenumber" name="L405" href="#L405">405</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (clazz == Byte[].<strong class="jxr_keyword">class</strong>) {
-<a class="jxr_linenumber" name="L406" href="#L406">406</a>             <strong class="jxr_keyword">return</strong> response.getByteArray(sourceFieldName);
-<a class="jxr_linenumber" name="L407" href="#L407">407</a>         }
-<a class="jxr_linenumber" name="L408" href="#L408">408</a> 
-<a class="jxr_linenumber" name="L409" href="#L409">409</a>         <em class="jxr_comment">// Fallback</em>
-<a class="jxr_linenumber" name="L410" href="#L410">410</a>         Object responseObject = response.getObject(sourceFieldName);
-<a class="jxr_linenumber" name="L411" href="#L411">411</a>         <strong class="jxr_keyword">if</strong> (clazz.isAssignableFrom(responseObject.getClass())) {
-<a class="jxr_linenumber" name="L412" href="#L412">412</a>             <strong class="jxr_keyword">return</strong> responseObject;
-<a class="jxr_linenumber" name="L413" href="#L413">413</a>         }
-<a class="jxr_linenumber" name="L414" href="#L414">414</a> 
-<a class="jxr_linenumber" name="L415" href="#L415">415</a>         <em class="jxr_comment">// If nothing matched, throw</em>
-<a class="jxr_linenumber" name="L416" href="#L416">416</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> ClassCastException(<span class="jxr_string">"Unable to return response item "</span> + responseObject + <span class="jxr_string">"("</span> + responseObject.getClass() + <span class="jxr_string">") as instance of "</span> + clazz);
-<a class="jxr_linenumber" name="L417" href="#L417">417</a>     }
-<a class="jxr_linenumber" name="L418" href="#L418">418</a> 
-<a class="jxr_linenumber" name="L419" href="#L419">419</a>     <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L420" href="#L420">420</a> <em class="jxr_javadoccomment">     * Fetch the request and do appropriate error handling</em>
-<a class="jxr_linenumber" name="L421" href="#L421">421</a> <em class="jxr_javadoccomment">     *</em>
-<a class="jxr_linenumber" name="L422" href="#L422">422</a> <em class="jxr_javadoccomment">     * @param request the request to get the exception from</em>
-<a class="jxr_linenumber" name="L423" href="#L423">423</a> <em class="jxr_javadoccomment">     * @return the response from the exception.</em>
-<a class="jxr_linenumber" name="L424" href="#L424">424</a> <em class="jxr_javadoccomment">     * @throws OPMException on {@link InterruptedException} or {@link ExecutionException} or {@link TimeoutException}</em>
-<a class="jxr_linenumber" name="L425" href="#L425">425</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L426" href="#L426">426</a>     <strong class="jxr_keyword">private</strong> PlcReadResponse getPlcReadResponse(PlcReadRequest request) <strong class="jxr_keyword">throws</strong> OPMException {
-<a class="jxr_linenumber" name="L427" href="#L427">427</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L428" href="#L428">428</a>             <strong class="jxr_keyword">return</strong> request.execute().get(READ_TIMEOUT, TimeUnit.MILLISECONDS);
-<a class="jxr_linenumber" name="L429" href="#L429">429</a>         } <strong class="jxr_keyword">catch</strong> (InterruptedException e) {
-<a class="jxr_linenumber" name="L430" href="#L430">430</a>             Thread.currentThread().interrupt();
-<a class="jxr_linenumber" name="L431" href="#L431">431</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/apache/plc4x/java/opm/OPMException.html">OPMException</a>(<span class="jxr_string">"Exception during execution"</span>, e);
-<a class="jxr_linenumber" name="L432" href="#L432">432</a>         } <strong class="jxr_keyword">catch</strong> (ExecutionException e) {
-<a class="jxr_linenumber" name="L433" href="#L433">433</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/apache/plc4x/java/opm/OPMException.html">OPMException</a>(<span class="jxr_string">"Exception during execution"</span>, e);
-<a class="jxr_linenumber" name="L434" href="#L434">434</a>         } <strong class="jxr_keyword">catch</strong> (TimeoutException e) {
-<a class="jxr_linenumber" name="L435" href="#L435">435</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/apache/plc4x/java/opm/OPMException.html">OPMException</a>(<span class="jxr_string">"Timeout during fetching values"</span>, e);
-<a class="jxr_linenumber" name="L436" href="#L436">436</a>         }
-<a class="jxr_linenumber" name="L437" href="#L437">437</a>     }
-<a class="jxr_linenumber" name="L438" href="#L438">438</a> 
-<a class="jxr_linenumber" name="L439" href="#L439">439</a> }
+<a class="jxr_linenumber" name="L395" href="#L395">395</a>             <strong class="jxr_keyword">return</strong> response.getTime(sourceFieldName);
+<a class="jxr_linenumber" name="L396" href="#L396">396</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (clazz == LocalDate.<strong class="jxr_keyword">class</strong>) {
+<a class="jxr_linenumber" name="L397" href="#L397">397</a>             <strong class="jxr_keyword">return</strong> response.getDate(sourceFieldName);
+<a class="jxr_linenumber" name="L398" href="#L398">398</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (clazz == LocalDateTime.<strong class="jxr_keyword">class</strong>) {
+<a class="jxr_linenumber" name="L399" href="#L399">399</a>             <strong class="jxr_keyword">return</strong> response.getDateTime(sourceFieldName);
+<a class="jxr_linenumber" name="L400" href="#L400">400</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (clazz == byte[].<strong class="jxr_keyword">class</strong>) {
+<a class="jxr_linenumber" name="L401" href="#L401">401</a>             <strong class="jxr_keyword">return</strong> ArrayUtils.toPrimitive(response.getByteArray(sourceFieldName));
+<a class="jxr_linenumber" name="L402" href="#L402">402</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (clazz == Byte[].<strong class="jxr_keyword">class</strong>) {
+<a class="jxr_linenumber" name="L403" href="#L403">403</a>             <strong class="jxr_keyword">return</strong> response.getByteArray(sourceFieldName);
+<a class="jxr_linenumber" name="L404" href="#L404">404</a>         }
+<a class="jxr_linenumber" name="L405" href="#L405">405</a> 
+<a class="jxr_linenumber" name="L406" href="#L406">406</a>         <em class="jxr_comment">// Fallback</em>
+<a class="jxr_linenumber" name="L407" href="#L407">407</a>         Object responseObject = response.getObject(sourceFieldName);
+<a class="jxr_linenumber" name="L408" href="#L408">408</a>         <strong class="jxr_keyword">if</strong> (clazz.isAssignableFrom(responseObject.getClass())) {
+<a class="jxr_linenumber" name="L409" href="#L409">409</a>             <strong class="jxr_keyword">return</strong> responseObject;
+<a class="jxr_linenumber" name="L410" href="#L410">410</a>         }
+<a class="jxr_linenumber" name="L411" href="#L411">411</a> 
+<a class="jxr_linenumber" name="L412" href="#L412">412</a>         <em class="jxr_comment">// If nothing matched, throw</em>
+<a class="jxr_linenumber" name="L413" href="#L413">413</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> ClassCastException(<span class="jxr_string">"Unable to return response item "</span> + responseObject + <span class="jxr_string">"("</span> + responseObject.getClass() + <span class="jxr_string">") as instance of "</span> + clazz);
+<a class="jxr_linenumber" name="L414" href="#L414">414</a>     }
+<a class="jxr_linenumber" name="L415" href="#L415">415</a> 
+<a class="jxr_linenumber" name="L416" href="#L416">416</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L417" href="#L417">417</a> <em class="jxr_javadoccomment">     * Fetch the request and do appropriate error handling</em>
+<a class="jxr_linenumber" name="L418" href="#L418">418</a> <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L419" href="#L419">419</a> <em class="jxr_javadoccomment">     * @param request the request to get the exception from</em>
+<a class="jxr_linenumber" name="L420" href="#L420">420</a> <em class="jxr_javadoccomment">     * @return the response from the exception.</em>
+<a class="jxr_linenumber" name="L421" href="#L421">421</a> <em class="jxr_javadoccomment">     * @throws OPMException on {@link InterruptedException} or {@link ExecutionException} or {@link TimeoutException}</em>
+<a class="jxr_linenumber" name="L422" href="#L422">422</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L423" href="#L423">423</a>     <strong class="jxr_keyword">private</strong> PlcReadResponse getPlcReadResponse(PlcReadRequest request) <strong class="jxr_keyword">throws</strong> OPMException {
+<a class="jxr_linenumber" name="L424" href="#L424">424</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L425" href="#L425">425</a>             <strong class="jxr_keyword">return</strong> request.execute().get(READ_TIMEOUT, TimeUnit.MILLISECONDS);
+<a class="jxr_linenumber" name="L426" href="#L426">426</a>         } <strong class="jxr_keyword">catch</strong> (InterruptedException e) {
+<a class="jxr_linenumber" name="L427" href="#L427">427</a>             Thread.currentThread().interrupt();
+<a class="jxr_linenumber" name="L428" href="#L428">428</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/apache/plc4x/java/opm/OPMException.html">OPMException</a>(<span class="jxr_string">"Exception during execution"</span>, e);
+<a class="jxr_linenumber" name="L429" href="#L429">429</a>         } <strong class="jxr_keyword">catch</strong> (ExecutionException e) {
+<a class="jxr_linenumber" name="L430" href="#L430">430</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/apache/plc4x/java/opm/OPMException.html">OPMException</a>(<span class="jxr_string">"Exception during execution"</span>, e);
+<a class="jxr_linenumber" name="L431" href="#L431">431</a>         } <strong class="jxr_keyword">catch</strong> (TimeoutException e) {
+<a class="jxr_linenumber" name="L432" href="#L432">432</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/apache/plc4x/java/opm/OPMException.html">OPMException</a>(<span class="jxr_string">"Timeout during fetching values"</span>, e);
+<a class="jxr_linenumber" name="L433" href="#L433">433</a>         }
+<a class="jxr_linenumber" name="L434" href="#L434">434</a>     }
+<a class="jxr_linenumber" name="L435" href="#L435">435</a> 
+<a class="jxr_linenumber" name="L436" href="#L436">436</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2017&#x2013;2018 <a href="https://www.apache.org/">The Apache Software Foundation</a>. All rights reserved.</div>
