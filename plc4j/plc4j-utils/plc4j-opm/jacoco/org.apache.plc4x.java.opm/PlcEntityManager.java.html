@@ -22,7 +22,10 @@ package org.apache.plc4x.java.opm;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.implementation.MethodDelegation;
 import net.bytebuddy.implementation.bind.annotation.*;
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.SystemConfiguration;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.plc4x.java.PlcDriverManager;
 import org.apache.plc4x.java.api.PlcConnection;
 import org.apache.plc4x.java.api.exceptions.PlcConnectionException;
@@ -41,6 +44,7 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -81,74 +85,64 @@ import static net.bytebuddy.matcher.ElementMatchers.any;
  */
 public class PlcEntityManager {
 
-<span class="fc" id="L84">    private static final Logger LOGGER = LoggerFactory.getLogger(PlcEntityManager.class);</span>
+<span class="fc" id="L88">    private static final Logger LOGGER = LoggerFactory.getLogger(PlcEntityManager.class);</span>
+
+<span class="fc" id="L90">    private static final Configuration CONF = new SystemConfiguration();</span>
+<span class="fc" id="L91">    private static final long READ_TIMEOUT = CONF.getLong(&quot;org.apache.plc4x.java.opm.entity_manager.read_timeout&quot;, 1_000);</span>
 
     private final PlcDriverManager driverManager;
 
-<span class="fc" id="L88">    public PlcEntityManager() {</span>
-<span class="fc" id="L89">        this.driverManager = new PlcDriverManager();</span>
-<span class="fc" id="L90">    }</span>
+<span class="fc" id="L95">    public PlcEntityManager() {</span>
+<span class="fc" id="L96">        this.driverManager = new PlcDriverManager();</span>
+<span class="fc" id="L97">    }</span>
 
-<span class="fc" id="L92">    public PlcEntityManager(PlcDriverManager driverManager) {</span>
-<span class="fc" id="L93">        this.driverManager = driverManager;</span>
-<span class="fc" id="L94">    }</span>
+<span class="fc" id="L99">    public PlcEntityManager(PlcDriverManager driverManager) {</span>
+<span class="fc" id="L100">        this.driverManager = driverManager;</span>
+<span class="fc" id="L101">    }</span>
 
     public &lt;T&gt; T read(Class&lt;T&gt; clazz) throws OPMException {
-<span class="fc" id="L97">        PlcEntity annotation = getPlcEntityAndCheckPreconditions(clazz);</span>
-<span class="fc" id="L98">        String source = annotation.value();</span>
+<span class="fc" id="L104">        PlcEntity annotation = getPlcEntityAndCheckPreconditions(clazz);</span>
+<span class="fc" id="L105">        String source = annotation.value();</span>
 
-<span class="fc" id="L100">        try (PlcConnection connection = driverManager.getConnection(source)) {</span>
-
-<span class="pc bpc" id="L102" title="1 of 2 branches missed.">            if (!connection.getMetadata().canRead()) {</span>
-<span class="nc" id="L103">                throw new OPMException(&quot;Unable to get Reader for connection with url '&quot; + source + &quot;'&quot;);</span>
+<span class="fc" id="L107">        try (PlcConnection connection = driverManager.getConnection(source)) {</span>
+<span class="pc bpc" id="L108" title="1 of 2 branches missed.">            if (!connection.getMetadata().canRead()) {</span>
+<span class="nc" id="L109">                throw new OPMException(&quot;Unable to get Reader for connection with url '&quot; + source + &quot;'&quot;);</span>
             }
 
-<span class="fc" id="L106">            PlcReadRequest.Builder requestBuilder = connection.readRequestBuilder();</span>
+<span class="fc" id="L112">            PlcReadRequest.Builder requestBuilder = connection.readRequestBuilder();</span>
 
-            // Do the necessary queries for all fields
-            // HashMap&lt;ReadRequestItem&lt;?&gt;, Field&gt; requestItems = new HashMap&lt;&gt;();
-<span class="fc bfc" id="L110" title="All 2 branches covered.">            for (Field field : clazz.getDeclaredFields()) {</span>
-<span class="fc" id="L111">                PlcField fieldAnnotation = field.getAnnotation(PlcField.class);</span>
-<span class="fc bfc" id="L112" title="All 2 branches covered.">                if (fieldAnnotation == null) {</span>
-                    // Ignore that field
-<span class="fc" id="L114">                    continue;</span>
-                }
-                // Create the suitable Request
-<span class="fc" id="L117">                String query = fieldAnnotation.value();</span>
-<span class="fc" id="L118">                requestBuilder.addItem(field.getName(), query);</span>
-            }
+<span class="fc" id="L114">            Arrays.stream(clazz.getDeclaredFields())</span>
+<span class="fc" id="L115">                .filter(field -&gt; field.isAnnotationPresent(PlcField.class))</span>
+<span class="fc" id="L116">                .forEach(field -&gt;</span>
+<span class="fc" id="L117">                    requestBuilder.addItem(</span>
+<span class="fc" id="L118">                        field.getDeclaringClass().getName() + &quot;.&quot; + field.getName(),</span>
+<span class="fc" id="L119">                        field.getAnnotation(PlcField.class).value()</span>
+                    )
+                );
 
             // Build the request
-            PlcReadRequest request;
-            try {
-<span class="fc" id="L124">                request = requestBuilder.build();</span>
-<span class="nc" id="L125">            } catch (PlcInvalidFieldException e) {</span>
-<span class="nc" id="L126">                throw new OPMException(&quot;Unable to parse one field request&quot;, e);</span>
-<span class="fc" id="L127">            }</span>
+<span class="fc" id="L124">            PlcReadRequest request = requestBuilder.build();</span>
 
             // Perform the request
-            PlcReadResponse response;
-            try {
-                // TODO: make configurable.
-<span class="fc" id="L133">                response = request.execute().get(1_000, TimeUnit.MILLISECONDS);</span>
-<span class="nc" id="L134">            } catch (InterruptedException | ExecutionException e) {</span>
-<span class="nc" id="L135">                throw new OPMException(&quot;Request fetching not able&quot;, e);</span>
-<span class="nc" id="L136">            } catch (TimeoutException e) {</span>
-<span class="nc" id="L137">                throw new OPMException(&quot;Timeout during fetching values&quot;, e);</span>
-<span class="fc" id="L138">            }</span>
+<span class="fc" id="L127">            PlcReadResponse response = getPlcReadResponse(request);</span>
 
             // Construct the Object
-<span class="fc" id="L141">            T instance = clazz.getConstructor().newInstance();</span>
+<span class="fc" id="L130">            T instance = clazz.getConstructor().newInstance();</span>
 
             // Fill all requested fields
-<span class="fc bfc" id="L144" title="All 2 branches covered.">            for (String fieldName : response.getFieldNames()) {</span>
-<span class="fc" id="L145">                setField(clazz, instance, response, fieldName);</span>
-<span class="fc" id="L146">            }</span>
-<span class="fc" id="L147">            return instance;</span>
-<span class="nc" id="L148">        } catch (PlcConnectionException e) {</span>
-<span class="nc" id="L149">            throw new OPMException(&quot;Unable to get connection with url '&quot; + source + &quot;'&quot;, e);</span>
-<span class="nc" id="L150">        } catch (Exception e) {</span>
-<span class="nc" id="L151">            throw new OPMException(&quot;Unable to fetch PlcEntity &quot; + clazz.getName(), e);</span>
+<span class="fc bfc" id="L133" title="All 2 branches covered.">            for (String fieldName : response.getFieldNames()) {</span>
+<span class="fc" id="L134">                String targetFieldName = StringUtils.substringAfterLast(fieldName, &quot;.&quot;);</span>
+<span class="fc" id="L135">                setField(clazz, instance, response, targetFieldName, fieldName);</span>
+<span class="fc" id="L136">            }</span>
+<span class="fc" id="L137">            return instance;</span>
+<span class="nc" id="L138">        } catch (PlcInvalidFieldException e) {</span>
+<span class="nc" id="L139">            throw new OPMException(&quot;Unable to parse one field request&quot;, e);</span>
+<span class="nc" id="L140">        } catch (PlcConnectionException e) {</span>
+<span class="nc" id="L141">            throw new OPMException(&quot;Unable to get connection with url '&quot; + source + &quot;'&quot;, e);</span>
+<span class="nc" id="L142">        } catch (InstantiationException | InvocationTargetException | NoSuchMethodException | NoSuchFieldException | IllegalAccessException e) {</span>
+<span class="nc" id="L143">            throw new OPMException(&quot;Unable to fetch PlcEntity &quot; + clazz.getName(), e);</span>
+<span class="nc" id="L144">        } catch (Exception e) {</span>
+<span class="nc" id="L145">            throw new OPMException(&quot;Unknown Error&quot;, e);</span>
         }
     }
 
@@ -161,35 +155,35 @@ public class PlcEntityManager {
      * @throws OPMException when proxy can't be build.
      */
     public &lt;T&gt; T connect(Class&lt;T&gt; clazz) throws OPMException {
-<span class="fc" id="L164">        getPlcEntityAndCheckPreconditions(clazz);</span>
+<span class="fc" id="L158">        getPlcEntityAndCheckPreconditions(clazz);</span>
         try {
             // Use Byte Buddy to generate a subclassed proxy that delegates all PlcField Methods
             // to the intercept method
-<span class="fc" id="L168">            return new ByteBuddy()</span>
-<span class="fc" id="L169">                .subclass(clazz)</span>
-<span class="fc" id="L170">                .method(any()).intercept(MethodDelegation.to(this))</span>
-<span class="fc" id="L171">                .make()</span>
-<span class="fc" id="L172">                .load(Thread.currentThread().getContextClassLoader())</span>
-<span class="fc" id="L173">                .getLoaded()</span>
-<span class="fc" id="L174">                .getConstructor()</span>
-<span class="fc" id="L175">                .newInstance();</span>
-<span class="nc" id="L176">        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {</span>
-<span class="nc" id="L177">            throw new OPMException(&quot;Unable to instantiate Proxy&quot;, e);</span>
+<span class="fc" id="L162">            return new ByteBuddy()</span>
+<span class="fc" id="L163">                .subclass(clazz)</span>
+<span class="fc" id="L164">                .method(any()).intercept(MethodDelegation.to(this))</span>
+<span class="fc" id="L165">                .make()</span>
+<span class="fc" id="L166">                .load(Thread.currentThread().getContextClassLoader())</span>
+<span class="fc" id="L167">                .getLoaded()</span>
+<span class="fc" id="L168">                .getConstructor()</span>
+<span class="fc" id="L169">                .newInstance();</span>
+<span class="nc" id="L170">        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {</span>
+<span class="nc" id="L171">            throw new OPMException(&quot;Unable to instantiate Proxy&quot;, e);</span>
         }
     }
 
     private &lt;T&gt; PlcEntity getPlcEntityAndCheckPreconditions(Class&lt;T&gt; clazz) {
-<span class="fc" id="L182">        PlcEntity annotation = clazz.getAnnotation(PlcEntity.class);</span>
-<span class="fc bfc" id="L183" title="All 2 branches covered.">        if (annotation == null) {</span>
-<span class="fc" id="L184">            throw new IllegalArgumentException(&quot;Given Class is no Plc Entity, i.e., not annotated with @PlcEntity&quot;);</span>
+<span class="fc" id="L176">        PlcEntity annotation = clazz.getAnnotation(PlcEntity.class);</span>
+<span class="fc bfc" id="L177" title="All 2 branches covered.">        if (annotation == null) {</span>
+<span class="fc" id="L178">            throw new IllegalArgumentException(&quot;Given Class is no Plc Entity, i.e., not annotated with @PlcEntity&quot;);</span>
         }
         // Check if default constructor exists
         try {
-<span class="fc" id="L188">            clazz.getConstructor();</span>
-<span class="fc" id="L189">        } catch (NoSuchMethodException e) {</span>
-<span class="fc" id="L190">            throw new IllegalArgumentException(&quot;Cannot use PlcEntity without default constructor&quot;, e);</span>
-<span class="fc" id="L191">        }</span>
-<span class="fc" id="L192">        return annotation;</span>
+<span class="fc" id="L182">            clazz.getConstructor();</span>
+<span class="fc" id="L183">        } catch (NoSuchMethodException e) {</span>
+<span class="fc" id="L184">            throw new IllegalArgumentException(&quot;Cannot use PlcEntity without default constructor&quot;, e);</span>
+<span class="fc" id="L185">        }</span>
+<span class="fc" id="L186">        return annotation;</span>
     }
 
     //------------------------------------------------------------------------------------------------
@@ -206,112 +200,134 @@ public class PlcEntityManager {
      * If the field is no getter, then all fields are refreshed by calling {@link #refetchAllFields(Object)}
      * and then, the method is invoked.
      *
-     * @param o    Object to intercept
-     * @param m    Method that was intercepted
-     * @param c    Callable to call the method after fetching the values
-     * @param that Reference to the proxy object
+     * @param proxy    Object to intercept
+     * @param method   Method that was intercepted
+     * @param callable Callable to call the method after fetching the values
+     * @param entity   Reference to the PlcEntity
      * @return possible result of the original methods invocation
      * @throws OPMException Problems with plc / proxying
      */
+    @SuppressWarnings(&quot;unused&quot;)
     @RuntimeType
-    // TODO: avoid using single letter params.
-    public Object intercept(@This Object o, @Origin Method m, @SuperCall Callable&lt;?&gt; c, @Super Object that) throws OPMException {
-<span class="fc" id="L219">        LOGGER.trace(&quot;Invoked method {} on connected PlcEntity {}&quot;, m.getName(), that);</span>
+    public Object intercept(@This Object proxy, @Origin Method method, @SuperCall Callable&lt;?&gt; callable, @Super Object entity) throws OPMException {
+<span class="fc" id="L213">        LOGGER.trace(&quot;Invoked method {} on connected PlcEntity {}&quot;, method.getName(), entity);</span>
 
-<span class="fc bfc" id="L221" title="All 2 branches covered.">        if (m.getName().startsWith(&quot;get&quot;)) {</span>
+<span class="fc bfc" id="L215" title="All 2 branches covered.">        if (method.getName().startsWith(&quot;get&quot;)) {</span>
+<span class="pc bpc" id="L216" title="1 of 2 branches missed.">            if (method.getParameterCount() &gt; 0) {</span>
+<span class="nc" id="L217">                throw new OPMException(&quot;Only getter with no arguments are supported&quot;);</span>
+            }
             // Fetch single value
-<span class="fc" id="L223">            LOGGER.trace(&quot;Invoked method {} is getter, trying to find annotated field and return requested value&quot;,</span>
-<span class="fc" id="L224">                m.getName());</span>
-<span class="fc" id="L225">            return fetchValueForGetter(that, m);</span>
+<span class="fc" id="L220">            LOGGER.trace(&quot;Invoked method {} is getter, trying to find annotated field and return requested value&quot;,</span>
+<span class="fc" id="L221">                method.getName());</span>
+<span class="fc" id="L222">            return fetchValueForGetter(entity, method);</span>
         }
 
-<span class="pc bpc" id="L228" title="5 of 6 branches missed.">        if (m.getName().startsWith(&quot;is&quot;) &amp;&amp; (m.getReturnType() == boolean.class || m.getReturnType() == Boolean.class)) {</span>
+<span class="pc bpc" id="L225" title="3 of 6 branches missed.">        if (method.getName().startsWith(&quot;is&quot;) &amp;&amp; (method.getReturnType() == boolean.class || method.getReturnType() == Boolean.class)) {</span>
+<span class="pc bpc" id="L226" title="1 of 2 branches missed.">            if (method.getParameterCount() &gt; 0) {</span>
+<span class="nc" id="L227">                throw new OPMException(&quot;Only getter with no arguments are supported&quot;);</span>
+            }
             // Fetch single value
-<span class="nc" id="L230">            LOGGER.trace(&quot;Invoked method {} is boolean flag method, trying to find annotated field and return requested value&quot;,</span>
-<span class="nc" id="L231">                m.getName());</span>
-<span class="nc" id="L232">            return fetchValueForGetter(that, m);</span>
+<span class="fc" id="L230">            LOGGER.trace(&quot;Invoked method {} is boolean flag method, trying to find annotated field and return requested value&quot;,</span>
+<span class="fc" id="L231">                method.getName());</span>
+<span class="fc" id="L232">            return fetchValueForIsGetter(entity, method);</span>
         }
 
         // Fetch all values, than invoke method
         try {
-<span class="fc" id="L237">            LOGGER.trace(&quot;Invoked method is no getter, refetch all fields and invoke method {} then&quot;, m.getName());</span>
-<span class="fc" id="L238">            refetchAllFields(o);</span>
-<span class="fc" id="L239">            return c.call();</span>
+<span class="fc" id="L237">            LOGGER.trace(&quot;Invoked method is no getter, refetch all fields and invoke method {} then&quot;, method.getName());</span>
+<span class="fc" id="L238">            refetchAllFields(proxy);</span>
+<span class="fc" id="L239">            return callable.call();</span>
 <span class="nc" id="L240">        } catch (Exception e) {</span>
-<span class="nc" id="L241">            throw new OPMException(&quot;Unbale to forward invokation &quot; + m.getName() + &quot; on connected PlcEntity&quot;, e);</span>
+<span class="nc" id="L241">            throw new OPMException(&quot;Unable to forward invocation &quot; + method.getName() + &quot; on connected PlcEntity&quot;, e);</span>
         }
     }
 
     /**
      * Renews all values of all Fields that are annotated with {@link PlcEntity}.
      *
-     * @param o Object to refresh he fields on.
-     * @throws OPMException
+     * @param proxy Object to refresh the fields on.
+     * @throws OPMException on various errors.
      */
-    private void refetchAllFields(Object o) throws OPMException {
-<span class="fc" id="L252">        Class&lt;?&gt; superclass = o.getClass().getSuperclass();</span>
-<span class="fc" id="L253">        PlcEntity plcEntity = superclass.getAnnotation(PlcEntity.class);</span>
+    private void refetchAllFields(Object proxy) throws OPMException {
+        // Don't log o here as this would cause a second request against a plc so don't touch it, or if you log be aware of that
+<span class="fc" id="L253">        Class&lt;?&gt; entityClass = proxy.getClass().getSuperclass();</span>
+<span class="fc" id="L254">        PlcEntity plcEntity = entityClass.getAnnotation(PlcEntity.class);</span>
+<span class="pc bpc" id="L255" title="1 of 2 branches missed.">        if (plcEntity == null) {</span>
+<span class="nc" id="L256">            throw new OPMException(&quot;Non PlcEntity supplied&quot;);</span>
+        }
 
-<span class="fc" id="L255">        try (PlcConnection connection = driverManager.getConnection(plcEntity.value())) {</span>
+<span class="fc" id="L259">        try (PlcConnection connection = driverManager.getConnection(plcEntity.value())) {</span>
             // Catch the exception, if no reader present (see below)
             // Build the query
-<span class="fc" id="L258">            PlcReadRequest.Builder builder = connection.readRequestBuilder();</span>
-<span class="fc bfc" id="L259" title="All 2 branches covered.">            for (Field field : superclass.getDeclaredFields()) {</span>
-                // Check if the field has an annotation
-<span class="fc" id="L261">                PlcField plcField = field.getDeclaredAnnotation(PlcField.class);</span>
-<span class="fc bfc" id="L262" title="All 2 branches covered.">                if (plcField != null) {</span>
-<span class="fc" id="L263">                    LOGGER.trace(&quot;Adding field &quot; + field.getName() + &quot; to request as &quot; + plcField.value());</span>
-<span class="fc" id="L264">                    builder.addItem(field.getName(), plcField.value());</span>
-                }
+<span class="fc" id="L262">            PlcReadRequest.Builder requestBuilder = connection.readRequestBuilder();</span>
 
-            }
-<span class="fc" id="L268">            PlcReadRequest request = builder.build();</span>
+<span class="fc" id="L264">            Arrays.stream(entityClass.getDeclaredFields())</span>
+<span class="fc" id="L265">                .filter(field -&gt; field.isAnnotationPresent(PlcField.class))</span>
+<span class="fc" id="L266">                .forEach(field -&gt;</span>
+<span class="fc" id="L267">                    requestBuilder.addItem(</span>
+<span class="fc" id="L268">                        field.getDeclaringClass().getName() + &quot;.&quot; + field.getName(),</span>
+<span class="fc" id="L269">                        field.getAnnotation(PlcField.class).value()</span>
+                    )
+                );
 
-<span class="fc" id="L270">            PlcReadResponse response = getPlcReadResponse(request);</span>
+<span class="fc" id="L273">            PlcReadRequest request = requestBuilder.build();</span>
+
+<span class="fc" id="L275">            PlcReadResponse response = getPlcReadResponse(request);</span>
 
             // Fill all requested fields
-<span class="fc bfc" id="L273" title="All 2 branches covered.">            for (String fieldName : response.getFieldNames()) {</span>
-<span class="fc" id="L274">                LOGGER.trace(&quot;Value for field &quot; + fieldName + &quot; is &quot; + response.getObject(fieldName));</span>
+<span class="fc bfc" id="L278" title="All 2 branches covered.">            for (String fieldName : response.getFieldNames()) {</span>
+<span class="fc" id="L279">                LOGGER.trace(&quot;Value for field &quot; + fieldName + &quot; is &quot; + response.getObject(fieldName));</span>
+<span class="fc" id="L280">                String clazzFieldName = StringUtils.substringAfterLast(fieldName, &quot;.&quot;);</span>
                 try {
-<span class="fc" id="L276">                    setField(o.getClass().getSuperclass(), o, response, fieldName);</span>
-<span class="nc" id="L277">                } catch (NoSuchFieldException | IllegalAccessException e) {</span>
-<span class="nc" id="L278">                    throw new PlcRuntimeException(e);</span>
-<span class="fc" id="L279">                }</span>
-<span class="fc" id="L280">            }</span>
-<span class="nc" id="L281">        } catch (Exception e) {</span>
-<span class="nc" id="L282">            throw new OPMException(&quot;Problem during processing&quot;, e);</span>
-<span class="fc" id="L283">        }</span>
-<span class="fc" id="L284">    }</span>
+<span class="fc" id="L282">                    setField(entityClass, proxy, response, clazzFieldName, fieldName);</span>
+<span class="nc" id="L283">                } catch (NoSuchFieldException | IllegalAccessException e) {</span>
+<span class="nc" id="L284">                    throw new PlcRuntimeException(e);</span>
+<span class="fc" id="L285">                }</span>
+<span class="fc" id="L286">            }</span>
+<span class="nc" id="L287">        } catch (PlcConnectionException e) {</span>
+<span class="nc" id="L288">            throw new OPMException(&quot;Problem during processing&quot;, e);</span>
+<span class="nc" id="L289">        } catch (Exception e) {</span>
+<span class="nc" id="L290">            throw new OPMException(&quot;Unknown Error&quot;, e);</span>
+<span class="fc" id="L291">        }</span>
+<span class="fc" id="L292">    }</span>
+
+
+    private Object fetchValueForIsGetter(Object o, Method m) throws OPMException {
+<span class="fc" id="L296">        return fetchValueForGetter(o, m, 2);</span>
+    }
+
+    private Object fetchValueForGetter(Object o, Method m) throws OPMException {
+<span class="fc" id="L300">        return fetchValueForGetter(o, m, 3);</span>
+    }
 
     // TODO: why isn't o used?
-    private Object fetchValueForGetter(Object o, Method m) throws OPMException {
-<span class="fc" id="L288">        String s = m.getName().substring(3);</span>
+    private Object fetchValueForGetter(Object o, Method m, int prefixLength) throws OPMException {
+<span class="fc" id="L305">        String s = m.getName().substring(prefixLength);</span>
         // First char to lower
-<span class="fc" id="L290">        String variable = s.substring(0, 1).toLowerCase().concat(s.substring(1));</span>
-<span class="fc" id="L291">        LOGGER.trace(&quot;Looking for field with name {} after invokation of getter {}&quot;, variable, m.getName());</span>
+<span class="fc" id="L307">        String variable = s.substring(0, 1).toLowerCase().concat(s.substring(1));</span>
+<span class="fc" id="L308">        LOGGER.trace(&quot;Looking for field with name {} after invokation of getter {}&quot;, variable, m.getName());</span>
         PlcField annotation;
         try {
-<span class="fc" id="L294">            annotation = m.getDeclaringClass().getDeclaredField(variable).getDeclaredAnnotation(PlcField.class);</span>
-<span class="nc" id="L295">        } catch (NoSuchFieldException e) {</span>
-<span class="nc" id="L296">            throw new OPMException(&quot;Unable to identify field annotated field for call to &quot; + m.getName(), e);</span>
-<span class="fc" id="L297">        }</span>
-<span class="fc" id="L298">        PlcEntity plcEntity = m.getDeclaringClass().getAnnotation(PlcEntity.class);</span>
-<span class="fc" id="L299">        try (PlcConnection connection = driverManager.getConnection(plcEntity.value())) {</span>
+<span class="fc" id="L311">            annotation = m.getDeclaringClass().getDeclaredField(variable).getDeclaredAnnotation(PlcField.class);</span>
+<span class="nc" id="L312">        } catch (NoSuchFieldException e) {</span>
+<span class="nc" id="L313">            throw new OPMException(&quot;Unable to identify field annotated field for call to &quot; + m.getName(), e);</span>
+<span class="fc" id="L314">        }</span>
+<span class="fc" id="L315">        PlcEntity plcEntity = m.getDeclaringClass().getAnnotation(PlcEntity.class);</span>
+<span class="fc" id="L316">        try (PlcConnection connection = driverManager.getConnection(plcEntity.value())) {</span>
             // Catch the exception, if no reader present (see below)
 
             // Assume to do the query here...
-<span class="fc" id="L303">            PlcReadRequest request = connection.readRequestBuilder()</span>
-<span class="fc" id="L304">                .addItem(m.getName(), annotation.value())</span>
-<span class="fc" id="L305">                .build();</span>
+<span class="fc" id="L320">            PlcReadRequest request = connection.readRequestBuilder()</span>
+<span class="fc" id="L321">                .addItem(m.getName(), annotation.value())</span>
+<span class="fc" id="L322">                .build();</span>
 
-            PlcReadResponse response;
-<span class="fc" id="L308">            response = getPlcReadResponse(request);</span>
+<span class="fc" id="L324">            PlcReadResponse response = getPlcReadResponse(request);</span>
 
-<span class="fc" id="L310">            return getTyped(m.getReturnType(), response, m.getName());</span>
-<span class="nc" id="L311">        } catch (ClassCastException e) {</span>
-<span class="nc" id="L312">            throw new OPMException(&quot;Unable to return response as suitable type&quot;, e);</span>
-<span class="nc" id="L313">        } catch (Exception e) {</span>
-<span class="nc" id="L314">            throw new OPMException(&quot;Problem during processing&quot;, e);</span>
+<span class="fc" id="L326">            return getTyped(m.getReturnType(), response, m.getName());</span>
+<span class="nc" id="L327">        } catch (ClassCastException e) {</span>
+<span class="nc" id="L328">            throw new OPMException(&quot;Unable to return response as suitable type&quot;, e);</span>
+<span class="nc" id="L329">        } catch (Exception e) {</span>
+<span class="nc" id="L330">            throw new OPMException(&quot;Problem during processing&quot;, e);</span>
         }
     }
 
@@ -320,102 +336,103 @@ public class PlcEntityManager {
      * This is one by looking for a field in the class and a response item
      * which is equal to the given fieldName parameter.
      *
-     * @param o         Object to set the value on
-     * @param response  Response to fetch the response from
-     * @param fieldName Name of the field in the object and the response
+     * @param o               Object to set the value on
+     * @param response        Response to fetch the response from
+     * @param targetFieldName Name of the field in the object
+     * @param sourceFieldName Name of the field in the response
      * @throws NoSuchFieldException
      * @throws IllegalAccessException
      */
-    private void setField(Class&lt;?&gt; clazz, Object o, PlcReadResponse response, String fieldName) throws NoSuchFieldException, IllegalAccessException {
-<span class="fc" id="L330">        Field field = clazz.getDeclaredField(fieldName);</span>
-<span class="fc" id="L331">        field.setAccessible(true);</span>
+    private void setField(Class&lt;?&gt; clazz, Object o, PlcReadResponse response, String targetFieldName, String sourceFieldName) throws NoSuchFieldException, IllegalAccessException {
+<span class="fc" id="L347">        LOGGER.debug(&quot;setField on clazz: {}, Object: {}, response: {}, targetFieldName: {}, sourceFieldName:{} &quot;, clazz, o, response, targetFieldName, sourceFieldName);</span>
+<span class="fc" id="L348">        Field field = clazz.getDeclaredField(targetFieldName);</span>
+<span class="fc" id="L349">        field.setAccessible(true);</span>
         try {
-<span class="fc" id="L333">            field.set(o, getTyped(field.getType(), response, fieldName));</span>
-<span class="nc" id="L334">        } catch (ClassCastException e) {</span>
+<span class="fc" id="L351">            field.set(o, getTyped(field.getType(), response, sourceFieldName));</span>
+<span class="nc" id="L352">        } catch (ClassCastException e) {</span>
             // TODO should we simply fail here?
-<span class="nc" id="L336">            LOGGER.warn(&quot;Unable to assign return value {} to field {} with type {}&quot;, response.getObject(fieldName), fieldName, field.getType(), e);</span>
-<span class="fc" id="L337">        }</span>
-<span class="fc" id="L338">    }</span>
+<span class="nc" id="L354">            LOGGER.warn(&quot;Unable to assign return value {} to field {} with type {}&quot;, response.getObject(sourceFieldName), targetFieldName, field.getType(), e);</span>
+<span class="fc" id="L355">        }</span>
+<span class="fc" id="L356">    }</span>
 
-    private Object getTyped(Class&lt;?&gt; clazz, PlcReadResponse response, String fieldName) {
-<span class="fc" id="L341">        Object responseObject = response.getObject(fieldName);</span>
-<span class="pc bpc" id="L342" title="1 of 2 branches missed.">        if (responseObject == null) {</span>
-            // TODO: shall we better throw an exception or is object never null?
-<span class="nc" id="L344">            return null;</span>
-        }
-<span class="fc bfc" id="L346" title="All 2 branches covered.">        if (clazz.isPrimitive()) {</span>
-<span class="fc bfc" id="L347" title="All 2 branches covered.">            if (clazz == boolean.class) {</span>
-<span class="fc" id="L348">                return response.getBoolean(fieldName);</span>
-<span class="fc bfc" id="L349" title="All 2 branches covered.">            } else if (clazz == byte.class) {</span>
-<span class="fc" id="L350">                return response.getByte(fieldName);</span>
-<span class="fc bfc" id="L351" title="All 2 branches covered.">            } else if (clazz == short.class) {</span>
-<span class="fc" id="L352">                return response.getShort(fieldName);</span>
-<span class="fc bfc" id="L353" title="All 2 branches covered.">            } else if (clazz == int.class) {</span>
-<span class="fc" id="L354">                return response.getInteger(fieldName);</span>
-<span class="pc bpc" id="L355" title="1 of 2 branches missed.">            } else if (clazz == long.class) {</span>
-<span class="fc" id="L356">                return response.getLong(fieldName);</span>
+    private Object getTyped(Class&lt;?&gt; clazz, PlcReadResponse response, String sourceFieldName) {
+<span class="fc" id="L359">        LOGGER.debug(&quot;getTyped clazz: {}, response: {}, fieldName: {}&quot;, clazz, response, sourceFieldName);</span>
+<span class="fc bfc" id="L360" title="All 2 branches covered.">        if (clazz.isPrimitive()) {</span>
+<span class="fc bfc" id="L361" title="All 2 branches covered.">            if (clazz == boolean.class) {</span>
+<span class="fc" id="L362">                return response.getBoolean(sourceFieldName);</span>
+<span class="fc bfc" id="L363" title="All 2 branches covered.">            } else if (clazz == byte.class) {</span>
+<span class="fc" id="L364">                return response.getByte(sourceFieldName);</span>
+<span class="fc bfc" id="L365" title="All 2 branches covered.">            } else if (clazz == short.class) {</span>
+<span class="fc" id="L366">                return response.getShort(sourceFieldName);</span>
+<span class="fc bfc" id="L367" title="All 2 branches covered.">            } else if (clazz == int.class) {</span>
+<span class="fc" id="L368">                return response.getInteger(sourceFieldName);</span>
+<span class="pc bpc" id="L369" title="1 of 2 branches missed.">            } else if (clazz == long.class) {</span>
+<span class="fc" id="L370">                return response.getLong(sourceFieldName);</span>
             }
         }
 
-<span class="pc bpc" id="L360" title="1 of 2 branches missed.">        if (clazz == Boolean.class) {</span>
-<span class="nc" id="L361">            return response.getBoolean(fieldName);</span>
-<span class="pc bpc" id="L362" title="1 of 2 branches missed.">        } else if (clazz == Byte.class) {</span>
-<span class="nc" id="L363">            return response.getByte(fieldName);</span>
-<span class="pc bpc" id="L364" title="1 of 2 branches missed.">        } else if (clazz == Short.class) {</span>
-<span class="nc" id="L365">            return response.getShort(fieldName);</span>
-<span class="pc bpc" id="L366" title="1 of 2 branches missed.">        } else if (clazz == Integer.class) {</span>
-<span class="nc" id="L367">            return response.getInteger(fieldName);</span>
-<span class="fc bfc" id="L368" title="All 2 branches covered.">        } else if (clazz == Long.class) {</span>
-<span class="fc" id="L369">            return response.getLong(fieldName);</span>
-<span class="pc bpc" id="L370" title="1 of 2 branches missed.">        } else if (clazz == BigInteger.class) {</span>
-<span class="nc" id="L371">            return response.getBigInteger(fieldName);</span>
-<span class="pc bpc" id="L372" title="1 of 2 branches missed.">        } else if (clazz == Float.class) {</span>
-<span class="nc" id="L373">            return response.getFloat(fieldName);</span>
-<span class="pc bpc" id="L374" title="1 of 2 branches missed.">        } else if (clazz == Double.class) {</span>
-<span class="nc" id="L375">            return response.getDouble(fieldName);</span>
-<span class="pc bpc" id="L376" title="1 of 2 branches missed.">        } else if (clazz == BigDecimal.class) {</span>
-<span class="nc" id="L377">            return response.getBigDecimal(fieldName);</span>
-<span class="pc bpc" id="L378" title="1 of 2 branches missed.">        } else if (clazz == String.class) {</span>
-<span class="fc" id="L379">            return response.getString(fieldName);</span>
-<span class="nc bnc" id="L380" title="All 2 branches missed.">        } else if (clazz == LocalTime.class) {</span>
+<span class="pc bpc" id="L374" title="1 of 2 branches missed.">        if (clazz == Boolean.class) {</span>
+<span class="nc" id="L375">            return response.getBoolean(sourceFieldName);</span>
+<span class="pc bpc" id="L376" title="1 of 2 branches missed.">        } else if (clazz == Byte.class) {</span>
+<span class="nc" id="L377">            return response.getByte(sourceFieldName);</span>
+<span class="pc bpc" id="L378" title="1 of 2 branches missed.">        } else if (clazz == Short.class) {</span>
+<span class="nc" id="L379">            return response.getShort(sourceFieldName);</span>
+<span class="pc bpc" id="L380" title="1 of 2 branches missed.">        } else if (clazz == Integer.class) {</span>
+<span class="nc" id="L381">            return response.getInteger(sourceFieldName);</span>
+<span class="fc bfc" id="L382" title="All 2 branches covered.">        } else if (clazz == Long.class) {</span>
+<span class="fc" id="L383">            return response.getLong(sourceFieldName);</span>
+<span class="pc bpc" id="L384" title="1 of 2 branches missed.">        } else if (clazz == BigInteger.class) {</span>
+<span class="nc" id="L385">            return response.getBigInteger(sourceFieldName);</span>
+<span class="pc bpc" id="L386" title="1 of 2 branches missed.">        } else if (clazz == Float.class) {</span>
+<span class="nc" id="L387">            return response.getFloat(sourceFieldName);</span>
+<span class="pc bpc" id="L388" title="1 of 2 branches missed.">        } else if (clazz == Double.class) {</span>
+<span class="nc" id="L389">            return response.getDouble(sourceFieldName);</span>
+<span class="pc bpc" id="L390" title="1 of 2 branches missed.">        } else if (clazz == BigDecimal.class) {</span>
+<span class="nc" id="L391">            return response.getBigDecimal(sourceFieldName);</span>
+<span class="pc bpc" id="L392" title="1 of 2 branches missed.">        } else if (clazz == String.class) {</span>
+<span class="fc" id="L393">            return response.getString(sourceFieldName);</span>
+<span class="nc bnc" id="L394" title="All 2 branches missed.">        } else if (clazz == LocalTime.class) {</span>
             // TODO: where are the methods for this?
-<span class="nc" id="L382">            throw new UnsupportedOperationException(&quot;no supported yet for &quot; + clazz);</span>
-<span class="nc bnc" id="L383" title="All 2 branches missed.">        } else if (clazz == LocalDate.class) {</span>
+<span class="nc" id="L396">            throw new UnsupportedOperationException(&quot;no supported yet for &quot; + clazz);</span>
+<span class="nc bnc" id="L397" title="All 2 branches missed.">        } else if (clazz == LocalDate.class) {</span>
             // TODO: where are the methods for this?
-<span class="nc" id="L385">            throw new UnsupportedOperationException(&quot;no supported yet for &quot; + clazz);</span>
-<span class="nc bnc" id="L386" title="All 2 branches missed.">        } else if (clazz == LocalDateTime.class) {</span>
+<span class="nc" id="L399">            throw new UnsupportedOperationException(&quot;no supported yet for &quot; + clazz);</span>
+<span class="nc bnc" id="L400" title="All 2 branches missed.">        } else if (clazz == LocalDateTime.class) {</span>
             // TODO: where are the methods for this?
-<span class="nc" id="L388">            throw new UnsupportedOperationException(&quot;no supported yet for &quot; + clazz);</span>
-<span class="nc bnc" id="L389" title="All 2 branches missed.">        } else if (clazz == byte[].class) {</span>
-<span class="nc" id="L390">            return ArrayUtils.toPrimitive(response.getByteArray(fieldName));</span>
-<span class="nc bnc" id="L391" title="All 2 branches missed.">        } else if (clazz == Byte[].class) {</span>
-<span class="nc" id="L392">            return response.getByteArray(fieldName);</span>
+<span class="nc" id="L402">            throw new UnsupportedOperationException(&quot;no supported yet for &quot; + clazz);</span>
+<span class="nc bnc" id="L403" title="All 2 branches missed.">        } else if (clazz == byte[].class) {</span>
+<span class="nc" id="L404">            return ArrayUtils.toPrimitive(response.getByteArray(sourceFieldName));</span>
+<span class="nc bnc" id="L405" title="All 2 branches missed.">        } else if (clazz == Byte[].class) {</span>
+<span class="nc" id="L406">            return response.getByteArray(sourceFieldName);</span>
         }
 
-<span class="nc bnc" id="L395" title="All 2 branches missed.">        if (clazz.isAssignableFrom(responseObject.getClass())) {</span>
-<span class="nc" id="L396">            return responseObject;</span>
+        // Fallback
+<span class="nc" id="L410">        Object responseObject = response.getObject(sourceFieldName);</span>
+<span class="nc bnc" id="L411" title="All 2 branches missed.">        if (clazz.isAssignableFrom(responseObject.getClass())) {</span>
+<span class="nc" id="L412">            return responseObject;</span>
         }
 
         // If nothing matched, throw
-<span class="nc" id="L400">        throw new ClassCastException(&quot;Unable to return response item &quot; + responseObject + &quot;(&quot; + responseObject.getClass() + &quot;) as instance of &quot; + clazz);</span>
+<span class="nc" id="L416">        throw new ClassCastException(&quot;Unable to return response item &quot; + responseObject + &quot;(&quot; + responseObject.getClass() + &quot;) as instance of &quot; + clazz);</span>
     }
 
     /**
      * Fetch the request and do appropriate error handling
      *
-     * @param request
-     * @return
-     * @throws OPMException
+     * @param request the request to get the exception from
+     * @return the response from the exception.
+     * @throws OPMException on {@link InterruptedException} or {@link ExecutionException} or {@link TimeoutException}
      */
     private PlcReadResponse getPlcReadResponse(PlcReadRequest request) throws OPMException {
         try {
-            // TODO: add configurable timeout
-<span class="fc" id="L413">            return request.execute().get();</span>
-<span class="nc" id="L414">        } catch (InterruptedException e) {</span>
-<span class="nc" id="L415">            Thread.currentThread().interrupt();</span>
-<span class="nc" id="L416">            throw new OPMException(&quot;Exception during execution&quot;, e);</span>
-<span class="nc" id="L417">        } catch (ExecutionException e) {</span>
-<span class="nc" id="L418">            throw new OPMException(&quot;Exception during execution&quot;, e);</span>
+<span class="fc" id="L428">            return request.execute().get(READ_TIMEOUT, TimeUnit.MILLISECONDS);</span>
+<span class="nc" id="L429">        } catch (InterruptedException e) {</span>
+<span class="nc" id="L430">            Thread.currentThread().interrupt();</span>
+<span class="nc" id="L431">            throw new OPMException(&quot;Exception during execution&quot;, e);</span>
+<span class="nc" id="L432">        } catch (ExecutionException e) {</span>
+<span class="nc" id="L433">            throw new OPMException(&quot;Exception during execution&quot;, e);</span>
+<span class="nc" id="L434">        } catch (TimeoutException e) {</span>
+<span class="nc" id="L435">            throw new OPMException(&quot;Timeout during fetching values&quot;, e);</span>
         }
     }
 
