@@ -96,42 +96,43 @@ public class PooledPlcDriverManager extends PlcDriverManager {
 <span class="fc" id="L96">                    pool.returnObject(plcConnection);</span>
 <span class="fc" id="L97">                    return null;</span>
                 } else {
-<span class="fc" id="L99">                    return method.invoke(plcConnection, args);</span>
+                    // TODO: add exception handler which catches exceptions like plcConnectionException and then invalidates them
+<span class="fc" id="L100">                    return method.invoke(plcConnection, args);</span>
                 }
             });
-<span class="nc" id="L102">        } catch (Exception e) {</span>
-<span class="nc" id="L103">            throw new PlcConnectionException(e);</span>
+<span class="nc" id="L103">        } catch (Exception e) {</span>
+<span class="nc" id="L104">            throw new PlcConnectionException(e);</span>
         }
     }
 
     private ObjectPool&lt;PlcConnection&gt; retrieveFromPool(PoolKey poolKey) {
-<span class="fc" id="L108">        ObjectPool&lt;PlcConnection&gt; pool = poolMap.get(poolKey);</span>
-<span class="fc bfc" id="L109" title="All 2 branches covered.">        if (pool == null) {</span>
-<span class="fc" id="L110">            LOGGER.debug(&quot;No pool found for poolKey {}&quot;, poolKey);</span>
-<span class="fc" id="L111">            String url = poolKey.getUrl();</span>
-<span class="fc" id="L112">            PlcAuthentication plcAuthentication = poolKey.getPlcAuthentication();</span>
+<span class="fc" id="L109">        ObjectPool&lt;PlcConnection&gt; pool = poolMap.get(poolKey);</span>
+<span class="fc bfc" id="L110" title="All 2 branches covered.">        if (pool == null) {</span>
+<span class="fc" id="L111">            LOGGER.debug(&quot;No pool found for poolKey {}&quot;, poolKey);</span>
+<span class="fc" id="L112">            String url = poolKey.getUrl();</span>
+<span class="fc" id="L113">            PlcAuthentication plcAuthentication = poolKey.getPlcAuthentication();</span>
 
-<span class="fc" id="L114">            Lock lock = readWriteLock.writeLock();</span>
-<span class="fc" id="L115">            lock.lock();</span>
+<span class="fc" id="L115">            Lock lock = readWriteLock.writeLock();</span>
+<span class="fc" id="L116">            lock.lock();</span>
             try {
-<span class="fc" id="L117">                pool = poolMap.computeIfAbsent(poolKey, pair -&gt; poolCreator.createPool(new PooledPlcConnectionFactory() {</span>
+<span class="fc" id="L118">                pool = poolMap.computeIfAbsent(poolKey, pair -&gt; poolCreator.createPool(new PooledPlcConnectionFactory() {</span>
                     @Override
                     public PlcConnection create() throws PlcConnectionException {
-<span class="fc bfc" id="L120" title="All 2 branches covered.">                        if (plcAuthentication == noPlcAuthentication) {</span>
-<span class="fc" id="L121">                            LOGGER.debug(&quot;getting actual connection for {}&quot;, url);</span>
-<span class="fc" id="L122">                            return PooledPlcDriverManager.super.getConnection(url);</span>
+<span class="fc bfc" id="L121" title="All 2 branches covered.">                        if (plcAuthentication == noPlcAuthentication) {</span>
+<span class="fc" id="L122">                            LOGGER.debug(&quot;getting actual connection for {}&quot;, url);</span>
+<span class="fc" id="L123">                            return PooledPlcDriverManager.super.getConnection(url);</span>
                         } else {
-<span class="fc" id="L124">                            LOGGER.debug(&quot;getting actual connection for {} and plcAuthentication {}&quot;, url, plcAuthentication);</span>
-<span class="fc" id="L125">                            return PooledPlcDriverManager.super.getConnection(url, plcAuthentication);</span>
+<span class="fc" id="L125">                            LOGGER.debug(&quot;getting actual connection for {} and plcAuthentication {}&quot;, url, plcAuthentication);</span>
+<span class="fc" id="L126">                            return PooledPlcDriverManager.super.getConnection(url, plcAuthentication);</span>
                         }
                     }
                 }));
-<span class="fc" id="L129">                LOGGER.debug(&quot;Using pool {}:{} for poolKey {}&quot;, pool.hashCode(), pool, poolKey);</span>
+<span class="fc" id="L130">                LOGGER.debug(&quot;Using pool {}:{} for poolKey {}&quot;, pool.hashCode(), pool, poolKey);</span>
             } finally {
-<span class="fc" id="L131">                lock.unlock();</span>
+<span class="fc" id="L132">                lock.unlock();</span>
             }
         }
-<span class="fc" id="L134">        return pool;</span>
+<span class="fc" id="L135">        return pool;</span>
     }
 
     @FunctionalInterface
@@ -141,44 +142,48 @@ public class PooledPlcDriverManager extends PlcDriverManager {
 
     // TODO: maybe add a Thread which calls this cyclic
     public void removedUnusedPools() {
-<span class="nc" id="L144">        Lock lock = readWriteLock.writeLock();</span>
-<span class="nc" id="L145">        lock.lock();</span>
+<span class="fc" id="L145">        Lock lock = readWriteLock.writeLock();</span>
+<span class="fc" id="L146">        lock.lock();</span>
         try {
-<span class="nc" id="L147">            Set&lt;PoolKey&gt; itemsToBeremoved = new LinkedHashSet&lt;&gt;();</span>
-<span class="nc" id="L148">            poolMap.forEach((key, value) -&gt; {</span>
+<span class="fc" id="L148">            LOGGER.debug(&quot;doing cleanup now on {}&quot;, poolMap);</span>
+<span class="fc" id="L149">            Set&lt;PoolKey&gt; itemsToBeremoved = new LinkedHashSet&lt;&gt;();</span>
+<span class="fc" id="L150">            poolMap.forEach((key, value) -&gt; {</span>
                 // TODO: check if this pool has been used in the last time and if not remove it.
                 // TODO: evicting empty pools for now
-<span class="nc bnc" id="L151" title="All 4 branches missed.">                if (value.getNumActive() == 0 &amp;&amp; value.getNumIdle() == 0) {</span>
-<span class="nc" id="L152">                    LOGGER.info(&quot;Removing unused pool {}&quot;, value);</span>
-<span class="nc" id="L153">                    itemsToBeremoved.add(key);</span>
+<span class="fc" id="L153">                LOGGER.debug(&quot;pool {}:{} has numActive: {} numIdle: {}&quot;, key, value, value.getNumActive(), value.getNumIdle());</span>
+<span class="pc bpc" id="L154" title="1 of 4 branches missed.">                if (value.getNumActive() == 0 &amp;&amp; value.getNumIdle() == 0) {</span>
+<span class="fc" id="L155">                    LOGGER.info(&quot;Removing unused pool {}&quot;, value);</span>
+<span class="fc" id="L156">                    itemsToBeremoved.add(key);</span>
                 }
-<span class="nc" id="L155">            });</span>
-<span class="nc" id="L156">            itemsToBeremoved.forEach(poolMap::remove);</span>
+<span class="fc" id="L158">            });</span>
+<span class="fc" id="L159">            LOGGER.debug(&quot;items to be removed {} on {}&quot;, itemsToBeremoved, poolMap);</span>
+<span class="fc" id="L160">            itemsToBeremoved.forEach(poolMap::remove);</span>
         } finally {
-<span class="nc" id="L158">            lock.unlock();</span>
+<span class="fc" id="L162">            lock.unlock();</span>
         }
-<span class="nc" id="L160">    }</span>
+<span class="fc" id="L164">    }</span>
 
     // TODO: maybe export to jmx
     public Map&lt;String, Number&gt; getStatistics() {
-<span class="fc" id="L164">        Lock lock = readWriteLock.readLock();</span>
+<span class="fc" id="L168">        Lock lock = readWriteLock.readLock();</span>
         try {
-<span class="fc" id="L166">            lock.lock();</span>
-<span class="fc" id="L167">            HashMap&lt;String, Number&gt; statistics = new HashMap&lt;&gt;();</span>
-<span class="fc bfc" id="L168" title="All 2 branches covered.">            for (Map.Entry&lt;PoolKey, ObjectPool&lt;PlcConnection&gt;&gt; poolEntry : poolMap.entrySet()) {</span>
-<span class="fc" id="L169">                PoolKey pair = poolEntry.getKey();</span>
-<span class="fc" id="L170">                ObjectPool&lt;PlcConnection&gt; objectPool = poolEntry.getValue();</span>
-<span class="fc" id="L171">                String url = pair.getUrl();</span>
-<span class="fc" id="L172">                PlcAuthentication plcAuthentication = pair.getPlcAuthentication();</span>
+<span class="fc" id="L170">            lock.lock();</span>
+<span class="fc" id="L171">            HashMap&lt;String, Number&gt; statistics = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L172">            statistics.put(&quot;pools.count&quot;, poolMap.size());</span>
+<span class="fc bfc" id="L173" title="All 2 branches covered.">            for (Map.Entry&lt;PoolKey, ObjectPool&lt;PlcConnection&gt;&gt; poolEntry : poolMap.entrySet()) {</span>
+<span class="fc" id="L174">                PoolKey pair = poolEntry.getKey();</span>
+<span class="fc" id="L175">                ObjectPool&lt;PlcConnection&gt; objectPool = poolEntry.getValue();</span>
+<span class="fc" id="L176">                String url = pair.getUrl();</span>
+<span class="fc" id="L177">                PlcAuthentication plcAuthentication = pair.getPlcAuthentication();</span>
 
-<span class="fc bfc" id="L174" title="All 2 branches covered.">                String authSuffix = plcAuthentication != noPlcAuthentication ? &quot;/&quot; + plcAuthentication : &quot;&quot;;</span>
-<span class="fc" id="L175">                statistics.put(url + authSuffix + &quot;.numActive&quot;, objectPool.getNumActive());</span>
-<span class="fc" id="L176">                statistics.put(url + authSuffix + &quot;.numIdle&quot;, objectPool.getNumIdle());</span>
-<span class="fc" id="L177">            }</span>
+<span class="fc bfc" id="L179" title="All 2 branches covered.">                String authSuffix = plcAuthentication != noPlcAuthentication ? &quot;/&quot; + plcAuthentication : &quot;&quot;;</span>
+<span class="fc" id="L180">                statistics.put(url + authSuffix + &quot;.numActive&quot;, objectPool.getNumActive());</span>
+<span class="fc" id="L181">                statistics.put(url + authSuffix + &quot;.numIdle&quot;, objectPool.getNumIdle());</span>
+<span class="fc" id="L182">            }</span>
 
-<span class="fc" id="L179">            return statistics;</span>
+<span class="fc" id="L184">            return statistics;</span>
         } finally {
-<span class="fc" id="L181">            lock.unlock();</span>
+<span class="fc" id="L186">            lock.unlock();</span>
         }
     }
 
@@ -192,46 +197,46 @@ public class PooledPlcDriverManager extends PlcDriverManager {
 
         // TODO: we need to extract relevant parts of the url as key as we don't want many connections for different racks in s7 for example.
         // TODO: So we might end up need a generic key and special keys for all known protocols which parses the relevant portions.
-<span class="fc" id="L195">        public PoolKey(String url, PlcAuthentication plcAuthentication) {</span>
-<span class="fc" id="L196">            this.url = url;</span>
-<span class="fc" id="L197">            this.plcAuthentication = plcAuthentication;</span>
-<span class="fc" id="L198">        }</span>
+<span class="fc" id="L200">        public PoolKey(String url, PlcAuthentication plcAuthentication) {</span>
+<span class="fc" id="L201">            this.url = url;</span>
+<span class="fc" id="L202">            this.plcAuthentication = plcAuthentication;</span>
+<span class="fc" id="L203">        }</span>
 
         public static PoolKey of(String host, PlcAuthentication plcAuthentication) {
-<span class="fc" id="L201">            return new PoolKey(host, plcAuthentication);</span>
+<span class="fc" id="L206">            return new PoolKey(host, plcAuthentication);</span>
         }
 
         public String getUrl() {
-<span class="fc" id="L205">            return url;</span>
+<span class="fc" id="L210">            return url;</span>
         }
 
         public PlcAuthentication getPlcAuthentication() {
-<span class="fc" id="L209">            return plcAuthentication;</span>
+<span class="fc" id="L214">            return plcAuthentication;</span>
         }
 
         @Override
         public boolean equals(Object o) {
-<span class="pc bpc" id="L214" title="1 of 2 branches missed.">            if (this == o) {</span>
-<span class="nc" id="L215">                return true;</span>
+<span class="pc bpc" id="L219" title="1 of 2 branches missed.">            if (this == o) {</span>
+<span class="nc" id="L220">                return true;</span>
             }
-<span class="pc bpc" id="L217" title="1 of 2 branches missed.">            if (!(o instanceof PoolKey)) {</span>
-<span class="nc" id="L218">                return false;</span>
+<span class="pc bpc" id="L222" title="1 of 2 branches missed.">            if (!(o instanceof PoolKey)) {</span>
+<span class="nc" id="L223">                return false;</span>
             }
-<span class="fc" id="L220">            PoolKey poolKey = (PoolKey) o;</span>
-<span class="pc bpc" id="L221" title="1 of 2 branches missed.">            return Objects.equals(url, poolKey.url) &amp;&amp;</span>
-<span class="pc bpc" id="L222" title="1 of 2 branches missed.">                Objects.equals(plcAuthentication, poolKey.plcAuthentication);</span>
+<span class="fc" id="L225">            PoolKey poolKey = (PoolKey) o;</span>
+<span class="pc bpc" id="L226" title="1 of 2 branches missed.">            return Objects.equals(url, poolKey.url) &amp;&amp;</span>
+<span class="pc bpc" id="L227" title="1 of 2 branches missed.">                Objects.equals(plcAuthentication, poolKey.plcAuthentication);</span>
         }
 
         @Override
         public int hashCode() {
-<span class="fc" id="L227">            return Objects.hash(url, plcAuthentication);</span>
+<span class="fc" id="L232">            return Objects.hash(url, plcAuthentication);</span>
         }
 
         @Override
         public String toString() {
-<span class="fc" id="L232">            return &quot;PoolKey{&quot; +</span>
+<span class="fc" id="L237">            return &quot;PoolKey{&quot; +</span>
                 &quot;url='&quot; + url + '\'' +
-<span class="fc bfc" id="L234" title="All 2 branches covered.">                (plcAuthentication != noPlcAuthentication ? &quot;, plcAuthentication=&quot; + plcAuthentication : &quot;&quot;) +</span>
+<span class="fc bfc" id="L239" title="All 2 branches covered.">                (plcAuthentication != noPlcAuthentication ? &quot;, plcAuthentication=&quot; + plcAuthentication : &quot;&quot;) +</span>
                 '}';
         }
     }
