@@ -34,8 +34,7 @@ import org.apache.plc4x.java.api.types.PlcResponseCode;
 import org.apache.plc4x.java.base.PlcMessageToMessageCodec;
 import org.apache.plc4x.java.base.events.ConnectedEvent;
 import org.apache.plc4x.java.base.messages.*;
-import org.apache.plc4x.java.base.messages.items.BaseDefaultFieldItem;
-import org.apache.plc4x.java.s7.messages.items.*;
+import org.apache.plc4x.java.base.messages.items.*;
 import org.apache.plc4x.java.s7.model.S7Field;
 import org.apache.plc4x.java.s7.netty.events.S7ConnectedEvent;
 import org.apache.plc4x.java.s7.netty.model.messages.S7Message;
@@ -70,13 +69,13 @@ import java.util.stream.IntStream;
  */
 public class Plc4XS7Protocol extends PlcMessageToMessageCodec&lt;S7Message, PlcRequestContainer&gt; {
 
-<span class="nc" id="L73">    private static final AtomicInteger tpduGenerator = new AtomicInteger(10);</span>
+<span class="nc" id="L72">    private static final AtomicInteger tpduGenerator = new AtomicInteger(10);</span>
 
     private Map&lt;Short, PlcRequestContainer&gt; requests;
 
-<span class="nc" id="L77">    public Plc4XS7Protocol() {</span>
-<span class="nc" id="L78">        this.requests = new HashMap&lt;&gt;();</span>
-<span class="nc" id="L79">    }</span>
+<span class="nc" id="L76">    public Plc4XS7Protocol() {</span>
+<span class="nc" id="L77">        this.requests = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L78">    }</span>
 
     /**
      * If this protocol layer catches an {@link S7ConnectedEvent} from the protocol layer beneath,
@@ -88,12 +87,12 @@ public class Plc4XS7Protocol extends PlcMessageToMessageCodec&lt;S7Message, PlcR
      */
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-<span class="nc bnc" id="L91" title="All 2 branches missed.">        if (evt instanceof S7ConnectedEvent) {</span>
-<span class="nc" id="L92">            ctx.channel().pipeline().fireUserEventTriggered(new ConnectedEvent());</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">        if (evt instanceof S7ConnectedEvent) {</span>
+<span class="nc" id="L91">            ctx.channel().pipeline().fireUserEventTriggered(new ConnectedEvent());</span>
         } else {
-<span class="nc" id="L94">            super.userEventTriggered(ctx, evt);</span>
+<span class="nc" id="L93">            super.userEventTriggered(ctx, evt);</span>
         }
-<span class="nc" id="L96">    }</span>
+<span class="nc" id="L95">    }</span>
 
     /**
      * When receiving an error inside the pipeline, we have to find out which {@link PlcRequestContainer}
@@ -106,35 +105,35 @@ public class Plc4XS7Protocol extends PlcMessageToMessageCodec&lt;S7Message, PlcR
      */
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-<span class="nc bnc" id="L109" title="All 2 branches missed.">        if (cause instanceof PlcProtocolPayloadTooBigException) {</span>
-<span class="nc" id="L110">            PlcProtocolPayloadTooBigException pptbe = (PlcProtocolPayloadTooBigException) cause;</span>
-<span class="nc bnc" id="L111" title="All 2 branches missed.">            if (pptbe.getPayload() instanceof S7RequestMessage) {</span>
-<span class="nc" id="L112">                S7RequestMessage request = (S7RequestMessage) pptbe.getPayload();</span>
-<span class="nc bnc" id="L113" title="All 2 branches missed.">                if (request.getParent() instanceof PlcRequestContainer) {</span>
-<span class="nc" id="L114">                    PlcRequestContainer requestContainer = (PlcRequestContainer) request.getParent();</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">        if (cause instanceof PlcProtocolPayloadTooBigException) {</span>
+<span class="nc" id="L109">            PlcProtocolPayloadTooBigException pptbe = (PlcProtocolPayloadTooBigException) cause;</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">            if (pptbe.getPayload() instanceof S7RequestMessage) {</span>
+<span class="nc" id="L111">                S7RequestMessage request = (S7RequestMessage) pptbe.getPayload();</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">                if (request.getParent() instanceof PlcRequestContainer) {</span>
+<span class="nc" id="L113">                    PlcRequestContainer requestContainer = (PlcRequestContainer) request.getParent();</span>
 
                     // Remove the current request from the unconfirmed requests list.
-<span class="nc" id="L117">                    requests.remove(request.getTpduReference());</span>
+<span class="nc" id="L116">                    requests.remove(request.getTpduReference());</span>
 
-<span class="nc" id="L119">                    requestContainer.getResponseFuture().completeExceptionally(cause);</span>
+<span class="nc" id="L118">                    requestContainer.getResponseFuture().completeExceptionally(cause);</span>
                 }
             }
-<span class="nc bnc" id="L122" title="All 4 branches missed.">        } else if ((cause instanceof IOException) &amp;&amp; (cause.getMessage().contains(&quot;Connection reset by peer&quot;) ||</span>
-<span class="nc bnc" id="L123" title="All 2 branches missed.">            cause.getMessage().contains(&quot;Operation timed out&quot;))) {</span>
-<span class="nc bnc" id="L124" title="All 2 branches missed.">            String reason = cause.getMessage().contains(&quot;Connection reset by peer&quot;) ?</span>
+<span class="nc bnc" id="L121" title="All 4 branches missed.">        } else if ((cause instanceof IOException) &amp;&amp; (cause.getMessage().contains(&quot;Connection reset by peer&quot;) ||</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">            cause.getMessage().contains(&quot;Operation timed out&quot;))) {</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">            String reason = cause.getMessage().contains(&quot;Connection reset by peer&quot;) ?</span>
                 &quot;Connection terminated unexpectedly&quot; : &quot;Remote host not responding&quot;;
-<span class="nc bnc" id="L126" title="All 2 branches missed.">            if (!requests.isEmpty()) {</span>
+<span class="nc bnc" id="L125" title="All 2 branches missed.">            if (!requests.isEmpty()) {</span>
                 // If the connection is hung up, all still pending requests can be closed.
-<span class="nc bnc" id="L128" title="All 2 branches missed.">                for (PlcRequestContainer requestContainer : requests.values()) {</span>
-<span class="nc" id="L129">                    requestContainer.getResponseFuture().completeExceptionally(new PlcIoException(reason));</span>
-<span class="nc" id="L130">                }</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">                for (PlcRequestContainer requestContainer : requests.values()) {</span>
+<span class="nc" id="L128">                    requestContainer.getResponseFuture().completeExceptionally(new PlcIoException(reason));</span>
+<span class="nc" id="L129">                }</span>
                 // Clear the list
-<span class="nc" id="L132">                requests.clear();</span>
+<span class="nc" id="L131">                requests.clear();</span>
             }
-<span class="nc" id="L134">        } else {</span>
-<span class="nc" id="L135">            super.exceptionCaught(ctx, cause);</span>
+<span class="nc" id="L133">        } else {</span>
+<span class="nc" id="L134">            super.exceptionCaught(ctx, cause);</span>
         }
-<span class="nc" id="L137">    }</span>
+<span class="nc" id="L136">    }</span>
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Encoding
@@ -142,87 +141,87 @@ public class Plc4XS7Protocol extends PlcMessageToMessageCodec&lt;S7Message, PlcR
 
     @Override
     protected void encode(ChannelHandlerContext ctx, PlcRequestContainer msg, List&lt;Object&gt; out) throws PlcException {
-<span class="nc" id="L145">        PlcRequest request = msg.getRequest();</span>
-<span class="nc bnc" id="L146" title="All 2 branches missed.">        if (request instanceof PlcReadRequest) {</span>
-<span class="nc" id="L147">            encodeReadRequest(msg, out);</span>
-<span class="nc bnc" id="L148" title="All 2 branches missed.">        } else if (request instanceof PlcWriteRequest) {</span>
-<span class="nc" id="L149">            encodeWriteRequest(msg, out);</span>
+<span class="nc" id="L144">        PlcRequest request = msg.getRequest();</span>
+<span class="nc bnc" id="L145" title="All 2 branches missed.">        if (request instanceof PlcReadRequest) {</span>
+<span class="nc" id="L146">            encodeReadRequest(msg, out);</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">        } else if (request instanceof PlcWriteRequest) {</span>
+<span class="nc" id="L148">            encodeWriteRequest(msg, out);</span>
         }
-<span class="nc" id="L151">    }</span>
+<span class="nc" id="L150">    }</span>
 
     private void encodeReadRequest(PlcRequestContainer msg, List&lt;Object&gt; out) throws PlcException {
-<span class="nc" id="L154">        List&lt;VarParameterItem&gt; parameterItems = new LinkedList&lt;&gt;();</span>
+<span class="nc" id="L153">        List&lt;VarParameterItem&gt; parameterItems = new LinkedList&lt;&gt;();</span>
 
-<span class="nc" id="L156">        PlcReadRequest readRequest = (PlcReadRequest) msg.getRequest();</span>
-<span class="nc bnc" id="L157" title="All 2 branches missed.">        for (String fieldName : readRequest.getFieldNames()) {</span>
-<span class="nc" id="L158">            PlcField field = readRequest.getField(fieldName);</span>
-<span class="nc bnc" id="L159" title="All 2 branches missed.">            if (!(field instanceof S7Field)) {</span>
-<span class="nc" id="L160">                throw new PlcException(&quot;The field should have been of type S7Field&quot;);</span>
+<span class="nc" id="L155">        PlcReadRequest readRequest = (PlcReadRequest) msg.getRequest();</span>
+<span class="nc bnc" id="L156" title="All 2 branches missed.">        for (String fieldName : readRequest.getFieldNames()) {</span>
+<span class="nc" id="L157">            PlcField field = readRequest.getField(fieldName);</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">            if (!(field instanceof S7Field)) {</span>
+<span class="nc" id="L159">                throw new PlcException(&quot;The field should have been of type S7Field&quot;);</span>
             }
-<span class="nc" id="L162">            S7Field s7Field = (S7Field) field;</span>
+<span class="nc" id="L161">            S7Field s7Field = (S7Field) field;</span>
 
-<span class="nc" id="L164">            VarParameterItem varParameterItem = new S7AnyVarParameterItem(</span>
-<span class="nc" id="L165">                SpecificationType.VARIABLE_SPECIFICATION, s7Field.getMemoryArea(),</span>
-<span class="nc" id="L166">                s7Field.getDataType(),</span>
-<span class="nc" id="L167">                s7Field.getNumElements(), s7Field.getBlockNumber(), s7Field.getByteOffset(), (byte) s7Field.getBitOffset());</span>
-<span class="nc" id="L168">            parameterItems.add(varParameterItem);</span>
-<span class="nc" id="L169">        }</span>
-<span class="nc" id="L170">        VarParameter readVarParameter = new VarParameter(ParameterType.READ_VAR, parameterItems);</span>
+<span class="nc" id="L163">            VarParameterItem varParameterItem = new S7AnyVarParameterItem(</span>
+<span class="nc" id="L164">                SpecificationType.VARIABLE_SPECIFICATION, s7Field.getMemoryArea(),</span>
+<span class="nc" id="L165">                s7Field.getDataType(),</span>
+<span class="nc" id="L166">                s7Field.getNumElements(), s7Field.getBlockNumber(), s7Field.getByteOffset(), (byte) s7Field.getBitOffset());</span>
+<span class="nc" id="L167">            parameterItems.add(varParameterItem);</span>
+<span class="nc" id="L168">        }</span>
+<span class="nc" id="L169">        VarParameter readVarParameter = new VarParameter(ParameterType.READ_VAR, parameterItems);</span>
 
         // Assemble the request.
-<span class="nc" id="L173">        S7RequestMessage s7ReadRequest = new S7RequestMessage(MessageType.JOB,</span>
-<span class="nc" id="L174">            (short) tpduGenerator.getAndIncrement(), Collections.singletonList(readVarParameter),</span>
-<span class="nc" id="L175">            Collections.emptyList(), msg);</span>
+<span class="nc" id="L172">        S7RequestMessage s7ReadRequest = new S7RequestMessage(MessageType.JOB,</span>
+<span class="nc" id="L173">            (short) tpduGenerator.getAndIncrement(), Collections.singletonList(readVarParameter),</span>
+<span class="nc" id="L174">            Collections.emptyList(), msg);</span>
 
-<span class="nc" id="L177">        requests.put(s7ReadRequest.getTpduReference(), msg);</span>
+<span class="nc" id="L176">        requests.put(s7ReadRequest.getTpduReference(), msg);</span>
 
-<span class="nc" id="L179">        out.add(s7ReadRequest);</span>
-<span class="nc" id="L180">    }</span>
+<span class="nc" id="L178">        out.add(s7ReadRequest);</span>
+<span class="nc" id="L179">    }</span>
 
     private void encodeWriteRequest(PlcRequestContainer msg, List&lt;Object&gt; out) throws PlcException {
-<span class="nc" id="L183">        List&lt;VarParameterItem&gt; parameterItems = new LinkedList&lt;&gt;();</span>
-<span class="nc" id="L184">        List&lt;VarPayloadItem&gt; payloadItems = new LinkedList&lt;&gt;();</span>
+<span class="nc" id="L182">        List&lt;VarParameterItem&gt; parameterItems = new LinkedList&lt;&gt;();</span>
+<span class="nc" id="L183">        List&lt;VarPayloadItem&gt; payloadItems = new LinkedList&lt;&gt;();</span>
 
-<span class="nc" id="L186">        PlcWriteRequest writeRequest = (PlcWriteRequest) msg.getRequest();</span>
-<span class="nc bnc" id="L187" title="All 2 branches missed.">        for (String fieldName : writeRequest.getFieldNames()) {</span>
-<span class="nc" id="L188">            PlcField field = writeRequest.getField(fieldName);</span>
-<span class="nc bnc" id="L189" title="All 2 branches missed.">            if (!(field instanceof S7Field)) {</span>
-<span class="nc" id="L190">                throw new PlcException(&quot;The field should have been of type S7Field&quot;);</span>
+<span class="nc" id="L185">        PlcWriteRequest writeRequest = (PlcWriteRequest) msg.getRequest();</span>
+<span class="nc bnc" id="L186" title="All 2 branches missed.">        for (String fieldName : writeRequest.getFieldNames()) {</span>
+<span class="nc" id="L187">            PlcField field = writeRequest.getField(fieldName);</span>
+<span class="nc bnc" id="L188" title="All 2 branches missed.">            if (!(field instanceof S7Field)) {</span>
+<span class="nc" id="L189">                throw new PlcException(&quot;The field should have been of type S7Field&quot;);</span>
             }
-<span class="nc" id="L192">            S7Field s7Field = (S7Field) field;</span>
-<span class="nc bnc" id="L193" title="All 2 branches missed.">            if(!(writeRequest instanceof DefaultPlcWriteRequest)) {</span>
-<span class="nc" id="L194">                throw new PlcException(&quot;The writeRequest should have been of type DefaultPlcWriteRequest&quot;);</span>
+<span class="nc" id="L191">            S7Field s7Field = (S7Field) field;</span>
+<span class="nc bnc" id="L192" title="All 2 branches missed.">            if(!(writeRequest instanceof DefaultPlcWriteRequest)) {</span>
+<span class="nc" id="L193">                throw new PlcException(&quot;The writeRequest should have been of type DefaultPlcWriteRequest&quot;);</span>
             }
-<span class="nc" id="L196">            BaseDefaultFieldItem fieldItem = ((DefaultPlcWriteRequest) writeRequest).getFieldItem(fieldName);</span>
+<span class="nc" id="L195">            BaseDefaultFieldItem fieldItem = ((DefaultPlcWriteRequest) writeRequest).getFieldItem(fieldName);</span>
 
             // The number of elements provided in the request must match the number defined in the field, or
             // bad things are going to happen.
-<span class="nc bnc" id="L200" title="All 2 branches missed.">            if (writeRequest.getNumberOfValues(fieldName) != s7Field.getNumElements()) {</span>
-<span class="nc" id="L201">                throw new PlcException(&quot;The number of values provided doesn't match the number specified by the field.&quot;);</span>
+<span class="nc bnc" id="L199" title="All 2 branches missed.">            if (writeRequest.getNumberOfValues(fieldName) != s7Field.getNumElements()) {</span>
+<span class="nc" id="L200">                throw new PlcException(&quot;The number of values provided doesn't match the number specified by the field.&quot;);</span>
             }
-<span class="nc" id="L203">            VarParameterItem varParameterItem = new S7AnyVarParameterItem(</span>
-<span class="nc" id="L204">                SpecificationType.VARIABLE_SPECIFICATION, s7Field.getMemoryArea(),</span>
-<span class="nc" id="L205">                s7Field.getDataType(),</span>
-<span class="nc" id="L206">                s7Field.getNumElements(), s7Field.getBlockNumber(), s7Field.getByteOffset(), (byte) s7Field.getBitOffset());</span>
-<span class="nc" id="L207">            parameterItems.add(varParameterItem);</span>
+<span class="nc" id="L202">            VarParameterItem varParameterItem = new S7AnyVarParameterItem(</span>
+<span class="nc" id="L203">                SpecificationType.VARIABLE_SPECIFICATION, s7Field.getMemoryArea(),</span>
+<span class="nc" id="L204">                s7Field.getDataType(),</span>
+<span class="nc" id="L205">                s7Field.getNumElements(), s7Field.getBlockNumber(), s7Field.getByteOffset(), (byte) s7Field.getBitOffset());</span>
+<span class="nc" id="L206">            parameterItems.add(varParameterItem);</span>
 
-<span class="nc" id="L209">            DataTransportSize dataTransportSize = s7Field.getDataType().getDataTransportSize();</span>
+<span class="nc" id="L208">            DataTransportSize dataTransportSize = s7Field.getDataType().getDataTransportSize();</span>
 
             // TODO: Checkout if the payload items are sort of a flatMap of all request items.
-<span class="nc" id="L212">            byte[] byteData = null;</span>
-<span class="nc bnc" id="L213" title="All 14 branches missed.">            switch(s7Field.getDataType()) {</span>
+<span class="nc" id="L211">            byte[] byteData = null;</span>
+<span class="nc bnc" id="L212" title="All 14 branches missed.">            switch(s7Field.getDataType()) {</span>
                 // -----------------------------------------
                 // Bit
                 // -----------------------------------------
                 case BOOL: {
-<span class="nc" id="L218">                    int numBytes = fieldItem.getNumberOfValues() &gt;&gt; 3 / 8;</span>
-<span class="nc" id="L219">                    byteData = new byte[numBytes];</span>
-<span class="nc" id="L220">                    BitSet bitSet = new BitSet();</span>
-<span class="nc bnc" id="L221" title="All 2 branches missed.">                    for (int i = 0; i &lt; fieldItem.getNumberOfValues(); i++) {</span>
-<span class="nc" id="L222">                        bitSet.set(i, fieldItem.getBoolean(i));</span>
+<span class="nc" id="L217">                    int numBytes = fieldItem.getNumberOfValues() &gt;&gt; 3 / 8;</span>
+<span class="nc" id="L218">                    byteData = new byte[numBytes];</span>
+<span class="nc" id="L219">                    BitSet bitSet = new BitSet();</span>
+<span class="nc bnc" id="L220" title="All 2 branches missed.">                    for (int i = 0; i &lt; fieldItem.getNumberOfValues(); i++) {</span>
+<span class="nc" id="L221">                        bitSet.set(i, fieldItem.getBoolean(i));</span>
                     }
-<span class="nc" id="L224">                    System.arraycopy(bitSet.toByteArray(), 0, byteData, 0, numBytes);</span>
-<span class="nc" id="L225">                    break;</span>
+<span class="nc" id="L223">                    System.arraycopy(bitSet.toByteArray(), 0, byteData, 0, numBytes);</span>
+<span class="nc" id="L224">                    break;</span>
                 }
                 // -----------------------------------------
                 // Signed integer values
@@ -230,136 +229,136 @@ public class Plc4XS7Protocol extends PlcMessageToMessageCodec&lt;S7Message, PlcR
                 case BYTE:
                 case SINT:
                 case CHAR: { // 1 byte
-<span class="nc" id="L233">                    int numBytes = fieldItem.getNumberOfValues();</span>
-<span class="nc" id="L234">                    ByteBuffer buffer = ByteBuffer.allocate(numBytes);</span>
-<span class="nc bnc" id="L235" title="All 2 branches missed.">                    for (int i = 0; i &lt; fieldItem.getNumberOfValues(); i++) {</span>
-<span class="nc" id="L236">                        buffer.put(fieldItem.getByte(i));</span>
+<span class="nc" id="L232">                    int numBytes = fieldItem.getNumberOfValues();</span>
+<span class="nc" id="L233">                    ByteBuffer buffer = ByteBuffer.allocate(numBytes);</span>
+<span class="nc bnc" id="L234" title="All 2 branches missed.">                    for (int i = 0; i &lt; fieldItem.getNumberOfValues(); i++) {</span>
+<span class="nc" id="L235">                        buffer.put(fieldItem.getByte(i));</span>
                     }
-<span class="nc" id="L238">                    byteData = buffer.array();</span>
-<span class="nc" id="L239">                    break;</span>
+<span class="nc" id="L237">                    byteData = buffer.array();</span>
+<span class="nc" id="L238">                    break;</span>
                 }
                 case WORD:
                 case INT:
                 case WCHAR: { // 2 byte (16 bit)
-<span class="nc" id="L244">                    int numBytes = fieldItem.getNumberOfValues() * 2;</span>
-<span class="nc" id="L245">                    ByteBuffer buffer = ByteBuffer.allocate(numBytes);</span>
-<span class="nc bnc" id="L246" title="All 2 branches missed.">                    for (int i = 0; i &lt; fieldItem.getNumberOfValues(); i++) {</span>
-<span class="nc" id="L247">                        buffer.putShort(fieldItem.getShort(i));</span>
+<span class="nc" id="L243">                    int numBytes = fieldItem.getNumberOfValues() * 2;</span>
+<span class="nc" id="L244">                    ByteBuffer buffer = ByteBuffer.allocate(numBytes);</span>
+<span class="nc bnc" id="L245" title="All 2 branches missed.">                    for (int i = 0; i &lt; fieldItem.getNumberOfValues(); i++) {</span>
+<span class="nc" id="L246">                        buffer.putShort(fieldItem.getShort(i));</span>
                     }
-<span class="nc" id="L249">                    byteData = buffer.array();</span>
-<span class="nc" id="L250">                    break;</span>
+<span class="nc" id="L248">                    byteData = buffer.array();</span>
+<span class="nc" id="L249">                    break;</span>
                 }
                 case DWORD:
                 case DINT: { // 4 byte (32 bit)
-<span class="nc" id="L254">                    int numBytes = fieldItem.getNumberOfValues() * 4;</span>
-<span class="nc" id="L255">                    ByteBuffer buffer = ByteBuffer.allocate(numBytes);</span>
-<span class="nc bnc" id="L256" title="All 2 branches missed.">                    for (int i = 0; i &lt; fieldItem.getNumberOfValues(); i++) {</span>
-<span class="nc" id="L257">                        buffer.putInt(fieldItem.getInteger(i));</span>
+<span class="nc" id="L253">                    int numBytes = fieldItem.getNumberOfValues() * 4;</span>
+<span class="nc" id="L254">                    ByteBuffer buffer = ByteBuffer.allocate(numBytes);</span>
+<span class="nc bnc" id="L255" title="All 2 branches missed.">                    for (int i = 0; i &lt; fieldItem.getNumberOfValues(); i++) {</span>
+<span class="nc" id="L256">                        buffer.putInt(fieldItem.getInteger(i));</span>
                     }
-<span class="nc" id="L259">                    byteData = buffer.array();</span>
-<span class="nc" id="L260">                    break;</span>
+<span class="nc" id="L258">                    byteData = buffer.array();</span>
+<span class="nc" id="L259">                    break;</span>
                 }
                 case LWORD:
                 case LINT: { // 8 byte (64 bit)
-<span class="nc" id="L264">                    int numBytes = fieldItem.getNumberOfValues() * 8;</span>
-<span class="nc" id="L265">                    ByteBuffer buffer = ByteBuffer.allocate(numBytes);</span>
-<span class="nc bnc" id="L266" title="All 2 branches missed.">                    for (int i = 0; i &lt; fieldItem.getNumberOfValues(); i++) {</span>
-<span class="nc" id="L267">                        buffer.putLong(fieldItem.getLong(i));</span>
+<span class="nc" id="L263">                    int numBytes = fieldItem.getNumberOfValues() * 8;</span>
+<span class="nc" id="L264">                    ByteBuffer buffer = ByteBuffer.allocate(numBytes);</span>
+<span class="nc bnc" id="L265" title="All 2 branches missed.">                    for (int i = 0; i &lt; fieldItem.getNumberOfValues(); i++) {</span>
+<span class="nc" id="L266">                        buffer.putLong(fieldItem.getLong(i));</span>
                     }
-<span class="nc" id="L269">                    byteData = buffer.array();</span>
-<span class="nc" id="L270">                    break;</span>
+<span class="nc" id="L268">                    byteData = buffer.array();</span>
+<span class="nc" id="L269">                    break;</span>
                 }
                 // -----------------------------------------
                 // Unsigned integer values
                 // -----------------------------------------
                 // 8 bit:
                 case USINT: {
-<span class="nc" id="L277">                    int numBytes = fieldItem.getNumberOfValues();</span>
-<span class="nc" id="L278">                    ByteBuffer buffer = ByteBuffer.allocate(numBytes);</span>
-<span class="nc bnc" id="L279" title="All 2 branches missed.">                    for (int i = 0; i &lt; fieldItem.getNumberOfValues(); i++) {</span>
-<span class="nc" id="L280">                        buffer.put((byte) (short) fieldItem.getShort(i));</span>
+<span class="nc" id="L276">                    int numBytes = fieldItem.getNumberOfValues();</span>
+<span class="nc" id="L277">                    ByteBuffer buffer = ByteBuffer.allocate(numBytes);</span>
+<span class="nc bnc" id="L278" title="All 2 branches missed.">                    for (int i = 0; i &lt; fieldItem.getNumberOfValues(); i++) {</span>
+<span class="nc" id="L279">                        buffer.put((byte) (short) fieldItem.getShort(i));</span>
                     }
-<span class="nc" id="L282">                    byteData = buffer.array();</span>
-<span class="nc" id="L283">                    break;</span>
+<span class="nc" id="L281">                    byteData = buffer.array();</span>
+<span class="nc" id="L282">                    break;</span>
                 }
                 // 16 bit:
                 case UINT: {
-<span class="nc" id="L287">                    int numBytes = fieldItem.getNumberOfValues() * 2;</span>
-<span class="nc" id="L288">                    ByteBuffer buffer = ByteBuffer.allocate(numBytes);</span>
-<span class="nc bnc" id="L289" title="All 2 branches missed.">                    for (int i = 0; i &lt; fieldItem.getNumberOfValues(); i++) {</span>
-<span class="nc" id="L290">                        buffer.putShort((short) (int) fieldItem.getInteger(i));</span>
+<span class="nc" id="L286">                    int numBytes = fieldItem.getNumberOfValues() * 2;</span>
+<span class="nc" id="L287">                    ByteBuffer buffer = ByteBuffer.allocate(numBytes);</span>
+<span class="nc bnc" id="L288" title="All 2 branches missed.">                    for (int i = 0; i &lt; fieldItem.getNumberOfValues(); i++) {</span>
+<span class="nc" id="L289">                        buffer.putShort((short) (int) fieldItem.getInteger(i));</span>
                     }
-<span class="nc" id="L292">                    byteData = buffer.array();</span>
-<span class="nc" id="L293">                    break;</span>
+<span class="nc" id="L291">                    byteData = buffer.array();</span>
+<span class="nc" id="L292">                    break;</span>
                 }
                 // 32 bit:
                 case UDINT: {
-<span class="nc" id="L297">                    int numBytes = fieldItem.getNumberOfValues() * 4;</span>
-<span class="nc" id="L298">                    ByteBuffer buffer = ByteBuffer.allocate(numBytes);</span>
-<span class="nc bnc" id="L299" title="All 2 branches missed.">                    for (int i = 0; i &lt; fieldItem.getNumberOfValues(); i++) {</span>
-<span class="nc" id="L300">                        buffer.putInt((int) (long) fieldItem.getLong(i));</span>
+<span class="nc" id="L296">                    int numBytes = fieldItem.getNumberOfValues() * 4;</span>
+<span class="nc" id="L297">                    ByteBuffer buffer = ByteBuffer.allocate(numBytes);</span>
+<span class="nc bnc" id="L298" title="All 2 branches missed.">                    for (int i = 0; i &lt; fieldItem.getNumberOfValues(); i++) {</span>
+<span class="nc" id="L299">                        buffer.putInt((int) (long) fieldItem.getLong(i));</span>
                     }
-<span class="nc" id="L302">                    byteData = buffer.array();</span>
-<span class="nc" id="L303">                    break;</span>
+<span class="nc" id="L301">                    byteData = buffer.array();</span>
+<span class="nc" id="L302">                    break;</span>
                 }
                 // 64 bit:
                 case ULINT: {
                     // TODO: Implement this ...
-<span class="nc" id="L308">                    break;</span>
+<span class="nc" id="L307">                    break;</span>
                 }
                 // -----------------------------------------
                 // Floating point values
                 // -----------------------------------------
                 case REAL: {
-<span class="nc" id="L314">                    int numBytes = fieldItem.getNumberOfValues() * 4;</span>
-<span class="nc" id="L315">                    ByteBuffer buffer = ByteBuffer.allocate(numBytes);</span>
-<span class="nc bnc" id="L316" title="All 2 branches missed.">                    for (int i = 0; i &lt; fieldItem.getNumberOfValues(); i++) {</span>
-<span class="nc" id="L317">                        buffer.putFloat(fieldItem.getFloat(i));</span>
+<span class="nc" id="L313">                    int numBytes = fieldItem.getNumberOfValues() * 4;</span>
+<span class="nc" id="L314">                    ByteBuffer buffer = ByteBuffer.allocate(numBytes);</span>
+<span class="nc bnc" id="L315" title="All 2 branches missed.">                    for (int i = 0; i &lt; fieldItem.getNumberOfValues(); i++) {</span>
+<span class="nc" id="L316">                        buffer.putFloat(fieldItem.getFloat(i));</span>
                     }
-<span class="nc" id="L319">                    byteData = buffer.array();</span>
-<span class="nc" id="L320">                    break;</span>
+<span class="nc" id="L318">                    byteData = buffer.array();</span>
+<span class="nc" id="L319">                    break;</span>
                 }
                 case LREAL: {
-<span class="nc" id="L323">                    int numBytes = fieldItem.getNumberOfValues() * 8;</span>
-<span class="nc" id="L324">                    ByteBuffer buffer = ByteBuffer.allocate(numBytes);</span>
-<span class="nc bnc" id="L325" title="All 2 branches missed.">                    for (int i = 0; i &lt; fieldItem.getNumberOfValues(); i++) {</span>
-<span class="nc" id="L326">                        buffer.putDouble(fieldItem.getDouble(i));</span>
+<span class="nc" id="L322">                    int numBytes = fieldItem.getNumberOfValues() * 8;</span>
+<span class="nc" id="L323">                    ByteBuffer buffer = ByteBuffer.allocate(numBytes);</span>
+<span class="nc bnc" id="L324" title="All 2 branches missed.">                    for (int i = 0; i &lt; fieldItem.getNumberOfValues(); i++) {</span>
+<span class="nc" id="L325">                        buffer.putDouble(fieldItem.getDouble(i));</span>
                     }
-<span class="nc" id="L328">                    byteData = buffer.array();</span>
-<span class="nc" id="L329">                    break;</span>
+<span class="nc" id="L327">                    byteData = buffer.array();</span>
+<span class="nc" id="L328">                    break;</span>
                 }
                 // -----------------------------------------
                 // Characters &amp; Strings
                 // -----------------------------------------
                 case STRING: {
                     // TODO: Implement this ...
-<span class="nc" id="L336">                    break;</span>
+<span class="nc" id="L335">                    break;</span>
                 }
                 case WSTRING: {
                     // TODO: Implement this ...
-<span class="nc" id="L340">                    break;</span>
+<span class="nc" id="L339">                    break;</span>
                 }
                 default:
-<span class="nc" id="L343">                    throw new PlcProtocolException(&quot;Unsupported type &quot; + s7Field.getDataType());</span>
+<span class="nc" id="L342">                    throw new PlcProtocolException(&quot;Unsupported type &quot; + s7Field.getDataType());</span>
             }
 
-<span class="nc" id="L346">            VarPayloadItem varPayloadItem = new VarPayloadItem(</span>
+<span class="nc" id="L345">            VarPayloadItem varPayloadItem = new VarPayloadItem(</span>
                 DataTransportErrorCode.RESERVED, dataTransportSize, byteData);
 
-<span class="nc" id="L349">            payloadItems.add(varPayloadItem);</span>
-<span class="nc" id="L350">        }</span>
-<span class="nc" id="L351">        VarParameter writeVarParameter = new VarParameter(ParameterType.WRITE_VAR, parameterItems);</span>
-<span class="nc" id="L352">        VarPayload writeVarPayload = new VarPayload(ParameterType.WRITE_VAR, payloadItems);</span>
+<span class="nc" id="L348">            payloadItems.add(varPayloadItem);</span>
+<span class="nc" id="L349">        }</span>
+<span class="nc" id="L350">        VarParameter writeVarParameter = new VarParameter(ParameterType.WRITE_VAR, parameterItems);</span>
+<span class="nc" id="L351">        VarPayload writeVarPayload = new VarPayload(ParameterType.WRITE_VAR, payloadItems);</span>
 
         // Assemble the request.
-<span class="nc" id="L355">        S7RequestMessage s7WriteRequest = new S7RequestMessage(MessageType.JOB,</span>
-<span class="nc" id="L356">            (short) tpduGenerator.getAndIncrement(), Collections.singletonList(writeVarParameter),</span>
-<span class="nc" id="L357">            Collections.singletonList(writeVarPayload), msg);</span>
+<span class="nc" id="L354">        S7RequestMessage s7WriteRequest = new S7RequestMessage(MessageType.JOB,</span>
+<span class="nc" id="L355">            (short) tpduGenerator.getAndIncrement(), Collections.singletonList(writeVarParameter),</span>
+<span class="nc" id="L356">            Collections.singletonList(writeVarPayload), msg);</span>
 
-<span class="nc" id="L359">        requests.put(s7WriteRequest.getTpduReference(), msg);</span>
+<span class="nc" id="L358">        requests.put(s7WriteRequest.getTpduReference(), msg);</span>
 
-<span class="nc" id="L361">        out.add(s7WriteRequest);</span>
-<span class="nc" id="L362">    }</span>
+<span class="nc" id="L360">        out.add(s7WriteRequest);</span>
+<span class="nc" id="L361">    }</span>
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Decoding
@@ -369,275 +368,275 @@ public class Plc4XS7Protocol extends PlcMessageToMessageCodec&lt;S7Message, PlcR
     @Override
     protected void decode(ChannelHandlerContext ctx, S7Message msg, List&lt;Object&gt; out) throws PlcException {
         // We're currently just expecting responses.
-<span class="nc bnc" id="L372" title="All 2 branches missed.">        if (!(msg instanceof S7ResponseMessage)) {</span>
-<span class="nc" id="L373">            return;</span>
+<span class="nc bnc" id="L371" title="All 2 branches missed.">        if (!(msg instanceof S7ResponseMessage)) {</span>
+<span class="nc" id="L372">            return;</span>
         }
-<span class="nc" id="L375">        S7ResponseMessage responseMessage = (S7ResponseMessage) msg;</span>
-<span class="nc" id="L376">        short tpduReference = responseMessage.getTpduReference();</span>
-<span class="nc bnc" id="L377" title="All 2 branches missed.">        if (requests.containsKey(tpduReference)) {</span>
+<span class="nc" id="L374">        S7ResponseMessage responseMessage = (S7ResponseMessage) msg;</span>
+<span class="nc" id="L375">        short tpduReference = responseMessage.getTpduReference();</span>
+<span class="nc bnc" id="L376" title="All 2 branches missed.">        if (requests.containsKey(tpduReference)) {</span>
             // As every response has a matching request, get this request based on the tpdu.
-<span class="nc" id="L379">            PlcRequestContainer requestContainer = requests.remove(tpduReference);</span>
-<span class="nc" id="L380">            PlcRequest request = requestContainer.getRequest();</span>
+<span class="nc" id="L378">            PlcRequestContainer requestContainer = requests.remove(tpduReference);</span>
+<span class="nc" id="L379">            PlcRequest request = requestContainer.getRequest();</span>
 
             // Handle the response.
-<span class="nc" id="L383">            PlcResponse response = null;</span>
-<span class="nc bnc" id="L384" title="All 2 branches missed.">            if (request instanceof PlcReadRequest) {</span>
-<span class="nc" id="L385">                response = decodeReadResponse(responseMessage, requestContainer);</span>
-<span class="nc bnc" id="L386" title="All 2 branches missed.">            } else if (request instanceof PlcWriteRequest) {</span>
-<span class="nc" id="L387">                response = decodeWriteResponse(responseMessage, requestContainer);</span>
+<span class="nc" id="L382">            PlcResponse response = null;</span>
+<span class="nc bnc" id="L383" title="All 2 branches missed.">            if (request instanceof PlcReadRequest) {</span>
+<span class="nc" id="L384">                response = decodeReadResponse(responseMessage, requestContainer);</span>
+<span class="nc bnc" id="L385" title="All 2 branches missed.">            } else if (request instanceof PlcWriteRequest) {</span>
+<span class="nc" id="L386">                response = decodeWriteResponse(responseMessage, requestContainer);</span>
             }
 
             // Confirm the response being handled.
-<span class="nc bnc" id="L391" title="All 2 branches missed.">            if (response != null) {</span>
-<span class="nc" id="L392">                requestContainer.getResponseFuture().complete(response);</span>
+<span class="nc bnc" id="L390" title="All 2 branches missed.">            if (response != null) {</span>
+<span class="nc" id="L391">                requestContainer.getResponseFuture().complete(response);</span>
             }
         }
-<span class="nc" id="L395">    }</span>
+<span class="nc" id="L394">    }</span>
 
     @SuppressWarnings(&quot;unchecked&quot;)
     private PlcResponse decodeReadResponse(S7ResponseMessage responseMessage, PlcRequestContainer requestContainer) throws PlcProtocolException {
-<span class="nc" id="L399">        InternalPlcReadRequest plcReadRequest = (InternalPlcReadRequest) requestContainer.getRequest();</span>
+<span class="nc" id="L398">        InternalPlcReadRequest plcReadRequest = (InternalPlcReadRequest) requestContainer.getRequest();</span>
 
-<span class="nc" id="L401">        VarPayload payload = responseMessage.getPayload(VarPayload.class)</span>
-<span class="nc" id="L402">            .orElseThrow(() -&gt; new PlcProtocolException(&quot;No VarPayload supplied&quot;));</span>
+<span class="nc" id="L400">        VarPayload payload = responseMessage.getPayload(VarPayload.class)</span>
+<span class="nc" id="L401">            .orElseThrow(() -&gt; new PlcProtocolException(&quot;No VarPayload supplied&quot;));</span>
 
         // TODO: Checkout if the payload items are sort of a flatMap of all request items.
 
         // If the numbers of items don't match, we're in big trouble as the only
         // way to know how to interpret the responses is by aligning them with the
         // items from the request as this information is not returned by the PLC.
-<span class="nc bnc" id="L409" title="All 2 branches missed.">        if (plcReadRequest.getNumberOfFields() != payload.getItems().size()) {</span>
-<span class="nc" id="L410">            throw new PlcProtocolException(</span>
+<span class="nc bnc" id="L408" title="All 2 branches missed.">        if (plcReadRequest.getNumberOfFields() != payload.getItems().size()) {</span>
+<span class="nc" id="L409">            throw new PlcProtocolException(</span>
                 &quot;The number of requested items doesn't match the number of returned items&quot;);
         }
 
-<span class="nc" id="L414">        Map&lt;String, Pair&lt;PlcResponseCode, BaseDefaultFieldItem&gt;&gt; values = new HashMap&lt;&gt;();</span>
-<span class="nc" id="L415">        List&lt;VarPayloadItem&gt; payloadItems = payload.getItems();</span>
-<span class="nc" id="L416">        int index = 0;</span>
-<span class="nc bnc" id="L417" title="All 2 branches missed.">        for (String fieldName : plcReadRequest.getFieldNames()) {</span>
-<span class="nc" id="L418">            S7Field field = (S7Field) plcReadRequest.getField(fieldName);</span>
-<span class="nc" id="L419">            VarPayloadItem payloadItem = payloadItems.get(index);</span>
+<span class="nc" id="L413">        Map&lt;String, Pair&lt;PlcResponseCode, BaseDefaultFieldItem&gt;&gt; values = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L414">        List&lt;VarPayloadItem&gt; payloadItems = payload.getItems();</span>
+<span class="nc" id="L415">        int index = 0;</span>
+<span class="nc bnc" id="L416" title="All 2 branches missed.">        for (String fieldName : plcReadRequest.getFieldNames()) {</span>
+<span class="nc" id="L417">            S7Field field = (S7Field) plcReadRequest.getField(fieldName);</span>
+<span class="nc" id="L418">            VarPayloadItem payloadItem = payloadItems.get(index);</span>
 
-<span class="nc" id="L421">            PlcResponseCode responseCode = decodeResponseCode(payloadItem.getReturnCode());</span>
-<span class="nc" id="L422">            BaseDefaultFieldItem fieldItem = null;</span>
-<span class="nc" id="L423">            ByteBuf data = Unpooled.wrappedBuffer(payloadItem.getData());</span>
-<span class="nc bnc" id="L424" title="All 2 branches missed.">            if (responseCode == PlcResponseCode.OK) {</span>
+<span class="nc" id="L420">            PlcResponseCode responseCode = decodeResponseCode(payloadItem.getReturnCode());</span>
+<span class="nc" id="L421">            BaseDefaultFieldItem fieldItem = null;</span>
+<span class="nc" id="L422">            ByteBuf data = Unpooled.wrappedBuffer(payloadItem.getData());</span>
+<span class="nc bnc" id="L423" title="All 2 branches missed.">            if (responseCode == PlcResponseCode.OK) {</span>
                 // TODO 2018-09-27 jf: array returning only implemented for BOOL, BYTE, INTEGERS, FP
                 // not for CHARS &amp; STRINGS and not for all other bit-strings except for BYTE
-<span class="nc bnc" id="L427" title="All 20 branches missed.">                switch (field.getDataType()) {</span>
+<span class="nc bnc" id="L426" title="All 20 branches missed.">                switch (field.getDataType()) {</span>
                     // -----------------------------------------
                     // Bit
                     // -----------------------------------------
                     case BOOL: {
-<span class="nc bnc" id="L432" title="All 2 branches missed.">                        Boolean[] booleans = readAllValues(Boolean.class, field, i -&gt; data.readByte() != 0x00);</span>
-<span class="nc" id="L433">                        fieldItem = new S7BooleanFieldItem(field.getDataType(),booleans);</span>
-<span class="nc" id="L434">                        break;</span>
+<span class="nc bnc" id="L431" title="All 2 branches missed.">                        Boolean[] booleans = readAllValues(Boolean.class, field, i -&gt; data.readByte() != 0x00);</span>
+<span class="nc" id="L432">                        fieldItem = new DefaultBooleanFieldItem(booleans);</span>
+<span class="nc" id="L433">                        break;</span>
                     }
                     // -----------------------------------------
                     // Bit-strings
                     // -----------------------------------------
                     case BYTE: { // 1 byte
-<span class="nc" id="L440">                        byte[] bytes = ArrayUtils.toPrimitive(readAllValues(Byte.class, field, i -&gt; data.readByte()));</span>
-<span class="nc" id="L441">                        BitSet bitSet = BitSet.valueOf(bytes);</span>
-<span class="nc" id="L442">                        Boolean[] booleanValues = new Boolean[8 * bytes.length];</span>
-<span class="nc bnc" id="L443" title="All 2 branches missed.">                        for(int i = 0; i &lt; 8 * bytes.length; i++) {</span>
-<span class="nc" id="L444">                            booleanValues[i] = bitSet.get(i);</span>
+<span class="nc" id="L439">                        byte[] bytes = ArrayUtils.toPrimitive(readAllValues(Byte.class, field, i -&gt; data.readByte()));</span>
+<span class="nc" id="L440">                        BitSet bitSet = BitSet.valueOf(bytes);</span>
+<span class="nc" id="L441">                        Boolean[] booleanValues = new Boolean[8 * bytes.length];</span>
+<span class="nc bnc" id="L442" title="All 2 branches missed.">                        for(int i = 0; i &lt; 8 * bytes.length; i++) {</span>
+<span class="nc" id="L443">                            booleanValues[i] = bitSet.get(i);</span>
                         }
-<span class="nc" id="L446">                        fieldItem = new S7BooleanFieldItem(field.getDataType(),booleanValues);</span>
-<span class="nc" id="L447">                        break;</span>
+<span class="nc" id="L445">                        fieldItem = new DefaultBooleanFieldItem(booleanValues);</span>
+<span class="nc" id="L446">                        break;</span>
                     }
                     case WORD: { // 2 byte (16 bit)
-<span class="nc" id="L450">                        BitSet bitSet = BitSet.valueOf(new byte[]{data.readByte(), data.readByte()});</span>
-<span class="nc" id="L451">                        Boolean[] booleanValues = new Boolean[8];</span>
-<span class="nc bnc" id="L452" title="All 2 branches missed.">                        for(int i = 0; i &lt; 16; i++) {</span>
-<span class="nc" id="L453">                            booleanValues[i] = bitSet.get(i);</span>
+<span class="nc" id="L449">                        BitSet bitSet = BitSet.valueOf(new byte[]{data.readByte(), data.readByte()});</span>
+<span class="nc" id="L450">                        Boolean[] booleanValues = new Boolean[8];</span>
+<span class="nc bnc" id="L451" title="All 2 branches missed.">                        for(int i = 0; i &lt; 16; i++) {</span>
+<span class="nc" id="L452">                            booleanValues[i] = bitSet.get(i);</span>
                         }
-<span class="nc" id="L455">                        fieldItem = new S7BooleanFieldItem(field.getDataType(),booleanValues);</span>
-<span class="nc" id="L456">                        break;</span>
+<span class="nc" id="L454">                        fieldItem = new DefaultBooleanFieldItem(booleanValues);</span>
+<span class="nc" id="L455">                        break;</span>
                     }
                     case DWORD: { // 4 byte (32 bit)
-<span class="nc" id="L459">                        BitSet bitSet = BitSet.valueOf(new byte[]{</span>
-<span class="nc" id="L460">                            data.readByte(), data.readByte(), data.readByte(), data.readByte()});</span>
-<span class="nc" id="L461">                        Boolean[] booleanValues = new Boolean[8];</span>
-<span class="nc bnc" id="L462" title="All 2 branches missed.">                        for(int i = 0; i &lt; 32; i++) {</span>
-<span class="nc" id="L463">                            booleanValues[i] = bitSet.get(i);</span>
+<span class="nc" id="L458">                        BitSet bitSet = BitSet.valueOf(new byte[]{</span>
+<span class="nc" id="L459">                            data.readByte(), data.readByte(), data.readByte(), data.readByte()});</span>
+<span class="nc" id="L460">                        Boolean[] booleanValues = new Boolean[8];</span>
+<span class="nc bnc" id="L461" title="All 2 branches missed.">                        for(int i = 0; i &lt; 32; i++) {</span>
+<span class="nc" id="L462">                            booleanValues[i] = bitSet.get(i);</span>
                         }
-<span class="nc" id="L465">                        fieldItem = new S7BooleanFieldItem(field.getDataType(),booleanValues);</span>
-<span class="nc" id="L466">                        break;</span>
+<span class="nc" id="L464">                        fieldItem = new DefaultBooleanFieldItem(booleanValues);</span>
+<span class="nc" id="L465">                        break;</span>
                     }
                     case LWORD: { // 8 byte (64 bit)
-<span class="nc" id="L469">                        BitSet bitSet = BitSet.valueOf(new long[]{data.readLong()});</span>
-<span class="nc" id="L470">                        Boolean[] booleanValues = new Boolean[8];</span>
-<span class="nc bnc" id="L471" title="All 2 branches missed.">                        for(int i = 0; i &lt; 64; i++) {</span>
-<span class="nc" id="L472">                            booleanValues[i] = bitSet.get(i);</span>
+<span class="nc" id="L468">                        BitSet bitSet = BitSet.valueOf(new long[]{data.readLong()});</span>
+<span class="nc" id="L469">                        Boolean[] booleanValues = new Boolean[8];</span>
+<span class="nc bnc" id="L470" title="All 2 branches missed.">                        for(int i = 0; i &lt; 64; i++) {</span>
+<span class="nc" id="L471">                            booleanValues[i] = bitSet.get(i);</span>
                         }
-<span class="nc" id="L474">                        fieldItem = new S7BooleanFieldItem(field.getDataType(),booleanValues);</span>
-<span class="nc" id="L475">                        break;</span>
+<span class="nc" id="L473">                        fieldItem = new DefaultBooleanFieldItem(booleanValues);</span>
+<span class="nc" id="L474">                        break;</span>
                     }
                     // -----------------------------------------
                     // Integers
                     // -----------------------------------------
                     // 8 bit:
                     case SINT: {
-<span class="nc" id="L482">                        Long[] longs = readAllValues(Long.class, field, i -&gt; (long)data.readByte());</span>
-<span class="nc" id="L483">                        fieldItem = new S7LongFieldItem(field.getDataType(), longs);</span>
-<span class="nc" id="L484">                        break;</span>
+<span class="nc" id="L481">                        Byte[] bytes = readAllValues(Byte.class, field, i -&gt; data.readByte());</span>
+<span class="nc" id="L482">                        fieldItem = new DefaultByteFieldItem(bytes);</span>
+<span class="nc" id="L483">                        break;</span>
                     }
                     case USINT: {
-<span class="nc" id="L487">                        Long[] longs = readAllValues(Long.class, field, i -&gt; (long)data.readUnsignedByte());</span>
-<span class="nc" id="L488">                        fieldItem = new S7LongFieldItem(field.getDataType(), longs);</span>
-<span class="nc" id="L489">                        break;</span>
+<span class="nc" id="L486">                        Short[] shorts = readAllValues(Short.class, field, i -&gt; data.readUnsignedByte());</span>
+<span class="nc" id="L487">                        fieldItem = new DefaultShortFieldItem(shorts);</span>
+<span class="nc" id="L488">                        break;</span>
                     }
                     // 16 bit:
                     case INT: {
-<span class="nc" id="L493">                        Long[] longs = readAllValues(Long.class, field, i -&gt; (long)data.readShort());</span>
-<span class="nc" id="L494">                        fieldItem = new S7LongFieldItem(field.getDataType(), longs);</span>
-<span class="nc" id="L495">                        break;</span>
+<span class="nc" id="L492">                        Short[] shorts = readAllValues(Short.class, field, i -&gt; data.readShort());</span>
+<span class="nc" id="L493">                        fieldItem = new DefaultShortFieldItem(shorts);</span>
+<span class="nc" id="L494">                        break;</span>
                     }
                     case UINT: {
-<span class="nc" id="L498">                        Long[] longs = readAllValues(Long.class, field, i -&gt; (long)data.readUnsignedShort());</span>
-<span class="nc" id="L499">                        fieldItem = new S7LongFieldItem(field.getDataType(), longs);</span>
-<span class="nc" id="L500">                        break;</span>
+<span class="nc" id="L497">                        Integer[] ints = readAllValues(Integer.class, field, i -&gt; data.readUnsignedShort());</span>
+<span class="nc" id="L498">                        fieldItem = new DefaultIntegerFieldItem(ints);</span>
+<span class="nc" id="L499">                        break;</span>
                     }
                     // 32 bit:
                     case DINT: {
-<span class="nc" id="L504">                        Long[] longs = readAllValues(Long.class, field, i -&gt; (long)data.readInt());</span>
-<span class="nc" id="L505">                        fieldItem = new S7LongFieldItem(field.getDataType(), longs);</span>
-<span class="nc" id="L506">                        break;</span>
+<span class="nc" id="L503">                        Integer[] ints = readAllValues(Integer.class, field, i -&gt; data.readInt());</span>
+<span class="nc" id="L504">                        fieldItem = new DefaultIntegerFieldItem(ints);</span>
+<span class="nc" id="L505">                        break;</span>
                     }
                     case UDINT: {
-<span class="nc" id="L509">                        Long[] longs = readAllValues(Long.class, field, i -&gt; data.readUnsignedInt());</span>
-<span class="nc" id="L510">                        fieldItem = new S7LongFieldItem(field.getDataType(), longs);</span>
-<span class="nc" id="L511">                        break;</span>
+<span class="nc" id="L508">                        Long[] longs = readAllValues(Long.class, field, i -&gt; data.readUnsignedInt());</span>
+<span class="nc" id="L509">                        fieldItem = new DefaultLongFieldItem(longs);</span>
+<span class="nc" id="L510">                        break;</span>
                     }
                     // 64 bit:
                     case LINT: {
-<span class="nc" id="L515">                        BigInteger[] bigIntegers = readAllValues(BigInteger.class, field, i -&gt; readSigned64BitInteger(data));</span>
-<span class="nc" id="L516">                        fieldItem = new S7BigIntegerFieldItem(field.getDataType(), bigIntegers);</span>
-<span class="nc" id="L517">                        break;</span>
+<span class="nc" id="L514">                        BigInteger[] bigIntegers = readAllValues(BigInteger.class, field, i -&gt; readSigned64BitInteger(data));</span>
+<span class="nc" id="L515">                        fieldItem = new DefaultBigIntegerFieldItem(bigIntegers);</span>
+<span class="nc" id="L516">                        break;</span>
                     }
                     case ULINT: {
-<span class="nc" id="L520">                        BigInteger[] bigIntegers = readAllValues(BigInteger.class, field, i -&gt; readUnsigned64BitInteger(data));</span>
-<span class="nc" id="L521">                        fieldItem = new S7BigIntegerFieldItem(field.getDataType(), bigIntegers);</span>
-<span class="nc" id="L522">                        break;</span>
+<span class="nc" id="L519">                        BigInteger[] bigIntegers = readAllValues(BigInteger.class, field, i -&gt; readUnsigned64BitInteger(data));</span>
+<span class="nc" id="L520">                        fieldItem = new DefaultBigIntegerFieldItem(bigIntegers);</span>
+<span class="nc" id="L521">                        break;</span>
                     }
                     // -----------------------------------------
                     // Floating point values
                     // -----------------------------------------
                     case REAL: {
-<span class="nc" id="L528">                        Double[] doubles = readAllValues(Double.class, field, i -&gt; (double)data.readFloat());</span>
-<span class="nc" id="L529">                        fieldItem = new S7FloatingPointFieldItem(field.getDataType(), doubles);</span>
-<span class="nc" id="L530">                        break;</span>
+<span class="nc" id="L527">                        Float[] floats = readAllValues(Float.class, field, i -&gt; data.readFloat());</span>
+<span class="nc" id="L528">                        fieldItem = new DefaultFloatFieldItem(floats);</span>
+<span class="nc" id="L529">                        break;</span>
                     }
                     case LREAL: {
-<span class="nc" id="L533">                        Double[] doubles = readAllValues(Double.class, field, i -&gt; data.readDouble());</span>
-<span class="nc" id="L534">                        fieldItem = new S7FloatingPointFieldItem(field.getDataType(), doubles);</span>
-<span class="nc" id="L535">                        break;</span>
+<span class="nc" id="L532">                        Double[] doubles = readAllValues(Double.class, field, i -&gt; data.readDouble());</span>
+<span class="nc" id="L533">                        fieldItem = new DefaultDoubleFieldItem(doubles);</span>
+<span class="nc" id="L534">                        break;</span>
                     }
                     // -----------------------------------------
                     // Characters &amp; Strings
                     // -----------------------------------------
                     case CHAR: { // 1 byte (8 bit)
                         // TODO: Double check, if this is ok?
-<span class="nc" id="L542">                        String stringValue = data.readCharSequence(1, Charset.forName(&quot;UTF-8&quot;)).toString();</span>
-<span class="nc" id="L543">                        fieldItem = new S7StringFieldItem(field.getDataType(), stringValue);</span>
-<span class="nc" id="L544">                        break;</span>
+<span class="nc" id="L541">                        String stringValue = data.readCharSequence(1, Charset.forName(&quot;UTF-8&quot;)).toString();</span>
+<span class="nc" id="L542">                        fieldItem = new DefaultStringFieldItem(stringValue);</span>
+<span class="nc" id="L543">                        break;</span>
                     }
                     case WCHAR: { // 2 byte
                         // TODO: Double check, if this is ok? Alternatives: BMP, UCS2
-<span class="nc" id="L548">                        String stringValue = data.readCharSequence(2, Charset.forName(&quot;UTF-16&quot;)).toString();</span>
-<span class="nc" id="L549">                        fieldItem = new S7StringFieldItem(field.getDataType(), stringValue);</span>
-<span class="nc" id="L550">                        break;</span>
+<span class="nc" id="L547">                        String stringValue = data.readCharSequence(2, Charset.forName(&quot;UTF-16&quot;)).toString();</span>
+<span class="nc" id="L548">                        fieldItem = new DefaultStringFieldItem(stringValue);</span>
+<span class="nc" id="L549">                        break;</span>
                     }
                     case STRING: {
                         // Max length ... ignored.
-<span class="nc" id="L554">                        data.readByte();</span>
-<span class="nc" id="L555">                        byte actualLength = data.readByte();</span>
+<span class="nc" id="L553">                        data.readByte();</span>
+<span class="nc" id="L554">                        byte actualLength = data.readByte();</span>
                         // TODO: Double check, if this is ok?
-<span class="nc" id="L557">                        String stringValue = data.readCharSequence(actualLength, Charset.forName(&quot;UTF-8&quot;)).toString();</span>
-<span class="nc" id="L558">                        fieldItem = new S7StringFieldItem(field.getDataType(), stringValue);</span>
-<span class="nc" id="L559">                        break;</span>
+<span class="nc" id="L556">                        String stringValue = data.readCharSequence(actualLength, Charset.forName(&quot;UTF-8&quot;)).toString();</span>
+<span class="nc" id="L557">                        fieldItem = new DefaultStringFieldItem(stringValue);</span>
+<span class="nc" id="L558">                        break;</span>
                     }
                     case WSTRING: {
                         // Max length ... ignored.
-<span class="nc" id="L563">                        data.readByte();</span>
-<span class="nc" id="L564">                        byte actualLength = data.readByte();</span>
+<span class="nc" id="L562">                        data.readByte();</span>
+<span class="nc" id="L563">                        byte actualLength = data.readByte();</span>
                         // TODO: Double check, if this is ok?
-<span class="nc" id="L566">                        String stringValue = data.readCharSequence(</span>
-<span class="nc" id="L567">                            actualLength * 2, Charset.forName(&quot;UTF-16&quot;)).toString();</span>
-<span class="nc" id="L568">                        fieldItem = new S7StringFieldItem(field.getDataType(), stringValue);</span>
-<span class="nc" id="L569">                        break;</span>
+<span class="nc" id="L565">                        String stringValue = data.readCharSequence(</span>
+<span class="nc" id="L566">                            actualLength * 2, Charset.forName(&quot;UTF-16&quot;)).toString();</span>
+<span class="nc" id="L567">                        fieldItem = new DefaultStringFieldItem(stringValue);</span>
+<span class="nc" id="L568">                        break;</span>
                     }
                     default:
-<span class="nc" id="L572">                        throw new PlcProtocolException(&quot;Unsupported type &quot; + field.getDataType());</span>
+<span class="nc" id="L571">                        throw new PlcProtocolException(&quot;Unsupported type &quot; + field.getDataType());</span>
                 }
             }
-<span class="nc" id="L575">            Pair&lt;PlcResponseCode, BaseDefaultFieldItem&gt; result = new ImmutablePair&lt;&gt;(responseCode, fieldItem);</span>
-<span class="nc" id="L576">            values.put(fieldName, result);</span>
-<span class="nc" id="L577">            index++;</span>
-<span class="nc" id="L578">        }</span>
+<span class="nc" id="L574">            Pair&lt;PlcResponseCode, BaseDefaultFieldItem&gt; result = new ImmutablePair&lt;&gt;(responseCode, fieldItem);</span>
+<span class="nc" id="L575">            values.put(fieldName, result);</span>
+<span class="nc" id="L576">            index++;</span>
+<span class="nc" id="L577">        }</span>
 
-<span class="nc" id="L580">        return new DefaultPlcReadResponse(plcReadRequest, values);</span>
+<span class="nc" id="L579">        return new DefaultPlcReadResponse(plcReadRequest, values);</span>
     }
 
     private static &lt;T&gt; T[] readAllValues(Class&lt;T&gt; clazz, S7Field field, Function&lt;Integer, T&gt; extract) {
         try {
-<span class="nc" id="L585">            return IntStream.rangeClosed(1, field.getNumElements())</span>
-<span class="nc" id="L586">                .mapToObj(extract::apply)</span>
-<span class="nc" id="L587">                .collect(Collectors.toList())</span>
-<span class="nc" id="L588">                .toArray((T[])Array.newInstance(clazz, 0));</span>
-<span class="nc" id="L589">        } catch (IndexOutOfBoundsException e) {</span>
-<span class="nc" id="L590">            throw new PlcRuntimeException(&quot;To few bytes in the buffer to read requested type&quot;, e);</span>
+<span class="nc" id="L584">            return IntStream.rangeClosed(1, field.getNumElements())</span>
+<span class="nc" id="L585">                .mapToObj(extract::apply)</span>
+<span class="nc" id="L586">                .collect(Collectors.toList())</span>
+<span class="nc" id="L587">                .toArray((T[])Array.newInstance(clazz, 0));</span>
+<span class="nc" id="L588">        } catch (IndexOutOfBoundsException e) {</span>
+<span class="nc" id="L589">            throw new PlcRuntimeException(&quot;To few bytes in the buffer to read requested type&quot;, e);</span>
         }
     }
 
     @SuppressWarnings(&quot;unchecked&quot;)
     private PlcResponse decodeWriteResponse(S7ResponseMessage responseMessage, PlcRequestContainer requestContainer) throws PlcProtocolException {
-<span class="nc" id="L596">        InternalPlcWriteRequest plcWriteRequest = (InternalPlcWriteRequest) requestContainer.getRequest();</span>
-<span class="nc" id="L597">        VarPayload payload = responseMessage.getPayload(VarPayload.class)</span>
-<span class="nc" id="L598">            .orElseThrow(() -&gt; new PlcProtocolException(&quot;No VarPayload supplied&quot;));</span>
+<span class="nc" id="L595">        InternalPlcWriteRequest plcWriteRequest = (InternalPlcWriteRequest) requestContainer.getRequest();</span>
+<span class="nc" id="L596">        VarPayload payload = responseMessage.getPayload(VarPayload.class)</span>
+<span class="nc" id="L597">            .orElseThrow(() -&gt; new PlcProtocolException(&quot;No VarPayload supplied&quot;));</span>
 
         // TODO: Checkout if the payload items are sort of a flatMap of all request items.
 
         // If the numbers of items don't match, we're in big trouble as the only
         // way to know how to interpret the responses is by aligning them with the
         // items from the request as this information is not returned by the PLC.
-<span class="nc bnc" id="L605" title="All 2 branches missed.">        if (plcWriteRequest.getNumberOfFields() != payload.getItems().size()) {</span>
-<span class="nc" id="L606">            throw new PlcProtocolException(</span>
+<span class="nc bnc" id="L604" title="All 2 branches missed.">        if (plcWriteRequest.getNumberOfFields() != payload.getItems().size()) {</span>
+<span class="nc" id="L605">            throw new PlcProtocolException(</span>
                 &quot;The number of requested items doesn't match the number of returned items&quot;);
         }
 
-<span class="nc" id="L610">        Map&lt;String, PlcResponseCode&gt; values = new HashMap&lt;&gt;();</span>
-<span class="nc" id="L611">        List&lt;VarPayloadItem&gt; payloadItems = payload.getItems();</span>
-<span class="nc" id="L612">        int index = 0;</span>
-<span class="nc bnc" id="L613" title="All 2 branches missed.">        for (String fieldName : plcWriteRequest.getFieldNames()) {</span>
-<span class="nc" id="L614">            VarPayloadItem payloadItem = payloadItems.get(index);</span>
+<span class="nc" id="L609">        Map&lt;String, PlcResponseCode&gt; values = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L610">        List&lt;VarPayloadItem&gt; payloadItems = payload.getItems();</span>
+<span class="nc" id="L611">        int index = 0;</span>
+<span class="nc bnc" id="L612" title="All 2 branches missed.">        for (String fieldName : plcWriteRequest.getFieldNames()) {</span>
+<span class="nc" id="L613">            VarPayloadItem payloadItem = payloadItems.get(index);</span>
 
             // A write response contains only the return code for every item.
-<span class="nc" id="L617">            PlcResponseCode responseCode = decodeResponseCode(payloadItem.getReturnCode());</span>
+<span class="nc" id="L616">            PlcResponseCode responseCode = decodeResponseCode(payloadItem.getReturnCode());</span>
 
-<span class="nc" id="L619">            values.put(fieldName, responseCode);</span>
-<span class="nc" id="L620">            index++;</span>
-<span class="nc" id="L621">        }</span>
+<span class="nc" id="L618">            values.put(fieldName, responseCode);</span>
+<span class="nc" id="L619">            index++;</span>
+<span class="nc" id="L620">        }</span>
 
-<span class="nc" id="L623">        return new DefaultPlcWriteResponse(plcWriteRequest, values);</span>
+<span class="nc" id="L622">        return new DefaultPlcWriteResponse(plcWriteRequest, values);</span>
     }
 
     private PlcResponseCode decodeResponseCode(DataTransportErrorCode dataTransportErrorCode) {
-<span class="nc bnc" id="L627" title="All 2 branches missed.">        if (dataTransportErrorCode == null) {</span>
-<span class="nc" id="L628">            return PlcResponseCode.INTERNAL_ERROR;</span>
+<span class="nc bnc" id="L626" title="All 2 branches missed.">        if (dataTransportErrorCode == null) {</span>
+<span class="nc" id="L627">            return PlcResponseCode.INTERNAL_ERROR;</span>
         }
-<span class="nc bnc" id="L630" title="All 5 branches missed.">        switch (dataTransportErrorCode) {</span>
+<span class="nc bnc" id="L629" title="All 5 branches missed.">        switch (dataTransportErrorCode) {</span>
             case OK:
-<span class="nc" id="L632">                return PlcResponseCode.OK;</span>
+<span class="nc" id="L631">                return PlcResponseCode.OK;</span>
             case NOT_FOUND:
-<span class="nc" id="L634">                return PlcResponseCode.NOT_FOUND;</span>
+<span class="nc" id="L633">                return PlcResponseCode.NOT_FOUND;</span>
             case INVALID_ADDRESS:
-<span class="nc" id="L636">                return PlcResponseCode.INVALID_ADDRESS;</span>
+<span class="nc" id="L635">                return PlcResponseCode.INVALID_ADDRESS;</span>
             case DATA_TYPE_NOT_SUPPORTED:
-<span class="nc" id="L638">                return PlcResponseCode.INVALID_DATATYPE;</span>
+<span class="nc" id="L637">                return PlcResponseCode.INVALID_DATATYPE;</span>
             default:
-<span class="nc" id="L640">                return PlcResponseCode.INTERNAL_ERROR;</span>
+<span class="nc" id="L639">                return PlcResponseCode.INTERNAL_ERROR;</span>
         }
     }
 
@@ -647,27 +646,27 @@ public class Plc4XS7Protocol extends PlcMessageToMessageCodec&lt;S7Message, PlcR
         // In order to be unsigned 4 bytes, we create an array of 5 bytes
         // where the 5th byte is set to 0. The most significant bit being
         // 0 we are guaranteed to interpret the input a positive value.
-<span class="nc" id="L650">        byte[] bytes = new byte[5];</span>
+<span class="nc" id="L649">        byte[] bytes = new byte[5];</span>
         // Set the first byte to 0
-<span class="nc" id="L652">        bytes[0] = 0;</span>
+<span class="nc" id="L651">        bytes[0] = 0;</span>
         // Read the next 4 bytes into the rest.
-<span class="nc" id="L654">        data.readBytes(bytes, 1, 4);</span>
-<span class="nc" id="L655">        return new BigInteger(bytes);</span>
+<span class="nc" id="L653">        data.readBytes(bytes, 1, 4);</span>
+<span class="nc" id="L654">        return new BigInteger(bytes);</span>
     }
 
     private static BigInteger readSigned64BitInteger(ByteBuf data) {
-<span class="nc" id="L659">        byte[] bytes = new byte[8];</span>
-<span class="nc" id="L660">        data.readBytes(bytes, 0, 8);</span>
-<span class="nc" id="L661">        return new BigInteger(bytes);</span>
+<span class="nc" id="L658">        byte[] bytes = new byte[8];</span>
+<span class="nc" id="L659">        data.readBytes(bytes, 0, 8);</span>
+<span class="nc" id="L660">        return new BigInteger(bytes);</span>
     }
 
     private static BigInteger readUnsigned64BitInteger(ByteBuf data) {
-<span class="nc" id="L665">        byte[] bytes = new byte[9];</span>
+<span class="nc" id="L664">        byte[] bytes = new byte[9];</span>
         // Set the first byte to 0
-<span class="nc" id="L667">        bytes[0] = 0;</span>
+<span class="nc" id="L666">        bytes[0] = 0;</span>
         // Read the next 8 bytes into the rest.
-<span class="nc" id="L669">        data.readBytes(bytes, 1, 8);</span>
-<span class="nc" id="L670">        return new BigInteger(bytes);</span>
+<span class="nc" id="L668">        data.readBytes(bytes, 1, 8);</span>
+<span class="nc" id="L669">        return new BigInteger(bytes);</span>
     }
 
 }
