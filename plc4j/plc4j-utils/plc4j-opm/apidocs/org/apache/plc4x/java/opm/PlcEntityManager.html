@@ -48,7 +48,7 @@ var activeTableTab = "activeTableTab";
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../../../org/apache/plc4x/java/opm/PlcEntity.html" title="annotation in org.apache.plc4x.java.opm"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
+<li><a href="../../../../../org/apache/plc4x/java/opm/PlcEntityInterceptor.html" title="class in org.apache.plc4x.java.opm"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
 <li><a href="../../../../../org/apache/plc4x/java/opm/PlcField.html" title="annotation in org.apache.plc4x.java.opm"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
@@ -138,7 +138,11 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  Thus, all operations on fields that are annotated with <a href="../../../../../org/apache/plc4x/java/opm/PlcField.html" title="annotation in org.apache.plc4x.java.opm"><code>PlcField</code></a> are always done against the "live" values
  from the PLC.
  <p>
- // TODO Add detach method</div>
+ A connected @<a href="../../../../../org/apache/plc4x/java/opm/PlcEntity.html" title="annotation in org.apache.plc4x.java.opm"><code>PlcEntity</code></a> can be disconnected calling <a href="../../../../../org/apache/plc4x/java/opm/PlcEntityManager.html#disconnect-java.lang.Object-"><code>disconnect(Object)</code></a>, then it behaves like the
+ regular Pojo it was before.
+ <p>
+ All invocations on the getters are forwarded to the <a href="../../../../../org/apache/plc4x/java/opm/PlcEntityInterceptor.html#intercept-java.lang.Object-java.lang.reflect.Method-java.util.concurrent.Callable-java.lang.String-org.apache.plc4x.java.PlcDriverManager-"><code>PlcEntityInterceptor.intercept(Object, Method, Callable, String, PlcDriverManager)</code></a>
+ method.</div>
 </li>
 </ul>
 </div>
@@ -204,12 +208,9 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 </td>
 </tr>
 <tr id="i1" class="rowColor">
-<td class="colFirst"><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang">Object</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../org/apache/plc4x/java/opm/PlcEntityManager.html#intercept-java.lang.Object-java.lang.reflect.Method-java.util.concurrent.Callable-java.lang.Object-">intercept</a></span>(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang">Object</a>&nbsp;proxy,
-         <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/reflect/Method.html?is-external=true" title="class or interface in java.lang.reflect">Method</a>&nbsp;method,
-         <a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/Callable.html?is-external=true" title="class or interface in java.util.concurrent">Callable</a>&lt;?&gt;&nbsp;callable,
-         <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang">Object</a>&nbsp;entity)</code>
-<div class="block">Basic Intersector for all methods on the proxy object.</div>
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../org/apache/plc4x/java/opm/PlcEntityManager.html#disconnect-java.lang.Object-">disconnect</a></span>(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang">Object</a>&nbsp;entity)</code>
+<div class="block">Disconnects the given instance.</div>
 </td>
 </tr>
 <tr id="i2" class="altColor">
@@ -323,38 +324,20 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 </dl>
 </li>
 </ul>
-<a name="intercept-java.lang.Object-java.lang.reflect.Method-java.util.concurrent.Callable-java.lang.Object-">
+<a name="disconnect-java.lang.Object-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>intercept</h4>
-<pre>@RuntimeType
-public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang">Object</a>&nbsp;intercept(@This
-                                     <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang">Object</a>&nbsp;proxy,
-                                     @Origin
-                                     <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/reflect/Method.html?is-external=true" title="class or interface in java.lang.reflect">Method</a>&nbsp;method,
-                                     @SuperCall
-                                     <a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/Callable.html?is-external=true" title="class or interface in java.util.concurrent">Callable</a>&lt;?&gt;&nbsp;callable,
-                                     @Super
-                                     <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang">Object</a>&nbsp;entity)
-                              throws <a href="../../../../../org/apache/plc4x/java/opm/OPMException.html" title="class in org.apache.plc4x.java.opm">OPMException</a></pre>
-<div class="block">Basic Intersector for all methods on the proxy object.
- It checks if the invoked method is a getter and if so, only retrieves the requested field, forwarding to
- the <a href="../../../../../org/apache/plc4x/java/opm/PlcEntityManager.html#fetchValueForGetter-java.lang.reflect.Method-java.lang.String-"><code>fetchValueForGetter(Method, String)</code></a> method.
- <p>
- If the field is no getter, then all fields are refreshed by calling <a href="../../../../../org/apache/plc4x/java/opm/PlcEntityManager.html#refetchAllFields-java.lang.Object-java.lang.String-"><code>refetchAllFields(Object,String)</code></a>
- and then, the method is invoked.</div>
+<h4>disconnect</h4>
+<pre>public&nbsp;void&nbsp;disconnect(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang">Object</a>&nbsp;entity)
+                throws <a href="../../../../../org/apache/plc4x/java/opm/OPMException.html" title="class in org.apache.plc4x.java.opm">OPMException</a></pre>
+<div class="block">Disconnects the given instance.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>proxy</code> - Object to intercept</dd>
-<dd><code>method</code> - Method that was intercepted</dd>
-<dd><code>callable</code> - Callable to call the method after fetching the values</dd>
-<dd><code>entity</code> - Reference to the PlcEntity</dd>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>possible result of the original methods invocation</dd>
+<dd><code>entity</code> - Instance of a PlcEntity.</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="../../../../../org/apache/plc4x/java/opm/OPMException.html" title="class in org.apache.plc4x.java.opm">OPMException</a></code> - Problems with plc / proxying</dd>
+<dd><code><a href="../../../../../org/apache/plc4x/java/opm/OPMException.html" title="class in org.apache.plc4x.java.opm">OPMException</a></code> - Is thrown when the plc is already disconnected or no entity.</dd>
 </dl>
 </li>
 </ul>
@@ -385,7 +368,7 @@ public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../../../org/apache/plc4x/java/opm/PlcEntity.html" title="annotation in org.apache.plc4x.java.opm"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
+<li><a href="../../../../../org/apache/plc4x/java/opm/PlcEntityInterceptor.html" title="class in org.apache.plc4x.java.opm"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
 <li><a href="../../../../../org/apache/plc4x/java/opm/PlcField.html" title="annotation in org.apache.plc4x.java.opm"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
