@@ -121,78 +121,77 @@ import java.util.*;
     // 0x20: HS Counter
     //
 
+    private static final Map&lt;Byte, TransportSize&gt; map;
+    static {
+<span class="nc" id="L126">        map = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">        for (TransportSize dataType : TransportSize.values()) {</span>
+<span class="nc" id="L128">            map.put(dataType.typeCode, dataType);</span>
+        }
+<span class="nc" id="L130">    }</span>
+
     private final byte typeCode;
     private final String sizeCode;
-    private int sizeInBytes;
+    private final int sizeInBytes;
     private final Set&lt;S7ControllerType&gt; supportedControllerTypes;
     private final TransportSize baseType;
     private final DataTransportSize dataTransportSize;
 
     TransportSize(int typeCode, String sizeCode, int sizeInBytes, TransportSize baseType, DataTransportSize dataTransportSize,
-<span class="nc" id="L132">                  S7ControllerType... supportedControllerTypes) {</span>
-<span class="nc" id="L133">        this.typeCode = (byte) typeCode;</span>
-<span class="nc" id="L134">        this.sizeCode = sizeCode;</span>
-<span class="nc" id="L135">        this.sizeInBytes = sizeInBytes;</span>
-<span class="nc" id="L136">        this.supportedControllerTypes = new HashSet&lt;&gt;(Arrays.asList(supportedControllerTypes));</span>
-<span class="nc" id="L137">        this.baseType = baseType;</span>
-<span class="nc" id="L138">        this.dataTransportSize = dataTransportSize;</span>
-<span class="nc" id="L139">    }</span>
+<span class="nc" id="L140">                  S7ControllerType... supportedControllerTypes) {</span>
+<span class="nc" id="L141">        this.typeCode = (byte) typeCode;</span>
+<span class="nc" id="L142">        this.sizeCode = sizeCode;</span>
+<span class="nc" id="L143">        this.sizeInBytes = sizeInBytes;</span>
+<span class="nc" id="L144">        this.supportedControllerTypes = new HashSet&lt;&gt;(Arrays.asList(supportedControllerTypes));</span>
+<span class="nc" id="L145">        this.baseType = baseType;</span>
+<span class="nc" id="L146">        this.dataTransportSize = dataTransportSize;</span>
+<span class="nc" id="L147">    }</span>
 
     public byte getTypeCode() {
-<span class="nc" id="L142">        return typeCode;</span>
+<span class="nc" id="L150">        return typeCode;</span>
     }
 
     public String getSizeCode() {
-<span class="nc" id="L146">        return sizeCode;</span>
+<span class="nc" id="L154">        return sizeCode;</span>
     }
 
     public int getSizeInBytes() {
-<span class="nc" id="L150">        return sizeInBytes;</span>
+<span class="nc" id="L158">        return sizeInBytes;</span>
     }
 
     public boolean isBaseType() {
-<span class="nc bnc" id="L154" title="All 2 branches missed.">        return baseType == null;</span>
+<span class="nc bnc" id="L162" title="All 2 branches missed.">        return baseType == null;</span>
     }
 
     TransportSize getBaseType() {
         // If this is a base-type itself, the baseType is null, in all
         // other cases it is set.
-<span class="nc bnc" id="L160" title="All 2 branches missed.">        if (baseType == null) {</span>
-<span class="nc" id="L161">            return this;</span>
+<span class="nc bnc" id="L168" title="All 2 branches missed.">        if (baseType == null) {</span>
+<span class="nc" id="L169">            return this;</span>
         } else {
-<span class="nc" id="L163">            return baseType;</span>
+<span class="nc" id="L171">            return baseType;</span>
         }
     }
 
     TransportSize getSubType(String sizeCode) {
         // Try to find a sub-type with this base type for which the size code matches.
-<span class="nc bnc" id="L169" title="All 2 branches missed.">        for (TransportSize value : values()) {</span>
-<span class="nc bnc" id="L170" title="All 6 branches missed.">            if ((value.baseType == this) &amp;&amp; (value.sizeCode != null) &amp;&amp; (value.sizeCode.equals(sizeCode))) {</span>
-<span class="nc" id="L171">                return value;</span>
+<span class="nc bnc" id="L177" title="All 2 branches missed.">        for (TransportSize value : values()) {</span>
+<span class="nc bnc" id="L178" title="All 6 branches missed.">            if ((value.baseType == this) &amp;&amp; (value.sizeCode != null) &amp;&amp; (value.sizeCode.equals(sizeCode))) {</span>
+<span class="nc" id="L179">                return value;</span>
             }
         }
-<span class="nc" id="L174">        return null;</span>
+<span class="nc" id="L182">        return null;</span>
     }
 
     public DataTransportSize getDataTransportSize() {
-<span class="nc" id="L178">        return dataTransportSize;</span>
+<span class="nc" id="L186">        return dataTransportSize;</span>
     }
 
     boolean isControllerTypeSupported(S7ControllerType controllerType) {
-<span class="nc" id="L182">        return supportedControllerTypes.contains(controllerType);</span>
+<span class="nc" id="L190">        return supportedControllerTypes.contains(controllerType);</span>
     }
 
-    private final static Map&lt;Byte, TransportSize&gt; map;
-
-    static {
-<span class="nc" id="L188">        map = new HashMap&lt;&gt;();</span>
-<span class="nc bnc" id="L189" title="All 2 branches missed.">        for (TransportSize dataType : TransportSize.values()) {</span>
-<span class="nc" id="L190">            map.put(dataType.typeCode, dataType);</span>
-        }
-<span class="nc" id="L192">    }</span>
-
     public static TransportSize valueOf(byte code) {
-<span class="nc" id="L195">        return map.get(code);</span>
+<span class="nc" id="L194">        return map.get(code);</span>
     }
 
 }
