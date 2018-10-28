@@ -28,7 +28,7 @@ import org.apache.plc4x.java.s7.netty.model.types.TransportSize;
 
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.BitSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -36,7 +36,7 @@ import java.util.List;
 <span class="nc" id="L36">public class S7PlcFieldHandler extends DefaultPlcFieldHandler {</span>
 
     @Override
-    public PlcField createField(String fieldQuery) throws PlcInvalidFieldException {
+    public PlcField createField(String fieldQuery) {
 <span class="nc bnc" id="L40" title="All 2 branches missed.">        if (S7Field.matches(fieldQuery)) {</span>
 <span class="nc" id="L41">            return S7Field.of(fieldQuery);</span>
         }
@@ -302,8 +302,8 @@ import java.util.List;
             BigInteger value;
 <span class="nc bnc" id="L303" title="All 2 branches missed.">            if (val instanceof BigInteger) {</span>
 <span class="nc" id="L304">                value = (BigInteger) val;</span>
-<span class="nc bnc" id="L305" title="All 8 branches missed.">            } else if (((val instanceof Byte) || (val instanceof Short) ||</span>
-                (val instanceof Integer) || (val instanceof Long))) {
+<span class="nc bnc" id="L305" title="All 8 branches missed.">            } else if ((val instanceof Byte) || (val instanceof Short) ||</span>
+                (val instanceof Integer) || (val instanceof Long)) {
 <span class="nc" id="L307">                value = BigInteger.valueOf(((Number) val).longValue());</span>
             } else {
 <span class="nc" id="L309">                throw new IllegalArgumentException(</span>
@@ -435,9 +435,9 @@ import java.util.List;
 <span class="nc" id="L435">                Byte byteValue = (Byte) value;</span>
 <span class="nc" id="L436">                byte[] stringBytes = new byte[]{byteValue};</span>
 <span class="nc bnc" id="L437" title="All 2 branches missed.">                if (encoding16Bit) {</span>
-<span class="nc" id="L438">                    stringValues.add(new String(stringBytes, Charset.forName(&quot;UTF-16&quot;)));</span>
+<span class="nc" id="L438">                    stringValues.add(new String(stringBytes, StandardCharsets.UTF_16));</span>
                 } else {
-<span class="nc" id="L440">                    stringValues.add(new String(stringBytes, Charset.forName(&quot;UTF-8&quot;)));</span>
+<span class="nc" id="L440">                    stringValues.add(new String(stringBytes, StandardCharsets.UTF_8));</span>
                 }
 <span class="nc bnc" id="L442" title="All 2 branches missed.">            } else if (value instanceof Short) {</span>
 <span class="nc" id="L443">                Short shortValue = (Short) value;</span>
@@ -445,9 +445,9 @@ import java.util.List;
 <span class="nc" id="L445">                stringBytes[0] = (byte) (shortValue &gt;&gt; 8);</span>
 <span class="nc" id="L446">                stringBytes[1] = (byte) (shortValue &amp; 0xFF);</span>
 <span class="nc bnc" id="L447" title="All 2 branches missed.">                if (encoding16Bit) {</span>
-<span class="nc" id="L448">                    stringValues.add(new String(stringBytes, Charset.forName(&quot;UTF-16&quot;)));</span>
+<span class="nc" id="L448">                    stringValues.add(new String(stringBytes, StandardCharsets.UTF_16));</span>
                 } else {
-<span class="nc" id="L450">                    stringValues.add(new String(stringBytes, Charset.forName(&quot;UTF-8&quot;)));</span>
+<span class="nc" id="L450">                    stringValues.add(new String(stringBytes, StandardCharsets.UTF_8));</span>
                 }
 <span class="nc bnc" id="L452" title="All 2 branches missed.">            } else if (value instanceof Integer) {</span>
 <span class="nc" id="L453">                Integer integerValue = (Integer) value;</span>
@@ -457,9 +457,9 @@ import java.util.List;
 <span class="nc" id="L457">                stringBytes[2] = (byte) ((integerValue &gt;&gt; 8) &amp; 0xFF);</span>
 <span class="nc" id="L458">                stringBytes[3] = (byte) (integerValue &amp; 0xFF);</span>
 <span class="nc bnc" id="L459" title="All 2 branches missed.">                if (encoding16Bit) {</span>
-<span class="nc" id="L460">                    stringValues.add(new String(stringBytes, Charset.forName(&quot;UTF-16&quot;)));</span>
+<span class="nc" id="L460">                    stringValues.add(new String(stringBytes, StandardCharsets.UTF_16));</span>
                 } else {
-<span class="nc" id="L462">                    stringValues.add(new String(stringBytes, Charset.forName(&quot;UTF-8&quot;)));</span>
+<span class="nc" id="L462">                    stringValues.add(new String(stringBytes, StandardCharsets.UTF_8));</span>
                 }
 <span class="nc bnc" id="L464" title="All 2 branches missed.">            } else if (value instanceof Long) {</span>
 <span class="nc" id="L465">                Long longValue = (Long) value;</span>
@@ -473,9 +473,9 @@ import java.util.List;
 <span class="nc" id="L473">                stringBytes[6] = (byte) ((longValue &gt;&gt; 8) &amp; 0xFF);</span>
 <span class="nc" id="L474">                stringBytes[7] = (byte) (longValue &amp; 0xFF);</span>
 <span class="nc bnc" id="L475" title="All 2 branches missed.">                if (encoding16Bit) {</span>
-<span class="nc" id="L476">                    stringValues.add(new String(stringBytes, Charset.forName(&quot;UTF-16&quot;)));</span>
+<span class="nc" id="L476">                    stringValues.add(new String(stringBytes, StandardCharsets.UTF_16));</span>
                 } else {
-<span class="nc" id="L478">                    stringValues.add(new String(stringBytes, Charset.forName(&quot;UTF-8&quot;)));</span>
+<span class="nc" id="L478">                    stringValues.add(new String(stringBytes, StandardCharsets.UTF_8));</span>
                 }
 <span class="nc" id="L480">            } else {</span>
 <span class="nc" id="L481">                throw new IllegalArgumentException(</span>

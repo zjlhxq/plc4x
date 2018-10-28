@@ -36,7 +36,7 @@
 <a class="jxr_linenumber" name="L28" href="#L28">28</a>  
 <a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> java.lang.reflect.InvocationTargetException;
 <a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> java.math.BigInteger;
-<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> java.nio.charset.Charset;
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> java.nio.charset.StandardCharsets;
 <a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> java.util.BitSet;
 <a class="jxr_linenumber" name="L33" href="#L33">33</a>  <strong class="jxr_keyword">import</strong> java.util.LinkedList;
 <a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> java.util.List;
@@ -44,7 +44,7 @@
 <a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../../../org/apache/plc4x/java/s7/netty/util/S7PlcFieldHandler.html">S7PlcFieldHandler</a> <strong class="jxr_keyword">extends</strong> <a href="../../../../../../../org/apache/plc4x/java/base/connection/DefaultPlcFieldHandler.html">DefaultPlcFieldHandler</a> {
 <a class="jxr_linenumber" name="L37" href="#L37">37</a>  
 <a class="jxr_linenumber" name="L38" href="#L38">38</a>      @Override
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>      <strong class="jxr_keyword">public</strong> <a href="../../../../../../../org/apache/plc4x/java/api/model/PlcField.html">PlcField</a> createField(String fieldQuery) <strong class="jxr_keyword">throws</strong> PlcInvalidFieldException {
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>      <strong class="jxr_keyword">public</strong> <a href="../../../../../../../org/apache/plc4x/java/api/model/PlcField.html">PlcField</a> createField(String fieldQuery) {
 <a class="jxr_linenumber" name="L40" href="#L40">40</a>          <strong class="jxr_keyword">if</strong> (S7Field.matches(fieldQuery)) {
 <a class="jxr_linenumber" name="L41" href="#L41">41</a>              <strong class="jxr_keyword">return</strong> S7Field.of(fieldQuery);
 <a class="jxr_linenumber" name="L42" href="#L42">42</a>          }
@@ -310,8 +310,8 @@
 <a class="jxr_linenumber" name="L302" href="#L302">302</a>             BigInteger value;
 <a class="jxr_linenumber" name="L303" href="#L303">303</a>             <strong class="jxr_keyword">if</strong> (val instanceof BigInteger) {
 <a class="jxr_linenumber" name="L304" href="#L304">304</a>                 value = (BigInteger) val;
-<a class="jxr_linenumber" name="L305" href="#L305">305</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (((val instanceof Byte) || (val instanceof Short) ||
-<a class="jxr_linenumber" name="L306" href="#L306">306</a>                 (val instanceof Integer) || (val instanceof Long))) {
+<a class="jxr_linenumber" name="L305" href="#L305">305</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> ((val instanceof Byte) || (val instanceof Short) ||
+<a class="jxr_linenumber" name="L306" href="#L306">306</a>                 (val instanceof Integer) || (val instanceof Long)) {
 <a class="jxr_linenumber" name="L307" href="#L307">307</a>                 value = BigInteger.valueOf(((Number) val).longValue());
 <a class="jxr_linenumber" name="L308" href="#L308">308</a>             } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L309" href="#L309">309</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(
@@ -443,9 +443,9 @@
 <a class="jxr_linenumber" name="L435" href="#L435">435</a>                 Byte byteValue = (Byte) value;
 <a class="jxr_linenumber" name="L436" href="#L436">436</a>                 byte[] stringBytes = <strong class="jxr_keyword">new</strong> byte[]{byteValue};
 <a class="jxr_linenumber" name="L437" href="#L437">437</a>                 <strong class="jxr_keyword">if</strong> (encoding16Bit) {
-<a class="jxr_linenumber" name="L438" href="#L438">438</a>                     stringValues.add(<strong class="jxr_keyword">new</strong> String(stringBytes, Charset.forName(<span class="jxr_string">"UTF-16"</span>)));
+<a class="jxr_linenumber" name="L438" href="#L438">438</a>                     stringValues.add(<strong class="jxr_keyword">new</strong> String(stringBytes, StandardCharsets.UTF_16));
 <a class="jxr_linenumber" name="L439" href="#L439">439</a>                 } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L440" href="#L440">440</a>                     stringValues.add(<strong class="jxr_keyword">new</strong> String(stringBytes, Charset.forName(<span class="jxr_string">"UTF-8"</span>)));
+<a class="jxr_linenumber" name="L440" href="#L440">440</a>                     stringValues.add(<strong class="jxr_keyword">new</strong> String(stringBytes, StandardCharsets.UTF_8));
 <a class="jxr_linenumber" name="L441" href="#L441">441</a>                 }
 <a class="jxr_linenumber" name="L442" href="#L442">442</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (value instanceof Short) {
 <a class="jxr_linenumber" name="L443" href="#L443">443</a>                 Short shortValue = (Short) value;
@@ -453,9 +453,9 @@
 <a class="jxr_linenumber" name="L445" href="#L445">445</a>                 stringBytes[0] = (byte) (shortValue &gt;&gt; 8);
 <a class="jxr_linenumber" name="L446" href="#L446">446</a>                 stringBytes[1] = (byte) (shortValue &amp; 0xFF);
 <a class="jxr_linenumber" name="L447" href="#L447">447</a>                 <strong class="jxr_keyword">if</strong> (encoding16Bit) {
-<a class="jxr_linenumber" name="L448" href="#L448">448</a>                     stringValues.add(<strong class="jxr_keyword">new</strong> String(stringBytes, Charset.forName(<span class="jxr_string">"UTF-16"</span>)));
+<a class="jxr_linenumber" name="L448" href="#L448">448</a>                     stringValues.add(<strong class="jxr_keyword">new</strong> String(stringBytes, StandardCharsets.UTF_16));
 <a class="jxr_linenumber" name="L449" href="#L449">449</a>                 } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L450" href="#L450">450</a>                     stringValues.add(<strong class="jxr_keyword">new</strong> String(stringBytes, Charset.forName(<span class="jxr_string">"UTF-8"</span>)));
+<a class="jxr_linenumber" name="L450" href="#L450">450</a>                     stringValues.add(<strong class="jxr_keyword">new</strong> String(stringBytes, StandardCharsets.UTF_8));
 <a class="jxr_linenumber" name="L451" href="#L451">451</a>                 }
 <a class="jxr_linenumber" name="L452" href="#L452">452</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (value instanceof Integer) {
 <a class="jxr_linenumber" name="L453" href="#L453">453</a>                 Integer integerValue = (Integer) value;
@@ -465,9 +465,9 @@
 <a class="jxr_linenumber" name="L457" href="#L457">457</a>                 stringBytes[2] = (byte) ((integerValue &gt;&gt; 8) &amp; 0xFF);
 <a class="jxr_linenumber" name="L458" href="#L458">458</a>                 stringBytes[3] = (byte) (integerValue &amp; 0xFF);
 <a class="jxr_linenumber" name="L459" href="#L459">459</a>                 <strong class="jxr_keyword">if</strong> (encoding16Bit) {
-<a class="jxr_linenumber" name="L460" href="#L460">460</a>                     stringValues.add(<strong class="jxr_keyword">new</strong> String(stringBytes, Charset.forName(<span class="jxr_string">"UTF-16"</span>)));
+<a class="jxr_linenumber" name="L460" href="#L460">460</a>                     stringValues.add(<strong class="jxr_keyword">new</strong> String(stringBytes, StandardCharsets.UTF_16));
 <a class="jxr_linenumber" name="L461" href="#L461">461</a>                 } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L462" href="#L462">462</a>                     stringValues.add(<strong class="jxr_keyword">new</strong> String(stringBytes, Charset.forName(<span class="jxr_string">"UTF-8"</span>)));
+<a class="jxr_linenumber" name="L462" href="#L462">462</a>                     stringValues.add(<strong class="jxr_keyword">new</strong> String(stringBytes, StandardCharsets.UTF_8));
 <a class="jxr_linenumber" name="L463" href="#L463">463</a>                 }
 <a class="jxr_linenumber" name="L464" href="#L464">464</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (value instanceof Long) {
 <a class="jxr_linenumber" name="L465" href="#L465">465</a>                 Long longValue = (Long) value;
@@ -481,9 +481,9 @@
 <a class="jxr_linenumber" name="L473" href="#L473">473</a>                 stringBytes[6] = (byte) ((longValue &gt;&gt; 8) &amp; 0xFF);
 <a class="jxr_linenumber" name="L474" href="#L474">474</a>                 stringBytes[7] = (byte) (longValue &amp; 0xFF);
 <a class="jxr_linenumber" name="L475" href="#L475">475</a>                 <strong class="jxr_keyword">if</strong> (encoding16Bit) {
-<a class="jxr_linenumber" name="L476" href="#L476">476</a>                     stringValues.add(<strong class="jxr_keyword">new</strong> String(stringBytes, Charset.forName(<span class="jxr_string">"UTF-16"</span>)));
+<a class="jxr_linenumber" name="L476" href="#L476">476</a>                     stringValues.add(<strong class="jxr_keyword">new</strong> String(stringBytes, StandardCharsets.UTF_16));
 <a class="jxr_linenumber" name="L477" href="#L477">477</a>                 } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L478" href="#L478">478</a>                     stringValues.add(<strong class="jxr_keyword">new</strong> String(stringBytes, Charset.forName(<span class="jxr_string">"UTF-8"</span>)));
+<a class="jxr_linenumber" name="L478" href="#L478">478</a>                     stringValues.add(<strong class="jxr_keyword">new</strong> String(stringBytes, StandardCharsets.UTF_8));
 <a class="jxr_linenumber" name="L479" href="#L479">479</a>                 }
 <a class="jxr_linenumber" name="L480" href="#L480">480</a>             } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L481" href="#L481">481</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(

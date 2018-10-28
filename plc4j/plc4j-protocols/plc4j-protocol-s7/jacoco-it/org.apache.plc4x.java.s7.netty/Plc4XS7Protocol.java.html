@@ -51,7 +51,7 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
@@ -538,13 +538,13 @@ public class Plc4XS7Protocol extends PlcMessageToMessageCodec&lt;S7Message, PlcR
                     // -----------------------------------------
                     case CHAR: { // 1 byte (8 bit)
                         // TODO: Double check, if this is ok?
-<span class="nc" id="L541">                        String stringValue = data.readCharSequence(1, Charset.forName(&quot;UTF-8&quot;)).toString();</span>
+<span class="nc" id="L541">                        String stringValue = data.readCharSequence(1, StandardCharsets.UTF_8).toString();</span>
 <span class="nc" id="L542">                        fieldItem = new DefaultStringFieldItem(stringValue);</span>
 <span class="nc" id="L543">                        break;</span>
                     }
                     case WCHAR: { // 2 byte
                         // TODO: Double check, if this is ok? Alternatives: BMP, UCS2
-<span class="nc" id="L547">                        String stringValue = data.readCharSequence(2, Charset.forName(&quot;UTF-16&quot;)).toString();</span>
+<span class="nc" id="L547">                        String stringValue = data.readCharSequence(2, StandardCharsets.UTF_16).toString();</span>
 <span class="nc" id="L548">                        fieldItem = new DefaultStringFieldItem(stringValue);</span>
 <span class="nc" id="L549">                        break;</span>
                     }
@@ -553,7 +553,7 @@ public class Plc4XS7Protocol extends PlcMessageToMessageCodec&lt;S7Message, PlcR
 <span class="nc" id="L553">                        data.readByte();</span>
 <span class="nc" id="L554">                        byte actualLength = data.readByte();</span>
                         // TODO: Double check, if this is ok?
-<span class="nc" id="L556">                        String stringValue = data.readCharSequence(actualLength, Charset.forName(&quot;UTF-8&quot;)).toString();</span>
+<span class="nc" id="L556">                        String stringValue = data.readCharSequence(actualLength, StandardCharsets.UTF_8).toString();</span>
 <span class="nc" id="L557">                        fieldItem = new DefaultStringFieldItem(stringValue);</span>
 <span class="nc" id="L558">                        break;</span>
                     }
@@ -563,7 +563,7 @@ public class Plc4XS7Protocol extends PlcMessageToMessageCodec&lt;S7Message, PlcR
 <span class="nc" id="L563">                        byte actualLength = data.readByte();</span>
                         // TODO: Double check, if this is ok?
 <span class="nc" id="L565">                        String stringValue = data.readCharSequence(</span>
-<span class="nc" id="L566">                            actualLength * 2, Charset.forName(&quot;UTF-16&quot;)).toString();</span>
+<span class="nc" id="L566">                            actualLength * 2, StandardCharsets.UTF_16).toString();</span>
 <span class="nc" id="L567">                        fieldItem = new DefaultStringFieldItem(stringValue);</span>
 <span class="nc" id="L568">                        break;</span>
                     }

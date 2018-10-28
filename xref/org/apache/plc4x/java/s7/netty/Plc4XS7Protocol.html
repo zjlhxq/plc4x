@@ -59,7 +59,7 @@
 <a class="jxr_linenumber" name="L51" href="#L51">51</a>  <strong class="jxr_keyword">import</strong> java.lang.reflect.Array;
 <a class="jxr_linenumber" name="L52" href="#L52">52</a>  <strong class="jxr_keyword">import</strong> java.math.BigInteger;
 <a class="jxr_linenumber" name="L53" href="#L53">53</a>  <strong class="jxr_keyword">import</strong> java.nio.ByteBuffer;
-<a class="jxr_linenumber" name="L54" href="#L54">54</a>  <strong class="jxr_keyword">import</strong> java.nio.charset.Charset;
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>  <strong class="jxr_keyword">import</strong> java.nio.charset.StandardCharsets;
 <a class="jxr_linenumber" name="L55" href="#L55">55</a>  <strong class="jxr_keyword">import</strong> java.util.*;
 <a class="jxr_linenumber" name="L56" href="#L56">56</a>  <strong class="jxr_keyword">import</strong> java.util.concurrent.atomic.AtomicInteger;
 <a class="jxr_linenumber" name="L57" href="#L57">57</a>  <strong class="jxr_keyword">import</strong> java.util.function.Function;
@@ -546,13 +546,13 @@
 <a class="jxr_linenumber" name="L538" href="#L538">538</a>                     <em class="jxr_comment">// -----------------------------------------</em>
 <a class="jxr_linenumber" name="L539" href="#L539">539</a>                     <strong class="jxr_keyword">case</strong> CHAR: { <em class="jxr_comment">// 1 byte (8 bit)</em>
 <a class="jxr_linenumber" name="L540" href="#L540">540</a>                         <em class="jxr_comment">// TODO: Double check, if this is ok?</em>
-<a class="jxr_linenumber" name="L541" href="#L541">541</a>                         String stringValue = data.readCharSequence(1, Charset.forName(<span class="jxr_string">"UTF-8"</span>)).toString();
+<a class="jxr_linenumber" name="L541" href="#L541">541</a>                         String stringValue = data.readCharSequence(1, StandardCharsets.UTF_8).toString();
 <a class="jxr_linenumber" name="L542" href="#L542">542</a>                         fieldItem = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/base/messages/items/DefaultStringFieldItem.html">DefaultStringFieldItem</a>(stringValue);
 <a class="jxr_linenumber" name="L543" href="#L543">543</a>                         <strong class="jxr_keyword">break</strong>;
 <a class="jxr_linenumber" name="L544" href="#L544">544</a>                     }
 <a class="jxr_linenumber" name="L545" href="#L545">545</a>                     <strong class="jxr_keyword">case</strong> WCHAR: { <em class="jxr_comment">// 2 byte</em>
 <a class="jxr_linenumber" name="L546" href="#L546">546</a>                         <em class="jxr_comment">// TODO: Double check, if this is ok? Alternatives: BMP, UCS2</em>
-<a class="jxr_linenumber" name="L547" href="#L547">547</a>                         String stringValue = data.readCharSequence(2, Charset.forName(<span class="jxr_string">"UTF-16"</span>)).toString();
+<a class="jxr_linenumber" name="L547" href="#L547">547</a>                         String stringValue = data.readCharSequence(2, StandardCharsets.UTF_16).toString();
 <a class="jxr_linenumber" name="L548" href="#L548">548</a>                         fieldItem = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/base/messages/items/DefaultStringFieldItem.html">DefaultStringFieldItem</a>(stringValue);
 <a class="jxr_linenumber" name="L549" href="#L549">549</a>                         <strong class="jxr_keyword">break</strong>;
 <a class="jxr_linenumber" name="L550" href="#L550">550</a>                     }
@@ -561,7 +561,7 @@
 <a class="jxr_linenumber" name="L553" href="#L553">553</a>                         data.readByte();
 <a class="jxr_linenumber" name="L554" href="#L554">554</a>                         byte actualLength = data.readByte();
 <a class="jxr_linenumber" name="L555" href="#L555">555</a>                         <em class="jxr_comment">// TODO: Double check, if this is ok?</em>
-<a class="jxr_linenumber" name="L556" href="#L556">556</a>                         String stringValue = data.readCharSequence(actualLength, Charset.forName(<span class="jxr_string">"UTF-8"</span>)).toString();
+<a class="jxr_linenumber" name="L556" href="#L556">556</a>                         String stringValue = data.readCharSequence(actualLength, StandardCharsets.UTF_8).toString();
 <a class="jxr_linenumber" name="L557" href="#L557">557</a>                         fieldItem = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/base/messages/items/DefaultStringFieldItem.html">DefaultStringFieldItem</a>(stringValue);
 <a class="jxr_linenumber" name="L558" href="#L558">558</a>                         <strong class="jxr_keyword">break</strong>;
 <a class="jxr_linenumber" name="L559" href="#L559">559</a>                     }
@@ -571,7 +571,7 @@
 <a class="jxr_linenumber" name="L563" href="#L563">563</a>                         byte actualLength = data.readByte();
 <a class="jxr_linenumber" name="L564" href="#L564">564</a>                         <em class="jxr_comment">// TODO: Double check, if this is ok?</em>
 <a class="jxr_linenumber" name="L565" href="#L565">565</a>                         String stringValue = data.readCharSequence(
-<a class="jxr_linenumber" name="L566" href="#L566">566</a>                             actualLength * 2, Charset.forName(<span class="jxr_string">"UTF-16"</span>)).toString();
+<a class="jxr_linenumber" name="L566" href="#L566">566</a>                             actualLength * 2, StandardCharsets.UTF_16).toString();
 <a class="jxr_linenumber" name="L567" href="#L567">567</a>                         fieldItem = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/base/messages/items/DefaultStringFieldItem.html">DefaultStringFieldItem</a>(stringValue);
 <a class="jxr_linenumber" name="L568" href="#L568">568</a>                         <strong class="jxr_keyword">break</strong>;
 <a class="jxr_linenumber" name="L569" href="#L569">569</a>                     }

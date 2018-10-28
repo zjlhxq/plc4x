@@ -103,9 +103,9 @@ public class S7PlcConnection extends AbstractPlcConnection implements PlcReader,
 <span class="nc" id="L103">        this.rack = rack;</span>
 <span class="nc" id="L104">        this.slot = slot;</span>
 
-<span class="nc" id="L106">        int paramPduSize = 1024;</span>
-<span class="nc" id="L107">        short paramMaxAmqCaller = 8;</span>
-<span class="nc" id="L108">        short paramMaxAmqCallee = 8;</span>
+<span class="nc" id="L106">        int curParamPduSize = 1024;</span>
+<span class="nc" id="L107">        short curParamMaxAmqCaller = 8;</span>
+<span class="nc" id="L108">        short curParamMaxAmqCallee = 8;</span>
 
 <span class="nc bnc" id="L110" title="All 2 branches missed.">        if (!StringUtils.isEmpty(params)) {</span>
 <span class="nc bnc" id="L111" title="All 2 branches missed.">            for (String param : params.split(&quot;&amp;&quot;)) {</span>
@@ -115,13 +115,13 @@ public class S7PlcConnection extends AbstractPlcConnection implements PlcReader,
 <span class="nc" id="L115">                    String paramValue = paramElements[1];</span>
 <span class="nc bnc" id="L116" title="All 4 branches missed.">                    switch (paramName) {</span>
                         case &quot;pdu-size&quot;:
-<span class="nc" id="L118">                            paramPduSize = Integer.parseInt(paramValue);</span>
+<span class="nc" id="L118">                            curParamPduSize = Integer.parseInt(paramValue);</span>
 <span class="nc" id="L119">                            break;</span>
                         case &quot;max-amq-caller&quot;:
-<span class="nc" id="L121">                            paramMaxAmqCaller = Short.parseShort(paramValue);</span>
+<span class="nc" id="L121">                            curParamMaxAmqCaller = Short.parseShort(paramValue);</span>
 <span class="nc" id="L122">                            break;</span>
                         case &quot;max-amq-callee&quot;:
-<span class="nc" id="L124">                            paramMaxAmqCallee = Short.parseShort(paramValue);</span>
+<span class="nc" id="L124">                            curParamMaxAmqCallee = Short.parseShort(paramValue);</span>
 <span class="nc" id="L125">                            break;</span>
                         default:
 <span class="nc" id="L127">                            logger.debug(&quot;Unknown parameter {} with value {}&quot;, paramName, paramValue);</span>
@@ -134,9 +134,9 @@ public class S7PlcConnection extends AbstractPlcConnection implements PlcReader,
 
         // IsoTP uses pre defined sizes. Find the smallest box,
         // that would be able to contain the requested pdu size.
-<span class="nc" id="L137">        this.paramPduSize = TpduSize.valueForGivenSize(paramPduSize);</span>
-<span class="nc" id="L138">        this.paramMaxAmqCaller = paramMaxAmqCaller;</span>
-<span class="nc" id="L139">        this.paramMaxAmqCallee = paramMaxAmqCallee;</span>
+<span class="nc" id="L137">        this.paramPduSize = TpduSize.valueForGivenSize(curParamPduSize);</span>
+<span class="nc" id="L138">        this.paramMaxAmqCaller = curParamMaxAmqCaller;</span>
+<span class="nc" id="L139">        this.paramMaxAmqCallee = curParamMaxAmqCallee;</span>
 <span class="nc" id="L140">    }</span>
 
     @Override
