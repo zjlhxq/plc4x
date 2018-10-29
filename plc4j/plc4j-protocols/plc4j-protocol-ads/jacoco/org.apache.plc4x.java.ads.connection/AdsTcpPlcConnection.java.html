@@ -117,7 +117,7 @@ public class AdsTcpPlcConnection extends AdsAbstractPlcConnection implements Plc
 <span class="fc" id="L117">                pipeline.addLast(new Payload2TcpProtocol());</span>
 <span class="fc" id="L118">                pipeline.addLast(new Ads2PayloadProtocol());</span>
 <span class="fc" id="L119">                pipeline.addLast(new Plc4x2AdsProtocol(targetAmsNetId, targetAmsPort, sourceAmsNetId, sourceAmsPort, fieldMapping));</span>
-<span class="fc" id="L120">                pipeline.addLast(new SingleItemToSingleRequestProtocol(AdsTcpPlcConnection.this, AdsTcpPlcConnection.this, AdsTcpPlcConnection.this, timer));</span>
+<span class="fc" id="L120">                pipeline.addLast(new SingleItemToSingleRequestProtocol(AdsTcpPlcConnection.this, AdsTcpPlcConnection.this, AdsTcpPlcConnection.this, timer, SingleItemToSingleRequestProtocol.SplitConfig.builder().dontSplitSubscribe().dontSplitUnsubscribe().build()));</span>
 <span class="fc" id="L121">            }</span>
         };
     }
@@ -255,7 +255,7 @@ public class AdsTcpPlcConnection extends AdsAbstractPlcConnection implements Plc
             }
 <span class="nc" id="L256">        }</span>
 <span class="fc" id="L257">        CompletableFuture&lt;PlcUnsubscriptionResponse&gt; future = new CompletableFuture&lt;&gt;();</span>
-<span class="fc" id="L258">        future.complete(new DefaultPlcUnsubscriptionResponse());</span>
+<span class="fc" id="L258">        future.complete(new DefaultPlcUnsubscriptionResponse(internalPlcUnsubscriptionRequest));</span>
 <span class="fc" id="L259">        return future;</span>
     }
 
