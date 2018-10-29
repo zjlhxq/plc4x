@@ -17,14 +17,14 @@
 
 package org.apache.plc4x.java.utils.connectionpool;
 
-import org.apache.commons.pool2.BasePooledObjectFactory;
+import org.apache.commons.pool2.BaseKeyedPooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.apache.plc4x.java.api.PlcConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-<span class="fc" id="L27">public abstract class PooledPlcConnectionFactory extends BasePooledObjectFactory&lt;PlcConnection&gt; {</span>
+<span class="fc" id="L27">public abstract class PooledPlcConnectionFactory extends BaseKeyedPooledObjectFactory&lt;PoolKey, PlcConnection&gt; {</span>
 
 <span class="fc" id="L29">    private static final Logger LOGGER = LoggerFactory.getLogger(PooledPlcConnectionFactory.class);</span>
 
@@ -35,12 +35,12 @@ import org.slf4j.LoggerFactory;
     }
 
     @Override
-    public void destroyObject(PooledObject&lt;PlcConnection&gt; p) throws Exception {
+    public void destroyObject(PoolKey key, PooledObject&lt;PlcConnection&gt; p) throws Exception {
 <span class="fc" id="L39">        p.getObject().close();</span>
 <span class="fc" id="L40">    }</span>
 
     @Override
-    public boolean validateObject(PooledObject&lt;PlcConnection&gt; p) {
+    public boolean validateObject(PoolKey key, PooledObject&lt;PlcConnection&gt; p) {
 <span class="fc" id="L44">        return p.getObject().isConnected();</span>
     }
 }
