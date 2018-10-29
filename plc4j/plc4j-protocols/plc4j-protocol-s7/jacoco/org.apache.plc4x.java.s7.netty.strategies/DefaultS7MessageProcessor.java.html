@@ -200,184 +200,186 @@ public class DefaultS7MessageProcessor implements S7MessageProcessor {
     private void processBooleanWriteVarParameter(S7RequestMessage request, VarParameter varParameter, VarPayload varPayload,
                                          S7AnyVarParameterItem s7AnyVarParameterItem, VarPayloadItem varPayloadItem,
                                          short byteOffset, S7CompositeRequestMessage compositeRequestMessage) {
-<span class="fc" id="L203">        byte bitOffset = 0;</span>
-<span class="fc bfc" id="L204" title="All 2 branches covered.">        for (int i = 0; i &lt; s7AnyVarParameterItem.getNumElements(); i++) {</span>
+<span class="fc" id="L203">        short curByteOffset = byteOffset;</span>
+<span class="fc" id="L204">        byte curBitOffset = 0;</span>
+<span class="fc bfc" id="L205" title="All 2 branches covered.">        for (int i = 0; i &lt; s7AnyVarParameterItem.getNumElements(); i++) {</span>
             // Create a new message with only one single value item in the var parameter.
-<span class="fc" id="L206">            VarParameterItem item = new S7AnyVarParameterItem(</span>
-<span class="fc" id="L207">                s7AnyVarParameterItem.getSpecificationType(),</span>
-<span class="fc" id="L208">                s7AnyVarParameterItem.getMemoryArea(),</span>
-<span class="fc" id="L209">                s7AnyVarParameterItem.getDataType(), (short) 1,</span>
-<span class="fc" id="L210">                s7AnyVarParameterItem.getDataBlockNumber(),</span>
-                byteOffset, bitOffset);
-<span class="fc" id="L212">            S7Parameter subVarParameter = new VarParameter(varParameter.getType(),</span>
-<span class="fc" id="L213">                Collections.singletonList(item));</span>
+<span class="fc" id="L207">            VarParameterItem item = new S7AnyVarParameterItem(</span>
+<span class="fc" id="L208">                s7AnyVarParameterItem.getSpecificationType(),</span>
+<span class="fc" id="L209">                s7AnyVarParameterItem.getMemoryArea(),</span>
+<span class="fc" id="L210">                s7AnyVarParameterItem.getDataType(), (short) 1,</span>
+<span class="fc" id="L211">                s7AnyVarParameterItem.getDataBlockNumber(),</span>
+                curByteOffset, curBitOffset);
+<span class="fc" id="L213">            S7Parameter subVarParameter = new VarParameter(varParameter.getType(),</span>
+<span class="fc" id="L214">                Collections.singletonList(item));</span>
 
             // Create a one-byte byte array and set it to 0x01, if the corresponding bit
             // was 1 else set it to 0x00.
-<span class="fc" id="L217">            byte[] elementData = new byte[1];</span>
-<span class="fc" id="L218">            elementData[0] = (byte) ((varPayloadItem.getData()[byteOffset] &gt;&gt; bitOffset) &amp; 0x01);</span>
+<span class="fc" id="L218">            byte[] elementData = new byte[1];</span>
+<span class="fc" id="L219">            elementData[0] = (byte) ((varPayloadItem.getData()[curByteOffset] &gt;&gt; curBitOffset) &amp; 0x01);</span>
 
             // Create the new payload item.
-<span class="fc" id="L221">            VarPayloadItem itemPayload = new VarPayloadItem(</span>
-<span class="fc" id="L222">                varPayloadItem.getReturnCode(),</span>
-<span class="fc" id="L223">                varPayloadItem.getDataTransportSize(), elementData);</span>
-<span class="fc" id="L224">            S7Payload subVarPayload = new VarPayload(varPayload.getType(),</span>
-<span class="fc" id="L225">                Collections.singletonList(itemPayload));</span>
+<span class="fc" id="L222">            VarPayloadItem itemPayload = new VarPayloadItem(</span>
+<span class="fc" id="L223">                varPayloadItem.getReturnCode(),</span>
+<span class="fc" id="L224">                varPayloadItem.getDataTransportSize(), elementData);</span>
+<span class="fc" id="L225">            S7Payload subVarPayload = new VarPayload(varPayload.getType(),</span>
+<span class="fc" id="L226">                Collections.singletonList(itemPayload));</span>
 
             // Create a new sub message.
-<span class="fc" id="L228">            S7RequestMessage subMessage = new S7RequestMessage(</span>
-<span class="fc" id="L229">                request.getMessageType(), (short) tpduRefGen.getAndIncrement(),</span>
-<span class="fc" id="L230">                Collections.singletonList(subVarParameter),</span>
-<span class="fc" id="L231">                Collections.singletonList(subVarPayload),</span>
+<span class="fc" id="L229">            S7RequestMessage subMessage = new S7RequestMessage(</span>
+<span class="fc" id="L230">                request.getMessageType(), (short) tpduRefGen.getAndIncrement(),</span>
+<span class="fc" id="L231">                Collections.singletonList(subVarParameter),</span>
+<span class="fc" id="L232">                Collections.singletonList(subVarPayload),</span>
                 compositeRequestMessage);
 
             // Add the new message to the composite.
-<span class="fc" id="L235">            compositeRequestMessage.addRequestMessage(subMessage);</span>
+<span class="fc" id="L236">            compositeRequestMessage.addRequestMessage(subMessage);</span>
 
             // Calculate the new memory and bit offset.
-<span class="fc" id="L238">            bitOffset++;</span>
-<span class="fc bfc" id="L239" title="All 4 branches covered.">            if ((i &gt; 0) &amp;&amp; ((bitOffset % 8) == 0)) {</span>
-<span class="fc" id="L240">                byteOffset++;</span>
-<span class="fc" id="L241">                bitOffset = 0;</span>
+<span class="fc" id="L239">            curBitOffset++;</span>
+<span class="fc bfc" id="L240" title="All 4 branches covered.">            if ((i &gt; 0) &amp;&amp; ((curBitOffset % 8) == 0)) {</span>
+<span class="fc" id="L241">                curByteOffset++;</span>
+<span class="fc" id="L242">                curBitOffset = 0;</span>
             }
         }
-<span class="fc" id="L244">    }</span>
+<span class="fc" id="L245">    }</span>
 
     private void processNonBooleanWriteVarParameter(S7RequestMessage request, VarParameter varParameter, VarPayload varPayload,
                                             S7AnyVarParameterItem s7AnyVarParameterItem, VarPayloadItem varPayloadItem,
                                             short byteOffset, S7CompositeRequestMessage compositeRequestMessage) {
-<span class="fc" id="L249">        int payloadPosition = 0;</span>
-<span class="fc bfc" id="L250" title="All 2 branches covered.">        for (int i = 0; i &lt; s7AnyVarParameterItem.getNumElements(); i++) {</span>
-<span class="fc" id="L251">            int elementSize = s7AnyVarParameterItem.getDataType().getSizeInBytes();</span>
+<span class="fc" id="L250">        short curByteOffset = byteOffset;</span>
+<span class="fc" id="L251">        int payloadPosition = 0;</span>
+<span class="fc bfc" id="L252" title="All 2 branches covered.">        for (int i = 0; i &lt; s7AnyVarParameterItem.getNumElements(); i++) {</span>
+<span class="fc" id="L253">            int elementSize = s7AnyVarParameterItem.getDataType().getSizeInBytes();</span>
 
             // Create a new message with only one single value item in the var parameter.
-<span class="fc" id="L254">            VarParameterItem itemParameter = new S7AnyVarParameterItem(</span>
-<span class="fc" id="L255">                s7AnyVarParameterItem.getSpecificationType(),</span>
-<span class="fc" id="L256">                s7AnyVarParameterItem.getMemoryArea(),</span>
-<span class="fc" id="L257">                s7AnyVarParameterItem.getDataType(), (short) 1,</span>
-<span class="fc" id="L258">                s7AnyVarParameterItem.getDataBlockNumber(),</span>
-                byteOffset, (byte) 0);
-<span class="fc" id="L260">            S7Parameter subVarParameter = new VarParameter(varParameter.getType(),</span>
-<span class="fc" id="L261">                Collections.singletonList(itemParameter));</span>
+<span class="fc" id="L256">            VarParameterItem itemParameter = new S7AnyVarParameterItem(</span>
+<span class="fc" id="L257">                s7AnyVarParameterItem.getSpecificationType(),</span>
+<span class="fc" id="L258">                s7AnyVarParameterItem.getMemoryArea(),</span>
+<span class="fc" id="L259">                s7AnyVarParameterItem.getDataType(), (short) 1,</span>
+<span class="fc" id="L260">                s7AnyVarParameterItem.getDataBlockNumber(),</span>
+                curByteOffset, (byte) 0);
+<span class="fc" id="L262">            S7Parameter subVarParameter = new VarParameter(varParameter.getType(),</span>
+<span class="fc" id="L263">                Collections.singletonList(itemParameter));</span>
 
             // Split up the big array into a separate byte-array that contains a single element.
-<span class="fc" id="L264">            byte[] elementData = new byte[elementSize];</span>
-<span class="fc" id="L265">            System.arraycopy(varPayloadItem.getData(), payloadPosition, elementData, 0, elementSize);</span>
-<span class="fc" id="L266">            payloadPosition += elementSize;</span>
+<span class="fc" id="L266">            byte[] elementData = new byte[elementSize];</span>
+<span class="fc" id="L267">            System.arraycopy(varPayloadItem.getData(), payloadPosition, elementData, 0, elementSize);</span>
+<span class="fc" id="L268">            payloadPosition += elementSize;</span>
 
             // Create the new payload item.
-<span class="fc" id="L269">            VarPayloadItem itemPayload = new VarPayloadItem(</span>
-<span class="fc" id="L270">                varPayloadItem.getReturnCode(),</span>
-<span class="fc" id="L271">                varPayloadItem.getDataTransportSize(), elementData);</span>
-<span class="fc" id="L272">            S7Payload subVarPayload = new VarPayload(varPayload.getType(),</span>
-<span class="fc" id="L273">                Collections.singletonList(itemPayload));</span>
+<span class="fc" id="L271">            VarPayloadItem itemPayload = new VarPayloadItem(</span>
+<span class="fc" id="L272">                varPayloadItem.getReturnCode(),</span>
+<span class="fc" id="L273">                varPayloadItem.getDataTransportSize(), elementData);</span>
+<span class="fc" id="L274">            S7Payload subVarPayload = new VarPayload(varPayload.getType(),</span>
+<span class="fc" id="L275">                Collections.singletonList(itemPayload));</span>
 
             // Create a new sub message.
-<span class="fc" id="L276">            S7RequestMessage subMessage = new S7RequestMessage(</span>
-<span class="fc" id="L277">                request.getMessageType(), (short) tpduRefGen.getAndIncrement(),</span>
-<span class="fc" id="L278">                Collections.singletonList(subVarParameter),</span>
-<span class="fc" id="L279">                Collections.singletonList(subVarPayload),</span>
+<span class="fc" id="L278">            S7RequestMessage subMessage = new S7RequestMessage(</span>
+<span class="fc" id="L279">                request.getMessageType(), (short) tpduRefGen.getAndIncrement(),</span>
+<span class="fc" id="L280">                Collections.singletonList(subVarParameter),</span>
+<span class="fc" id="L281">                Collections.singletonList(subVarPayload),</span>
                 compositeRequestMessage);
 
             // Add the new message to the composite.
-<span class="fc" id="L283">            compositeRequestMessage.addRequestMessage(subMessage);</span>
+<span class="fc" id="L285">            compositeRequestMessage.addRequestMessage(subMessage);</span>
 
             // Calculate the new memory offset.
-<span class="fc" id="L286">            byteOffset += elementSize;</span>
+<span class="fc" id="L288">            curByteOffset += elementSize;</span>
         }
-<span class="fc" id="L288">    }</span>
+<span class="fc" id="L290">    }</span>
 
     @Override
     public S7ResponseMessage processResponse(S7RequestMessage request, S7ResponseMessage response) {
         // If it's a split-up message, check if all parts are now acknowledged.
-<span class="fc bfc" id="L293" title="All 2 branches covered.">        if (request.getParent() instanceof S7CompositeRequestMessage) {</span>
-<span class="fc" id="L294">            S7CompositeRequestMessage parent = (S7CompositeRequestMessage) request.getParent();</span>
+<span class="fc bfc" id="L295" title="All 2 branches covered.">        if (request.getParent() instanceof S7CompositeRequestMessage) {</span>
+<span class="fc" id="L296">            S7CompositeRequestMessage parent = (S7CompositeRequestMessage) request.getParent();</span>
 
             // Add the response to the container so we can add it's information to the composite response.
-<span class="fc" id="L297">            parent.addResponseMessage(response);</span>
+<span class="fc" id="L299">            parent.addResponseMessage(response);</span>
 
             // If all parts of this split-up message are now acknowledged, create a unified
             // response object and pass that up to the higher layers.
-<span class="fc bfc" id="L301" title="All 2 branches covered.">            if (parent.isAcknowledged()) {</span>
-<span class="fc" id="L302">                return getMergedResponseMessage(parent.originalRequest, parent.getResponseMessages());</span>
+<span class="fc bfc" id="L303" title="All 2 branches covered.">            if (parent.isAcknowledged()) {</span>
+<span class="fc" id="L304">                return getMergedResponseMessage(parent.originalRequest, parent.getResponseMessages());</span>
             } else {
-<span class="fc" id="L304">                return null;</span>
+<span class="fc" id="L306">                return null;</span>
             }
         }
         // If it's an ordinary request, simply forward it  to the higher layers.
         else {
-<span class="fc" id="L309">            return response;</span>
+<span class="fc" id="L311">            return response;</span>
         }
     }
 
     private S7ResponseMessage getMergedResponseMessage(S7RequestMessage requestMessage,
                                                        Collection&lt;? extends S7ResponseMessage&gt; responses) {
 
-<span class="fc" id="L316">        S7ResponseMessage firstResponse = null;</span>
-<span class="fc" id="L317">        short tpduReference = requestMessage.getTpduReference();</span>
-<span class="fc" id="L318">        List&lt;S7Parameter&gt; s7Parameters = new LinkedList&lt;&gt;();</span>
-<span class="fc" id="L319">        List&lt;S7Payload&gt; s7Payloads = new LinkedList&lt;&gt;();</span>
-<span class="fc" id="L320">        byte errorClass = 0;</span>
-<span class="fc" id="L321">        byte errorCode = 0;</span>
-<span class="fc" id="L322">        VarParameter readVarParameter = null;</span>
-<span class="fc" id="L323">        VarParameter writeVarParameter = null;</span>
-<span class="fc" id="L324">        VarPayload readVarPayload = null;</span>
-<span class="fc" id="L325">        VarPayload writeVarPayload = null;</span>
+<span class="fc" id="L318">        S7ResponseMessage firstResponse = null;</span>
+<span class="fc" id="L319">        short tpduReference = requestMessage.getTpduReference();</span>
+<span class="fc" id="L320">        List&lt;S7Parameter&gt; s7Parameters = new LinkedList&lt;&gt;();</span>
+<span class="fc" id="L321">        List&lt;S7Payload&gt; s7Payloads = new LinkedList&lt;&gt;();</span>
+<span class="fc" id="L322">        byte errorClass = 0;</span>
+<span class="fc" id="L323">        byte errorCode = 0;</span>
+<span class="fc" id="L324">        VarParameter readVarParameter = null;</span>
+<span class="fc" id="L325">        VarParameter writeVarParameter = null;</span>
+<span class="fc" id="L326">        VarPayload readVarPayload = null;</span>
+<span class="fc" id="L327">        VarPayload writeVarPayload = null;</span>
 
         // TODO: We should change this code to not use the lists of the first parameter or payload as this can cause problems when using mutable lists.
-<span class="fc bfc" id="L328" title="All 2 branches covered.">        for (S7ResponseMessage response : responses) {</span>
-<span class="fc bfc" id="L329" title="All 2 branches covered.">            if(firstResponse == null) {</span>
-<span class="fc" id="L330">                firstResponse = response;</span>
+<span class="fc bfc" id="L330" title="All 2 branches covered.">        for (S7ResponseMessage response : responses) {</span>
+<span class="fc bfc" id="L331" title="All 2 branches covered.">            if(firstResponse == null) {</span>
+<span class="fc" id="L332">                firstResponse = response;</span>
             }
             // Some parameters have to be merged. In case of read and write parameters
             // their items have to be merged into one single parameter.
-<span class="fc bfc" id="L334" title="All 2 branches covered.">            for(S7Parameter parameter : response.getParameters()) {</span>
-<span class="fc bfc" id="L335" title="All 2 branches covered.">                if (parameter.getType() == ParameterType.READ_VAR) {</span>
-<span class="fc bfc" id="L336" title="All 2 branches covered.">                    if (readVarParameter == null) {</span>
-<span class="fc" id="L337">                        readVarParameter = (VarParameter) parameter;</span>
-<span class="fc" id="L338">                        s7Parameters.add(parameter);</span>
+<span class="fc bfc" id="L336" title="All 2 branches covered.">            for(S7Parameter parameter : response.getParameters()) {</span>
+<span class="fc bfc" id="L337" title="All 2 branches covered.">                if (parameter.getType() == ParameterType.READ_VAR) {</span>
+<span class="fc bfc" id="L338" title="All 2 branches covered.">                    if (readVarParameter == null) {</span>
+<span class="fc" id="L339">                        readVarParameter = (VarParameter) parameter;</span>
+<span class="fc" id="L340">                        s7Parameters.add(parameter);</span>
                     } else {
-<span class="fc" id="L340">                        readVarParameter.mergeParameter((VarParameter) parameter);</span>
+<span class="fc" id="L342">                        readVarParameter.mergeParameter((VarParameter) parameter);</span>
                     }
-<span class="pc bpc" id="L342" title="1 of 2 branches missed.">                } else if (parameter.getType() == ParameterType.WRITE_VAR) {</span>
-<span class="fc bfc" id="L343" title="All 2 branches covered.">                    if (writeVarParameter == null) {</span>
-<span class="fc" id="L344">                        writeVarParameter = (VarParameter) parameter;</span>
-<span class="fc" id="L345">                        s7Parameters.add(parameter);</span>
+<span class="pc bpc" id="L344" title="1 of 2 branches missed.">                } else if (parameter.getType() == ParameterType.WRITE_VAR) {</span>
+<span class="fc bfc" id="L345" title="All 2 branches covered.">                    if (writeVarParameter == null) {</span>
+<span class="fc" id="L346">                        writeVarParameter = (VarParameter) parameter;</span>
+<span class="fc" id="L347">                        s7Parameters.add(parameter);</span>
                     } else {
-<span class="fc" id="L347">                        writeVarParameter.mergeParameter((VarParameter) parameter);</span>
+<span class="fc" id="L349">                        writeVarParameter.mergeParameter((VarParameter) parameter);</span>
                     }
                 } else {
-<span class="nc" id="L350">                    s7Parameters.add(parameter);</span>
+<span class="nc" id="L352">                    s7Parameters.add(parameter);</span>
                 }
-<span class="fc" id="L352">            }</span>
+<span class="fc" id="L354">            }</span>
 
             // Some payloads have to be merged. In case of read and write payloads
             // their items have to be merged into one single payload.
-<span class="fc bfc" id="L356" title="All 2 branches covered.">            for(S7Payload payload : response.getPayloads()) {</span>
-<span class="fc bfc" id="L357" title="All 2 branches covered.">                if(payload.getType() == ParameterType.READ_VAR) {</span>
-<span class="fc bfc" id="L358" title="All 2 branches covered.">                    if (readVarPayload == null) {</span>
-<span class="fc" id="L359">                        readVarPayload = (VarPayload) payload;</span>
-<span class="fc" id="L360">                        s7Payloads.add(payload);</span>
+<span class="fc bfc" id="L358" title="All 2 branches covered.">            for(S7Payload payload : response.getPayloads()) {</span>
+<span class="fc bfc" id="L359" title="All 2 branches covered.">                if(payload.getType() == ParameterType.READ_VAR) {</span>
+<span class="fc bfc" id="L360" title="All 2 branches covered.">                    if (readVarPayload == null) {</span>
+<span class="fc" id="L361">                        readVarPayload = (VarPayload) payload;</span>
+<span class="fc" id="L362">                        s7Payloads.add(payload);</span>
                     } else {
-<span class="fc" id="L362">                        readVarPayload.mergePayload((VarPayload) payload);</span>
+<span class="fc" id="L364">                        readVarPayload.mergePayload((VarPayload) payload);</span>
                     }
-<span class="pc bpc" id="L364" title="1 of 2 branches missed.">                } else if(payload.getType() == ParameterType.WRITE_VAR) {</span>
-<span class="fc bfc" id="L365" title="All 2 branches covered.">                    if(writeVarPayload == null) {</span>
-<span class="fc" id="L366">                        writeVarPayload = (VarPayload) payload;</span>
-<span class="fc" id="L367">                        s7Payloads.add(payload);</span>
+<span class="pc bpc" id="L366" title="1 of 2 branches missed.">                } else if(payload.getType() == ParameterType.WRITE_VAR) {</span>
+<span class="fc bfc" id="L367" title="All 2 branches covered.">                    if(writeVarPayload == null) {</span>
+<span class="fc" id="L368">                        writeVarPayload = (VarPayload) payload;</span>
+<span class="fc" id="L369">                        s7Payloads.add(payload);</span>
                     } else {
-<span class="fc" id="L369">                        writeVarPayload.mergePayload((VarPayload) payload);</span>
+<span class="fc" id="L371">                        writeVarPayload.mergePayload((VarPayload) payload);</span>
                     }
                 } else {
-<span class="nc" id="L372">                    s7Payloads.add(payload);</span>
+<span class="nc" id="L374">                    s7Payloads.add(payload);</span>
                 }
-<span class="fc" id="L374">            }</span>
-<span class="fc" id="L375">        }</span>
-<span class="pc bpc" id="L376" title="1 of 2 branches missed.">        if(firstResponse != null) {</span>
-<span class="fc" id="L377">            MessageType messageType = firstResponse.getMessageType();</span>
-<span class="fc" id="L378">            return new S7ResponseMessage(messageType, tpduReference, s7Parameters, s7Payloads, errorClass, errorCode);</span>
+<span class="fc" id="L376">            }</span>
+<span class="fc" id="L377">        }</span>
+<span class="pc bpc" id="L378" title="1 of 2 branches missed.">        if(firstResponse != null) {</span>
+<span class="fc" id="L379">            MessageType messageType = firstResponse.getMessageType();</span>
+<span class="fc" id="L380">            return new S7ResponseMessage(messageType, tpduReference, s7Parameters, s7Payloads, errorClass, errorCode);</span>
         }
-<span class="nc" id="L380">        return null;</span>
+<span class="nc" id="L382">        return null;</span>
     }
 
     static class S7CompositeRequestMessage implements PlcProtocolMessage {
@@ -386,15 +388,15 @@ public class DefaultS7MessageProcessor implements S7MessageProcessor {
         private Collection&lt;S7RequestMessage&gt; requestMessages;
         private Collection&lt;S7ResponseMessage&gt; responseMessages;
 
-<span class="fc" id="L389">        S7CompositeRequestMessage(S7RequestMessage originalRequest) {</span>
-<span class="fc" id="L390">            this.originalRequest = originalRequest;</span>
-<span class="fc" id="L391">            this.requestMessages = new LinkedList&lt;&gt;();</span>
-<span class="fc" id="L392">            this.responseMessages = new LinkedList&lt;&gt;();</span>
-<span class="fc" id="L393">        }</span>
+<span class="fc" id="L391">        S7CompositeRequestMessage(S7RequestMessage originalRequest) {</span>
+<span class="fc" id="L392">            this.originalRequest = originalRequest;</span>
+<span class="fc" id="L393">            this.requestMessages = new LinkedList&lt;&gt;();</span>
+<span class="fc" id="L394">            this.responseMessages = new LinkedList&lt;&gt;();</span>
+<span class="fc" id="L395">        }</span>
 
         @Override
         public PlcProtocolMessage getParent() {
-<span class="nc" id="L397">            return originalRequest;</span>
+<span class="nc" id="L399">            return originalRequest;</span>
         }
 
         /**
@@ -403,28 +405,28 @@ public class DefaultS7MessageProcessor implements S7MessageProcessor {
          * @return true if all children are acknowledged.
          */
         private boolean isAcknowledged() {
-<span class="fc bfc" id="L406" title="All 2 branches covered.">            for (S7RequestMessage requestMessage : requestMessages) {</span>
-<span class="fc bfc" id="L407" title="All 2 branches covered.">                if(!requestMessage.isAcknowledged()) {</span>
-<span class="fc" id="L408">                    return false;</span>
+<span class="fc bfc" id="L408" title="All 2 branches covered.">            for (S7RequestMessage requestMessage : requestMessages) {</span>
+<span class="fc bfc" id="L409" title="All 2 branches covered.">                if(!requestMessage.isAcknowledged()) {</span>
+<span class="fc" id="L410">                    return false;</span>
                 }
-<span class="fc" id="L410">            }</span>
-<span class="fc" id="L411">            return true;</span>
+<span class="fc" id="L412">            }</span>
+<span class="fc" id="L413">            return true;</span>
         }
 
         void addRequestMessage(S7RequestMessage requestMessage) {
-<span class="fc" id="L415">            requestMessages.add(requestMessage);</span>
-<span class="fc" id="L416">        }</span>
+<span class="fc" id="L417">            requestMessages.add(requestMessage);</span>
+<span class="fc" id="L418">        }</span>
 
         private Collection&lt;S7RequestMessage&gt; getRequestMessages() {
-<span class="fc" id="L419">            return requestMessages;</span>
+<span class="fc" id="L421">            return requestMessages;</span>
         }
 
         private void addResponseMessage(S7ResponseMessage responseMessage) {
-<span class="fc" id="L423">            responseMessages.add(responseMessage);</span>
-<span class="fc" id="L424">        }</span>
+<span class="fc" id="L425">            responseMessages.add(responseMessage);</span>
+<span class="fc" id="L426">        }</span>
 
         private Collection&lt;S7ResponseMessage&gt; getResponseMessages() {
-<span class="fc" id="L427">            return responseMessages;</span>
+<span class="fc" id="L429">            return responseMessages;</span>
         }
     }
 
