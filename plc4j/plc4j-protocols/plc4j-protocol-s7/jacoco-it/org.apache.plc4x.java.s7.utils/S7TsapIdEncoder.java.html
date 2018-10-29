@@ -20,25 +20,29 @@ package org.apache.plc4x.java.s7.utils;
 
 import org.apache.plc4x.java.isotp.netty.model.types.DeviceGroup;
 
-<span class="nc" id="L23">public class S7TsapIdEncoder {</span>
+public class S7TsapIdEncoder {
+
+    private S7TsapIdEncoder() {
+        // Prevent this from being instantiated.
+    }
 
     public static short encodeS7TsapId(DeviceGroup deviceGroup, int rack, int slot) {
-<span class="fc" id="L26">        short firstByte = ((short) (deviceGroup.getCode() &lt;&lt; 8));</span>
-<span class="fc" id="L27">        short secondByte = ((short) ((rack &lt;&lt; 4) | (slot &amp; 0x0F)));</span>
-<span class="fc" id="L28">        return (short) (firstByte | secondByte);</span>
+<span class="fc" id="L30">        short firstByte = (short) (deviceGroup.getCode() &lt;&lt; 8);</span>
+<span class="fc" id="L31">        short secondByte = (short) ((rack &lt;&lt; 4) | (slot &amp; 0x0F));</span>
+<span class="fc" id="L32">        return (short) (firstByte | secondByte);</span>
     }
 
     public static DeviceGroup decodeDeviceGroup(short tsapId) {
-<span class="nc" id="L32">        byte deviceGroupCode = (byte) ((tsapId &gt;&gt; 8) &amp; (0xFF));</span>
-<span class="nc" id="L33">        return DeviceGroup.valueOf(deviceGroupCode);</span>
+<span class="nc" id="L36">        byte deviceGroupCode = (byte) ((tsapId &gt;&gt; 8) &amp; (0xFF));</span>
+<span class="nc" id="L37">        return DeviceGroup.valueOf(deviceGroupCode);</span>
     }
 
     public static int decodeRack(short tsapId) {
-<span class="nc" id="L37">        return ((tsapId &gt;&gt; 4) &amp; 0xF);</span>
+<span class="nc" id="L41">        return (tsapId &gt;&gt; 4) &amp; 0xF;</span>
     }
 
     public static int decodeSlot(short tsapId) {
-<span class="nc" id="L41">        return (tsapId &amp; 0xF);</span>
+<span class="nc" id="L45">        return tsapId &amp; 0xF;</span>
     }
 
 }
