@@ -359,27 +359,29 @@ public class DefaultS7MessageProcessor implements S7MessageProcessor {
 <span class="fc bfc" id="L359" title="All 2 branches covered.">                if(payload.getType() == ParameterType.READ_VAR) {</span>
 <span class="fc bfc" id="L360" title="All 2 branches covered.">                    if (readVarPayload == null) {</span>
 <span class="fc" id="L361">                        readVarPayload = (VarPayload) payload;</span>
-<span class="fc" id="L362">                        s7Payloads.add(payload);</span>
                     } else {
-<span class="fc" id="L364">                        readVarPayload.mergePayload((VarPayload) payload);</span>
+<span class="fc" id="L363">                        s7Payloads.remove(readVarPayload);</span>
+<span class="fc" id="L364">                        readVarPayload = readVarPayload.mergePayload((VarPayload) payload);</span>
                     }
-<span class="pc bpc" id="L366" title="1 of 2 branches missed.">                } else if(payload.getType() == ParameterType.WRITE_VAR) {</span>
-<span class="fc bfc" id="L367" title="All 2 branches covered.">                    if(writeVarPayload == null) {</span>
-<span class="fc" id="L368">                        writeVarPayload = (VarPayload) payload;</span>
-<span class="fc" id="L369">                        s7Payloads.add(payload);</span>
+<span class="fc" id="L366">                    s7Payloads.add(readVarPayload);</span>
+<span class="pc bpc" id="L367" title="1 of 2 branches missed.">                } else if(payload.getType() == ParameterType.WRITE_VAR) {</span>
+<span class="fc bfc" id="L368" title="All 2 branches covered.">                    if(writeVarPayload == null) {</span>
+<span class="fc" id="L369">                        writeVarPayload = (VarPayload) payload;</span>
                     } else {
-<span class="fc" id="L371">                        writeVarPayload.mergePayload((VarPayload) payload);</span>
+<span class="fc" id="L371">                        s7Payloads.remove(writeVarPayload);</span>
+<span class="fc" id="L372">                        writeVarPayload = writeVarPayload.mergePayload((VarPayload) payload);</span>
                     }
+<span class="fc" id="L374">                    s7Payloads.add(writeVarPayload);</span>
                 } else {
-<span class="nc" id="L374">                    s7Payloads.add(payload);</span>
+<span class="nc" id="L376">                    s7Payloads.add(payload);</span>
                 }
-<span class="fc" id="L376">            }</span>
-<span class="fc" id="L377">        }</span>
-<span class="pc bpc" id="L378" title="1 of 2 branches missed.">        if(firstResponse != null) {</span>
-<span class="fc" id="L379">            MessageType messageType = firstResponse.getMessageType();</span>
-<span class="fc" id="L380">            return new S7ResponseMessage(messageType, tpduReference, s7Parameters, s7Payloads, errorClass, errorCode);</span>
+<span class="fc" id="L378">            }</span>
+<span class="fc" id="L379">        }</span>
+<span class="pc bpc" id="L380" title="1 of 2 branches missed.">        if(firstResponse != null) {</span>
+<span class="fc" id="L381">            MessageType messageType = firstResponse.getMessageType();</span>
+<span class="fc" id="L382">            return new S7ResponseMessage(messageType, tpduReference, s7Parameters, s7Payloads, errorClass, errorCode);</span>
         }
-<span class="nc" id="L382">        return null;</span>
+<span class="nc" id="L384">        return null;</span>
     }
 
     static class S7CompositeRequestMessage implements PlcProtocolMessage {
@@ -388,15 +390,15 @@ public class DefaultS7MessageProcessor implements S7MessageProcessor {
         private Collection&lt;S7RequestMessage&gt; requestMessages;
         private Collection&lt;S7ResponseMessage&gt; responseMessages;
 
-<span class="fc" id="L391">        S7CompositeRequestMessage(S7RequestMessage originalRequest) {</span>
-<span class="fc" id="L392">            this.originalRequest = originalRequest;</span>
-<span class="fc" id="L393">            this.requestMessages = new LinkedList&lt;&gt;();</span>
-<span class="fc" id="L394">            this.responseMessages = new LinkedList&lt;&gt;();</span>
-<span class="fc" id="L395">        }</span>
+<span class="fc" id="L393">        S7CompositeRequestMessage(S7RequestMessage originalRequest) {</span>
+<span class="fc" id="L394">            this.originalRequest = originalRequest;</span>
+<span class="fc" id="L395">            this.requestMessages = new LinkedList&lt;&gt;();</span>
+<span class="fc" id="L396">            this.responseMessages = new LinkedList&lt;&gt;();</span>
+<span class="fc" id="L397">        }</span>
 
         @Override
         public PlcProtocolMessage getParent() {
-<span class="nc" id="L399">            return originalRequest;</span>
+<span class="nc" id="L401">            return originalRequest;</span>
         }
 
         /**
@@ -405,28 +407,28 @@ public class DefaultS7MessageProcessor implements S7MessageProcessor {
          * @return true if all children are acknowledged.
          */
         private boolean isAcknowledged() {
-<span class="fc bfc" id="L408" title="All 2 branches covered.">            for (S7RequestMessage requestMessage : requestMessages) {</span>
-<span class="fc bfc" id="L409" title="All 2 branches covered.">                if(!requestMessage.isAcknowledged()) {</span>
-<span class="fc" id="L410">                    return false;</span>
+<span class="fc bfc" id="L410" title="All 2 branches covered.">            for (S7RequestMessage requestMessage : requestMessages) {</span>
+<span class="fc bfc" id="L411" title="All 2 branches covered.">                if(!requestMessage.isAcknowledged()) {</span>
+<span class="fc" id="L412">                    return false;</span>
                 }
-<span class="fc" id="L412">            }</span>
-<span class="fc" id="L413">            return true;</span>
+<span class="fc" id="L414">            }</span>
+<span class="fc" id="L415">            return true;</span>
         }
 
         void addRequestMessage(S7RequestMessage requestMessage) {
-<span class="fc" id="L417">            requestMessages.add(requestMessage);</span>
-<span class="fc" id="L418">        }</span>
+<span class="fc" id="L419">            requestMessages.add(requestMessage);</span>
+<span class="fc" id="L420">        }</span>
 
         private Collection&lt;S7RequestMessage&gt; getRequestMessages() {
-<span class="fc" id="L421">            return requestMessages;</span>
+<span class="fc" id="L423">            return requestMessages;</span>
         }
 
         private void addResponseMessage(S7ResponseMessage responseMessage) {
-<span class="fc" id="L425">            responseMessages.add(responseMessage);</span>
-<span class="fc" id="L426">        }</span>
+<span class="fc" id="L427">            responseMessages.add(responseMessage);</span>
+<span class="fc" id="L428">        }</span>
 
         private Collection&lt;S7ResponseMessage&gt; getResponseMessages() {
-<span class="fc" id="L429">            return responseMessages;</span>
+<span class="fc" id="L431">            return responseMessages;</span>
         }
     }
 

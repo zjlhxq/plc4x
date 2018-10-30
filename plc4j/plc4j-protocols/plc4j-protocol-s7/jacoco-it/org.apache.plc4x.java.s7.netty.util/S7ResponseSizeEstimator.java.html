@@ -94,86 +94,78 @@ public class S7ResponseSizeEstimator {
     }
 
     private static short getEstimatedResponseParameterSize(S7Parameter parameter) {
-<span class="nc bnc" id="L97" title="All 2 branches missed.">        if (parameter == null) {</span>
-<span class="nc" id="L98">            return 0;</span>
-        }
-
-<span class="nc bnc" id="L101" title="All 3 branches missed.">        switch (parameter.getType()) {</span>
+<span class="nc bnc" id="L97" title="All 3 branches missed.">        switch (parameter.getType()) {</span>
             case READ_VAR:
             case WRITE_VAR:
-<span class="nc" id="L104">                return getEstimatedResponseReadWriteVarParameterSize((VarParameter) parameter);</span>
+<span class="nc" id="L100">                return getEstimatedResponseReadWriteVarParameterSize((VarParameter) parameter);</span>
             case SETUP_COMMUNICATION:
-<span class="nc" id="L106">                return 8;</span>
+<span class="nc" id="L102">                return 8;</span>
             default:
-<span class="nc" id="L108">                throw new NotImplementedException(&quot;Not implemented&quot;);</span>
+<span class="nc" id="L104">                throw new NotImplementedException(&quot;Not implemented&quot;);</span>
         }
     }
 
     private static short getEstimatedResponseReadWriteVarParameterSize(VarParameter varParameter) {
         // In the response the var parameter only consists of the type and number of items.
-<span class="nc" id="L114">        return 2;</span>
+<span class="nc" id="L110">        return 2;</span>
     }
 
     private static short getEstimatedResponsePayloadsSize(List&lt;S7Parameter&gt; parameters) {
-<span class="nc" id="L118">        short l = 0;</span>
-<span class="nc bnc" id="L119" title="All 2 branches missed.">        if (parameters != null) {</span>
-<span class="nc bnc" id="L120" title="All 2 branches missed.">            for (S7Parameter parameter : parameters) {</span>
-<span class="nc" id="L121">                l += getEstimatedResponsePayloadSize(parameter);</span>
-<span class="nc" id="L122">            }</span>
+<span class="nc" id="L114">        short l = 0;</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">        if (parameters != null) {</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">            for (S7Parameter parameter : parameters) {</span>
+<span class="nc" id="L117">                l += getEstimatedResponsePayloadSize(parameter);</span>
+<span class="nc" id="L118">            }</span>
         }
-<span class="nc" id="L124">        return l;</span>
+<span class="nc" id="L120">        return l;</span>
     }
 
     private static short getEstimatedResponsePayloadSize(S7Parameter parameter) {
-<span class="nc bnc" id="L128" title="All 2 branches missed.">        if (parameter == null) {</span>
-<span class="nc" id="L129">            return 0;</span>
-        }
-
-<span class="nc bnc" id="L132" title="All 4 branches missed.">        switch (parameter.getType()) {</span>
+<span class="nc bnc" id="L124" title="All 3 branches missed.">        switch (parameter.getType()) {</span>
             case READ_VAR:
-<span class="nc" id="L134">                return getEstimatedResponseReadVarPayloadSize((VarParameter) parameter);</span>
+<span class="nc" id="L126">                return getEstimatedResponseReadVarPayloadSize((VarParameter) parameter);</span>
             case WRITE_VAR:
-<span class="nc" id="L136">                return getEstimatedResponseWriteVarPayloadSize((VarParameter) parameter);</span>
-            case SETUP_COMMUNICATION:
-<span class="nc" id="L138">                return 0;</span>
-            default:
-<span class="nc" id="L140">                throw new NotImplementedException(&quot;Not implemented&quot;);</span>
+<span class="nc" id="L128">                return getEstimatedResponseWriteVarPayloadSize((VarParameter) parameter);</span>
+            // As we already handled all cases in the parameter size section, SETUP_COMMUNICATION
+            // is the last possible option.
+            default :
+<span class="nc" id="L132">                return 0;</span>
         }
     }
 
     private static short getEstimatedResponseReadVarPayloadSize(VarParameter varParameter) {
-<span class="nc" id="L145">        short length = 0;</span>
+<span class="nc" id="L137">        short length = 0;</span>
         // Then come the items ...
-<span class="nc bnc" id="L147" title="All 2 branches missed.">        for (VarParameterItem varParameterItem : varParameter.getItems()) {</span>
-<span class="nc" id="L148">            length += getEstimatedResponseReadVarPayloadItemSize(varParameterItem);</span>
-<span class="nc" id="L149">        }</span>
-<span class="nc" id="L150">        return length;</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">        for (VarParameterItem varParameterItem : varParameter.getItems()) {</span>
+<span class="nc" id="L140">            length += getEstimatedResponseReadVarPayloadItemSize(varParameterItem);</span>
+<span class="nc" id="L141">        }</span>
+<span class="nc" id="L142">        return length;</span>
     }
 
     private static short getEstimatedResponseReadVarPayloadItemSize(VarParameterItem varParameterItem) {
         // A var payload item always has a minimum size of 4 bytes (return code, transport size, size (two bytes))
-<span class="nc" id="L155">        short length = 4;</span>
-<span class="nc" id="L156">        S7AnyVarParameterItem s7AnyVarParameterItem = (S7AnyVarParameterItem) varParameterItem;</span>
-<span class="nc" id="L157">        length +=</span>
-<span class="nc" id="L158">            s7AnyVarParameterItem.getNumElements() * s7AnyVarParameterItem.getDataType().getSizeInBytes();</span>
+<span class="nc" id="L147">        short length = 4;</span>
+<span class="nc" id="L148">        S7AnyVarParameterItem s7AnyVarParameterItem = (S7AnyVarParameterItem) varParameterItem;</span>
+<span class="nc" id="L149">        length +=</span>
+<span class="nc" id="L150">            s7AnyVarParameterItem.getNumElements() * s7AnyVarParameterItem.getDataType().getSizeInBytes();</span>
         // It seems that bit payloads need a additional separating 0x00 byte.
-<span class="nc bnc" id="L160" title="All 2 branches missed.">        if(s7AnyVarParameterItem.getDataType() == TransportSize.BOOL) {</span>
-<span class="nc" id="L161">            length += 1;</span>
+<span class="nc bnc" id="L152" title="All 2 branches missed.">        if(s7AnyVarParameterItem.getDataType() == TransportSize.BOOL) {</span>
+<span class="nc" id="L153">            length += 1;</span>
         }
-<span class="nc" id="L163">        return length;</span>
+<span class="nc" id="L155">        return length;</span>
     }
 
     private static short getEstimatedResponseWriteVarPayloadSize(VarParameter varParameter) {
-<span class="nc" id="L167">        short length = 0;</span>
-<span class="nc bnc" id="L168" title="All 2 branches missed.">        for (VarParameterItem varParameterItem : varParameter.getItems()) {</span>
-<span class="nc" id="L169">            length += getEstimatedResponseWriteVarPayloadItemSize(varParameterItem);</span>
-<span class="nc" id="L170">        }</span>
-<span class="nc" id="L171">        return length;</span>
+<span class="nc" id="L159">        short length = 0;</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">        for (VarParameterItem varParameterItem : varParameter.getItems()) {</span>
+<span class="nc" id="L161">            length += getEstimatedResponseWriteVarPayloadItemSize(varParameterItem);</span>
+<span class="nc" id="L162">        }</span>
+<span class="nc" id="L163">        return length;</span>
     }
 
     private static short getEstimatedResponseWriteVarPayloadItemSize(VarParameterItem varParameterItem) {
         // This is just one byte containing the error code.
-<span class="nc" id="L176">        return 1;</span>
+<span class="nc" id="L168">        return 1;</span>
     }
 
 }
