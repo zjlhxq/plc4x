@@ -216,10 +216,10 @@ public class S7Protocol extends ChannelDuplexHandler {
 
     private void encodePayloads(S7Message in, ByteBuf buf) {
 <span class="fc bfc" id="L218" title="All 2 branches covered.">        for (S7Payload payload : in.getPayloads()) {</span>
-<span class="pc bpc" id="L219" title="2 of 3 branches missed.">            switch (payload.getType()) {</span>
+<span class="pc bpc" id="L219" title="1 of 3 branches missed.">            switch (payload.getType()) {</span>
                 case WRITE_VAR:
-<span class="nc" id="L221">                    encodeWriteVarPayload((VarPayload) payload, buf);</span>
-<span class="nc" id="L222">                    break;</span>
+<span class="fc" id="L221">                    encodeWriteVarPayload((VarPayload) payload, buf);</span>
+<span class="fc" id="L222">                    break;</span>
                 case CPU_SERVICES:
 <span class="fc" id="L224">                    encodeCpuServicesPayload((CpuServicesPayload) payload, buf);</span>
 <span class="fc" id="L225">                    break;</span>
@@ -230,15 +230,15 @@ public class S7Protocol extends ChannelDuplexHandler {
 <span class="fc" id="L230">    }</span>
 
     private void encodeWriteVarPayload(VarPayload varPayload, ByteBuf buf) {
-<span class="nc bnc" id="L233" title="All 2 branches missed.">        for (VarPayloadItem payloadItem : varPayload.getItems()) {</span>
-<span class="nc" id="L234">            buf.writeByte(payloadItem.getReturnCode().getCode());</span>
-<span class="nc" id="L235">            buf.writeByte(payloadItem.getDataTransportSize().getCode());</span>
+<span class="fc bfc" id="L233" title="All 2 branches covered.">        for (VarPayloadItem payloadItem : varPayload.getItems()) {</span>
+<span class="fc" id="L234">            buf.writeByte(payloadItem.getReturnCode().getCode());</span>
+<span class="fc" id="L235">            buf.writeByte(payloadItem.getDataTransportSize().getCode());</span>
             // TODO: Check if this is correct?!?! Might be problems with sizeInBits = true/false
-<span class="nc" id="L237">            buf.writeShort(payloadItem.getData().length);</span>
-<span class="nc" id="L238">            buf.writeBytes(payloadItem.getData());</span>
+<span class="fc" id="L237">            buf.writeShort(payloadItem.getData().length);</span>
+<span class="fc" id="L238">            buf.writeBytes(payloadItem.getData());</span>
             // TODO: It looks as if BIT type reads require a 0x00 fill byte at the end ...
-<span class="nc" id="L240">        }</span>
-<span class="nc" id="L241">    }</span>
+<span class="fc" id="L240">        }</span>
+<span class="fc" id="L241">    }</span>
 
     private void encodeCpuServicesPayload(CpuServicesPayload cpuServicesPayload, ByteBuf buf) {
 <span class="fc" id="L244">        buf.writeByte(cpuServicesPayload.getReturnCode().getCode());</span>
@@ -286,11 +286,11 @@ public class S7Protocol extends ChannelDuplexHandler {
     private void encodeParameters(S7Message in, ByteBuf buf) {
 <span class="fc bfc" id="L287" title="All 2 branches covered.">        for (S7Parameter s7Parameter : in.getParameters()) {</span>
 <span class="fc" id="L288">            buf.writeByte(s7Parameter.getType().getCode());</span>
-<span class="pc bpc" id="L289" title="2 of 4 branches missed.">            switch (s7Parameter.getType()) {</span>
+<span class="pc bpc" id="L289" title="1 of 4 branches missed.">            switch (s7Parameter.getType()) {</span>
                 case READ_VAR:
                 case WRITE_VAR:
-<span class="nc" id="L292">                    encodeParameterReadWriteVar(buf, (VarParameter) s7Parameter);</span>
-<span class="nc" id="L293">                    break;</span>
+<span class="fc" id="L292">                    encodeParameterReadWriteVar(buf, (VarParameter) s7Parameter);</span>
+<span class="fc" id="L293">                    break;</span>
                 case SETUP_COMMUNICATION:
 <span class="fc" id="L295">                    encodeParameterSetupCommunication(buf, (SetupCommunicationParameter) s7Parameter);</span>
 <span class="fc" id="L296">                    break;</span>
@@ -330,18 +330,18 @@ public class S7Protocol extends ChannelDuplexHandler {
 <span class="fc" id="L330">    }</span>
 
     private void encodeParameterReadWriteVar(ByteBuf buf, VarParameter s7Parameter) {
-<span class="nc" id="L333">        List&lt;VarParameterItem&gt; items = s7Parameter.getItems();</span>
+<span class="fc" id="L333">        List&lt;VarParameterItem&gt; items = s7Parameter.getItems();</span>
         // PlcReadRequestItem count (Read one variable at a time)
-<span class="nc" id="L335">        buf.writeByte((byte) items.size());</span>
-<span class="nc bnc" id="L336" title="All 2 branches missed.">        for (VarParameterItem item : items) {</span>
-<span class="nc" id="L337">            VariableAddressingMode addressMode = item.getAddressingMode();</span>
-<span class="nc bnc" id="L338" title="All 2 branches missed.">            if (addressMode == VariableAddressingMode.S7ANY) {</span>
-<span class="nc" id="L339">                encodeS7AnyParameterItem(buf, (S7AnyVarParameterItem) item);</span>
+<span class="fc" id="L335">        buf.writeByte((byte) items.size());</span>
+<span class="fc bfc" id="L336" title="All 2 branches covered.">        for (VarParameterItem item : items) {</span>
+<span class="fc" id="L337">            VariableAddressingMode addressMode = item.getAddressingMode();</span>
+<span class="pc bpc" id="L338" title="1 of 2 branches missed.">            if (addressMode == VariableAddressingMode.S7ANY) {</span>
+<span class="fc" id="L339">                encodeS7AnyParameterItem(buf, (S7AnyVarParameterItem) item);</span>
             } else {
 <span class="nc" id="L341">                logger.error(&quot;writing this item type not implemented&quot;);</span>
             }
-<span class="nc" id="L343">        }</span>
-<span class="nc" id="L344">    }</span>
+<span class="fc" id="L343">        }</span>
+<span class="fc" id="L344">    }</span>
 
     private void encodeCpuServicesParameter(ByteBuf buf, CpuServicesParameter parameter) {
         // Output the header for a CPU Services parameter.
@@ -368,24 +368,24 @@ public class S7Protocol extends ChannelDuplexHandler {
 <span class="fc" id="L368">    }</span>
 
     private void encodeS7AnyParameterItem(ByteBuf buf, S7AnyVarParameterItem s7AnyRequestItem) {
-<span class="nc" id="L371">        buf.writeByte(s7AnyRequestItem.getSpecificationType().getCode());</span>
+<span class="fc" id="L371">        buf.writeByte(s7AnyRequestItem.getSpecificationType().getCode());</span>
         // Length of this item (excluding spec type and length)
-<span class="nc" id="L373">        buf.writeByte((byte) 0x0a);</span>
-<span class="nc" id="L374">        buf.writeByte(s7AnyRequestItem.getAddressingMode().getCode());</span>
-<span class="nc" id="L375">        buf.writeByte(s7AnyRequestItem.getDataType().getTypeCode());</span>
-<span class="nc" id="L376">        buf.writeShort(s7AnyRequestItem.getNumElements());</span>
-<span class="nc" id="L377">        buf.writeShort(s7AnyRequestItem.getDataBlockNumber());</span>
-<span class="nc" id="L378">        buf.writeByte(s7AnyRequestItem.getMemoryArea().getCode());</span>
+<span class="fc" id="L373">        buf.writeByte((byte) 0x0a);</span>
+<span class="fc" id="L374">        buf.writeByte(s7AnyRequestItem.getAddressingMode().getCode());</span>
+<span class="fc" id="L375">        buf.writeByte(s7AnyRequestItem.getDataType().getTypeCode());</span>
+<span class="fc" id="L376">        buf.writeShort(s7AnyRequestItem.getNumElements());</span>
+<span class="fc" id="L377">        buf.writeShort(s7AnyRequestItem.getDataBlockNumber());</span>
+<span class="fc" id="L378">        buf.writeByte(s7AnyRequestItem.getMemoryArea().getCode());</span>
         // A S7 address is 3 bytes long. Unfortunately the byte-offset is NOT located in
         // byte 1 and byte 2 and the bit offset in byte 3. Siemens used the last 3 bits of
         // byte 3 for the bit-offset and the remaining 5 bits of byte 3 to contain the lowest
         // 5 bits of the byte-offset. The highest 5 bits of byte 1 are probably left unused
         // for future extensions.
-<span class="nc" id="L384">        buf.writeShort((short) (s7AnyRequestItem.getByteOffset() &gt;&gt; 5));</span>
-<span class="nc" id="L385">        buf.writeByte((byte) ((</span>
-<span class="nc" id="L386">                (s7AnyRequestItem.getByteOffset() &amp; 0x1F) &lt;&lt; 3)</span>
-<span class="nc" id="L387">                | (s7AnyRequestItem.getBitOffset() &amp; 0x07)));</span>
-<span class="nc" id="L388">    }</span>
+<span class="fc" id="L384">        buf.writeShort((short) (s7AnyRequestItem.getByteOffset() &gt;&gt; 5));</span>
+<span class="fc" id="L385">        buf.writeByte((byte) ((</span>
+<span class="fc" id="L386">                (s7AnyRequestItem.getByteOffset() &amp; 0x1F) &lt;&lt; 3)</span>
+<span class="fc" id="L387">                | (s7AnyRequestItem.getBitOffset() &amp; 0x07)));</span>
+<span class="fc" id="L388">    }</span>
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Decoding
@@ -451,29 +451,29 @@ public class S7Protocol extends ChannelDuplexHandler {
 <span class="fc" id="L451">            DataTpdu requestTpdu = sentButUnacknowledgedTpdus.remove(tpduReference);</span>
 
             // Get the corresponding request message.
-<span class="pc bpc" id="L454" title="1 of 2 branches missed.">            S7RequestMessage requestMessage = (requestTpdu != null) ? (S7RequestMessage) requestTpdu.getParent() : null;</span>
+<span class="fc bfc" id="L454" title="All 2 branches covered.">            S7RequestMessage requestMessage = (requestTpdu != null) ? (S7RequestMessage) requestTpdu.getParent() : null;</span>
 
-<span class="pc bpc" id="L456" title="1 of 2 branches missed.">            if(requestMessage != null) {</span>
+<span class="fc bfc" id="L456" title="All 2 branches covered.">            if(requestMessage != null) {</span>
                 // Set this individual request to &quot;acknowledged&quot;.
-<span class="nc" id="L458">                requestMessage.setAcknowledged(true);</span>
+<span class="fc" id="L458">                requestMessage.setAcknowledged(true);</span>
 
                 // Give the request and response to a message processor to process the incoming message.
-<span class="nc bnc" id="L461" title="All 2 branches missed.">                if(messageProcessor != null) {</span>
+<span class="pc bpc" id="L461" title="1 of 2 branches missed.">                if(messageProcessor != null) {</span>
                     try {
-<span class="nc" id="L463">                        responseMessage = messageProcessor.processResponse(requestMessage, responseMessage);</span>
+<span class="fc" id="L463">                        responseMessage = messageProcessor.processResponse(requestMessage, responseMessage);</span>
 <span class="nc" id="L464">                    } catch(Exception e) {</span>
 <span class="nc" id="L465">                        logger.error(&quot;Error processing message&quot;, e);</span>
 <span class="nc" id="L466">                        ctx.fireExceptionCaught(e);</span>
 <span class="nc" id="L467">                        return;</span>
-<span class="nc" id="L468">                    }</span>
+<span class="fc" id="L468">                    }</span>
                 }
 
-<span class="nc bnc" id="L471" title="All 2 branches missed.">                if(responseMessage != null) {</span>
-<span class="nc" id="L472">                    out.add(responseMessage);</span>
+<span class="pc bpc" id="L471" title="1 of 2 branches missed.">                if(responseMessage != null) {</span>
+<span class="fc" id="L472">                    out.add(responseMessage);</span>
 
                     // If this is a USER_DATA packet the probability is high that this is
                     // a response to the identification request, we have to handle that.
-<span class="nc bnc" id="L476" title="All 2 branches missed.">                    if(responseMessage.getMessageType() == MessageType.USER_DATA) {</span>
+<span class="pc bpc" id="L476" title="1 of 2 branches missed.">                    if(responseMessage.getMessageType() == MessageType.USER_DATA) {</span>
 <span class="nc bnc" id="L477" title="All 2 branches missed.">                        for (S7Payload payload : responseMessage.getPayloads()) {</span>
 <span class="nc bnc" id="L478" title="All 2 branches missed.">                            if(payload instanceof CpuServicesPayload) {</span>
 <span class="nc" id="L479">                                handleIdentifyRemote(ctx, (CpuServicesPayload) payload);</span>
@@ -483,7 +483,7 @@ public class S7Protocol extends ChannelDuplexHandler {
                 }
 
                 // Eventually send the next message (if there is one).
-<span class="nc" id="L486">                trySendingMessages(ctx);</span>
+<span class="fc" id="L486">                trySendingMessages(ctx);</span>
             }
 
 <span class="fc" id="L489">        } else {</span>
@@ -546,11 +546,11 @@ public class S7Protocol extends ChannelDuplexHandler {
     private List&lt;S7Payload&gt; decodePayloads(ByteBuf userData, boolean isResponse, short userDataLength, List&lt;S7Parameter&gt; s7Parameters) {
 <span class="fc" id="L547">        List&lt;S7Payload&gt; s7Payloads = new LinkedList&lt;&gt;();</span>
 <span class="fc bfc" id="L548" title="All 2 branches covered.">        for (S7Parameter s7Parameter : s7Parameters) {</span>
-<span class="pc bpc" id="L549" title="1 of 2 branches missed.">            if(s7Parameter instanceof VarParameter) {</span>
-<span class="nc" id="L550">                VarParameter readWriteVarParameter = (VarParameter) s7Parameter;</span>
-<span class="nc" id="L551">                VarPayload varPayload = decodeVarPayload(userData, isResponse, userDataLength, readWriteVarParameter);</span>
-<span class="nc" id="L552">                s7Payloads.add(varPayload);</span>
-<span class="pc bfc" id="L553" title="All 2 branches covered.">            } else if(s7Parameter instanceof CpuServicesParameter) {</span>
+<span class="fc bfc" id="L549" title="All 2 branches covered.">            if(s7Parameter instanceof VarParameter) {</span>
+<span class="fc" id="L550">                VarParameter readWriteVarParameter = (VarParameter) s7Parameter;</span>
+<span class="fc" id="L551">                VarPayload varPayload = decodeVarPayload(userData, isResponse, userDataLength, readWriteVarParameter);</span>
+<span class="fc" id="L552">                s7Payloads.add(varPayload);</span>
+<span class="fc bfc" id="L553" title="All 2 branches covered.">            } else if(s7Parameter instanceof CpuServicesParameter) {</span>
 <span class="fc" id="L554">                CpuServicesPayload cpuServicesPayload = decodeCpuServicesPayload(userData);</span>
 <span class="fc" id="L555">                s7Payloads.add(cpuServicesPayload);</span>
             }
@@ -560,40 +560,40 @@ public class S7Protocol extends ChannelDuplexHandler {
 
     private VarPayload decodeVarPayload(ByteBuf userData, boolean isResponse, short userDataLength,
                                         VarParameter readWriteVarParameter) {
-<span class="nc" id="L563">        List&lt;VarPayloadItem&gt; payloadItems = new LinkedList&lt;&gt;();</span>
+<span class="fc" id="L563">        List&lt;VarPayloadItem&gt; payloadItems = new LinkedList&lt;&gt;();</span>
 
         // Just keep on reading payloads until the provided length is read.
-<span class="nc" id="L566">        int i = 0;</span>
-<span class="nc bnc" id="L567" title="All 2 branches missed.">        while (i &lt; userDataLength) {</span>
-<span class="nc" id="L568">            DataTransportErrorCode dataTransportErrorCode = DataTransportErrorCode.valueOf(userData.readByte());</span>
+<span class="fc" id="L566">        int i = 0;</span>
+<span class="fc bfc" id="L567" title="All 2 branches covered.">        while (i &lt; userDataLength) {</span>
+<span class="fc" id="L568">            DataTransportErrorCode dataTransportErrorCode = DataTransportErrorCode.valueOf(userData.readByte());</span>
             // This is a response to a WRITE_VAR request (It only contains the return code for every sent item.
-<span class="nc bnc" id="L570" title="All 4 branches missed.">            if ((readWriteVarParameter.getType() == ParameterType.WRITE_VAR) &amp;&amp; isResponse) {</span>
+<span class="pc bpc" id="L570" title="1 of 4 branches missed.">            if ((readWriteVarParameter.getType() == ParameterType.WRITE_VAR) &amp;&amp; isResponse) {</span>
                 // Initialize a rudimentary payload (This is updated in the Plc4XS7Protocol class
-<span class="nc" id="L572">                VarPayloadItem payload = new VarPayloadItem(dataTransportErrorCode, null, null);</span>
-<span class="nc" id="L573">                payloadItems.add(payload);</span>
-<span class="nc" id="L574">                i += 1;</span>
-<span class="nc" id="L575">            }</span>
+<span class="fc" id="L572">                VarPayloadItem payload = new VarPayloadItem(dataTransportErrorCode, null, null);</span>
+<span class="fc" id="L573">                payloadItems.add(payload);</span>
+<span class="fc" id="L574">                i += 1;</span>
+<span class="fc" id="L575">            }</span>
             // This is a response to a READ_VAR request.
-<span class="nc bnc" id="L577" title="All 4 branches missed.">            else if ((readWriteVarParameter.getType() == ParameterType.READ_VAR) &amp;&amp; isResponse) {</span>
-<span class="nc" id="L578">                DataTransportSize dataTransportSize = DataTransportSize.valueOf(userData.readByte());</span>
-<span class="nc bnc" id="L579" title="All 2 branches missed.">                short length = dataTransportSize.isSizeInBits() ?</span>
-<span class="nc" id="L580">                    (short) Math.ceil(userData.readShort() / 8.0) : userData.readShort();</span>
-<span class="nc" id="L581">                byte[] data = new byte[length];</span>
-<span class="nc" id="L582">                userData.readBytes(data);</span>
+<span class="pc bpc" id="L577" title="2 of 4 branches missed.">            else if ((readWriteVarParameter.getType() == ParameterType.READ_VAR) &amp;&amp; isResponse) {</span>
+<span class="fc" id="L578">                DataTransportSize dataTransportSize = DataTransportSize.valueOf(userData.readByte());</span>
+<span class="pc bpc" id="L579" title="1 of 2 branches missed.">                short length = dataTransportSize.isSizeInBits() ?</span>
+<span class="pc" id="L580">                    (short) Math.ceil(userData.readShort() / 8.0) : userData.readShort();</span>
+<span class="fc" id="L581">                byte[] data = new byte[length];</span>
+<span class="fc" id="L582">                userData.readBytes(data);</span>
                 // Initialize a rudimentary payload (This is updated in the Plc4XS7Protocol class
-<span class="nc" id="L584">                VarPayloadItem payload = new VarPayloadItem(dataTransportErrorCode, dataTransportSize, data);</span>
-<span class="nc" id="L585">                payloadItems.add(payload);</span>
-<span class="nc" id="L586">                i += S7SizeHelper.getPayloadLength(payload);</span>
+<span class="fc" id="L584">                VarPayloadItem payload = new VarPayloadItem(dataTransportErrorCode, dataTransportSize, data);</span>
+<span class="fc" id="L585">                payloadItems.add(payload);</span>
+<span class="fc" id="L586">                i += S7SizeHelper.getPayloadLength(payload);</span>
                 // It seems that datatype BIT reads an additional byte, if it's not the last.
 
-<span class="nc bnc" id="L589" title="All 4 branches missed.">                if(dataTransportSize.isHasBlankByte() &amp;&amp; (userData.readableBytes() &gt; 0)) {</span>
+<span class="pc bpc" id="L589" title="2 of 4 branches missed.">                if(dataTransportSize.isHasBlankByte() &amp;&amp; (userData.readableBytes() &gt; 0)) {</span>
 <span class="nc" id="L590">                    userData.readByte();</span>
 <span class="nc" id="L591">                    i++;</span>
                 }
             }
-<span class="nc" id="L594">        }</span>
+<span class="fc" id="L594">        }</span>
 
-<span class="nc" id="L596">        return new VarPayload(readWriteVarParameter.getType(), payloadItems);</span>
+<span class="fc" id="L596">        return new VarPayload(readWriteVarParameter.getType(), payloadItems);</span>
     }
 
     private CpuServicesPayload decodeCpuServicesPayload(ByteBuf userData) {
@@ -642,19 +642,19 @@ public class S7Protocol extends ChannelDuplexHandler {
 <span class="nc" id="L642">            logger.error(&quot;Could not find parameter type&quot;);</span>
 <span class="nc" id="L643">            return null;</span>
         }
-<span class="pc bpc" id="L645" title="2 of 4 branches missed.">        switch (parameterType) {</span>
+<span class="pc bpc" id="L645" title="1 of 4 branches missed.">        switch (parameterType) {</span>
             case CPU_SERVICES:
 <span class="fc" id="L647">                return decodeCpuServicesParameter(in);</span>
             case READ_VAR:
             case WRITE_VAR:
                 List&lt;VarParameterItem&gt; varParamameter;
-<span class="nc" id="L651">                byte numItems = in.readByte();</span>
-<span class="nc bnc" id="L652" title="All 2 branches missed.">                if (!isResponse) {</span>
+<span class="fc" id="L651">                byte numItems = in.readByte();</span>
+<span class="pc bpc" id="L652" title="1 of 2 branches missed.">                if (!isResponse) {</span>
 <span class="nc" id="L653">                    varParamameter = decodeReadWriteVarParameter(in, numItems);</span>
                 } else {
-<span class="nc" id="L655">                    varParamameter = Collections.emptyList();</span>
+<span class="fc" id="L655">                    varParamameter = Collections.emptyList();</span>
                 }
-<span class="nc" id="L657">                return new VarParameter(parameterType, varParamameter);</span>
+<span class="fc" id="L657">                return new VarParameter(parameterType, varParamameter);</span>
             case SETUP_COMMUNICATION:
                 // Reserved (is always constant 0x00)
 <span class="fc" id="L660">                in.readByte();</span>
@@ -752,7 +752,7 @@ public class S7Protocol extends ChannelDuplexHandler {
             // Get the TPDU that is up next in the queue.
 <span class="fc" id="L753">            DataTpdu curTpdu = (DataTpdu) queue.current();</span>
 
-<span class="pc bpc" id="L755" title="1 of 2 branches missed.">            if (curTpdu != null) {</span>
+<span class="fc bfc" id="L755" title="All 2 branches covered.">            if (curTpdu != null) {</span>
                 // Send the TPDU.
                 try {
 <span class="fc" id="L758">                    ChannelFuture channelFuture = queue.removeAndWrite();</span>

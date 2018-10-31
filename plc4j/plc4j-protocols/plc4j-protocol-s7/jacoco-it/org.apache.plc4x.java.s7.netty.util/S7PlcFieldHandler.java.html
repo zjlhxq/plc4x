@@ -33,24 +33,24 @@ import java.util.BitSet;
 import java.util.LinkedList;
 import java.util.List;
 
-<span class="nc" id="L36">public class S7PlcFieldHandler extends DefaultPlcFieldHandler {</span>
+<span class="fc" id="L36">public class S7PlcFieldHandler extends DefaultPlcFieldHandler {</span>
 
     @Override
     public PlcField createField(String fieldQuery) {
-<span class="nc bnc" id="L40" title="All 2 branches missed.">        if (S7Field.matches(fieldQuery)) {</span>
-<span class="nc" id="L41">            return S7Field.of(fieldQuery);</span>
+<span class="pc bpc" id="L40" title="1 of 2 branches missed.">        if (S7Field.matches(fieldQuery)) {</span>
+<span class="fc" id="L41">            return S7Field.of(fieldQuery);</span>
         }
 <span class="nc" id="L43">        throw new PlcInvalidFieldException(fieldQuery);</span>
     }
 
     @Override
     public BaseDefaultFieldItem encodeBoolean(PlcField field, Object[] values) {
-<span class="nc" id="L48">        S7Field s7Field = (S7Field) field;</span>
+<span class="fc" id="L48">        S7Field s7Field = (S7Field) field;</span>
         // All of these types are declared as Bit or Bit-String types.
-<span class="nc bnc" id="L50" title="All 4 branches missed.">        if ((s7Field.getDataType() == TransportSize.BOOL) || (s7Field.getDataType() == TransportSize.BYTE) ||</span>
+<span class="pc bpc" id="L50" title="3 of 4 branches missed.">        if ((s7Field.getDataType() == TransportSize.BOOL) || (s7Field.getDataType() == TransportSize.BYTE) ||</span>
 <span class="nc bnc" id="L51" title="All 4 branches missed.">            (s7Field.getDataType() == TransportSize.WORD) || (s7Field.getDataType() == TransportSize.DWORD) ||</span>
 <span class="nc bnc" id="L52" title="All 2 branches missed.">            (s7Field.getDataType() == TransportSize.LWORD)) {</span>
-<span class="nc" id="L53">            return internalEncodeBoolean(field, values);</span>
+<span class="fc" id="L53">            return internalEncodeBoolean(field, values);</span>
         }
 <span class="nc" id="L55">        throw new PlcRuntimeException(&quot;Invalid encoder for type &quot; + s7Field.getDataType().name());</span>
     }
@@ -161,24 +161,24 @@ import java.util.List;
     }
 
     private BaseDefaultFieldItem internalEncodeBoolean(PlcField field, Object[] values) {
-<span class="nc" id="L164">        S7Field s7Field = (S7Field) field;</span>
-<span class="nc bnc" id="L165" title="All 2 branches missed.">        switch (s7Field.getDataType()) {</span>
+<span class="fc" id="L164">        S7Field s7Field = (S7Field) field;</span>
+<span class="pc bpc" id="L165" title="1 of 2 branches missed.">        switch (s7Field.getDataType()) {</span>
             case BOOL:
             case BYTE:
             case WORD:
             case DWORD:
             case LWORD:
-<span class="nc" id="L171">                break;</span>
+<span class="fc" id="L171">                break;</span>
             default:
 <span class="nc" id="L173">                throw new IllegalArgumentException(</span>
 <span class="nc" id="L174">                    &quot;Cannot assign boolean values to &quot; + s7Field.getDataType().name() + &quot; fields.&quot;);</span>
         }
-<span class="nc" id="L176">        List&lt;Boolean&gt; booleanValues = new LinkedList&lt;&gt;();</span>
-<span class="nc bnc" id="L177" title="All 2 branches missed.">        for (Object value : values) {</span>
-<span class="nc bnc" id="L178" title="All 2 branches missed.">            if (value instanceof Boolean) {</span>
-<span class="nc" id="L179">                Boolean booleanValue = (Boolean) value;</span>
-<span class="nc" id="L180">                booleanValues.add(booleanValue);</span>
-<span class="nc bnc" id="L181" title="All 2 branches missed.">            } else if (value instanceof Byte) {</span>
+<span class="fc" id="L176">        List&lt;Boolean&gt; booleanValues = new LinkedList&lt;&gt;();</span>
+<span class="fc bfc" id="L177" title="All 2 branches covered.">        for (Object value : values) {</span>
+<span class="pc bpc" id="L178" title="1 of 2 branches missed.">            if (value instanceof Boolean) {</span>
+<span class="fc" id="L179">                Boolean booleanValue = (Boolean) value;</span>
+<span class="fc" id="L180">                booleanValues.add(booleanValue);</span>
+<span class="pc bnc" id="L181" title="All 2 branches missed.">            } else if (value instanceof Byte) {</span>
 <span class="nc" id="L182">                Byte byteValue = (Byte) value;</span>
 <span class="nc" id="L183">                BitSet bitSet = BitSet.valueOf(new byte[]{byteValue});</span>
 <span class="nc bnc" id="L184" title="All 2 branches missed.">                for (int i = 0; i &lt; 8; i++) {</span>
@@ -208,7 +208,7 @@ import java.util.List;
 <span class="nc" id="L208">                        &quot; is not assignable to &quot; + s7Field.getDataType().name() + &quot; fields.&quot;);</span>
             }
         }
-<span class="nc" id="L211">        return new DefaultBooleanFieldItem(booleanValues.toArray(new Boolean[0]));</span>
+<span class="fc" id="L211">        return new DefaultBooleanFieldItem(booleanValues.toArray(new Boolean[0]));</span>
     }
 
     private BaseDefaultFieldItem internalEncodeInteger(PlcField field, Object[] values) {
