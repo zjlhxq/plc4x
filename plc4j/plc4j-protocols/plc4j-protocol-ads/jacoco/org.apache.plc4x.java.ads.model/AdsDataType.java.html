@@ -23,9 +23,11 @@ import org.apache.commons.lang3.ArrayUtils;
 import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
 /**
@@ -34,24 +36,24 @@ import java.util.stream.IntStream;
  * @see &lt;a href=&quot;https://infosys.beckhoff.com/english.php?content=../content/1033/tcsystemmanager/basics/TcSysMgr_DatatypeComparison.htm&amp;id=&quot;&gt;TwinCAT System Manager - I/O Variables&lt;/a&gt;
  * @see &lt;a href=&quot;https://infosys.beckhoff.com/english.php?content=../content/1033/tcplccontrol/html/tcplcctrl_plc_data_types_overview.htm&amp;id&quot;&gt;TwinCAT PLC Control: Data Types&lt;/a&gt;
  */
-<span class="fc" id="L37">public enum AdsDataType {</span>
+<span class="fc" id="L39">public enum AdsDataType {</span>
     // TODO: maybe this are just types for the plc ide and can be removed
     // https://infosys.beckhoff.com/english.php?content=../content/1033/tcsystemmanager/basics/TcSysMgr_DatatypeComparison.htm&amp;id=
-<span class="fc" id="L40">    BIT(8),</span>
-<span class="fc" id="L41">    BIT8(8),</span>
-<span class="fc" id="L42">    BITARR8(8),</span>
-<span class="fc" id="L43">    BITARR16(16),</span>
-<span class="fc" id="L44">    BITARR32(32),</span>
-<span class="fc" id="L45">    INT8(8),</span>
-<span class="fc" id="L46">    INT16(Short.MIN_VALUE, Short.MAX_VALUE, 16),</span>
-<span class="fc" id="L47">    INT32(Integer.MIN_VALUE, Integer.MAX_VALUE, 32),</span>
-<span class="fc" id="L48">    INT64(Long.MIN_VALUE, Long.MAX_VALUE, 64),</span>
-<span class="fc" id="L49">    UINT8(0, Short.MAX_VALUE, 8),</span>
-<span class="fc" id="L50">    UINT16(0, Integer.MAX_VALUE, 16),</span>
-<span class="fc" id="L51">    UINT32(0, produceUnsignedMaxValue(32), 32),</span>
-<span class="fc" id="L52">    UINT64(0, produceUnsignedMaxValue(64), 64),</span>
-<span class="fc" id="L53">    FLOAT(-Float.MAX_VALUE, Float.MAX_VALUE, 32),</span>
-<span class="fc" id="L54">    DOUBLE(-Double.MAX_VALUE, Double.MAX_VALUE, 64),</span>
+<span class="fc" id="L42">    BIT(0, 1, 8),</span>
+<span class="fc" id="L43">    BIT8((short) 0x00, (short) 0xFF, 8),</span>
+<span class="fc" id="L44">    BITARR8((short) 0x00, (short) 0xFF, 8),</span>
+<span class="fc" id="L45">    BITARR16(0x0000, 0xFFFF, 16),</span>
+<span class="fc" id="L46">    BITARR32(0x0000_0000L, 0xFFFF_FFFFL, 32),</span>
+<span class="fc" id="L47">    INT8(Byte.MIN_VALUE, Byte.MAX_VALUE, 8),</span>
+<span class="fc" id="L48">    INT16(Short.MIN_VALUE, Short.MAX_VALUE, 16),</span>
+<span class="fc" id="L49">    INT32(Integer.MIN_VALUE, Integer.MAX_VALUE, 32),</span>
+<span class="fc" id="L50">    INT64(Long.MIN_VALUE, Long.MAX_VALUE, 64),</span>
+<span class="fc" id="L51">    UINT8((short) 0, (short) 0xFF, 8),</span>
+<span class="fc" id="L52">    UINT16(0, 0xFFFF, 16),</span>
+<span class="fc" id="L53">    UINT32(0L, 0xFFFF_FFFFL, 32),</span>
+<span class="fc" id="L54">    UINT64(BigInteger.ZERO, produceUnsignedMaxValue(8), 64),</span>
+<span class="fc" id="L55">    FLOAT(-Float.MAX_VALUE, Float.MAX_VALUE, 32),</span>
+<span class="fc" id="L56">    DOUBLE(-Double.MAX_VALUE, Double.MAX_VALUE, 64),</span>
     // https://infosys.beckhoff.com/english.php?content=../content/1033/tcplccontrol/html/tcplcctrl_plc_data_types_overview.htm&amp;id
     // Standard Data Types
     /**
@@ -67,7 +69,7 @@ import java.util.stream.IntStream;
      * &lt;p&gt;
      * The boolean variable is in the same memory range as the byte variable.
      */
-<span class="fc" id="L70">    BOOL(8),</span>
+<span class="fc" id="L72">    BOOL((byte) 0, (byte) 1, 8),</span>
     /**
      * BYTE
      * &lt;p&gt;
@@ -76,7 +78,7 @@ import java.util.stream.IntStream;
      * Type	Lower bound	Upper bound	Memory use
      * BYTE	0	255	8 Bit
      */
-<span class="fc" id="L79">    BYTE(0, 255, 8),</span>
+<span class="fc" id="L81">    BYTE((short) 0, (short) 255, 8),</span>
     /**
      * WORD
      * Integer data type.
@@ -84,7 +86,7 @@ import java.util.stream.IntStream;
      * Type	Lower bound	Upper bound	Memory use
      * WORD	0	65535	16 Bit
      */
-<span class="fc" id="L87">    WORD(0, 65535, 16),</span>
+<span class="fc" id="L89">    WORD(0, 65535, 16),</span>
     /**
      * DWORD
      * Integer data type.
@@ -92,7 +94,7 @@ import java.util.stream.IntStream;
      * Type	Lower bound	Upper bound	Memory use
      * DWORD	0	4294967295	32 Bit
      */
-<span class="fc" id="L95">    DWORD(0, 4294967295L, 32),</span>
+<span class="fc" id="L97">    DWORD(0L, 4294967295L, 32),</span>
     /**
      * SINT
      * (Short) signed integer data type.
@@ -100,7 +102,7 @@ import java.util.stream.IntStream;
      * Type	Lower bound	Upper bound	Memory use
      * SINT	-128	127	8 Bit
      */
-<span class="fc" id="L103">    SINT(-128, 127, 8),</span>
+<span class="fc" id="L105">    SINT(Byte.MIN_VALUE, Byte.MAX_VALUE, 8),</span>
     /**
      * USINT
      * Unsigned (short) integer data type.
@@ -108,7 +110,7 @@ import java.util.stream.IntStream;
      * Type	Lower bound	Upper bound	Memory use
      * USINT	0	255	8 Bit
      */
-<span class="fc" id="L111">    USINT(0, 255, 8),</span>
+<span class="fc" id="L113">    USINT((short) 0, (short) 0xFF, 8),</span>
     /**
      * INT
      * Signed integer data type.
@@ -116,7 +118,7 @@ import java.util.stream.IntStream;
      * Type	Lower bound	Upper bound	Memory use
      * INT	-32768	32767	16 Bit
      */
-<span class="fc" id="L119">    INT(-32768, 32767, 16),</span>
+<span class="fc" id="L121">    INT(Short.MIN_VALUE, Short.MAX_VALUE, 16),</span>
     /**
      * UINT
      * Unsigned integer data type.
@@ -124,7 +126,7 @@ import java.util.stream.IntStream;
      * Type	Lower bound	Upper bound	Memory use
      * UINT	0	65535	16 Bit
      */
-<span class="fc" id="L127">    UINT(0, 65535, 16),</span>
+<span class="fc" id="L129">    UINT(0, 65535, 16),</span>
     /**
      * DINT
      * Signed integer data type.
@@ -132,7 +134,7 @@ import java.util.stream.IntStream;
      * Type	Lower bound	Upper bound	Memory use
      * DINT	-2147483648	2147483647	32 Bit
      */
-<span class="fc" id="L135">    DINT(-2147483648, 2147483647, 32),</span>
+<span class="fc" id="L137">    DINT(-2147483648, 2147483647, 32),</span>
     /**
      * UDINT
      * Unsigned integer data type.
@@ -140,15 +142,15 @@ import java.util.stream.IntStream;
      * Type	Lower bound	Upper bound	Memory use
      * UDINT	0	4294967295	32 Bit
      */
-<span class="fc" id="L143">    UDINT(0, 4294967295L, 32),</span>
+<span class="fc" id="L145">    UDINT(0L, 4294967295L, 32),</span>
     /**
      * LINT  (64 bit integer, currently not supported by TwinCAT)
      */
-<span class="fc" id="L147">    LINT(64),</span>
+<span class="fc" id="L149">    LINT(Long.MIN_VALUE, Long.MAX_VALUE, 64),</span>
     /**
      * ULINT (Unsigned 64 bit integer, currently not supported by TwinCAT)
      */
-<span class="fc" id="L151">    ULINT(64),</span>
+<span class="fc" id="L153">    ULINT(BigInteger.ZERO, produceUnsignedMaxValue(8), 64),</span>
     /**
      * REAL
      * 32 Bit floating point data type. It is required to represent rational numbers.
@@ -156,7 +158,7 @@ import java.util.stream.IntStream;
      * Type	Lower bound	Upper bound	Memory use
      * REAL	~ -3.402823 x 1038	~ 3.402823 x 1038	32 Bit
      */
-<span class="fc" id="L159">    REAL(Float.MIN_VALUE, Float.MAX_VALUE, 32),</span>
+<span class="fc" id="L161">    REAL(Float.MIN_VALUE, Float.MAX_VALUE, 32),</span>
     /**
      * LREAL
      * 64 Bit floating point data type. It is required to represent rational numbers.
@@ -164,7 +166,7 @@ import java.util.stream.IntStream;
      * Type	Lower bound	Upper bound	Memory use
      * LREAL	~ -1.79769313486231E308	~ 1.79769313486232E308	64 Bit
      */
-<span class="fc" id="L167">    LREAL(Double.MIN_VALUE, Double.MAX_VALUE, 64),</span>
+<span class="fc" id="L169">    LREAL(Double.MIN_VALUE, Double.MAX_VALUE, 64),</span>
     /**
      * STRING
      * A STRING type variable can contain any string of characters. The size entry in the declaration determines how much memory space should be reserved for the variable. It refers to the number of characters in the string and can be placed in parentheses or square brackets.
@@ -177,7 +179,7 @@ import java.util.stream.IntStream;
      * If no size specification is given, the default size of 80 characters will be used: Memory use [Bytes] =  80 + 1 Byte for string terminated Null character;
      * If string size specification is given: Memory use [Bytes] = String Size + 1 Byte for string terminated Null character);
      */
-<span class="fc" id="L180">    STRING(81 * 8),</span>
+<span class="fc" id="L182">    STRING(81 * 8),</span>
     /**
      * TIME
      * Duration time. The most siginificant digit is one millisecond. The data type is handled internally like DWORD.
@@ -185,7 +187,7 @@ import java.util.stream.IntStream;
      * Type	Lower bound	Upper bound	Memory use
      * TIME	T#0ms	T#71582m47s295ms	32 Bit
      */
-<span class="fc" id="L188">    TIME(0, Duration.ofMinutes(71582).plusSeconds(47).plusMillis(295).toMillis(), 32),</span>
+<span class="fc" id="L190">    TIME(0L, Duration.ofMinutes(71582).plusSeconds(47).plusMillis(295).toMillis(), 32),</span>
     /**
      * TIME_OF_DAY
      * TOD
@@ -197,7 +199,7 @@ import java.util.stream.IntStream;
      * &lt;p&gt;
      * TOD#00:00	TOD#1193:02:47.295	32 Bit
      *///TODO: strange maximum
-<span class="fc" id="L200">    TIME_OF_DAY(0, ChronoUnit.MILLIS.between(LocalTime.of(0, 0), LocalTime.of(23, 59, 59)), 32),</span>
+<span class="fc" id="L202">    TIME_OF_DAY(0L, ChronoUnit.MILLIS.between(LocalTime.of(0, 0), LocalTime.of(23, 59, 59)), 32),</span>
     /**
      * DATE
      * Date. The most significant digit is one second. The data type is handled internally like DWORD.
@@ -205,7 +207,7 @@ import java.util.stream.IntStream;
      * Type	Lower bound	Upper bound	Memory use
      * DATE	D#1970-01-01	D#2106-02-06	32 Bit
      */
-<span class="fc" id="L208">    DATE(0, ChronoUnit.SECONDS.between(LocalDateTime.of(1970, 1, 1, 0, 0), LocalDateTime.of(2106, 2, 6, 0, 0)), 32),</span>
+<span class="fc" id="L210">    DATE(0L, TimeUnit.DAYS.toSeconds(ChronoUnit.DAYS.between(LocalDate.of(1970, 1, 1), LocalDate.of(2106, 2, 6))), 32),</span>
     /**
      * DATE_AND_TIME
      * DT
@@ -216,8 +218,8 @@ import java.util.stream.IntStream;
      * DT
      * &lt;p&gt;
      * DT#1970-01-01-00:00	DT#2106-02-06-06:28:15	32 Bit
-     *////TODO: calculate max
-<span class="fc" id="L220">    DATE_AND_TIME(0, -1, 32),</span>
+     */
+<span class="fc" id="L222">    DATE_AND_TIME(0L, ChronoUnit.SECONDS.between(LocalDateTime.of(1970, 1, 1, 0, 0), LocalDateTime.of(2106, 2, 6, 6, 28, 15)), 32),</span>
     //User-defined Data Types
     /**
      * Arrays
@@ -278,7 +280,7 @@ import java.util.stream.IntStream;
      * &lt;p&gt;
      * If you define a function in your project with the name CheckBounds, you can automatically check for out-of-range errors in arrays ! The name of the function is fixed and can only have this designation.
      */
-<span class="fc" id="L281">    ARRAY(-1),//TODO: implement me</span>
+<span class="fc" id="L283">    ARRAY(-1),//TODO: implement me</span>
     /**
      * Pointer
      * Variable or function block addresses are saved in pointers while a program is running. Pointer declarations have the following syntax:
@@ -321,7 +323,7 @@ import java.util.stream.IntStream;
      * ptByCurrDataOffs := udiAddress;
      * (* -- end of pointer increment ---*)
      */
-<span class="fc" id="L324">    POINTER(-1),//TODO: implement me,</span>
+<span class="fc" id="L326">    POINTER(-1),//TODO: implement me,</span>
     /**
      * Enumeration (ENUM)
      * Enumeration is a user-defined data type that is made up of a number of string constants. These constants are referred to as enumeration values. Enumeration values are recognized in all areas of the project even if they were locally declared within aPOU. It is best to create your enumerations as objects in the Object Organizer under the register card Data types. They begin with the keyword TYPE and end with END_TYPE.
@@ -349,7 +351,7 @@ import java.util.stream.IntStream;
      * &lt;p&gt;
      * Error: red may not be used for both TRAFFIC_SIGNAL and COLOR.
      */
-<span class="fc" id="L352">    ENUM(-1),//TODO: implement me,</span>
+<span class="fc" id="L354">    ENUM(-1),//TODO: implement me,</span>
     /**
      * Structures (STRUCT)
      * Structures are created as objects in the Object Organizer under the register card Data types. They begin with the keyword TYPE and end with END_TYPE.The syntax for structure declarations is as follows:
@@ -447,7 +449,7 @@ import java.util.stream.IntStream;
      * END_STRUCT
      * END_TYPE
      */
-<span class="fc" id="L450">    STRUCT(-1),//TODO: implement me,</span>
+<span class="fc" id="L452">    STRUCT(-1),//TODO: implement me,</span>
     /**
      * References (Alias types)
      * You can use the user-defined derived data type to create an alternative name for a variable, constant or function block. Create your references as objects in the Object Organizer under the register card Data types. They begin with the keyword TYPE and end with END_TYPE.
@@ -462,7 +464,7 @@ import java.util.stream.IntStream;
      * TYPE message:STRING[50];
      * END_TYPE;
      */
-<span class="fc" id="L465">    ALIAS(-1),//TODO: implement me,</span>
+<span class="fc" id="L467">    ALIAS(-1),//TODO: implement me,</span>
     /**
      * Subrange types
      * A sub-range data type is a type whose range of values is only a subset of that of the basic type. The declaration can be carried out in the data types register, but a variable can also be directly declared with a subrange type:
@@ -489,15 +491,19 @@ import java.util.stream.IntStream;
      * If a constant is assigned to a subrange type (in the declaration or in the implementation) that does not apply to this range (e.g. 1:=5000), an error message is issued.
      * In order to check for observance of range boundaries at runtime, the functions CheckRangeSigned or CheckRangeUnsigned must be introduced.
      */
-<span class="fc" id="L492">    SUB_RANGE_DATA_TYPE(-1),//TODO: implement me,</span>
+<span class="fc" id="L494">    SUB_RANGE_DATA_TYPE(-1),//TODO: implement me,</span>
 
-<span class="fc" id="L494">    UNKNOWN(-1);</span>
+<span class="fc" id="L496">    UNKNOWN(-1);</span>
 
     private final String typeName;
 
-    private final double lowerBound;
+    private final Number lowerBound;
 
-    private final double upperBound;
+    private final double lowerBoundDouble;
+
+    private final Number upperBound;
+
+    private final double upperBoundDouble;
 
     private final int memoryUse;
 
@@ -505,66 +511,68 @@ import java.util.stream.IntStream;
 
     // TODO: BYTE.MAX default might not be the best....
     AdsDataType(int memoryUse) {
-<span class="fc" id="L508">        this(0, Byte.MAX_VALUE, memoryUse);</span>
-<span class="fc" id="L509">    }</span>
+<span class="fc" id="L514">        this(0, Byte.MAX_VALUE, memoryUse);</span>
+<span class="fc" id="L515">    }</span>
 
-<span class="fc" id="L511">    AdsDataType(double lowerBound, double upperBound, int memoryUse) {</span>
-<span class="fc" id="L512">        this.lowerBound = lowerBound;</span>
-<span class="fc" id="L513">        this.upperBound = upperBound;</span>
-<span class="fc" id="L514">        this.typeName = name();</span>
-<span class="fc" id="L515">        this.memoryUse = memoryUse;</span>
-<span class="fc" id="L516">        this.targetByteSize = this.memoryUse / 8;</span>
-<span class="fc" id="L517">    }</span>
+<span class="fc" id="L517">    AdsDataType(Number lowerBound, Number upperBound, int memoryUse) {</span>
+<span class="fc" id="L518">        this.lowerBound = lowerBound;</span>
+<span class="fc" id="L519">        this.lowerBoundDouble = lowerBound.doubleValue();</span>
+<span class="fc" id="L520">        this.upperBound = upperBound;</span>
+<span class="fc" id="L521">        this.upperBoundDouble = upperBound.doubleValue();</span>
+<span class="fc" id="L522">        this.typeName = name();</span>
+<span class="fc" id="L523">        this.memoryUse = memoryUse;</span>
+<span class="fc" id="L524">        this.targetByteSize = this.memoryUse / 8;</span>
+<span class="fc" id="L525">    }</span>
 
     public String getTypeName() {
-<span class="nc" id="L520">        return typeName;</span>
+<span class="nc" id="L528">        return typeName;</span>
     }
 
-    public double getLowerBound() {
-<span class="fc" id="L524">        return lowerBound;</span>
+    public Number getLowerBound() {
+<span class="fc" id="L532">        return lowerBound;</span>
     }
 
-    public double getUpperBound() {
-<span class="fc" id="L528">        return upperBound;</span>
+    public Number getUpperBound() {
+<span class="fc" id="L536">        return upperBound;</span>
     }
 
     public int getMemoryUse() {
-<span class="nc" id="L532">        return memoryUse;</span>
+<span class="nc" id="L540">        return memoryUse;</span>
     }
 
     public int getTargetByteSize() {
-<span class="fc" id="L536">        return targetByteSize;</span>
+<span class="fc" id="L544">        return targetByteSize;</span>
     }
 
     public boolean withinBounds(double other) {
-<span class="pc bpc" id="L540" title="2 of 4 branches missed.">        return other &gt;= lowerBound &amp;&amp; other &lt;= upperBound;</span>
+<span class="pc bpc" id="L548" title="2 of 4 branches missed.">        return other &gt;= lowerBoundDouble &amp;&amp; other &lt;= upperBoundDouble;</span>
     }
 
     @Override
     public String toString() {
-<span class="nc" id="L545">        return &quot;AdsDataType{&quot; +</span>
+<span class="fc" id="L553">        return &quot;AdsDataType{&quot; +</span>
             &quot;typeName='&quot; + typeName + '\'' +
             &quot;, lowerBound=&quot; + lowerBound +
             &quot;, upperBound=&quot; + upperBound +
             &quot;, memoryUse=&quot; + memoryUse +
             &quot;, targetByteSize=&quot; + targetByteSize +
-<span class="nc" id="L551">            &quot;} &quot; + super.toString();</span>
+<span class="fc" id="L559">            &quot;} &quot; + super.toString();</span>
     }
 
-    private static double produceUnsignedMaxValue(int numberOfBytes) {
-<span class="fc" id="L555">        return new BigInteger(</span>
-<span class="fc" id="L556">            ArrayUtils.insert(</span>
+    private static BigInteger produceUnsignedMaxValue(int numberOfBytes) {
+<span class="fc" id="L563">        return new BigInteger(</span>
+<span class="fc" id="L564">            ArrayUtils.insert(</span>
                 0,
-<span class="fc" id="L558">                IntStream.range(0, numberOfBytes)</span>
-<span class="fc" id="L559">                    .map(ignore -&gt; 0xff)</span>
-<span class="fc" id="L560">                    .collect(</span>
+<span class="fc" id="L566">                IntStream.range(0, numberOfBytes)</span>
+<span class="fc" id="L567">                    .map(ignore -&gt; 0xff)</span>
+<span class="fc" id="L568">                    .collect(</span>
                         ByteArrayOutputStream::new,
-<span class="fc" id="L562">                        (baos, i) -&gt; baos.write((byte) i),</span>
-<span class="nc" id="L563">                        (baos1, baos2) -&gt; baos1.write(baos2.toByteArray(), 0, baos2.size())</span>
+<span class="fc" id="L570">                        (baos, i) -&gt; baos.write((byte) i),</span>
+<span class="nc" id="L571">                        (baos1, baos2) -&gt; baos1.write(baos2.toByteArray(), 0, baos2.size())</span>
                     )
-<span class="fc" id="L565">                    .toByteArray(),</span>
+<span class="fc" id="L573">                    .toByteArray(),</span>
                 (byte) 0x0)
-<span class="fc" id="L567">        ).doubleValue();</span>
+        );
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

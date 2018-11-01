@@ -716,307 +716,278 @@ import java.util.stream.Collectors;
 
     private BaseDefaultFieldItem internalEncodeInteger(PlcField field, Object[] values) {
 <span class="fc" id="L718">        AdsField adsField = (AdsField) field;</span>
-<span class="fc" id="L719">        BigDecimal minValue = BigDecimal.valueOf(adsField.getAdsDataType().getLowerBound());</span>
-<span class="fc" id="L720">        BigDecimal maxValue = BigDecimal.valueOf(adsField.getAdsDataType().getUpperBound());</span>
         Class&lt;? extends BaseDefaultFieldItem&gt; fieldType;
-<span class="pc bpc" id="L722" title="10 of 14 branches missed.">        switch (adsField.getAdsDataType()) {</span>
+<span class="pc bpc" id="L720" title="10 of 14 branches missed.">        switch (adsField.getAdsDataType()) {</span>
             case BYTE:
-<span class="fc" id="L724">                fieldType = DefaultByteFieldItem.class;</span>
-<span class="fc" id="L725">                break;</span>
+<span class="fc" id="L722">                fieldType = DefaultByteFieldItem.class;</span>
+<span class="fc" id="L723">                break;</span>
             case WORD:
-<span class="nc" id="L727">                fieldType = DefaultByteArrayFieldItem.class;</span>
-<span class="nc" id="L728">                break;</span>
+<span class="nc" id="L725">                fieldType = DefaultByteArrayFieldItem.class;</span>
+<span class="nc" id="L726">                break;</span>
             case DWORD:
-<span class="nc" id="L730">                fieldType = DefaultByteArrayFieldItem.class;</span>
-<span class="nc" id="L731">                break;</span>
+<span class="nc" id="L728">                fieldType = DefaultByteArrayFieldItem.class;</span>
+<span class="nc" id="L729">                break;</span>
             case SINT:
-<span class="nc" id="L733">                fieldType = DefaultIntegerFieldItem.class;</span>
-<span class="nc" id="L734">                break;</span>
+<span class="nc" id="L731">                fieldType = DefaultIntegerFieldItem.class;</span>
+<span class="nc" id="L732">                break;</span>
             case USINT:
-<span class="nc" id="L736">                fieldType = DefaultLongFieldItem.class;</span>
-<span class="nc" id="L737">                break;</span>
+<span class="nc" id="L734">                fieldType = DefaultLongFieldItem.class;</span>
+<span class="nc" id="L735">                break;</span>
             case INT:
-<span class="fc" id="L739">                fieldType = DefaultShortFieldItem.class;</span>
-<span class="fc" id="L740">                break;</span>
+<span class="fc" id="L737">                fieldType = DefaultShortFieldItem.class;</span>
+<span class="fc" id="L738">                break;</span>
             case UINT:
-<span class="nc" id="L742">                fieldType = DefaultIntegerFieldItem.class;</span>
-<span class="nc" id="L743">                break;</span>
+<span class="nc" id="L740">                fieldType = DefaultIntegerFieldItem.class;</span>
+<span class="nc" id="L741">                break;</span>
             case DINT:
-<span class="nc" id="L745">                fieldType = DefaultIntegerFieldItem.class;</span>
-<span class="nc" id="L746">                break;</span>
+<span class="nc" id="L743">                fieldType = DefaultIntegerFieldItem.class;</span>
+<span class="nc" id="L744">                break;</span>
             case UDINT:
-<span class="nc" id="L748">                fieldType = DefaultLongFieldItem.class;</span>
-<span class="nc" id="L749">                break;</span>
+<span class="nc" id="L746">                fieldType = DefaultLongFieldItem.class;</span>
+<span class="nc" id="L747">                break;</span>
             case LINT:
-<span class="nc" id="L751">                fieldType = DefaultLongFieldItem.class;</span>
-<span class="nc" id="L752">                break;</span>
+<span class="nc" id="L749">                fieldType = DefaultLongFieldItem.class;</span>
+<span class="nc" id="L750">                break;</span>
             case ULINT:
-<span class="nc" id="L754">                fieldType = DefaultBigIntegerFieldItem.class;</span>
-<span class="nc" id="L755">                break;</span>
+<span class="nc" id="L752">                fieldType = DefaultBigIntegerFieldItem.class;</span>
+<span class="nc" id="L753">                break;</span>
             case INT32:
-<span class="fc" id="L757">                fieldType = DefaultIntegerFieldItem.class;</span>
-<span class="fc" id="L758">                break;</span>
+<span class="fc" id="L755">                fieldType = DefaultIntegerFieldItem.class;</span>
+<span class="fc" id="L756">                break;</span>
             case INT64:
-<span class="fc" id="L760">                fieldType = DefaultLongFieldItem.class;</span>
-<span class="fc" id="L761">                break;</span>
+<span class="fc" id="L758">                fieldType = DefaultLongFieldItem.class;</span>
+<span class="fc" id="L759">                break;</span>
             default:
-<span class="nc" id="L763">                throw new IllegalArgumentException(</span>
-<span class="nc" id="L764">                    &quot;Cannot assign integer values to &quot; + adsField.getAdsDataType().name() + &quot; fields.&quot;);</span>
+<span class="nc" id="L761">                throw new IllegalArgumentException(</span>
+<span class="nc" id="L762">                    &quot;Cannot assign integer values to &quot; + adsField.getAdsDataType().name() + &quot; fields.&quot;);</span>
         }
-<span class="fc bfc" id="L766" title="All 2 branches covered.">        if (fieldType == DefaultLongFieldItem.class) {</span>
-<span class="fc" id="L767">            Long[] longValues = new Long[values.length];</span>
-<span class="fc bfc" id="L768" title="All 2 branches covered.">            for (int i = 0; i &lt; values.length; i++) {</span>
-<span class="pc bpc" id="L769" title="6 of 10 branches missed.">                if (!((values[i] instanceof Byte) || (values[i] instanceof Short) ||</span>
+<span class="fc bfc" id="L764" title="All 2 branches covered.">        if (fieldType == DefaultLongFieldItem.class) {</span>
+<span class="fc" id="L765">            Long[] longValues = new Long[values.length];</span>
+<span class="fc bfc" id="L766" title="All 2 branches covered.">            for (int i = 0; i &lt; values.length; i++) {</span>
+<span class="pc bpc" id="L767" title="6 of 10 branches missed.">                if (!((values[i] instanceof Byte) || (values[i] instanceof Short) ||</span>
                     (values[i] instanceof Integer) || (values[i] instanceof BigInteger) || (values[i] instanceof Long))) {
-<span class="nc" id="L771">                    throw new IllegalArgumentException(</span>
-<span class="nc" id="L772">                        &quot;Value of type &quot; + values[i].getClass().getName() +</span>
-<span class="nc" id="L773">                            &quot; is not assignable to &quot; + adsField.getAdsDataType().name() + &quot; fields.&quot;);</span>
+<span class="nc" id="L769">                    throw new IllegalArgumentException(</span>
+<span class="nc" id="L770">                        &quot;Value of type &quot; + values[i].getClass().getName() +</span>
+<span class="nc" id="L771">                            &quot; is not assignable to &quot; + adsField.getAdsDataType().name() + &quot; fields.&quot;);</span>
                 }
-<span class="fc" id="L775">                BigDecimal value = BigDecimal.valueOf(((Number) values[i]).longValue());</span>
-<span class="pc bpc" id="L776" title="1 of 2 branches missed.">                if (minValue.compareTo(value) &gt; 0) {</span>
-<span class="nc" id="L777">                    throw new IllegalArgumentException(</span>
-<span class="nc" id="L778">                        &quot;Value of &quot; + value.toString() + &quot; exceeds allowed minimum for type &quot;</span>
-<span class="nc" id="L779">                            + adsField.getAdsDataType().name() + &quot; (min &quot; + minValue.toString() + &quot;)&quot;);</span>
+
+<span class="fc" id="L774">                Number value = (Number) values[i];</span>
+<span class="pc bpc" id="L775" title="1 of 2 branches missed.">                if (!adsField.getAdsDataType().withinBounds(value.doubleValue())) {</span>
+<span class="nc" id="L776">                    throw new IllegalArgumentException(&quot;Value &quot; + values[i] + &quot; ist not within bounds of &quot; + adsField.getAdsDataType());</span>
                 }
-<span class="pc bpc" id="L781" title="1 of 2 branches missed.">                if (maxValue.compareTo(value) &lt; 0) {</span>
-<span class="nc" id="L782">                    throw new IllegalArgumentException(</span>
-<span class="nc" id="L783">                        &quot;Value of &quot; + value.toString() + &quot; exceeds allowed maximum for type &quot;</span>
-<span class="nc" id="L784">                            + adsField.getAdsDataType().name() + &quot; (max &quot; + maxValue.toString() + &quot;)&quot;);</span>
-                }
-<span class="fc" id="L786">                longValues[i] = value.longValue();</span>
+<span class="fc" id="L778">                longValues[i] = value.longValue();</span>
             }
-<span class="fc" id="L788">            return new DefaultLongFieldItem(longValues);</span>
+<span class="fc" id="L780">            return new DefaultLongFieldItem(longValues);</span>
         } else {
-<span class="fc" id="L790">            BigInteger[] bigIntegerValues = new BigInteger[values.length];</span>
-<span class="fc bfc" id="L791" title="All 2 branches covered.">            for (int i = 0; i &lt; values.length; i++) {</span>
+<span class="fc" id="L782">            BigInteger[] bigIntegerValues = new BigInteger[values.length];</span>
+<span class="fc bfc" id="L783" title="All 2 branches covered.">            for (int i = 0; i &lt; values.length; i++) {</span>
                 BigDecimal value;
-<span class="pc bpc" id="L793" title="1 of 2 branches missed.">                if (values[i] instanceof BigInteger) {</span>
-<span class="nc" id="L794">                    value = new BigDecimal((BigInteger) values[i]);</span>
-<span class="pc bpc" id="L795" title="3 of 8 branches missed.">                } else if (((values[i] instanceof Byte) || (values[i] instanceof Short) ||</span>
+<span class="pc bpc" id="L785" title="1 of 2 branches missed.">                if (values[i] instanceof BigInteger) {</span>
+<span class="nc" id="L786">                    value = new BigDecimal((BigInteger) values[i]);</span>
+<span class="pc bpc" id="L787" title="3 of 8 branches missed.">                } else if (((values[i] instanceof Byte) || (values[i] instanceof Short) ||</span>
                     (values[i] instanceof Integer) || (values[i] instanceof Long))) {
-<span class="fc" id="L797">                    value = new BigDecimal(((Number) values[i]).longValue());</span>
+<span class="fc" id="L789">                    value = new BigDecimal(((Number) values[i]).longValue());</span>
                 } else {
-<span class="nc" id="L799">                    throw new IllegalArgumentException(</span>
-<span class="nc" id="L800">                        &quot;Value of type &quot; + values[i].getClass().getName() +</span>
-<span class="nc" id="L801">                            &quot; is not assignable to &quot; + adsField.getAdsDataType().name() + &quot; fields.&quot;);</span>
+<span class="nc" id="L791">                    throw new IllegalArgumentException(</span>
+<span class="nc" id="L792">                        &quot;Value of type &quot; + values[i].getClass().getName() +</span>
+<span class="nc" id="L793">                            &quot; is not assignable to &quot; + adsField.getAdsDataType().name() + &quot; fields.&quot;);</span>
                 }
-<span class="pc bpc" id="L803" title="1 of 2 branches missed.">                if (minValue.compareTo(value) &gt; 0) {</span>
-<span class="nc" id="L804">                    throw new IllegalArgumentException(</span>
-<span class="nc" id="L805">                        &quot;Value of &quot; + value.toString() + &quot; exceeds allowed minimum for type &quot;</span>
-<span class="nc" id="L806">                            + adsField.getAdsDataType().name() + &quot; (min &quot; + minValue.toString() + &quot;)&quot;);</span>
+<span class="pc bpc" id="L795" title="1 of 2 branches missed.">                if (!adsField.getAdsDataType().withinBounds(value.doubleValue())) {</span>
+<span class="nc" id="L796">                    throw new IllegalArgumentException(&quot;Value &quot; + values[i] + &quot; ist not within bounds of &quot; + adsField.getAdsDataType());</span>
                 }
-<span class="pc bpc" id="L808" title="1 of 2 branches missed.">                if (maxValue.compareTo(value) &lt; 0) {</span>
-<span class="nc" id="L809">                    throw new IllegalArgumentException(</span>
-<span class="nc" id="L810">                        &quot;Value of &quot; + value.toString() + &quot; exceeds allowed maximum for type &quot;</span>
-<span class="nc" id="L811">                            + adsField.getAdsDataType().name() + &quot; (max &quot; + maxValue.toString() + &quot;)&quot;);</span>
-                }
-<span class="fc" id="L813">                bigIntegerValues[i] = value.toBigInteger();</span>
+<span class="fc" id="L798">                bigIntegerValues[i] = value.toBigInteger();</span>
             }
-<span class="fc" id="L815">            return new DefaultBigIntegerFieldItem(bigIntegerValues);</span>
+<span class="fc" id="L800">            return new DefaultBigIntegerFieldItem(bigIntegerValues);</span>
         }
     }
 
     private BaseDefaultFieldItem internalEncodeFloatingPoint(PlcField field, Object[] values) {
-<span class="fc" id="L820">        AdsField adsField = (AdsField) field;</span>
-<span class="fc" id="L821">        BigDecimal minValue = BigDecimal.valueOf(adsField.getAdsDataType().getLowerBound());</span>
-<span class="fc" id="L822">        BigDecimal maxValue = BigDecimal.valueOf(adsField.getAdsDataType().getUpperBound());</span>
+<span class="fc" id="L805">        AdsField adsField = (AdsField) field;</span>
         Class&lt;? extends BaseDefaultFieldItem&gt; fieldType;
-<span class="pc bpc" id="L824" title="1 of 3 branches missed.">        switch (adsField.getAdsDataType()) {</span>
+<span class="pc bpc" id="L807" title="1 of 3 branches missed.">        switch (adsField.getAdsDataType()) {</span>
             case REAL:
-<span class="fc" id="L826">                fieldType = DefaultFloatFieldItem.class;</span>
-<span class="fc" id="L827">                break;</span>
+<span class="fc" id="L809">                fieldType = DefaultFloatFieldItem.class;</span>
+<span class="fc" id="L810">                break;</span>
             case LREAL:
-<span class="fc" id="L829">                fieldType = DefaultDoubleFieldItem.class;</span>
-<span class="fc" id="L830">                break;</span>
+<span class="fc" id="L812">                fieldType = DefaultDoubleFieldItem.class;</span>
+<span class="fc" id="L813">                break;</span>
             default:
-<span class="nc" id="L832">                throw new IllegalArgumentException(</span>
-<span class="nc" id="L833">                    &quot;Cannot assign floating point values to &quot; + adsField.getAdsDataType().name() + &quot; fields.&quot;);</span>
+<span class="nc" id="L815">                throw new IllegalArgumentException(</span>
+<span class="nc" id="L816">                    &quot;Cannot assign floating point values to &quot; + adsField.getAdsDataType().name() + &quot; fields.&quot;);</span>
         }
-<span class="fc bfc" id="L835" title="All 2 branches covered.">        if (fieldType == DefaultDoubleFieldItem.class) {</span>
-<span class="fc" id="L836">            Double[] floatingPointValues = new Double[values.length];</span>
-<span class="fc bfc" id="L837" title="All 2 branches covered.">            for (int i = 0; i &lt; values.length; i++) {</span>
-<span class="pc bpc" id="L838" title="1 of 2 branches missed.">                if (values[i] instanceof Float) {</span>
-<span class="nc" id="L839">                    floatingPointValues[i] = ((Float) values[i]).doubleValue();</span>
-<span class="pc bpc" id="L840" title="1 of 2 branches missed.">                } else if (values[i] instanceof Double) {</span>
-<span class="fc" id="L841">                    floatingPointValues[i] = (Double) values[i];</span>
+<span class="fc bfc" id="L818" title="All 2 branches covered.">        if (fieldType == DefaultDoubleFieldItem.class) {</span>
+<span class="fc" id="L819">            Double[] floatingPointValues = new Double[values.length];</span>
+<span class="fc bfc" id="L820" title="All 2 branches covered.">            for (int i = 0; i &lt; values.length; i++) {</span>
+<span class="pc bpc" id="L821" title="1 of 2 branches missed.">                if (values[i] instanceof Float) {</span>
+<span class="nc" id="L822">                    floatingPointValues[i] = ((Float) values[i]).doubleValue();</span>
+<span class="pc bpc" id="L823" title="1 of 2 branches missed.">                } else if (values[i] instanceof Double) {</span>
+<span class="fc" id="L824">                    floatingPointValues[i] = (Double) values[i];</span>
+                } else {
+<span class="nc" id="L826">                    throw new IllegalArgumentException(</span>
+<span class="nc" id="L827">                        &quot;Value of type &quot; + values[i].getClass().getName() +</span>
+<span class="nc" id="L828">                            &quot; is not assignable to &quot; + adsField.getAdsDataType().name() + &quot; fields.&quot;);</span>
+                }
+
+<span class="fc" id="L831">                Number value = (Number) values[i];</span>
+<span class="pc bpc" id="L832" title="1 of 2 branches missed.">                if (!adsField.getAdsDataType().withinBounds(value.doubleValue())) {</span>
+<span class="nc" id="L833">                    throw new IllegalArgumentException(&quot;Value &quot; + values[i] + &quot; ist not within bounds of &quot; + adsField.getAdsDataType());</span>
+                }
+            }
+<span class="fc" id="L836">            return new DefaultDoubleFieldItem(floatingPointValues);</span>
+        } else {
+<span class="fc" id="L838">            Float[] floatingPointValues = new Float[values.length];</span>
+<span class="fc bfc" id="L839" title="All 2 branches covered.">            for (int i = 0; i &lt; values.length; i++) {</span>
+<span class="pc bpc" id="L840" title="1 of 2 branches missed.">                if (values[i] instanceof Float) {</span>
+<span class="fc" id="L841">                    floatingPointValues[i] = (Float) values[i];</span>
                 } else {
 <span class="nc" id="L843">                    throw new IllegalArgumentException(</span>
 <span class="nc" id="L844">                        &quot;Value of type &quot; + values[i].getClass().getName() +</span>
 <span class="nc" id="L845">                            &quot; is not assignable to &quot; + adsField.getAdsDataType().name() + &quot; fields.&quot;);</span>
                 }
 
-<span class="pc bpc" id="L848" title="1 of 2 branches missed.">                if (minValue.compareTo(new BigDecimal(floatingPointValues[i])) &gt; 0) {</span>
-<span class="nc" id="L849">                    throw new IllegalArgumentException(</span>
-                        &quot;Value of &quot; + floatingPointValues[i] + &quot; exceeds allowed minimum for type &quot;
-<span class="nc" id="L851">                            + adsField.getAdsDataType().name() + &quot; (min &quot; + minValue.toString() + &quot;)&quot;);</span>
-                }
-<span class="pc bpc" id="L853" title="1 of 2 branches missed.">                if (maxValue.compareTo(new BigDecimal(floatingPointValues[i])) &lt; 0) {</span>
-<span class="nc" id="L854">                    throw new IllegalArgumentException(</span>
-                        &quot;Value of &quot; + floatingPointValues[i] + &quot; exceeds allowed maximum for type &quot;
-<span class="nc" id="L856">                            + adsField.getAdsDataType().name() + &quot; (max &quot; + maxValue.toString() + &quot;)&quot;);</span>
+<span class="fc" id="L848">                Number value = (Number) values[i];</span>
+<span class="pc bpc" id="L849" title="1 of 2 branches missed.">                if (!adsField.getAdsDataType().withinBounds(value.doubleValue())) {</span>
+<span class="nc" id="L850">                    throw new IllegalArgumentException(&quot;Value &quot; + values[i] + &quot; ist not within bounds of &quot; + adsField.getAdsDataType());</span>
                 }
             }
-<span class="fc" id="L859">            return new DefaultDoubleFieldItem(floatingPointValues);</span>
-        } else {
-<span class="fc" id="L861">            Float[] floatingPointValues = new Float[values.length];</span>
-<span class="fc bfc" id="L862" title="All 2 branches covered.">            for (int i = 0; i &lt; values.length; i++) {</span>
-<span class="pc bpc" id="L863" title="1 of 2 branches missed.">                if (values[i] instanceof Float) {</span>
-<span class="fc" id="L864">                    floatingPointValues[i] = (Float) values[i];</span>
-                } else {
-<span class="nc" id="L866">                    throw new IllegalArgumentException(</span>
-<span class="nc" id="L867">                        &quot;Value of type &quot; + values[i].getClass().getName() +</span>
-<span class="nc" id="L868">                            &quot; is not assignable to &quot; + adsField.getAdsDataType().name() + &quot; fields.&quot;);</span>
-                }
-
-<span class="pc bpc" id="L871" title="1 of 2 branches missed.">                if (minValue.compareTo(new BigDecimal(floatingPointValues[i])) &gt; 0) {</span>
-<span class="nc" id="L872">                    throw new IllegalArgumentException(</span>
-                        &quot;Value of &quot; + floatingPointValues[i] + &quot; exceeds allowed minimum for type &quot;
-<span class="nc" id="L874">                            + adsField.getAdsDataType().name() + &quot; (min &quot; + minValue.toString() + &quot;)&quot;);</span>
-                }
-<span class="pc bpc" id="L876" title="1 of 2 branches missed.">                if (maxValue.compareTo(new BigDecimal(floatingPointValues[i])) &lt; 0) {</span>
-<span class="nc" id="L877">                    throw new IllegalArgumentException(</span>
-                        &quot;Value of &quot; + floatingPointValues[i] + &quot; exceeds allowed maximum for type &quot;
-<span class="nc" id="L879">                            + adsField.getAdsDataType().name() + &quot; (max &quot; + maxValue.toString() + &quot;)&quot;);</span>
-                }
-            }
-<span class="fc" id="L882">            return new DefaultFloatFieldItem(floatingPointValues);</span>
+<span class="fc" id="L853">            return new DefaultFloatFieldItem(floatingPointValues);</span>
         }
     }
 
     private BaseDefaultFieldItem internalEncodeString(PlcField field, Object[] values) {
-<span class="fc" id="L887">        AdsField adsField = (AdsField) field;</span>
-<span class="fc" id="L888">        double maxLength = adsField.getAdsDataType().getUpperBound();</span>
+<span class="fc" id="L858">        AdsField adsField = (AdsField) field;</span>
+<span class="fc" id="L859">        Number maxLength = adsField.getAdsDataType().getUpperBound();</span>
         //boolean encoding16Bit;
-<span class="pc bpc" id="L890" title="1 of 2 branches missed.">        switch (adsField.getAdsDataType()) {</span>
+<span class="pc bpc" id="L861" title="1 of 2 branches missed.">        switch (adsField.getAdsDataType()) {</span>
             case STRING:
                 //encoding16Bit = false;
-<span class="fc" id="L893">                break;</span>
+<span class="fc" id="L864">                break;</span>
             default:
-<span class="nc" id="L895">                throw new IllegalArgumentException(</span>
-<span class="nc" id="L896">                    &quot;Cannot assign string values to &quot; + adsField.getAdsDataType().name() + &quot; fields.&quot;);</span>
+<span class="nc" id="L866">                throw new IllegalArgumentException(</span>
+<span class="nc" id="L867">                    &quot;Cannot assign string values to &quot; + adsField.getAdsDataType().name() + &quot; fields.&quot;);</span>
         }
-<span class="fc" id="L898">        List&lt;String&gt; stringValues = new LinkedList&lt;&gt;();</span>
-<span class="fc bfc" id="L899" title="All 2 branches covered.">        for (Object value : values) {</span>
-<span class="pc bpc" id="L900" title="1 of 2 branches missed.">            if (value instanceof String) {</span>
-<span class="fc" id="L901">                String stringValue = (String) value;</span>
-<span class="pc bpc" id="L902" title="1 of 2 branches missed.">                if (stringValue.length() &gt; maxLength) {</span>
-<span class="nc" id="L903">                    throw new IllegalArgumentException(</span>
-<span class="nc" id="L904">                        &quot;String length &quot; + stringValue.length() + &quot; exceeds allowed maximum for type &quot;</span>
-<span class="nc" id="L905">                            + adsField.getAdsDataType().name() + &quot; (max &quot; + maxLength + &quot;)&quot;);</span>
+<span class="fc" id="L869">        List&lt;String&gt; stringValues = new LinkedList&lt;&gt;();</span>
+<span class="fc bfc" id="L870" title="All 2 branches covered.">        for (Object value : values) {</span>
+<span class="pc bpc" id="L871" title="1 of 2 branches missed.">            if (value instanceof String) {</span>
+<span class="fc" id="L872">                String stringValue = (String) value;</span>
+<span class="pc bpc" id="L873" title="1 of 2 branches missed.">                if (stringValue.length() &gt; maxLength.intValue()) {</span>
+<span class="nc" id="L874">                    throw new IllegalArgumentException(</span>
+<span class="nc" id="L875">                        &quot;String length &quot; + stringValue.length() + &quot; exceeds allowed maximum for type &quot;</span>
+<span class="nc" id="L876">                            + adsField.getAdsDataType().name() + &quot; (max &quot; + maxLength + &quot;)&quot;);</span>
                 }
-<span class="fc" id="L907">                stringValues.add(stringValue);</span>
-<span class="fc" id="L908">            }</span>
+<span class="fc" id="L878">                stringValues.add(stringValue);</span>
+<span class="fc" id="L879">            }</span>
             // All other types just translate to max one String character.
-<span class="nc bnc" id="L910" title="All 2 branches missed.">            else if (value instanceof Byte) {</span>
-<span class="nc" id="L911">                Byte byteValue = (Byte) value;</span>
-<span class="nc" id="L912">                byte[] stringBytes = new byte[]{byteValue};</span>
+<span class="nc bnc" id="L881" title="All 2 branches missed.">            else if (value instanceof Byte) {</span>
+<span class="nc" id="L882">                Byte byteValue = (Byte) value;</span>
+<span class="nc" id="L883">                byte[] stringBytes = new byte[]{byteValue};</span>
                 /*if (encoding16Bit) {
                     stringValues.add(new String(stringBytes, StandardCharsets.UTF_16));
                 } else {*/
-<span class="nc" id="L916">                    stringValues.add(new String(stringBytes, StandardCharsets.UTF_8));</span>
+<span class="nc" id="L887">                stringValues.add(new String(stringBytes, StandardCharsets.UTF_8));</span>
                 /*}*/
-<span class="nc bnc" id="L918" title="All 2 branches missed.">            } else if (value instanceof Short) {</span>
-<span class="nc" id="L919">                Short shortValue = (Short) value;</span>
-<span class="nc" id="L920">                byte[] stringBytes = new byte[2];</span>
-<span class="nc" id="L921">                stringBytes[0] = (byte) (shortValue &gt;&gt; 8);</span>
-<span class="nc" id="L922">                stringBytes[1] = (byte) (shortValue &amp; 0xFF);</span>
+<span class="nc bnc" id="L889" title="All 2 branches missed.">            } else if (value instanceof Short) {</span>
+<span class="nc" id="L890">                Short shortValue = (Short) value;</span>
+<span class="nc" id="L891">                byte[] stringBytes = new byte[2];</span>
+<span class="nc" id="L892">                stringBytes[0] = (byte) (shortValue &gt;&gt; 8);</span>
+<span class="nc" id="L893">                stringBytes[1] = (byte) (shortValue &amp; 0xFF);</span>
                 /*if (encoding16Bit) {
                     stringValues.add(new String(stringBytes, StandardCharsets.UTF_16));
                 } else {*/
-<span class="nc" id="L926">                    stringValues.add(new String(stringBytes, StandardCharsets.UTF_8));</span>
+<span class="nc" id="L897">                stringValues.add(new String(stringBytes, StandardCharsets.UTF_8));</span>
                 /*}*/
-<span class="nc bnc" id="L928" title="All 2 branches missed.">            } else if (value instanceof Integer) {</span>
-<span class="nc" id="L929">                Integer integerValue = (Integer) value;</span>
-<span class="nc" id="L930">                byte[] stringBytes = new byte[4];</span>
-<span class="nc" id="L931">                stringBytes[0] = (byte) ((integerValue &gt;&gt; 24) &amp; 0xFF);</span>
-<span class="nc" id="L932">                stringBytes[1] = (byte) ((integerValue &gt;&gt; 16) &amp; 0xFF);</span>
-<span class="nc" id="L933">                stringBytes[2] = (byte) ((integerValue &gt;&gt; 8) &amp; 0xFF);</span>
-<span class="nc" id="L934">                stringBytes[3] = (byte) (integerValue &amp; 0xFF);</span>
+<span class="nc bnc" id="L899" title="All 2 branches missed.">            } else if (value instanceof Integer) {</span>
+<span class="nc" id="L900">                Integer integerValue = (Integer) value;</span>
+<span class="nc" id="L901">                byte[] stringBytes = new byte[4];</span>
+<span class="nc" id="L902">                stringBytes[0] = (byte) ((integerValue &gt;&gt; 24) &amp; 0xFF);</span>
+<span class="nc" id="L903">                stringBytes[1] = (byte) ((integerValue &gt;&gt; 16) &amp; 0xFF);</span>
+<span class="nc" id="L904">                stringBytes[2] = (byte) ((integerValue &gt;&gt; 8) &amp; 0xFF);</span>
+<span class="nc" id="L905">                stringBytes[3] = (byte) (integerValue &amp; 0xFF);</span>
                 /*if (encoding16Bit) {
                     stringValues.add(new String(stringBytes, StandardCharsets.UTF_16));
                 } else {*/
-<span class="nc" id="L938">                    stringValues.add(new String(stringBytes, StandardCharsets.UTF_8));</span>
+<span class="nc" id="L909">                stringValues.add(new String(stringBytes, StandardCharsets.UTF_8));</span>
                 /*}*/
-<span class="nc bnc" id="L940" title="All 2 branches missed.">            } else if (value instanceof Long) {</span>
-<span class="nc" id="L941">                Long longValue = (Long) value;</span>
-<span class="nc" id="L942">                byte[] stringBytes = new byte[8];</span>
-<span class="nc" id="L943">                stringBytes[0] = (byte) ((longValue &gt;&gt; 56) &amp; 0xFF);</span>
-<span class="nc" id="L944">                stringBytes[1] = (byte) ((longValue &gt;&gt; 48) &amp; 0xFF);</span>
-<span class="nc" id="L945">                stringBytes[2] = (byte) ((longValue &gt;&gt; 40) &amp; 0xFF);</span>
-<span class="nc" id="L946">                stringBytes[3] = (byte) ((longValue &gt;&gt; 32) &amp; 0xFF);</span>
-<span class="nc" id="L947">                stringBytes[4] = (byte) ((longValue &gt;&gt; 24) &amp; 0xFF);</span>
-<span class="nc" id="L948">                stringBytes[5] = (byte) ((longValue &gt;&gt; 16) &amp; 0xFF);</span>
-<span class="nc" id="L949">                stringBytes[6] = (byte) ((longValue &gt;&gt; 8) &amp; 0xFF);</span>
-<span class="nc" id="L950">                stringBytes[7] = (byte) (longValue &amp; 0xFF);</span>
+<span class="nc bnc" id="L911" title="All 2 branches missed.">            } else if (value instanceof Long) {</span>
+<span class="nc" id="L912">                Long longValue = (Long) value;</span>
+<span class="nc" id="L913">                byte[] stringBytes = new byte[8];</span>
+<span class="nc" id="L914">                stringBytes[0] = (byte) ((longValue &gt;&gt; 56) &amp; 0xFF);</span>
+<span class="nc" id="L915">                stringBytes[1] = (byte) ((longValue &gt;&gt; 48) &amp; 0xFF);</span>
+<span class="nc" id="L916">                stringBytes[2] = (byte) ((longValue &gt;&gt; 40) &amp; 0xFF);</span>
+<span class="nc" id="L917">                stringBytes[3] = (byte) ((longValue &gt;&gt; 32) &amp; 0xFF);</span>
+<span class="nc" id="L918">                stringBytes[4] = (byte) ((longValue &gt;&gt; 24) &amp; 0xFF);</span>
+<span class="nc" id="L919">                stringBytes[5] = (byte) ((longValue &gt;&gt; 16) &amp; 0xFF);</span>
+<span class="nc" id="L920">                stringBytes[6] = (byte) ((longValue &gt;&gt; 8) &amp; 0xFF);</span>
+<span class="nc" id="L921">                stringBytes[7] = (byte) (longValue &amp; 0xFF);</span>
                 /*if (encoding16Bit) {
                     stringValues.add(new String(stringBytes, StandardCharsets.UTF_16));
                 } else {*/
-<span class="nc" id="L954">                    stringValues.add(new String(stringBytes, StandardCharsets.UTF_8));</span>
+<span class="nc" id="L925">                stringValues.add(new String(stringBytes, StandardCharsets.UTF_8));</span>
                 /*}*/
-<span class="nc" id="L956">            } else {</span>
-<span class="nc" id="L957">                throw new IllegalArgumentException(</span>
-<span class="nc" id="L958">                    &quot;Value of type &quot; + value.getClass().getName() +</span>
-<span class="nc" id="L959">                        &quot; is not assignable to &quot; + adsField.getAdsDataType().name() + &quot; fields.&quot;);</span>
+<span class="nc" id="L927">            } else {</span>
+<span class="nc" id="L928">                throw new IllegalArgumentException(</span>
+<span class="nc" id="L929">                    &quot;Value of type &quot; + value.getClass().getName() +</span>
+<span class="nc" id="L930">                        &quot; is not assignable to &quot; + adsField.getAdsDataType().name() + &quot; fields.&quot;);</span>
             }
         }
-<span class="fc" id="L962">        return new DefaultStringFieldItem(stringValues.toArray(new String[0]));</span>
+<span class="fc" id="L933">        return new DefaultStringFieldItem(stringValues.toArray(new String[0]));</span>
     }
 
     private BaseDefaultFieldItem internalTimeTemporal(PlcField field, Object[] values) {
-<span class="fc" id="L966">        AdsField adsField = (AdsField) field;</span>
-<span class="pc bpc" id="L967" title="1 of 2 branches missed.">        switch (adsField.getAdsDataType()) {</span>
+<span class="fc" id="L937">        AdsField adsField = (AdsField) field;</span>
+<span class="pc bpc" id="L938" title="1 of 2 branches missed.">        switch (adsField.getAdsDataType()) {</span>
             case TIME:
             case DATE:
             case DATE_AND_TIME:
-<span class="fc" id="L971">                break;</span>
+<span class="fc" id="L942">                break;</span>
             default:
-<span class="nc" id="L973">                throw new IllegalArgumentException(</span>
-<span class="nc" id="L974">                    &quot;Cannot assign temporal values to &quot; + adsField.getAdsDataType().name() + &quot; fields.&quot;);</span>
+<span class="nc" id="L944">                throw new IllegalArgumentException(</span>
+<span class="nc" id="L945">                    &quot;Cannot assign temporal values to &quot; + adsField.getAdsDataType().name() + &quot; fields.&quot;);</span>
         }
         // TODO: support other types
-<span class="fc" id="L977">        List&lt;LocalTime&gt; localTimeValues = Arrays.stream(values)</span>
-<span class="fc" id="L978">            .filter(LocalTime.class::isInstance)</span>
-<span class="fc" id="L979">            .map(LocalTime.class::cast)</span>
-<span class="fc" id="L980">            .collect(Collectors.toList());</span>
-<span class="fc" id="L981">        return new DefaultLocalTimeFieldItem(localTimeValues.toArray(new LocalTime[0]));</span>
+<span class="fc" id="L948">        List&lt;LocalTime&gt; localTimeValues = Arrays.stream(values)</span>
+<span class="fc" id="L949">            .filter(LocalTime.class::isInstance)</span>
+<span class="fc" id="L950">            .map(LocalTime.class::cast)</span>
+<span class="fc" id="L951">            .collect(Collectors.toList());</span>
+<span class="fc" id="L952">        return new DefaultLocalTimeFieldItem(localTimeValues.toArray(new LocalTime[0]));</span>
     }
 
     private BaseDefaultFieldItem internalDateTemporal(PlcField field, Object[] values) {
-<span class="fc" id="L985">        AdsField adsField = (AdsField) field;</span>
-<span class="pc bpc" id="L986" title="1 of 2 branches missed.">        switch (adsField.getAdsDataType()) {</span>
+<span class="fc" id="L956">        AdsField adsField = (AdsField) field;</span>
+<span class="pc bpc" id="L957" title="1 of 2 branches missed.">        switch (adsField.getAdsDataType()) {</span>
             case TIME:
             case DATE:
             case DATE_AND_TIME:
-<span class="fc" id="L990">                break;</span>
+<span class="fc" id="L961">                break;</span>
             default:
-<span class="nc" id="L992">                throw new IllegalArgumentException(</span>
-<span class="nc" id="L993">                    &quot;Cannot assign temporal values to &quot; + adsField.getAdsDataType().name() + &quot; fields.&quot;);</span>
+<span class="nc" id="L963">                throw new IllegalArgumentException(</span>
+<span class="nc" id="L964">                    &quot;Cannot assign temporal values to &quot; + adsField.getAdsDataType().name() + &quot; fields.&quot;);</span>
         }
         // TODO: support other types
-<span class="fc" id="L996">        List&lt;LocalDate&gt; localDateValues = Arrays.stream(values)</span>
-<span class="fc" id="L997">            .filter(LocalDate.class::isInstance)</span>
-<span class="fc" id="L998">            .map(LocalDate.class::cast)</span>
-<span class="fc" id="L999">            .collect(Collectors.toList());</span>
-<span class="fc" id="L1000">        return new DefaultLocalDateFieldItem(localDateValues.toArray(new LocalDate[0]));</span>
+<span class="fc" id="L967">        List&lt;LocalDate&gt; localDateValues = Arrays.stream(values)</span>
+<span class="fc" id="L968">            .filter(LocalDate.class::isInstance)</span>
+<span class="fc" id="L969">            .map(LocalDate.class::cast)</span>
+<span class="fc" id="L970">            .collect(Collectors.toList());</span>
+<span class="fc" id="L971">        return new DefaultLocalDateFieldItem(localDateValues.toArray(new LocalDate[0]));</span>
     }
 
     private BaseDefaultFieldItem internalDateTimeTemporal(PlcField field, Object[] values) {
-<span class="nc" id="L1004">        AdsField adsField = (AdsField) field;</span>
-<span class="nc bnc" id="L1005" title="All 2 branches missed.">        switch (adsField.getAdsDataType()) {</span>
+<span class="nc" id="L975">        AdsField adsField = (AdsField) field;</span>
+<span class="nc bnc" id="L976" title="All 2 branches missed.">        switch (adsField.getAdsDataType()) {</span>
             case TIME:
             case DATE:
             case DATE_AND_TIME:
-<span class="nc" id="L1009">                break;</span>
+<span class="nc" id="L980">                break;</span>
             default:
-<span class="nc" id="L1011">                throw new IllegalArgumentException(</span>
-<span class="nc" id="L1012">                    &quot;Cannot assign temporal values to &quot; + adsField.getAdsDataType().name() + &quot; fields.&quot;);</span>
+<span class="nc" id="L982">                throw new IllegalArgumentException(</span>
+<span class="nc" id="L983">                    &quot;Cannot assign temporal values to &quot; + adsField.getAdsDataType().name() + &quot; fields.&quot;);</span>
         }
         // TODO: support other types
-<span class="nc" id="L1015">        List&lt;LocalDateTime&gt; localDateTimeValues = Arrays.stream(values)</span>
-<span class="nc" id="L1016">            .filter(LocalDateTime.class::isInstance)</span>
-<span class="nc" id="L1017">            .map(LocalDateTime.class::cast)</span>
-<span class="nc" id="L1018">            .collect(Collectors.toList());</span>
-<span class="nc" id="L1019">        return new DefaultLocalDateTimeFieldItem(localDateTimeValues.toArray(new LocalDateTime[0]));</span>
+<span class="nc" id="L986">        List&lt;LocalDateTime&gt; localDateTimeValues = Arrays.stream(values)</span>
+<span class="nc" id="L987">            .filter(LocalDateTime.class::isInstance)</span>
+<span class="nc" id="L988">            .map(LocalDateTime.class::cast)</span>
+<span class="nc" id="L989">            .collect(Collectors.toList());</span>
+<span class="nc" id="L990">        return new DefaultLocalDateTimeFieldItem(localDateTimeValues.toArray(new LocalDateTime[0]));</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
