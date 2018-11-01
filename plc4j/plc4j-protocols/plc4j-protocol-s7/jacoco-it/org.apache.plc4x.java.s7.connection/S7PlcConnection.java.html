@@ -42,6 +42,7 @@ import org.apache.plc4x.java.isotp.netty.model.types.TpduSize;
 import org.apache.plc4x.java.s7.netty.Plc4XS7Protocol;
 import org.apache.plc4x.java.s7.netty.S7Protocol;
 import org.apache.plc4x.java.s7.netty.model.types.MemoryArea;
+import org.apache.plc4x.java.s7.netty.strategies.DefaultS7MessageProcessor;
 import org.apache.plc4x.java.s7.netty.util.S7PlcFieldHandler;
 import org.apache.plc4x.java.s7.utils.S7TsapIdEncoder;
 import org.slf4j.Logger;
@@ -77,10 +78,10 @@ public class S7PlcConnection extends AbstractPlcConnection implements PlcReader,
     private static final int ISO_ON_TCP_PORT = 102;
 
     // Fetch values from configuration
-<span class="fc" id="L80">    private static final Configuration CONF = new SystemConfiguration();</span>
-<span class="fc" id="L81">    private static final long CLOSE_DEVICE_TIMEOUT_MS = CONF.getLong(&quot;plc4x.s7connection.close.device,timeout&quot;, 1_000);</span>
+<span class="fc" id="L81">    private static final Configuration CONF = new SystemConfiguration();</span>
+<span class="fc" id="L82">    private static final long CLOSE_DEVICE_TIMEOUT_MS = CONF.getLong(&quot;plc4x.s7connection.close.device,timeout&quot;, 1_000);</span>
 
-<span class="fc" id="L83">    private static final Logger logger = LoggerFactory.getLogger(S7PlcConnection.class);</span>
+<span class="fc" id="L84">    private static final Logger logger = LoggerFactory.getLogger(S7PlcConnection.class);</span>
 
     private final int rack;
     private final int slot;
@@ -90,196 +91,197 @@ public class S7PlcConnection extends AbstractPlcConnection implements PlcReader,
     private final short paramMaxAmqCallee;
 
     public S7PlcConnection(InetAddress address, int rack, int slot, String params) {
-<span class="nc" id="L93">        this(new TcpSocketChannelFactory(address, ISO_ON_TCP_PORT), rack, slot, params);</span>
+<span class="nc" id="L94">        this(new TcpSocketChannelFactory(address, ISO_ON_TCP_PORT), rack, slot, params);</span>
 
-<span class="nc" id="L95">        logger.info(&quot;Setting up S7cConnection with: host-name {}, rack {}, slot {}, pdu-size {}, max-amq-caller {}, &quot; +</span>
-<span class="nc" id="L96">                &quot;max-amq-callee {}&quot;, address.getHostAddress(), rack, slot,</span>
-<span class="nc" id="L97">            paramPduSize.getValue(), paramMaxAmqCaller, paramMaxAmqCallee);</span>
-<span class="nc" id="L98">    }</span>
+<span class="nc" id="L96">        logger.info(&quot;Setting up S7cConnection with: host-name {}, rack {}, slot {}, pdu-size {}, max-amq-caller {}, &quot; +</span>
+<span class="nc" id="L97">                &quot;max-amq-callee {}&quot;, address.getHostAddress(), rack, slot,</span>
+<span class="nc" id="L98">            paramPduSize.getValue(), paramMaxAmqCaller, paramMaxAmqCallee);</span>
+<span class="nc" id="L99">    }</span>
 
     public S7PlcConnection(ChannelFactory channelFactory, int rack, int slot, String params) {
-<span class="fc" id="L101">        super(channelFactory, true);</span>
+<span class="fc" id="L102">        super(channelFactory, true);</span>
 
-<span class="fc" id="L103">        this.rack = rack;</span>
-<span class="fc" id="L104">        this.slot = slot;</span>
+<span class="fc" id="L104">        this.rack = rack;</span>
+<span class="fc" id="L105">        this.slot = slot;</span>
 
-<span class="fc" id="L106">        int curParamPduSize = 1024;</span>
-<span class="fc" id="L107">        short curParamMaxAmqCaller = 8;</span>
-<span class="fc" id="L108">        short curParamMaxAmqCallee = 8;</span>
+<span class="fc" id="L107">        int curParamPduSize = 1024;</span>
+<span class="fc" id="L108">        short curParamMaxAmqCaller = 8;</span>
+<span class="fc" id="L109">        short curParamMaxAmqCallee = 8;</span>
 
-<span class="pc bpc" id="L110" title="1 of 2 branches missed.">        if (!StringUtils.isEmpty(params)) {</span>
-<span class="fc bfc" id="L111" title="All 2 branches covered.">            for (String param : params.split(&quot;&amp;&quot;)) {</span>
-<span class="fc" id="L112">                String[] paramElements = param.split(&quot;=&quot;);</span>
-<span class="fc" id="L113">                String paramName = paramElements[0];</span>
-<span class="fc bfc" id="L114" title="All 2 branches covered.">                if (paramElements.length == 2) {</span>
-<span class="fc" id="L115">                    String paramValue = paramElements[1];</span>
-<span class="fc bfc" id="L116" title="All 4 branches covered.">                    switch (paramName) {</span>
+<span class="pc bpc" id="L111" title="1 of 2 branches missed.">        if (!StringUtils.isEmpty(params)) {</span>
+<span class="fc bfc" id="L112" title="All 2 branches covered.">            for (String param : params.split(&quot;&amp;&quot;)) {</span>
+<span class="fc" id="L113">                String[] paramElements = param.split(&quot;=&quot;);</span>
+<span class="fc" id="L114">                String paramName = paramElements[0];</span>
+<span class="fc bfc" id="L115" title="All 2 branches covered.">                if (paramElements.length == 2) {</span>
+<span class="fc" id="L116">                    String paramValue = paramElements[1];</span>
+<span class="fc bfc" id="L117" title="All 4 branches covered.">                    switch (paramName) {</span>
                         case &quot;pdu-size&quot;:
-<span class="fc" id="L118">                            curParamPduSize = Integer.parseInt(paramValue);</span>
-<span class="fc" id="L119">                            break;</span>
+<span class="fc" id="L119">                            curParamPduSize = Integer.parseInt(paramValue);</span>
+<span class="fc" id="L120">                            break;</span>
                         case &quot;max-amq-caller&quot;:
-<span class="fc" id="L121">                            curParamMaxAmqCaller = Short.parseShort(paramValue);</span>
-<span class="fc" id="L122">                            break;</span>
+<span class="fc" id="L122">                            curParamMaxAmqCaller = Short.parseShort(paramValue);</span>
+<span class="fc" id="L123">                            break;</span>
                         case &quot;max-amq-callee&quot;:
-<span class="fc" id="L124">                            curParamMaxAmqCallee = Short.parseShort(paramValue);</span>
-<span class="fc" id="L125">                            break;</span>
+<span class="fc" id="L125">                            curParamMaxAmqCallee = Short.parseShort(paramValue);</span>
+<span class="fc" id="L126">                            break;</span>
                         default:
-<span class="fc" id="L127">                            logger.debug(&quot;Unknown parameter {} with value {}&quot;, paramName, paramValue);</span>
+<span class="fc" id="L128">                            logger.debug(&quot;Unknown parameter {} with value {}&quot;, paramName, paramValue);</span>
                     }
-<span class="fc" id="L129">                } else {</span>
-<span class="fc" id="L130">                    logger.debug(&quot;Unknown no-value parameter {}&quot;, paramName);</span>
+<span class="fc" id="L130">                } else {</span>
+<span class="fc" id="L131">                    logger.debug(&quot;Unknown no-value parameter {}&quot;, paramName);</span>
                 }
             }
         }
 
         // IsoTP uses pre defined sizes. Find the smallest box,
         // that would be able to contain the requested pdu size.
-<span class="fc" id="L137">        this.paramPduSize = TpduSize.valueForGivenSize(curParamPduSize);</span>
-<span class="fc" id="L138">        this.paramMaxAmqCaller = curParamMaxAmqCaller;</span>
-<span class="fc" id="L139">        this.paramMaxAmqCallee = curParamMaxAmqCallee;</span>
-<span class="fc" id="L140">    }</span>
+<span class="fc" id="L138">        this.paramPduSize = TpduSize.valueForGivenSize(curParamPduSize);</span>
+<span class="fc" id="L139">        this.paramMaxAmqCaller = curParamMaxAmqCaller;</span>
+<span class="fc" id="L140">        this.paramMaxAmqCallee = curParamMaxAmqCallee;</span>
+<span class="fc" id="L141">    }</span>
 
     @Override
     public boolean canRead() {
-<span class="nc" id="L144">        return true;</span>
+<span class="nc" id="L145">        return true;</span>
     }
 
     @Override
     public boolean canWrite() {
-<span class="nc" id="L149">        return true;</span>
+<span class="nc" id="L150">        return true;</span>
     }
 
     @Override
     protected ChannelHandler getChannelHandler(CompletableFuture&lt;Void&gt; sessionSetupCompleteFuture) {
-<span class="fc" id="L154">        short calledTsapId = S7TsapIdEncoder.encodeS7TsapId(DeviceGroup.PG_OR_PC, 0, 0);</span>
-<span class="fc" id="L155">        short callingTsapId = S7TsapIdEncoder.encodeS7TsapId(DeviceGroup.OTHERS, rack, slot);</span>
+<span class="fc" id="L155">        short calledTsapId = S7TsapIdEncoder.encodeS7TsapId(DeviceGroup.PG_OR_PC, 0, 0);</span>
+<span class="fc" id="L156">        short callingTsapId = S7TsapIdEncoder.encodeS7TsapId(DeviceGroup.OTHERS, rack, slot);</span>
 
-<span class="fc" id="L157">        return new ChannelInitializer() {</span>
+<span class="fc" id="L158">        return new ChannelInitializer() {</span>
             @Override
             protected void initChannel(Channel channel) {
                 // Build the protocol stack for communicating with the s7 protocol.
-<span class="fc" id="L161">                ChannelPipeline pipeline = channel.pipeline();</span>
-<span class="fc" id="L162">                pipeline.addLast(new ChannelInboundHandlerAdapter() {</span>
+<span class="fc" id="L162">                ChannelPipeline pipeline = channel.pipeline();</span>
+<span class="fc" id="L163">                pipeline.addLast(new ChannelInboundHandlerAdapter() {</span>
                     @Override
                     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-<span class="fc bfc" id="L165" title="All 2 branches covered.">                        if (evt instanceof ConnectedEvent) {</span>
-<span class="fc" id="L166">                            sessionSetupCompleteFuture.complete(null);</span>
+<span class="fc bfc" id="L166" title="All 2 branches covered.">                        if (evt instanceof ConnectedEvent) {</span>
+<span class="fc" id="L167">                            sessionSetupCompleteFuture.complete(null);</span>
                         } else {
-<span class="fc" id="L168">                            super.userEventTriggered(ctx, evt);</span>
+<span class="fc" id="L169">                            super.userEventTriggered(ctx, evt);</span>
                         }
-<span class="fc" id="L170">                    }</span>
+<span class="fc" id="L171">                    }</span>
                 });
-<span class="fc" id="L172">                pipeline.addLast(new IsoOnTcpProtocol());</span>
-<span class="fc" id="L173">                pipeline.addLast(new IsoTPProtocol(callingTsapId, calledTsapId, paramPduSize));</span>
-<span class="fc" id="L174">                pipeline.addLast(new S7Protocol(paramMaxAmqCaller, paramMaxAmqCallee, (short) paramPduSize.getValue()));</span>
-<span class="fc" id="L175">                pipeline.addLast(new Plc4XS7Protocol());</span>
-<span class="fc" id="L176">            }</span>
+<span class="fc" id="L173">                pipeline.addLast(new IsoOnTcpProtocol());</span>
+<span class="fc" id="L174">                pipeline.addLast(new IsoTPProtocol(callingTsapId, calledTsapId, paramPduSize));</span>
+<span class="fc" id="L175">                pipeline.addLast(new S7Protocol(paramMaxAmqCaller, paramMaxAmqCallee, (short) paramPduSize.getValue(),</span>
+                    new DefaultS7MessageProcessor()));
+<span class="fc" id="L177">                pipeline.addLast(new Plc4XS7Protocol());</span>
+<span class="fc" id="L178">            }</span>
         };
     }
 
     @Override
     protected void sendChannelCreatedEvent() {
         // Send an event to the pipeline telling the Protocol filters what's going on.
-<span class="fc" id="L183">        channel.pipeline().fireUserEventTriggered(new ConnectEvent());</span>
-<span class="fc" id="L184">    }</span>
+<span class="fc" id="L185">        channel.pipeline().fireUserEventTriggered(new ConnectEvent());</span>
+<span class="fc" id="L186">    }</span>
 
     public int getRack() {
-<span class="nc" id="L187">        return rack;</span>
+<span class="nc" id="L189">        return rack;</span>
     }
 
     public int getSlot() {
-<span class="nc" id="L191">        return slot;</span>
+<span class="nc" id="L193">        return slot;</span>
     }
 
     public TpduSize getParamPduSize() {
-<span class="nc" id="L195">        return paramPduSize;</span>
+<span class="nc" id="L197">        return paramPduSize;</span>
     }
 
     public int getParamMaxAmqCaller() {
-<span class="nc" id="L199">        return paramMaxAmqCaller;</span>
+<span class="nc" id="L201">        return paramMaxAmqCaller;</span>
     }
 
     public int getParamMaxAmqCallee() {
-<span class="nc" id="L203">        return paramMaxAmqCallee;</span>
+<span class="nc" id="L205">        return paramMaxAmqCallee;</span>
     }
 
     @Override
     public void close() throws PlcConnectionException {
-<span class="pc bpc" id="L208" title="2 of 4 branches missed.">        if ((channel != null) &amp;&amp; channel.isOpen()) {</span>
+<span class="pc bpc" id="L210" title="2 of 4 branches missed.">        if ((channel != null) &amp;&amp; channel.isOpen()) {</span>
             // Send the PLC a message that the connection is being closed.
-<span class="fc" id="L210">            DisconnectRequestTpdu disconnectRequest = new DisconnectRequestTpdu(</span>
-<span class="fc" id="L211">                (short) 0x0000, (short) 0x000F, DisconnectReason.NORMAL, Collections.emptyList(),</span>
+<span class="fc" id="L212">            DisconnectRequestTpdu disconnectRequest = new DisconnectRequestTpdu(</span>
+<span class="fc" id="L213">                (short) 0x0000, (short) 0x000F, DisconnectReason.NORMAL, Collections.emptyList(),</span>
                 null);
 
             // In case of an ISO TP Class 0 connection, the remote is usually expected to actively
             // close the connection. So we add a listener waiting for this to happen.
-<span class="fc" id="L216">            CompletableFuture&lt;Void&gt; disconnectFuture = new CompletableFuture&lt;&gt;();</span>
-<span class="fc" id="L217">            channel.closeFuture().addListener(</span>
-<span class="fc" id="L218">                (ChannelFutureListener) future -&gt; disconnectFuture.complete(null));</span>
+<span class="fc" id="L218">            CompletableFuture&lt;Void&gt; disconnectFuture = new CompletableFuture&lt;&gt;();</span>
+<span class="fc" id="L219">            channel.closeFuture().addListener(</span>
+<span class="fc" id="L220">                (ChannelFutureListener) future -&gt; disconnectFuture.complete(null));</span>
 
             // Send the disconnect request.
-<span class="fc" id="L221">            channel.writeAndFlush(disconnectRequest);</span>
+<span class="fc" id="L223">            channel.writeAndFlush(disconnectRequest);</span>
             // Wait for the configured time for the remote to close the session.
             try {
-<span class="nc" id="L224">                disconnectFuture.get(CLOSE_DEVICE_TIMEOUT_MS, TimeUnit.MILLISECONDS);</span>
+<span class="nc" id="L226">                disconnectFuture.get(CLOSE_DEVICE_TIMEOUT_MS, TimeUnit.MILLISECONDS);</span>
             }
             // If the remote didn't close the connection within the given time-frame, we have to take
             // care of closing the connection.
-<span class="fc" id="L228">            catch (TimeoutException e) {</span>
-<span class="fc" id="L229">                logger.info(&quot;Remote didn't close connection within the configured timeout of {}ms, shutting down actively.&quot;, CLOSE_DEVICE_TIMEOUT_MS, e);</span>
-<span class="fc" id="L230">                channel.close();</span>
-<span class="nc" id="L231">            } catch (InterruptedException e) {</span>
-<span class="nc" id="L232">                Thread.currentThread().interrupt();</span>
-<span class="nc" id="L233">            } catch (ExecutionException e) {</span>
-<span class="nc" id="L234">                throw new PlcConnectionException(e);</span>
-<span class="pc" id="L235">            }</span>
+<span class="fc" id="L230">            catch (TimeoutException e) {</span>
+<span class="fc" id="L231">                logger.info(&quot;Remote didn't close connection within the configured timeout of {}ms, shutting down actively.&quot;, CLOSE_DEVICE_TIMEOUT_MS, e);</span>
+<span class="fc" id="L232">                channel.close();</span>
+<span class="nc" id="L233">            } catch (InterruptedException e) {</span>
+<span class="nc" id="L234">                Thread.currentThread().interrupt();</span>
+<span class="nc" id="L235">            } catch (ExecutionException e) {</span>
+<span class="nc" id="L236">                throw new PlcConnectionException(e);</span>
+<span class="pc" id="L237">            }</span>
 
             // Do some additional cleanup operations ...
             // In normal operation, the channels event loop has a parent, however when running with
             // the embedded channel for unit tests, parent is null.
-<span class="pc bpc" id="L240" title="1 of 2 branches missed.">            if (channel.eventLoop().parent() != null) {</span>
-<span class="nc" id="L241">                channel.eventLoop().parent().shutdownGracefully();</span>
+<span class="pc bpc" id="L242" title="1 of 2 branches missed.">            if (channel.eventLoop().parent() != null) {</span>
+<span class="nc" id="L243">                channel.eventLoop().parent().shutdownGracefully();</span>
             }
         }
-<span class="fc" id="L244">        super.close();</span>
-<span class="fc" id="L245">    }</span>
+<span class="fc" id="L246">        super.close();</span>
+<span class="fc" id="L247">    }</span>
 
     @Override
     public PlcReadRequest.Builder readRequestBuilder() {
-<span class="fc" id="L249">        return new DefaultPlcReadRequest.Builder(this, new S7PlcFieldHandler());</span>
+<span class="fc" id="L251">        return new DefaultPlcReadRequest.Builder(this, new S7PlcFieldHandler());</span>
     }
 
     @Override
     public PlcWriteRequest.Builder writeRequestBuilder() {
-<span class="fc" id="L254">        return new DefaultPlcWriteRequest.Builder(this, new S7PlcFieldHandler());</span>
+<span class="fc" id="L256">        return new DefaultPlcWriteRequest.Builder(this, new S7PlcFieldHandler());</span>
     }
 
     @Override
     public CompletableFuture&lt;PlcReadResponse&gt; read(PlcReadRequest readRequest) {
-<span class="fc" id="L259">        CompletableFuture&lt;InternalPlcReadResponse&gt; future = new CompletableFuture&lt;&gt;();</span>
-<span class="fc" id="L260">        PlcRequestContainer&lt;InternalPlcReadRequest, InternalPlcReadResponse&gt; container =</span>
+<span class="fc" id="L261">        CompletableFuture&lt;InternalPlcReadResponse&gt; future = new CompletableFuture&lt;&gt;();</span>
+<span class="fc" id="L262">        PlcRequestContainer&lt;InternalPlcReadRequest, InternalPlcReadResponse&gt; container =</span>
             new PlcRequestContainer&lt;&gt;((InternalPlcReadRequest) readRequest, future);
-<span class="fc" id="L262">        channel.writeAndFlush(container).addListener(f -&gt; {</span>
-<span class="pc bpc" id="L263" title="1 of 2 branches missed.">            if (!f.isSuccess()) {</span>
-<span class="nc" id="L264">                future.completeExceptionally(f.cause());</span>
+<span class="fc" id="L264">        channel.writeAndFlush(container).addListener(f -&gt; {</span>
+<span class="pc bpc" id="L265" title="1 of 2 branches missed.">            if (!f.isSuccess()) {</span>
+<span class="nc" id="L266">                future.completeExceptionally(f.cause());</span>
             }
-<span class="fc" id="L266">        });</span>
-<span class="fc" id="L267">        return future</span>
-<span class="fc" id="L268">            .thenApply(PlcReadResponse.class::cast);</span>
+<span class="fc" id="L268">        });</span>
+<span class="fc" id="L269">        return future</span>
+<span class="fc" id="L270">            .thenApply(PlcReadResponse.class::cast);</span>
     }
 
     @Override
     public CompletableFuture&lt;PlcWriteResponse&gt; write(PlcWriteRequest writeRequest) {
-<span class="fc" id="L273">        CompletableFuture&lt;InternalPlcWriteResponse&gt; future = new CompletableFuture&lt;&gt;();</span>
-<span class="fc" id="L274">        PlcRequestContainer&lt;InternalPlcWriteRequest, InternalPlcWriteResponse&gt; container =</span>
+<span class="fc" id="L275">        CompletableFuture&lt;InternalPlcWriteResponse&gt; future = new CompletableFuture&lt;&gt;();</span>
+<span class="fc" id="L276">        PlcRequestContainer&lt;InternalPlcWriteRequest, InternalPlcWriteResponse&gt; container =</span>
             new PlcRequestContainer&lt;&gt;((InternalPlcWriteRequest) writeRequest, future);
-<span class="fc" id="L276">        channel.writeAndFlush(container).addListener(f -&gt; {</span>
-<span class="pc bpc" id="L277" title="1 of 2 branches missed.">            if (!f.isSuccess()) {</span>
-<span class="nc" id="L278">                future.completeExceptionally(f.cause());</span>
+<span class="fc" id="L278">        channel.writeAndFlush(container).addListener(f -&gt; {</span>
+<span class="pc bpc" id="L279" title="1 of 2 branches missed.">            if (!f.isSuccess()) {</span>
+<span class="nc" id="L280">                future.completeExceptionally(f.cause());</span>
             }
-<span class="fc" id="L280">        });</span>
-<span class="fc" id="L281">        return future</span>
-<span class="fc" id="L282">            .thenApply(PlcWriteResponse.class::cast);</span>
+<span class="fc" id="L282">        });</span>
+<span class="fc" id="L283">        return future</span>
+<span class="fc" id="L284">            .thenApply(PlcWriteResponse.class::cast);</span>
     }
 
 }

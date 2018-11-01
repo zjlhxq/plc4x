@@ -90,7 +90,7 @@ public class IsoTPProtocol extends PlcMessageToMessageCodec&lt;IsoOnTcpMessage, 
 
     @Override
     protected void encode(ChannelHandlerContext ctx, Tpdu in, List&lt;Object&gt; out) {
-<span class="fc" id="L93">        logger.debug(&quot;ISO Transport Protocol Message sent&quot;);</span>
+<span class="fc" id="L93">        logger.trace(&quot;ISO Transport Protocol Message sent&quot;);</span>
 
 <span class="pc bpc" id="L95" title="1 of 2 branches missed.">        if (in == null) {</span>
 <span class="nc" id="L96">            return;</span>
@@ -209,13 +209,13 @@ public class IsoTPProtocol extends PlcMessageToMessageCodec&lt;IsoOnTcpMessage, 
 
     @Override
     protected void decode(ChannelHandlerContext ctx, IsoOnTcpMessage in, List&lt;Object&gt; out) {
-<span class="pc bpc" id="L212" title="1 of 2 branches missed.">        if (logger.isTraceEnabled()) {</span>
-<span class="nc" id="L213">            logger.trace(&quot;Got Data: {}&quot;, ByteBufUtil.hexDump(in.getUserData()));</span>
+<span class="fc" id="L212">        logger.trace(&quot;ISO TP Message received&quot;);</span>
+<span class="pc bpc" id="L213" title="1 of 2 branches missed.">        if (in == null) {</span>
+<span class="nc" id="L214">            return;</span>
         }
-<span class="fc" id="L215">        logger.debug(&quot;ISO TP Message received&quot;);</span>
 
-<span class="pc bpc" id="L217" title="1 of 2 branches missed.">        if (in == null) {</span>
-<span class="nc" id="L218">            return;</span>
+<span class="pc bpc" id="L217" title="1 of 2 branches missed.">        if (logger.isDebugEnabled()) {</span>
+<span class="fc" id="L218">            logger.debug(&quot;Got Data: {}&quot;, ByteBufUtil.hexDump(in.getUserData()));</span>
         }
 
 <span class="fc" id="L221">        ByteBuf userData = in.getUserData();</span>

@@ -59,21 +59,21 @@ public class S7SizeHelper {
         }
 
 <span class="fc bfc" id="L61" title="All 2 branches covered.">        for (S7Payload payload : payloads) {</span>
-<span class="pc bpc" id="L62" title="1 of 2 branches missed.">            if(payload instanceof VarPayload) {</span>
+<span class="fc bfc" id="L62" title="All 2 branches covered.">            if(payload instanceof VarPayload) {</span>
 <span class="fc" id="L63">                VarPayload varPayload = (VarPayload) payload;</span>
 <span class="fc bfc" id="L64" title="All 2 branches covered.">                for (VarPayloadItem payloadItem : varPayload.getItems()) {</span>
 <span class="fc" id="L65">                    l += getPayloadLength(payloadItem);</span>
 <span class="fc" id="L66">                }</span>
-<span class="pc bnc" id="L67" title="All 2 branches missed.">            } else if(payload instanceof CpuServicesPayload) {</span>
-<span class="nc" id="L68">                CpuServicesPayload cpuServicesPayload = (CpuServicesPayload) payload;</span>
-<span class="nc bnc" id="L69" title="All 2 branches missed.">                if(cpuServicesPayload.getSslDataRecords().isEmpty()) {</span>
-<span class="nc" id="L70">                    return 8;</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">            } else if(payload instanceof CpuServicesPayload) {</span>
+<span class="fc" id="L68">                CpuServicesPayload cpuServicesPayload = (CpuServicesPayload) payload;</span>
+<span class="fc bfc" id="L69" title="All 2 branches covered.">                if(cpuServicesPayload.getSslDataRecords().isEmpty()) {</span>
+<span class="fc" id="L70">                    return 8;</span>
                 } else {
-<span class="nc" id="L72">                    short length = 0;</span>
-<span class="nc bnc" id="L73" title="All 2 branches missed.">                    for (SslDataRecord sslDataRecord : cpuServicesPayload.getSslDataRecords()) {</span>
-<span class="nc" id="L74">                        length += sslDataRecord.getLengthInWords() * 2;</span>
-<span class="nc" id="L75">                    }</span>
-<span class="nc" id="L76">                    return length;</span>
+<span class="fc" id="L72">                    short length = 0;</span>
+<span class="fc bfc" id="L73" title="All 2 branches covered.">                    for (SslDataRecord sslDataRecord : cpuServicesPayload.getSslDataRecords()) {</span>
+<span class="fc" id="L74">                        length += sslDataRecord.getLengthInWords() * 2;</span>
+<span class="fc" id="L75">                    }</span>
+<span class="fc" id="L76">                    return length;</span>
                 }
             }
 <span class="fc" id="L79">        }</span>
@@ -85,7 +85,7 @@ public class S7SizeHelper {
 <span class="nc" id="L85">            return 0;</span>
         }
 
-<span class="pc bpc" id="L88" title="1 of 4 branches missed.">        switch (parameter.getType()) {</span>
+<span class="fc bfc" id="L88" title="All 4 branches covered.">        switch (parameter.getType()) {</span>
             case READ_VAR:
             case WRITE_VAR:
 <span class="fc" id="L91">                return getReadWriteVarParameterLength((VarParameter) parameter);</span>
@@ -98,8 +98,8 @@ public class S7SizeHelper {
 <span class="nc" id="L98">                    return 12;</span>
                 }
             default:
-<span class="nc" id="L101">                logger.error(&quot;Not implemented&quot;);</span>
-<span class="nc" id="L102">                return 0;</span>
+<span class="fc" id="L101">                logger.error(&quot;Not implemented&quot;);</span>
+<span class="fc" id="L102">                return 0;</span>
         }
     }
 
@@ -108,10 +108,10 @@ public class S7SizeHelper {
 <span class="fc bfc" id="L108" title="All 2 branches covered.">        for (VarParameterItem varParameterItem : parameter.getItems()) {</span>
 <span class="fc" id="L109">            VariableAddressingMode addressMode = varParameterItem.getAddressingMode();</span>
 
-<span class="pc bpc" id="L111" title="1 of 2 branches missed.">            if (addressMode == VariableAddressingMode.S7ANY) {</span>
+<span class="fc bfc" id="L111" title="All 2 branches covered.">            if (addressMode == VariableAddressingMode.S7ANY) {</span>
 <span class="fc" id="L112">                length += 12;</span>
             } else {
-<span class="nc" id="L114">                logger.error(&quot;Not implemented&quot;);</span>
+<span class="fc" id="L114">                logger.error(&quot;Not implemented&quot;);</span>
             }
 <span class="fc" id="L116">        }</span>
 <span class="fc" id="L117">        return length;</span>
