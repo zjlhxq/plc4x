@@ -23,50 +23,49 @@ import org.apache.plc4x.java.api.authentication.PlcAuthentication;
 
 import java.util.Objects;
 
-public class PoolKey {
-    final String url;
-    final PlcAuthentication plcAuthentication;
+public abstract class PoolKey {
+    protected final String url;
+    protected final PlcAuthentication plcAuthentication;
 
-    // TODO: we need to extract relevant parts of the url as key as we don't want many connections for different racks in s7 for example.
-    // TODO: So we might end up need a generic key and special keys for all known protocols which parses the relevant portions.
-<span class="fc" id="L32">    public PoolKey(String url, PlcAuthentication plcAuthentication) {</span>
-<span class="fc" id="L33">        this.url = url;</span>
-<span class="fc" id="L34">        this.plcAuthentication = plcAuthentication;</span>
-<span class="fc" id="L35">    }</span>
-
-    public static PoolKey of(String host, PlcAuthentication plcAuthentication) {
-<span class="fc" id="L38">        return new PoolKey(host, plcAuthentication);</span>
-    }
+<span class="fc" id="L30">    public PoolKey(String url, PlcAuthentication plcAuthentication) {</span>
+<span class="fc" id="L31">        this.url = url;</span>
+<span class="fc" id="L32">        this.plcAuthentication = plcAuthentication;</span>
+<span class="fc" id="L33">    }</span>
 
     public String getUrl() {
-<span class="nc" id="L42">        return url;</span>
+<span class="fc" id="L36">        return url;</span>
     }
 
     public PlcAuthentication getPlcAuthentication() {
-<span class="nc" id="L46">        return plcAuthentication;</span>
+<span class="fc" id="L40">        return plcAuthentication;</span>
     }
+
+    /**
+     * @return the part of the url that should be pooled.
+     */
+    public abstract String getPoolableKey();
 
     @Override
     public boolean equals(Object o) {
-<span class="fc bfc" id="L51" title="All 2 branches covered.">        if (this == o) {</span>
-<span class="fc" id="L52">            return true;</span>
+<span class="fc bfc" id="L50" title="All 2 branches covered.">        if (this == o) {</span>
+<span class="fc" id="L51">            return true;</span>
         }
-<span class="pc bpc" id="L54" title="1 of 2 branches missed.">        if (!(o instanceof PoolKey)) {</span>
-<span class="nc" id="L55">            return false;</span>
+<span class="pc bpc" id="L53" title="1 of 2 branches missed.">        if (!(o instanceof PoolKey)) {</span>
+<span class="nc" id="L54">            return false;</span>
         }
-<span class="fc" id="L57">        PoolKey poolKey = (PoolKey) o;</span>
-<span class="pc bpc" id="L58" title="1 of 2 branches missed.">        return Objects.equals(url, poolKey.url) &amp;&amp;</span>
-<span class="pc bpc" id="L59" title="1 of 2 branches missed.">            Objects.equals(plcAuthentication, poolKey.plcAuthentication);</span>
+<span class="fc" id="L56">        PoolKey poolKey = (PoolKey) o;</span>
+<span class="pc bpc" id="L57" title="1 of 2 branches missed.">        return Objects.equals(getPoolableKey(), poolKey.getPoolableKey()) &amp;&amp;</span>
+<span class="pc bpc" id="L58" title="1 of 2 branches missed.">            Objects.equals(plcAuthentication, poolKey.plcAuthentication);</span>
     }
 
     @Override
     public int hashCode() {
-<span class="fc" id="L64">        return Objects.hash(url, plcAuthentication);</span>
+<span class="fc" id="L63">        return Objects.hash(getPoolableKey(), plcAuthentication);</span>
     }
 
     @Override
     public String toString() {
-<span class="fc bfc" id="L69" title="All 2 branches covered.">        return &quot;PoolKey{&quot; +</span>
+<span class="fc bfc" id="L68" title="All 2 branches covered.">        return &quot;PoolKey{&quot; +</span>
             &quot;url='&quot; + url + '\'' +
             (plcAuthentication != PooledPlcDriverManager.noPlcAuthentication ? &quot;, plcAuthentication=&quot; + plcAuthentication : &quot;&quot;) +
             '}';

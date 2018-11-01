@@ -982,21 +982,35 @@ import java.util.stream.Collectors;
 
     private BaseDefaultFieldItem internalDateTimeTemporal(PlcField field, Object[] values) {
 <span class="nc" id="L984">        AdsField adsField = (AdsField) field;</span>
-<span class="nc bnc" id="L985" title="All 2 branches missed.">        switch (adsField.getAdsDataType()) {</span>
+        Class&lt;? extends BaseDefaultFieldItem&gt; fieldType;
+<span class="nc bnc" id="L986" title="All 4 branches missed.">        switch (adsField.getAdsDataType()) {</span>
             case TIME:
-            case DATE:
-            case DATE_AND_TIME:
+<span class="nc" id="L988">                fieldType = DefaultLocalTimeFieldItem.class;</span>
 <span class="nc" id="L989">                break;</span>
+            case DATE:
+<span class="nc" id="L991">                fieldType = DefaultLocalDateFieldItem.class;</span>
+<span class="nc" id="L992">                break;</span>
+            case DATE_AND_TIME:
+<span class="nc" id="L994">                fieldType = DefaultLocalDateTimeFieldItem.class;</span>
+<span class="nc" id="L995">                break;</span>
             default:
-<span class="nc" id="L991">                throw new IllegalArgumentException(</span>
-<span class="nc" id="L992">                    &quot;Cannot assign temporal values to &quot; + adsField.getAdsDataType().name() + &quot; fields.&quot;);</span>
+<span class="nc" id="L997">                throw new IllegalArgumentException(</span>
+<span class="nc" id="L998">                    &quot;Cannot assign temporal values to &quot; + adsField.getAdsDataType().name() + &quot; fields.&quot;);</span>
         }
-        // TODO: support other types
-<span class="nc" id="L995">        List&lt;LocalDateTime&gt; localDateTimeValues = Arrays.stream(values)</span>
-<span class="nc" id="L996">            .filter(LocalDateTime.class::isInstance)</span>
-<span class="nc" id="L997">            .map(LocalDateTime.class::cast)</span>
-<span class="nc" id="L998">            .collect(Collectors.toList());</span>
-<span class="nc" id="L999">        return new DefaultLocalDateTimeFieldItem(localDateTimeValues.toArray(new LocalDateTime[0]));</span>
+        // TODO: add type conversion
+<span class="nc bnc" id="L1001" title="All 2 branches missed.">        if (fieldType == DefaultLocalDateTimeFieldItem.class) {</span>
+<span class="nc" id="L1002">            return new DefaultLocalDateTimeFieldItem(Arrays.stream(values)</span>
+<span class="nc" id="L1003">                .filter(LocalDateTime.class::isInstance)</span>
+<span class="nc" id="L1004">                .map(LocalDateTime.class::cast).toArray(LocalDateTime[]::new));</span>
+<span class="nc bnc" id="L1005" title="All 2 branches missed.">        } else if (fieldType == DefaultLocalDateFieldItem.class) {</span>
+<span class="nc" id="L1006">            return new DefaultLocalDateFieldItem(Arrays.stream(values)</span>
+<span class="nc" id="L1007">                .filter(LocalDate.class::isInstance)</span>
+<span class="nc" id="L1008">                .map(LocalDate.class::cast).toArray(LocalDate[]::new));</span>
+        } else {
+<span class="nc" id="L1010">            return new DefaultLocalTimeFieldItem(Arrays.stream(values)</span>
+<span class="nc" id="L1011">                .filter(LocalTime.class::isInstance)</span>
+<span class="nc" id="L1012">                .map(LocalTime.class::cast).toArray(LocalTime[]::new));</span>
+        }
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
