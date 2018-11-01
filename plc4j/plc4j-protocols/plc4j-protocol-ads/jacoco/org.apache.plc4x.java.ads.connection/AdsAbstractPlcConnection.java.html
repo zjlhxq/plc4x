@@ -160,9 +160,9 @@ public abstract class AdsAbstractPlcConnection extends AbstractPlcConnection imp
     protected void mapFields(SymbolicAdsField symbolicAdsField) {
         // If the map doesn't contain an entry for the given symbolicAdsField,
         // resolve it and add it to the map.
-<span class="nc" id="L163">        fieldMapping.computeIfAbsent(symbolicAdsField, symbolicAdsFieldInternal -&gt; {</span>
-<span class="nc" id="L164">            LOGGER.debug(&quot;Resolving {}&quot;, symbolicAdsFieldInternal);</span>
-<span class="nc" id="L165">            AdsReadWriteRequest adsReadWriteRequest = AdsReadWriteRequest.of(</span>
+<span class="fc" id="L163">        fieldMapping.computeIfAbsent(symbolicAdsField, symbolicAdsFieldInternal -&gt; {</span>
+<span class="fc" id="L164">            LOGGER.debug(&quot;Resolving {}&quot;, symbolicAdsFieldInternal);</span>
+<span class="fc" id="L165">            AdsReadWriteRequest adsReadWriteRequest = AdsReadWriteRequest.of(</span>
                 targetAmsNetId,
                 targetAmsPort,
                 sourceAmsNetId,
@@ -170,24 +170,24 @@ public abstract class AdsAbstractPlcConnection extends AbstractPlcConnection imp
                 Invoke.NONE,
                 IndexGroup.ReservedGroups.ADSIGRP_SYM_HNDBYNAME,
                 IndexOffset.NONE,
-<span class="nc" id="L173">                ReadLength.of(IndexOffset.NUM_BYTES),</span>
-<span class="nc" id="L174">                Data.of(symbolicAdsFieldInternal.getSymbolicField())</span>
+<span class="fc" id="L173">                ReadLength.of(IndexOffset.NUM_BYTES),</span>
+<span class="fc" id="L174">                Data.of(symbolicAdsFieldInternal.getSymbolicField())</span>
             );
 
             // TODO: This is blocking, should be changed to be async.
-<span class="nc" id="L178">            CompletableFuture&lt;InternalPlcProprietaryResponse&lt;AdsReadWriteResponse&gt;&gt; getHandelFuture = new CompletableFuture&lt;&gt;();</span>
-<span class="nc" id="L179">            channel.writeAndFlush(new PlcRequestContainer&lt;&gt;(new DefaultPlcProprietaryRequest&lt;&gt;(adsReadWriteRequest), getHandelFuture));</span>
-<span class="nc" id="L180">            InternalPlcProprietaryResponse&lt;AdsReadWriteResponse&gt; getHandleResponse = getFromFuture(getHandelFuture, SYMBOL_RESOLVE_TIMEOUT);</span>
-<span class="nc" id="L181">            AdsReadWriteResponse response = getHandleResponse.getResponse();</span>
+<span class="fc" id="L178">            CompletableFuture&lt;InternalPlcProprietaryResponse&lt;AdsReadWriteResponse&gt;&gt; getHandelFuture = new CompletableFuture&lt;&gt;();</span>
+<span class="fc" id="L179">            channel.writeAndFlush(new PlcRequestContainer&lt;&gt;(new DefaultPlcProprietaryRequest&lt;&gt;(adsReadWriteRequest), getHandelFuture));</span>
+<span class="fc" id="L180">            InternalPlcProprietaryResponse&lt;AdsReadWriteResponse&gt; getHandleResponse = getFromFuture(getHandelFuture, SYMBOL_RESOLVE_TIMEOUT);</span>
+<span class="fc" id="L181">            AdsReadWriteResponse response = getHandleResponse.getResponse();</span>
 
-<span class="nc bnc" id="L183" title="All 2 branches missed.">            if (response.getResult().toAdsReturnCode() != AdsReturnCode.ADS_CODE_0) {</span>
+<span class="pc bpc" id="L183" title="1 of 2 branches missed.">            if (response.getResult().toAdsReturnCode() != AdsReturnCode.ADS_CODE_0) {</span>
 <span class="nc" id="L184">                throw new PlcRuntimeException(&quot;Non error code received &quot; + response.getResult());</span>
             }
 
-<span class="nc" id="L187">            IndexOffset symbolHandle = IndexOffset.of(response.getData().getBytes());</span>
-<span class="nc" id="L188">            return DirectAdsField.of(IndexGroup.ReservedGroups.ADSIGRP_SYM_VALBYHND.getAsLong(), symbolHandle.getAsLong(), symbolicAdsFieldInternal.getAdsDataType(), symbolicAdsFieldInternal.getNumberOfElements());</span>
+<span class="fc" id="L187">            IndexOffset symbolHandle = IndexOffset.of(response.getData().getBytes());</span>
+<span class="fc" id="L188">            return DirectAdsField.of(IndexGroup.ReservedGroups.ADSIGRP_SYM_VALBYHND.getAsLong(), symbolHandle.getAsLong(), symbolicAdsFieldInternal.getAdsDataType(), symbolicAdsFieldInternal.getNumberOfElements());</span>
         });
-<span class="nc" id="L190">    }</span>
+<span class="fc" id="L190">    }</span>
 
     protected static AmsNetId generateAMSNetId() {
 <span class="fc" id="L193">        return AmsNetId.of(&quot;0.0.0.0.0.0&quot;);</span>
@@ -222,8 +222,8 @@ public abstract class AdsAbstractPlcConnection extends AbstractPlcConnection imp
      * Clears the fieldMapping.
      */
     public void clearMapping() {
-<span class="nc" id="L225">        fieldMapping.clear();</span>
-<span class="nc" id="L226">    }</span>
+<span class="fc" id="L225">        fieldMapping.clear();</span>
+<span class="fc" id="L226">    }</span>
 
     protected &lt;T&gt; T getFromFuture(CompletableFuture&lt;T&gt; future, long timeout) {
         try {
