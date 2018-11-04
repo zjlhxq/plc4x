@@ -198,7 +198,7 @@
   </div> 
   <div class="imageblock"> 
    <div class="content"> 
-    <img src="img/plc4x-architecture.png" alt="plc4x architecture" width="810" height="714" class="img-responsive"> 
+    <img src="img/plc4x-architecture.png" alt="plc4x architecture" width="1000" height="574" class="img-responsive"> 
    </div> 
   </div> 
   <div class="sect2"> 
@@ -215,69 +215,9 @@
      <li> <p>Asynchronously (The application continues and can</p> </li> 
     </ul> 
    </div> 
-   <div class="literalblock"> 
+   <div class="listingblock"> 
     <div class="content"> 
-     <pre>public class S7PlcDriverSample {
-
-    /**
-     * Example code do demonstrate using the S7 Plc Driver.
-     *
-     * @param args ignored.
-     * @throws Exception something went wrong.
-     */
-    public static void main(String[] args) throws Exception {
-        // Create a connection to the S7 PLC (s7://{hostname/ip}/{racknumber}/{slotnumber})
-        try (PlcConnection plcConnection = new PlcDriverManager().getConnection("s7://192.168.0.1/0/0")){
-
-            Optional&lt;PlcReader&gt; reader = plcConnection.getReader();
-            // Check if this connection support reading of data.
-            if (reader.isPresent()) {
-                PlcReader plcReader = reader.get();
-
-                // Prepare some address object for accessing fields in the PLC.
-                // ({memory-area}/{byte-offset}[/{bit-offset}]
-                // "bit-offset is only specified if the requested type is "bit"
-                // NOTICE: This format is probably only valid when using a S7 connection.
-                Address inputs = plcConnection.parseAddress("INPUTS/0");
-                Address outputs = plcConnection.parseAddress("OUTPUTS/0");
-
-                //////////////////////////////////////////////////////////
-                // Read synchronously ...
-                // NOTICE: the ".get()" immediately lets this thread pause till
-                // the response is processed and available.
-                PlcReadResponse&lt;Byte&gt; plcReadResponse = plcReader.read(
-                    new BytePlcReadRequest(inputs)).get();
-                Byte data = plcReadResponse.getValue();
-                System.out.println("Inputs: " + data);
-
-                //////////////////////////////////////////////////////////
-                // Read asynchronously ...
-                Calendar start = Calendar.getInstance();
-                CompletableFuture&lt;PlcReadResponse&lt;Byte&gt;&gt; asyncResponse = plcReader.read(
-                    new BytePlcReadRequest(outputs));
-
-                asyncResponse.thenAccept(bytePlcReadResponse -&gt; {
-                    Calendar end = Calendar.getInstance();
-                    Byte dataAsync = bytePlcReadResponse.getValue();
-                    System.out.println("Outputs: " + dataAsync + " (in " + (end.getTimeInMillis() - start.getTimeInMillis()) + "ms)");
-                });
-
-                // Simulate doing something else ...
-                while (true) {
-                    Thread.sleep(1);
-                    if (asyncResponse.isDone()) {
-                        break;
-                    }
-                }
-            }
-        }
-        // Catch any exception or the application won't be able to finish if something goes wrong.
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-}</pre> 
+     <pre class="prettyprint highlight"><code class="language-java" data-lang="java">Unresolved directive in &lt;stdin&gt; - include::../../../../examples/hello-world-plc4x/src/main/java/org/apache/plc4x/java/examples/helloplc4x/HelloPlc4x.java[lines=19..200]</code></pre> 
     </div> 
    </div> 
   </div> 
