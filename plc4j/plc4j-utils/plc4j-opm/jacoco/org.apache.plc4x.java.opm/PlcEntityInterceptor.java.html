@@ -200,8 +200,8 @@ public class PlcEntityInterceptor {
         try {
 <span class="fc" id="L201">            field = m.getDeclaringClass().getDeclaredField(variable);</span>
 <span class="fc" id="L202">            annotation = field.getDeclaredAnnotation(PlcField.class);</span>
-<span class="nc" id="L203">        } catch (NoSuchFieldException e) {</span>
-<span class="nc" id="L204">            throw new OPMException(&quot;Unable to identify field annotated field for call to &quot; + m.getName(), e);</span>
+<span class="fc" id="L203">        } catch (NoSuchFieldException e) {</span>
+<span class="fc" id="L204">            throw new OPMException(&quot;Unable to identify field with name '&quot; + variable + &quot;' for call to '&quot; + m.getName() + &quot;'&quot;, e);</span>
 <span class="fc" id="L205">        }</span>
 <span class="fc" id="L206">        try (PlcConnection connection = driverManager.getConnection(address)) {</span>
             // Catch the exception, if no reader present (see below)
@@ -248,11 +248,11 @@ public class PlcEntityInterceptor {
 <span class="fc" id="L248">    }</span>
 
     @SuppressWarnings(&quot;squid:S3776&quot;) // Cognitive Complexity not too high, as highly structured
-    private static Object getTyped(Class&lt;?&gt; clazz, PlcReadResponse response, String sourceFieldName) {
+    static Object getTyped(Class&lt;?&gt; clazz, PlcReadResponse response, String sourceFieldName) {
 <span class="fc" id="L252">        LOGGER.debug(&quot;getTyped clazz: {}, response: {}, fieldName: {}&quot;, clazz, response, sourceFieldName);</span>
-<span class="pc bpc" id="L253" title="1 of 2 branches missed.">        if (response.getResponseCode(sourceFieldName) != PlcResponseCode.OK) {</span>
-<span class="nc" id="L254">            throw new PlcRuntimeException(String.format(&quot;Unable to read specified field %s, response code was %s&quot;,</span>
-                sourceFieldName, response));
+<span class="fc bfc" id="L253" title="All 2 branches covered.">        if (response.getResponseCode(sourceFieldName) != PlcResponseCode.OK) {</span>
+<span class="fc" id="L254">            throw new PlcRuntimeException(String.format(&quot;Unable to read specified field '%s', response code was '%s'&quot;,</span>
+<span class="fc" id="L255">                sourceFieldName, response.getResponseCode(sourceFieldName)));</span>
         }
 <span class="fc bfc" id="L257" title="All 2 branches covered.">        if (clazz.isPrimitive()) {</span>
 <span class="fc bfc" id="L258" title="All 2 branches covered.">            if (clazz == boolean.class) {</span>
@@ -320,11 +320,11 @@ public class PlcEntityInterceptor {
     static PlcReadResponse getPlcReadResponse(PlcReadRequest request) throws OPMException {
         try {
 <span class="fc" id="L322">            return request.execute().get(READ_TIMEOUT, TimeUnit.MILLISECONDS);</span>
-<span class="nc" id="L323">        } catch (InterruptedException e) {</span>
-<span class="nc" id="L324">            Thread.currentThread().interrupt();</span>
-<span class="nc" id="L325">            throw new OPMException(&quot;Exception during execution&quot;, e);</span>
-<span class="nc" id="L326">        } catch (ExecutionException e) {</span>
-<span class="nc" id="L327">            throw new OPMException(&quot;Exception during execution&quot;, e);</span>
+<span class="fc" id="L323">        } catch (InterruptedException e) {</span>
+<span class="fc" id="L324">            Thread.currentThread().interrupt();</span>
+<span class="fc" id="L325">            throw new OPMException(&quot;Exception during execution&quot;, e);</span>
+<span class="fc" id="L326">        } catch (ExecutionException e) {</span>
+<span class="fc" id="L327">            throw new OPMException(&quot;Exception during execution&quot;, e);</span>
 <span class="nc" id="L328">        } catch (TimeoutException e) {</span>
 <span class="nc" id="L329">            throw new OPMException(&quot;Timeout during fetching values&quot;, e);</span>
         }

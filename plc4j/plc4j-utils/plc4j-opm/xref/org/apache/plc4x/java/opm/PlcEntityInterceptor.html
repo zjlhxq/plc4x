@@ -209,7 +209,7 @@
 <a class="jxr_linenumber" name="L201" href="#L201">201</a>             field = m.getDeclaringClass().getDeclaredField(variable);
 <a class="jxr_linenumber" name="L202" href="#L202">202</a>             annotation = field.getDeclaredAnnotation(PlcField.<strong class="jxr_keyword">class</strong>);
 <a class="jxr_linenumber" name="L203" href="#L203">203</a>         } <strong class="jxr_keyword">catch</strong> (NoSuchFieldException e) {
-<a class="jxr_linenumber" name="L204" href="#L204">204</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/apache/plc4x/java/opm/OPMException.html">OPMException</a>(<span class="jxr_string">"Unable to identify field annotated field for call to "</span> + m.getName(), e);
+<a class="jxr_linenumber" name="L204" href="#L204">204</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/apache/plc4x/java/opm/OPMException.html">OPMException</a>(<span class="jxr_string">"Unable to identify field with name '"</span> + variable + <span class="jxr_string">"' for call to '"</span> + m.getName() + <span class="jxr_string">"'"</span>, e);
 <a class="jxr_linenumber" name="L205" href="#L205">205</a>         }
 <a class="jxr_linenumber" name="L206" href="#L206">206</a>         <strong class="jxr_keyword">try</strong> (PlcConnection connection = driverManager.getConnection(address)) {
 <a class="jxr_linenumber" name="L207" href="#L207">207</a>             <em class="jxr_comment">// Catch the exception, if no reader present (see below)</em>
@@ -256,11 +256,11 @@
 <a class="jxr_linenumber" name="L248" href="#L248">248</a>     }
 <a class="jxr_linenumber" name="L249" href="#L249">249</a> 
 <a class="jxr_linenumber" name="L250" href="#L250">250</a>     @SuppressWarnings(<span class="jxr_string">"squid:S3776"</span>) <em class="jxr_comment">// Cognitive Complexity not too high, as highly structured</em>
-<a class="jxr_linenumber" name="L251" href="#L251">251</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> Object getTyped(Class&lt;?&gt; clazz, PlcReadResponse response, String sourceFieldName) {
+<a class="jxr_linenumber" name="L251" href="#L251">251</a>     <strong class="jxr_keyword">static</strong> Object getTyped(Class&lt;?&gt; clazz, PlcReadResponse response, String sourceFieldName) {
 <a class="jxr_linenumber" name="L252" href="#L252">252</a>         LOGGER.debug(<span class="jxr_string">"getTyped clazz: {}, response: {}, fieldName: {}"</span>, clazz, response, sourceFieldName);
 <a class="jxr_linenumber" name="L253" href="#L253">253</a>         <strong class="jxr_keyword">if</strong> (response.getResponseCode(sourceFieldName) != PlcResponseCode.OK) {
-<a class="jxr_linenumber" name="L254" href="#L254">254</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> PlcRuntimeException(String.format(<span class="jxr_string">"Unable to read specified field %s, response code was %s"</span>,
-<a class="jxr_linenumber" name="L255" href="#L255">255</a>                 sourceFieldName, response));
+<a class="jxr_linenumber" name="L254" href="#L254">254</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> PlcRuntimeException(String.format(<span class="jxr_string">"Unable to read specified field '%s', response code was '%s'"</span>,
+<a class="jxr_linenumber" name="L255" href="#L255">255</a>                 sourceFieldName, response.getResponseCode(sourceFieldName)));
 <a class="jxr_linenumber" name="L256" href="#L256">256</a>         }
 <a class="jxr_linenumber" name="L257" href="#L257">257</a>         <strong class="jxr_keyword">if</strong> (clazz.isPrimitive()) {
 <a class="jxr_linenumber" name="L258" href="#L258">258</a>             <strong class="jxr_keyword">if</strong> (clazz == <strong class="jxr_keyword">boolean</strong>.<strong class="jxr_keyword">class</strong>) {
