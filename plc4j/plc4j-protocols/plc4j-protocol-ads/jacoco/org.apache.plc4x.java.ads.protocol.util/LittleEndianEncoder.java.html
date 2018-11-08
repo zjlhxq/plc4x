@@ -103,185 +103,184 @@ public class LittleEndianEncoder {
 <span class="fc" id="L103">        return stringStream</span>
 <span class="fc" id="L104">            .map(s -&gt; s.getBytes(Charset.defaultCharset()))</span>
             // TODO: this 0 termination is from s7 but might be completly wrong in ads. Guess its a terminator
-<span class="fc" id="L106">            .map(bytes -&gt; ArrayUtils.add(bytes, (byte) 0x0))</span>
-<span class="fc" id="L107">            .map(bytes -&gt; Arrays.copyOf(bytes, adsDataType.getTargetByteSize()));</span>
+<span class="fc" id="L106">            .map(bytes -&gt; ArrayUtils.add(bytes, (byte) 0x0));</span>
     }
 
     private static Stream&lt;byte[]&gt; encodeByteArray(AdsDataType adsDataType, Stream&lt;byte[]&gt; byteArrayStream) {
         // TODO: add boundchecks and add optional extension
-<span class="nc" id="L112">        return byteArrayStream</span>
-<span class="nc" id="L113">            .peek(bytes -&gt; {</span>
-<span class="nc bnc" id="L114" title="All 2 branches missed.">                if (bytes.length &gt; adsDataType.getTargetByteSize()) {</span>
-<span class="nc" id="L115">                    throw new PlcRuntimeException(new PlcProtocolPayloadTooBigException(&quot;ads&quot;, adsDataType.getTargetByteSize(), bytes.length, bytes));</span>
+<span class="nc" id="L111">        return byteArrayStream</span>
+<span class="nc" id="L112">            .peek(bytes -&gt; {</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">                if (bytes.length &gt; adsDataType.getTargetByteSize()) {</span>
+<span class="nc" id="L114">                    throw new PlcRuntimeException(new PlcProtocolPayloadTooBigException(&quot;ads&quot;, adsDataType.getTargetByteSize(), bytes.length, bytes));</span>
                 }
-<span class="nc" id="L117">            });</span>
+<span class="nc" id="L116">            });</span>
     }
 
     private static Stream&lt;byte[]&gt; encodeBigByteArray(AdsDataType adsDataType, Stream&lt;Byte[]&gt; byteArrayStream) {
         // TODO: add boundchecks and add optional extension
-<span class="nc" id="L122">        return byteArrayStream.map(ArrayUtils::toPrimitive)</span>
-<span class="nc" id="L123">            .peek(bytes -&gt; {</span>
-<span class="nc bnc" id="L124" title="All 2 branches missed.">                if (bytes.length &gt; adsDataType.getTargetByteSize()) {</span>
-<span class="nc" id="L125">                    throw new PlcRuntimeException(new PlcProtocolPayloadTooBigException(&quot;ads&quot;, adsDataType.getTargetByteSize(), bytes.length, bytes));</span>
+<span class="nc" id="L121">        return byteArrayStream.map(ArrayUtils::toPrimitive)</span>
+<span class="nc" id="L122">            .peek(bytes -&gt; {</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">                if (bytes.length &gt; adsDataType.getTargetByteSize()) {</span>
+<span class="nc" id="L124">                    throw new PlcRuntimeException(new PlcProtocolPayloadTooBigException(&quot;ads&quot;, adsDataType.getTargetByteSize(), bytes.length, bytes));</span>
                 }
-<span class="nc" id="L127">            });</span>
+<span class="nc" id="L126">            });</span>
     }
 
     private static Stream&lt;byte[]&gt; encodeFloat(AdsDataType adsDataType, Stream&lt;Float&gt; floatStream) {
-<span class="fc" id="L131">        return floatStream</span>
-<span class="fc" id="L132">            .peek(value -&gt; checkBound(adsDataType, value))</span>
+<span class="fc" id="L130">        return floatStream</span>
+<span class="fc" id="L131">            .peek(value -&gt; checkBound(adsDataType, value))</span>
             // TODO: check how ads expects this data
-<span class="fc" id="L134">            .map(Float::floatToIntBits)</span>
-<span class="fc" id="L135">            .map(intValue -&gt; new byte[]{</span>
-<span class="fc" id="L136">                (byte) (intValue &amp; 0x000000ff),</span>
-<span class="fc" id="L137">                (byte) ((intValue &amp; 0x0000ff00) &gt;&gt; 8),</span>
-<span class="fc" id="L138">                (byte) ((intValue &amp; 0x00ff0000) &gt;&gt; 16),</span>
-<span class="fc" id="L139">                (byte) ((intValue &amp; 0xff000000) &gt;&gt; 24),</span>
+<span class="fc" id="L133">            .map(Float::floatToIntBits)</span>
+<span class="fc" id="L134">            .map(intValue -&gt; new byte[]{</span>
+<span class="fc" id="L135">                (byte) (intValue &amp; 0x000000ff),</span>
+<span class="fc" id="L136">                (byte) ((intValue &amp; 0x0000ff00) &gt;&gt; 8),</span>
+<span class="fc" id="L137">                (byte) ((intValue &amp; 0x00ff0000) &gt;&gt; 16),</span>
+<span class="fc" id="L138">                (byte) ((intValue &amp; 0xff000000) &gt;&gt; 24),</span>
             })
-<span class="fc" id="L141">            .map(bytes -&gt; Arrays.copyOf(bytes, adsDataType.getTargetByteSize()));</span>
+<span class="fc" id="L140">            .map(bytes -&gt; Arrays.copyOf(bytes, adsDataType.getTargetByteSize()));</span>
     }
 
     private static Stream&lt;byte[]&gt; encodeDouble(AdsDataType adsDataType, Stream&lt;Double&gt; doubleStream) {
-<span class="fc" id="L145">        return doubleStream</span>
-<span class="fc" id="L146">            .peek(value -&gt; checkBound(adsDataType, value))</span>
+<span class="fc" id="L144">        return doubleStream</span>
+<span class="fc" id="L145">            .peek(value -&gt; checkBound(adsDataType, value))</span>
             // TODO: check how ads expects this data
-<span class="fc" id="L148">            .map(Double::doubleToLongBits)</span>
-<span class="fc" id="L149">            .map(longValue -&gt; new byte[]{</span>
-<span class="fc" id="L150">                (byte) (longValue &amp; 0x00000000_000000ffL),</span>
-<span class="fc" id="L151">                (byte) ((longValue &amp; 0x00000000_0000ff00L) &gt;&gt; 8),</span>
-<span class="fc" id="L152">                (byte) ((longValue &amp; 0x00000000_00ff0000L) &gt;&gt; 16),</span>
-<span class="fc" id="L153">                (byte) ((longValue &amp; 0x00000000_ff000000L) &gt;&gt; 24),</span>
-<span class="fc" id="L154">                (byte) ((longValue &amp; 0x000000ff_00000000L) &gt;&gt; 32),</span>
-<span class="fc" id="L155">                (byte) ((longValue &amp; 0x0000ff00_00000000L) &gt;&gt; 40),</span>
-<span class="fc" id="L156">                (byte) ((longValue &amp; 0x00ff0000_00000000L) &gt;&gt; 48),</span>
-<span class="fc" id="L157">                (byte) ((longValue &amp; 0xff000000_00000000L) &gt;&gt; 56),</span>
+<span class="fc" id="L147">            .map(Double::doubleToLongBits)</span>
+<span class="fc" id="L148">            .map(longValue -&gt; new byte[]{</span>
+<span class="fc" id="L149">                (byte) (longValue &amp; 0x00000000_000000ffL),</span>
+<span class="fc" id="L150">                (byte) ((longValue &amp; 0x00000000_0000ff00L) &gt;&gt; 8),</span>
+<span class="fc" id="L151">                (byte) ((longValue &amp; 0x00000000_00ff0000L) &gt;&gt; 16),</span>
+<span class="fc" id="L152">                (byte) ((longValue &amp; 0x00000000_ff000000L) &gt;&gt; 24),</span>
+<span class="fc" id="L153">                (byte) ((longValue &amp; 0x000000ff_00000000L) &gt;&gt; 32),</span>
+<span class="fc" id="L154">                (byte) ((longValue &amp; 0x0000ff00_00000000L) &gt;&gt; 40),</span>
+<span class="fc" id="L155">                (byte) ((longValue &amp; 0x00ff0000_00000000L) &gt;&gt; 48),</span>
+<span class="fc" id="L156">                (byte) ((longValue &amp; 0xff000000_00000000L) &gt;&gt; 56),</span>
             })
-<span class="fc" id="L159">            .map(bytes -&gt; Arrays.copyOf(bytes, adsDataType.getTargetByteSize()));</span>
+<span class="fc" id="L158">            .map(bytes -&gt; Arrays.copyOf(bytes, adsDataType.getTargetByteSize()));</span>
     }
 
     private static Stream&lt;byte[]&gt; encodeInteger(AdsDataType adsDataType, Stream&lt;Integer&gt; integerStream) {
-<span class="fc" id="L163">        return integerStream</span>
-<span class="fc" id="L164">            .peek(value -&gt; checkBound(adsDataType, value))</span>
-<span class="fc" id="L165">            .map(intValue -&gt; new byte[]{</span>
-<span class="fc" id="L166">                (byte) (intValue &amp; 0x000000ff),</span>
-<span class="fc" id="L167">                (byte) ((intValue &amp; 0x0000ff00) &gt;&gt; 8),</span>
-<span class="fc" id="L168">                (byte) ((intValue &amp; 0x00ff0000) &gt;&gt; 16),</span>
-<span class="fc" id="L169">                (byte) ((intValue &amp; 0xff000000) &gt;&gt; 24),</span>
+<span class="fc" id="L162">        return integerStream</span>
+<span class="fc" id="L163">            .peek(value -&gt; checkBound(adsDataType, value))</span>
+<span class="fc" id="L164">            .map(intValue -&gt; new byte[]{</span>
+<span class="fc" id="L165">                (byte) (intValue &amp; 0x000000ff),</span>
+<span class="fc" id="L166">                (byte) ((intValue &amp; 0x0000ff00) &gt;&gt; 8),</span>
+<span class="fc" id="L167">                (byte) ((intValue &amp; 0x00ff0000) &gt;&gt; 16),</span>
+<span class="fc" id="L168">                (byte) ((intValue &amp; 0xff000000) &gt;&gt; 24),</span>
             })
-<span class="fc" id="L171">            .map(bytes -&gt; Arrays.copyOf(bytes, adsDataType.getTargetByteSize()));</span>
+<span class="fc" id="L170">            .map(bytes -&gt; Arrays.copyOf(bytes, adsDataType.getTargetByteSize()));</span>
     }
 
     private static Stream&lt;byte[]&gt; encodeLong(AdsDataType adsDataType, Stream&lt;Long&gt; longStream) {
-<span class="fc" id="L175">        return longStream</span>
-<span class="fc" id="L176">            .peek(value -&gt; checkBound(adsDataType, value))</span>
-<span class="fc" id="L177">            .map(longValue -&gt; new byte[]{</span>
-<span class="fc" id="L178">                (byte) (longValue &amp; 0x00000000_000000ffL),</span>
-<span class="fc" id="L179">                (byte) ((longValue &amp; 0x00000000_0000ff00L) &gt;&gt; 8),</span>
-<span class="fc" id="L180">                (byte) ((longValue &amp; 0x00000000_00ff0000L) &gt;&gt; 16),</span>
-<span class="fc" id="L181">                (byte) ((longValue &amp; 0x00000000_ff000000L) &gt;&gt; 24),</span>
-<span class="fc" id="L182">                (byte) ((longValue &amp; 0x000000ff_00000000L) &gt;&gt; 32),</span>
-<span class="fc" id="L183">                (byte) ((longValue &amp; 0x0000ff00_00000000L) &gt;&gt; 40),</span>
-<span class="fc" id="L184">                (byte) ((longValue &amp; 0x00ff0000_00000000L) &gt;&gt; 48),</span>
-<span class="fc" id="L185">                (byte) ((longValue &amp; 0xff000000_00000000L) &gt;&gt; 56),</span>
+<span class="fc" id="L174">        return longStream</span>
+<span class="fc" id="L175">            .peek(value -&gt; checkBound(adsDataType, value))</span>
+<span class="fc" id="L176">            .map(longValue -&gt; new byte[]{</span>
+<span class="fc" id="L177">                (byte) (longValue &amp; 0x00000000_000000ffL),</span>
+<span class="fc" id="L178">                (byte) ((longValue &amp; 0x00000000_0000ff00L) &gt;&gt; 8),</span>
+<span class="fc" id="L179">                (byte) ((longValue &amp; 0x00000000_00ff0000L) &gt;&gt; 16),</span>
+<span class="fc" id="L180">                (byte) ((longValue &amp; 0x00000000_ff000000L) &gt;&gt; 24),</span>
+<span class="fc" id="L181">                (byte) ((longValue &amp; 0x000000ff_00000000L) &gt;&gt; 32),</span>
+<span class="fc" id="L182">                (byte) ((longValue &amp; 0x0000ff00_00000000L) &gt;&gt; 40),</span>
+<span class="fc" id="L183">                (byte) ((longValue &amp; 0x00ff0000_00000000L) &gt;&gt; 48),</span>
+<span class="fc" id="L184">                (byte) ((longValue &amp; 0xff000000_00000000L) &gt;&gt; 56),</span>
             })
-<span class="fc" id="L187">            .map(bytes -&gt; Arrays.copyOf(bytes, adsDataType.getTargetByteSize()));</span>
+<span class="fc" id="L186">            .map(bytes -&gt; Arrays.copyOf(bytes, adsDataType.getTargetByteSize()));</span>
     }
 
     private static Stream&lt;byte[]&gt; encodeBigInteger(AdsDataType adsDataType, Stream&lt;BigInteger&gt; bigIntegerStream) {
         // TODO: add boundchecks and add optional extension
-<span class="fc" id="L192">        return bigIntegerStream</span>
-<span class="fc" id="L193">            .map(bigIntValue -&gt; {</span>
-<span class="fc" id="L194">                byte[] bytes = bigIntValue.toByteArray();</span>
-<span class="pc bpc" id="L195" title="1 of 4 branches missed.">                if (bytes.length &gt; 1 &amp;&amp; bytes[0] == 0x0) {</span>
-<span class="fc" id="L196">                    byte[] subArray = Arrays.copyOf(ArrayUtils.subarray(bytes, 1, bytes.length), adsDataType.getTargetByteSize());</span>
-<span class="fc" id="L197">                    ArrayUtils.reverse(subArray);</span>
-<span class="fc" id="L198">                    return subArray;</span>
+<span class="fc" id="L191">        return bigIntegerStream</span>
+<span class="fc" id="L192">            .map(bigIntValue -&gt; {</span>
+<span class="fc" id="L193">                byte[] bytes = bigIntValue.toByteArray();</span>
+<span class="pc bpc" id="L194" title="1 of 4 branches missed.">                if (bytes.length &gt; 1 &amp;&amp; bytes[0] == 0x0) {</span>
+<span class="fc" id="L195">                    byte[] subArray = Arrays.copyOf(ArrayUtils.subarray(bytes, 1, bytes.length), adsDataType.getTargetByteSize());</span>
+<span class="fc" id="L196">                    ArrayUtils.reverse(subArray);</span>
+<span class="fc" id="L197">                    return subArray;</span>
                 } else {
-<span class="fc" id="L200">                    ArrayUtils.reverse(Arrays.copyOf(bytes, adsDataType.getTargetByteSize()));</span>
-<span class="fc" id="L201">                    return bytes;</span>
+<span class="fc" id="L199">                    ArrayUtils.reverse(Arrays.copyOf(bytes, adsDataType.getTargetByteSize()));</span>
+<span class="fc" id="L200">                    return bytes;</span>
                 }
             })
-<span class="fc" id="L204">            .map(bytes -&gt; Arrays.copyOf(bytes, adsDataType.getTargetByteSize()));</span>
+<span class="fc" id="L203">            .map(bytes -&gt; Arrays.copyOf(bytes, adsDataType.getTargetByteSize()));</span>
     }
 
     private static Stream&lt;byte[]&gt; encodeLocalTime(AdsDataType adsDataType, Stream&lt;LocalTime&gt; localTimeStream) {
-<span class="fc" id="L208">        return localTimeStream</span>
-<span class="fc" id="L209">            .map(localTime -&gt; ChronoUnit.MILLIS.between(LocalTime.of(0, 0), localTime))</span>
-<span class="fc" id="L210">            .peek(value -&gt; checkBound(adsDataType, value))</span>
-<span class="fc" id="L211">            .map(Long::intValue)</span>
-<span class="fc" id="L212">            .map(time -&gt; new byte[]{</span>
-<span class="fc" id="L213">                (byte) (time &amp; 0x00000000_000000ffL),</span>
-<span class="fc" id="L214">                (byte) ((time &amp; 0x00000000_0000ff00L) &gt;&gt; 8),</span>
-<span class="fc" id="L215">                (byte) ((time &amp; 0x00000000_00ff0000L) &gt;&gt; 16),</span>
-<span class="fc" id="L216">                (byte) ((time &amp; 0x00000000_ff000000L) &gt;&gt; 24),</span>
+<span class="fc" id="L207">        return localTimeStream</span>
+<span class="fc" id="L208">            .map(localTime -&gt; ChronoUnit.MILLIS.between(LocalTime.of(0, 0), localTime))</span>
+<span class="fc" id="L209">            .peek(value -&gt; checkBound(adsDataType, value))</span>
+<span class="fc" id="L210">            .map(Long::intValue)</span>
+<span class="fc" id="L211">            .map(time -&gt; new byte[]{</span>
+<span class="fc" id="L212">                (byte) (time &amp; 0x00000000_000000ffL),</span>
+<span class="fc" id="L213">                (byte) ((time &amp; 0x00000000_0000ff00L) &gt;&gt; 8),</span>
+<span class="fc" id="L214">                (byte) ((time &amp; 0x00000000_00ff0000L) &gt;&gt; 16),</span>
+<span class="fc" id="L215">                (byte) ((time &amp; 0x00000000_ff000000L) &gt;&gt; 24),</span>
             })
-<span class="fc" id="L218">            .map(bytes -&gt; Arrays.copyOf(bytes, adsDataType.getTargetByteSize()));</span>
+<span class="fc" id="L217">            .map(bytes -&gt; Arrays.copyOf(bytes, adsDataType.getTargetByteSize()));</span>
     }
 
     private static Stream&lt;byte[]&gt; encodeLocalDate(AdsDataType adsDataType, Stream&lt;LocalDate&gt; localDateStream) {
-<span class="fc" id="L222">        return localDateStream</span>
+<span class="fc" id="L221">        return localDateStream</span>
             // TODO: fixme: which offset should we use?
-<span class="fc" id="L224">            .map(localDate -&gt; localDate.atTime(0, 0).toInstant(ZoneOffset.UTC))</span>
-<span class="fc" id="L225">            .map(Instant::getEpochSecond)</span>
-<span class="fc" id="L226">            .peek(value -&gt; checkBound(adsDataType, value))</span>
-<span class="fc" id="L227">            .map(Long::intValue)</span>
-<span class="fc" id="L228">            .map(time -&gt; new byte[]{</span>
-<span class="fc" id="L229">                (byte) (time &amp; 0x00000000_000000ffL),</span>
-<span class="fc" id="L230">                (byte) ((time &amp; 0x00000000_0000ff00L) &gt;&gt; 8),</span>
-<span class="fc" id="L231">                (byte) ((time &amp; 0x00000000_00ff0000L) &gt;&gt; 16),</span>
-<span class="fc" id="L232">                (byte) ((time &amp; 0x00000000_ff000000L) &gt;&gt; 24),</span>
+<span class="fc" id="L223">            .map(localDate -&gt; localDate.atTime(0, 0).toInstant(ZoneOffset.UTC))</span>
+<span class="fc" id="L224">            .map(Instant::getEpochSecond)</span>
+<span class="fc" id="L225">            .peek(value -&gt; checkBound(adsDataType, value))</span>
+<span class="fc" id="L226">            .map(Long::intValue)</span>
+<span class="fc" id="L227">            .map(time -&gt; new byte[]{</span>
+<span class="fc" id="L228">                (byte) (time &amp; 0x00000000_000000ffL),</span>
+<span class="fc" id="L229">                (byte) ((time &amp; 0x00000000_0000ff00L) &gt;&gt; 8),</span>
+<span class="fc" id="L230">                (byte) ((time &amp; 0x00000000_00ff0000L) &gt;&gt; 16),</span>
+<span class="fc" id="L231">                (byte) ((time &amp; 0x00000000_ff000000L) &gt;&gt; 24),</span>
             })
-<span class="fc" id="L234">            .map(bytes -&gt; Arrays.copyOf(bytes, adsDataType.getTargetByteSize()));</span>
+<span class="fc" id="L233">            .map(bytes -&gt; Arrays.copyOf(bytes, adsDataType.getTargetByteSize()));</span>
     }
 
     private static Stream&lt;byte[]&gt; encodeLocalDateTime(AdsDataType adsDataType, Stream&lt;LocalDateTime&gt; localDateTimeStream) {
-<span class="nc" id="L238">        return localDateTimeStream</span>
+<span class="nc" id="L237">        return localDateTimeStream</span>
             // TODO: fixme: which offset should we use?
-<span class="nc" id="L240">            .map(localDateTime -&gt; localDateTime.toInstant(ZoneOffset.UTC))</span>
-<span class="nc" id="L241">            .map(Instant::getEpochSecond)</span>
-<span class="nc" id="L242">            .peek(value -&gt; checkBound(adsDataType, value))</span>
-<span class="nc" id="L243">            .map(time -&gt; new byte[]{</span>
-<span class="nc" id="L244">                (byte) (time &amp; 0x00000000_000000ffL),</span>
-<span class="nc" id="L245">                (byte) ((time &amp; 0x00000000_0000ff00L) &gt;&gt; 8),</span>
-<span class="nc" id="L246">                (byte) ((time &amp; 0x00000000_00ff0000L) &gt;&gt; 16),</span>
-<span class="nc" id="L247">                (byte) ((time &amp; 0x00000000_ff000000L) &gt;&gt; 24),</span>
+<span class="nc" id="L239">            .map(localDateTime -&gt; localDateTime.toInstant(ZoneOffset.UTC))</span>
+<span class="nc" id="L240">            .map(Instant::getEpochSecond)</span>
+<span class="nc" id="L241">            .peek(value -&gt; checkBound(adsDataType, value))</span>
+<span class="nc" id="L242">            .map(time -&gt; new byte[]{</span>
+<span class="nc" id="L243">                (byte) (time &amp; 0x00000000_000000ffL),</span>
+<span class="nc" id="L244">                (byte) ((time &amp; 0x00000000_0000ff00L) &gt;&gt; 8),</span>
+<span class="nc" id="L245">                (byte) ((time &amp; 0x00000000_00ff0000L) &gt;&gt; 16),</span>
+<span class="nc" id="L246">                (byte) ((time &amp; 0x00000000_ff000000L) &gt;&gt; 24),</span>
 
-<span class="nc" id="L249">                (byte) ((time &amp; 0x000000ff_00000000L) &gt;&gt; 32),</span>
-<span class="nc" id="L250">                (byte) ((time &amp; 0x0000ff00_00000000L) &gt;&gt; 40),</span>
-<span class="nc" id="L251">                (byte) ((time &amp; 0x00ff0000_00000000L) &gt;&gt; 48),</span>
-<span class="nc" id="L252">                (byte) ((time &amp; 0xff000000_00000000L) &gt;&gt; 56),</span>
+<span class="nc" id="L248">                (byte) ((time &amp; 0x000000ff_00000000L) &gt;&gt; 32),</span>
+<span class="nc" id="L249">                (byte) ((time &amp; 0x0000ff00_00000000L) &gt;&gt; 40),</span>
+<span class="nc" id="L250">                (byte) ((time &amp; 0x00ff0000_00000000L) &gt;&gt; 48),</span>
+<span class="nc" id="L251">                (byte) ((time &amp; 0xff000000_00000000L) &gt;&gt; 56),</span>
             })
-<span class="nc" id="L254">            .map(bytes -&gt; Arrays.copyOf(bytes, adsDataType.getTargetByteSize()));</span>
+<span class="nc" id="L253">            .map(bytes -&gt; Arrays.copyOf(bytes, adsDataType.getTargetByteSize()));</span>
     }
 
 
     private static Stream&lt;byte[]&gt; encodeShort(AdsDataType adsDataType, Stream&lt;Short&gt; shortStream) {
-<span class="fc" id="L259">        return shortStream</span>
-<span class="fc" id="L260">            .peek(value -&gt; checkBound(adsDataType, value))</span>
-<span class="fc" id="L261">            .map(shortValue -&gt; new byte[]{</span>
-<span class="fc" id="L262">                (byte) (shortValue &amp; 0x00ff),</span>
-<span class="fc" id="L263">                (byte) ((shortValue &amp; 0xff00) &gt;&gt; 8),</span>
+<span class="fc" id="L258">        return shortStream</span>
+<span class="fc" id="L259">            .peek(value -&gt; checkBound(adsDataType, value))</span>
+<span class="fc" id="L260">            .map(shortValue -&gt; new byte[]{</span>
+<span class="fc" id="L261">                (byte) (shortValue &amp; 0x00ff),</span>
+<span class="fc" id="L262">                (byte) ((shortValue &amp; 0xff00) &gt;&gt; 8),</span>
             })
-<span class="fc" id="L265">            .map(bytes -&gt; Arrays.copyOf(bytes, adsDataType.getTargetByteSize()));</span>
+<span class="fc" id="L264">            .map(bytes -&gt; Arrays.copyOf(bytes, adsDataType.getTargetByteSize()));</span>
     }
 
     private static Stream&lt;byte[]&gt; encodeByte(AdsDataType adsDataType, Stream&lt;Byte&gt; byteStream) {
-<span class="fc" id="L269">        return byteStream</span>
-<span class="fc" id="L270">            .peek(value -&gt; checkBound(adsDataType, value))</span>
-<span class="fc" id="L271">            .map(aByte -&gt; new byte[]{aByte})</span>
-<span class="fc" id="L272">            .map(bytes -&gt; Arrays.copyOf(bytes, adsDataType.getTargetByteSize()));</span>
+<span class="fc" id="L268">        return byteStream</span>
+<span class="fc" id="L269">            .peek(value -&gt; checkBound(adsDataType, value))</span>
+<span class="fc" id="L270">            .map(aByte -&gt; new byte[]{aByte})</span>
+<span class="fc" id="L271">            .map(bytes -&gt; Arrays.copyOf(bytes, adsDataType.getTargetByteSize()));</span>
     }
 
     private static Stream&lt;byte[]&gt; encodeBoolean(AdsDataType adsDataType, Stream&lt;Boolean&gt; booleanStream) {
-<span class="fc" id="L276">        return booleanStream</span>
-<span class="pc bpc" id="L277" title="1 of 2 branches missed.">            .map(booleanValue -&gt; new byte[]{booleanValue ? (byte) 0x01 : (byte) 0x00})</span>
-<span class="fc" id="L278">            .map(bytes -&gt; Arrays.copyOf(bytes, adsDataType.getTargetByteSize()));</span>
+<span class="fc" id="L275">        return booleanStream</span>
+<span class="fc bfc" id="L276" title="All 2 branches covered.">            .map(booleanValue -&gt; new byte[]{booleanValue ? (byte) 0x01 : (byte) 0x00})</span>
+<span class="fc" id="L277">            .map(bytes -&gt; Arrays.copyOf(bytes, adsDataType.getTargetByteSize()));</span>
     }
 
     private static void checkBound(AdsDataType adsDataType, double other) {
-<span class="pc bpc" id="L282" title="1 of 2 branches missed.">        if (!adsDataType.withinBounds(other)) {</span>
-<span class="nc" id="L283">            throw new PlcRuntimeException(other + &quot; not within bounds of &quot; + adsDataType);</span>
+<span class="pc bpc" id="L281" title="1 of 2 branches missed.">        if (!adsDataType.withinBounds(other)) {</span>
+<span class="nc" id="L282">            throw new PlcRuntimeException(other + &quot; not within bounds of &quot; + adsDataType);</span>
         }
-<span class="fc" id="L285">    }</span>
+<span class="fc" id="L284">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
