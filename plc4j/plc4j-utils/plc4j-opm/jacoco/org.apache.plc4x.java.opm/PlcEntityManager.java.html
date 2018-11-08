@@ -128,12 +128,12 @@ public class PlcEntityManager {
 <span class="fc" id="L128">                PlcEntityInterceptor.setField(clazz, instance, response, targetFieldName, fieldName);</span>
 <span class="fc" id="L129">            }</span>
 <span class="fc" id="L130">            return instance;</span>
-<span class="nc" id="L131">        } catch (PlcInvalidFieldException e) {</span>
-<span class="nc" id="L132">            throw new OPMException(&quot;Unable to parse one field request&quot;, e);</span>
-<span class="nc" id="L133">        } catch (PlcConnectionException e) {</span>
-<span class="nc" id="L134">            throw new OPMException(&quot;Unable to get connection with url '&quot; + address + &quot;'&quot;, e);</span>
-<span class="nc" id="L135">        } catch (InstantiationException | InvocationTargetException | NoSuchMethodException | NoSuchFieldException | IllegalAccessException e) {</span>
-<span class="nc" id="L136">            throw new OPMException(&quot;Unable to fetch PlcEntity &quot; + clazz.getName(), e);</span>
+<span class="fc" id="L131">        } catch (PlcInvalidFieldException e) {</span>
+<span class="fc" id="L132">            throw new OPMException(&quot;Unable to parse field '&quot; + e.getFieldToBeParsed() + &quot;'&quot;, e);</span>
+<span class="fc" id="L133">        } catch (PlcConnectionException e) {</span>
+<span class="fc" id="L134">            throw new OPMException(&quot;Unable to get connection with url '&quot; + address + &quot;'&quot;, e);</span>
+<span class="fc" id="L135">        } catch (InstantiationException | InvocationTargetException | NoSuchMethodException | NoSuchFieldException | IllegalAccessException e) {</span>
+<span class="fc" id="L136">            throw new OPMException(&quot;Unable to fetch PlcEntity &quot; + clazz.getName(), e);</span>
 <span class="nc" id="L137">        } catch (Exception e) {</span>
 <span class="nc" id="L138">            throw new OPMException(&quot;Unknown Error&quot;, e);</span>
         }
@@ -170,8 +170,8 @@ public class PlcEntityManager {
 <span class="fc" id="L170">            PlcEntityInterceptor.refetchAllFields(instance, driverManager, address);</span>
 
 <span class="fc" id="L172">            return instance;</span>
-<span class="nc" id="L173">        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {</span>
-<span class="nc" id="L174">            throw new OPMException(&quot;Unable to instantiate Proxy&quot;, e);</span>
+<span class="fc" id="L173">        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException | IllegalAccessError e) {</span>
+<span class="fc" id="L174">            throw new OPMException(&quot;Unable to instantiate Proxy&quot;, e);</span>
         }
     }
 

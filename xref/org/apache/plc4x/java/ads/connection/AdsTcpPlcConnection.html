@@ -155,7 +155,7 @@
 <a class="jxr_linenumber" name="L147" href="#L147">147</a>             .map(subscriptionPlcFieldEntry -&gt; {
 <a class="jxr_linenumber" name="L148" href="#L148">148</a>                 String plcFieldName = subscriptionPlcFieldEntry.getKey();
 <a class="jxr_linenumber" name="L149" href="#L149">149</a>                 <a href="../../../../../../org/apache/plc4x/java/base/model/SubscriptionPlcField.html">SubscriptionPlcField</a> subscriptionPlcField = subscriptionPlcFieldEntry.getValue();
-<a class="jxr_linenumber" name="L150" href="#L150">150</a>                 <a href="../../../../../../org/apache/plc4x/java/api/model/PlcField.html">PlcField</a> field = subscriptionPlcField.getPlcField();
+<a class="jxr_linenumber" name="L150" href="#L150">150</a>                 <a href="../../../../../../org/apache/plc4x/java/api/model/PlcField.html">PlcField</a> field = Objects.requireNonNull(subscriptionPlcField.getPlcField());
 <a class="jxr_linenumber" name="L151" href="#L151">151</a> 
 <a class="jxr_linenumber" name="L152" href="#L152">152</a>                 <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/IndexGroup.html">IndexGroup</a> indexGroup;
 <a class="jxr_linenumber" name="L153" href="#L153">153</a>                 <a href="../../../../../../org/apache/plc4x/java/ads/api/commands/types/IndexOffset.html">IndexOffset</a> indexOffset;
@@ -191,7 +191,7 @@
 <a class="jxr_linenumber" name="L183" href="#L183">183</a>                 <strong class="jxr_keyword">switch</strong> (subscriptionPlcField.getPlcSubscriptionType()) {
 <a class="jxr_linenumber" name="L184" href="#L184">184</a>                     <strong class="jxr_keyword">case</strong> CYCLIC:
 <a class="jxr_linenumber" name="L185" href="#L185">185</a>                         transmissionMode = TransmissionMode.DefinedValues.ADSTRANS_SERVERCYCLE;
-<a class="jxr_linenumber" name="L186" href="#L186">186</a>                         cycleTime = subscriptionPlcField.getDuration().orElseThrow(IllegalStateException::<strong class="jxr_keyword">new</strong>).get(ChronoUnit.MILLIS);
+<a class="jxr_linenumber" name="L186" href="#L186">186</a>                         cycleTime = TimeUnit.NANOSECONDS.toMillis(subscriptionPlcField.getDuration().orElseThrow(IllegalStateException::<strong class="jxr_keyword">new</strong>).get(ChronoUnit.NANOS));
 <a class="jxr_linenumber" name="L187" href="#L187">187</a>                         <strong class="jxr_keyword">break</strong>;
 <a class="jxr_linenumber" name="L188" href="#L188">188</a>                     <strong class="jxr_keyword">case</strong> CHANGE_OF_STATE:
 <a class="jxr_linenumber" name="L189" href="#L189">189</a>                         transmissionMode = TransmissionMode.DefinedValues.ADSTRANS_SERVERONCHA;

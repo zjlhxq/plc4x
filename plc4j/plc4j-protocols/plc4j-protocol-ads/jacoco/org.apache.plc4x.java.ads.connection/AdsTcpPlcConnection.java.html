@@ -140,14 +140,14 @@ public class AdsTcpPlcConnection extends AdsAbstractPlcConnection implements Plc
 
     @Override
     public CompletableFuture&lt;PlcSubscriptionResponse&gt; subscribe(PlcSubscriptionRequest plcSubscriptionRequest) {
-<span class="nc" id="L143">        InternalPlcSubscriptionRequest internalPlcSubscriptionRequest = checkInternal(plcSubscriptionRequest, InternalPlcSubscriptionRequest.class);</span>
-<span class="nc" id="L144">        CompletableFuture&lt;PlcSubscriptionResponse&gt; future = new CompletableFuture&lt;&gt;();</span>
+<span class="fc" id="L143">        InternalPlcSubscriptionRequest internalPlcSubscriptionRequest = checkInternal(plcSubscriptionRequest, InternalPlcSubscriptionRequest.class);</span>
+<span class="fc" id="L144">        CompletableFuture&lt;PlcSubscriptionResponse&gt; future = new CompletableFuture&lt;&gt;();</span>
 
-<span class="nc" id="L146">        Map&lt;String, Pair&lt;PlcResponseCode, PlcSubscriptionHandle&gt;&gt; responseItems = internalPlcSubscriptionRequest.getSubscriptionPlcFieldMap().entrySet().stream()</span>
-<span class="nc" id="L147">            .map(subscriptionPlcFieldEntry -&gt; {</span>
-<span class="nc" id="L148">                String plcFieldName = subscriptionPlcFieldEntry.getKey();</span>
-<span class="nc" id="L149">                SubscriptionPlcField subscriptionPlcField = subscriptionPlcFieldEntry.getValue();</span>
-<span class="nc" id="L150">                PlcField field = subscriptionPlcField.getPlcField();</span>
+<span class="fc" id="L146">        Map&lt;String, Pair&lt;PlcResponseCode, PlcSubscriptionHandle&gt;&gt; responseItems = internalPlcSubscriptionRequest.getSubscriptionPlcFieldMap().entrySet().stream()</span>
+<span class="fc" id="L147">            .map(subscriptionPlcFieldEntry -&gt; {</span>
+<span class="fc" id="L148">                String plcFieldName = subscriptionPlcFieldEntry.getKey();</span>
+<span class="fc" id="L149">                SubscriptionPlcField subscriptionPlcField = subscriptionPlcFieldEntry.getValue();</span>
+<span class="fc" id="L150">                PlcField field = Objects.requireNonNull(subscriptionPlcField.getPlcField());</span>
 
                 IndexGroup indexGroup;
                 IndexOffset indexOffset;
@@ -155,7 +155,7 @@ public class AdsTcpPlcConnection extends AdsAbstractPlcConnection implements Plc
                 int numberOfElements;
                 // If this is a symbolic field, it has to be resolved first.
                 // TODO: This is blocking, should be changed to be async.
-<span class="nc bnc" id="L158" title="All 2 branches missed.">                if (field instanceof SymbolicAdsField) {</span>
+<span class="pc bpc" id="L158" title="1 of 2 branches missed.">                if (field instanceof SymbolicAdsField) {</span>
 <span class="nc" id="L159">                    mapFields((SymbolicAdsField) field);</span>
 <span class="nc" id="L160">                    DirectAdsField directAdsField = fieldMapping.get(field);</span>
 <span class="nc bnc" id="L161" title="All 2 branches missed.">                    if (directAdsField == null) {</span>
@@ -168,23 +168,23 @@ public class AdsTcpPlcConnection extends AdsAbstractPlcConnection implements Plc
 <span class="nc" id="L168">                }</span>
                 // If it's no symbolic field, we can continue immediately
                 // without having to do any resolving.
-<span class="nc bnc" id="L171" title="All 2 branches missed.">                else if (field instanceof DirectAdsField) {</span>
-<span class="nc" id="L172">                    DirectAdsField directAdsField = (DirectAdsField) field;</span>
-<span class="nc" id="L173">                    indexGroup = IndexGroup.of(directAdsField.getIndexGroup());</span>
-<span class="nc" id="L174">                    indexOffset = IndexOffset.of(directAdsField.getIndexOffset());</span>
-<span class="nc" id="L175">                    adsDataType = directAdsField.getAdsDataType();</span>
-<span class="nc" id="L176">                    numberOfElements = directAdsField.getNumberOfElements();</span>
-<span class="nc" id="L177">                } else {</span>
+<span class="pc bpc" id="L171" title="1 of 2 branches missed.">                else if (field instanceof DirectAdsField) {</span>
+<span class="fc" id="L172">                    DirectAdsField directAdsField = (DirectAdsField) field;</span>
+<span class="fc" id="L173">                    indexGroup = IndexGroup.of(directAdsField.getIndexGroup());</span>
+<span class="fc" id="L174">                    indexOffset = IndexOffset.of(directAdsField.getIndexOffset());</span>
+<span class="fc" id="L175">                    adsDataType = directAdsField.getAdsDataType();</span>
+<span class="fc" id="L176">                    numberOfElements = directAdsField.getNumberOfElements();</span>
+<span class="fc" id="L177">                } else {</span>
 <span class="nc" id="L178">                    throw new IllegalArgumentException(&quot;Unsupported field type &quot; + field.getClass());</span>
                 }
 
                 final TransmissionMode transmissionMode;
-<span class="nc" id="L182">                long cycleTime = 4000000;</span>
-<span class="nc bnc" id="L183" title="All 3 branches missed.">                switch (subscriptionPlcField.getPlcSubscriptionType()) {</span>
+<span class="fc" id="L182">                long cycleTime = 4000000;</span>
+<span class="pc bpc" id="L183" title="2 of 3 branches missed.">                switch (subscriptionPlcField.getPlcSubscriptionType()) {</span>
                     case CYCLIC:
-<span class="nc" id="L185">                        transmissionMode = TransmissionMode.DefinedValues.ADSTRANS_SERVERCYCLE;</span>
-<span class="nc" id="L186">                        cycleTime = subscriptionPlcField.getDuration().orElseThrow(IllegalStateException::new).get(ChronoUnit.MILLIS);</span>
-<span class="nc" id="L187">                        break;</span>
+<span class="fc" id="L185">                        transmissionMode = TransmissionMode.DefinedValues.ADSTRANS_SERVERCYCLE;</span>
+<span class="fc" id="L186">                        cycleTime = TimeUnit.NANOSECONDS.toMillis(subscriptionPlcField.getDuration().orElseThrow(IllegalStateException::new).get(ChronoUnit.NANOS));</span>
+<span class="fc" id="L187">                        break;</span>
                     case CHANGE_OF_STATE:
 <span class="nc" id="L189">                        transmissionMode = TransmissionMode.DefinedValues.ADSTRANS_SERVERONCHA;</span>
 <span class="nc" id="L190">                        break;</span>
@@ -193,7 +193,7 @@ public class AdsTcpPlcConnection extends AdsAbstractPlcConnection implements Plc
                 }
 
                 // Prepare the subscription request itself.
-<span class="nc" id="L196">                AdsAddDeviceNotificationRequest adsAddDeviceNotificationRequest = AdsAddDeviceNotificationRequest.of(</span>
+<span class="fc" id="L196">                AdsAddDeviceNotificationRequest adsAddDeviceNotificationRequest = AdsAddDeviceNotificationRequest.of(</span>
                     targetAmsNetId,
                     targetAmsPort,
                     sourceAmsNetId,
@@ -201,59 +201,59 @@ public class AdsTcpPlcConnection extends AdsAbstractPlcConnection implements Plc
                     Invoke.NONE,
                     indexGroup,
                     indexOffset,
-<span class="nc" id="L204">                    Length.of(adsDataType.getTargetByteSize() * (long) numberOfElements),</span>
+<span class="fc" id="L204">                    Length.of(adsDataType.getTargetByteSize() * (long) numberOfElements),</span>
                     transmissionMode,
-<span class="nc" id="L206">                    MaxDelay.of(0),</span>
-<span class="nc" id="L207">                    CycleTime.of(cycleTime)</span>
+<span class="fc" id="L206">                    MaxDelay.of(0),</span>
+<span class="fc" id="L207">                    CycleTime.of(cycleTime)</span>
                 );
 
                 // Send the request to the plc and wait for a response
                 // TODO: This is blocking, should be changed to be async.
-<span class="nc" id="L212">                CompletableFuture&lt;InternalPlcProprietaryResponse&lt;AdsAddDeviceNotificationResponse&gt;&gt; addDeviceFuture = new CompletableFuture&lt;&gt;();</span>
-<span class="nc" id="L213">                channel.writeAndFlush(new PlcRequestContainer&lt;&gt;(new DefaultPlcProprietaryRequest&lt;&gt;(adsAddDeviceNotificationRequest), addDeviceFuture));</span>
-<span class="nc" id="L214">                InternalPlcProprietaryResponse&lt;AdsAddDeviceNotificationResponse&gt; addDeviceResponse = getFromFuture(addDeviceFuture, ADD_DEVICE_TIMEOUT);</span>
-<span class="nc" id="L215">                AdsAddDeviceNotificationResponse response = addDeviceResponse.getResponse();</span>
+<span class="fc" id="L212">                CompletableFuture&lt;InternalPlcProprietaryResponse&lt;AdsAddDeviceNotificationResponse&gt;&gt; addDeviceFuture = new CompletableFuture&lt;&gt;();</span>
+<span class="fc" id="L213">                channel.writeAndFlush(new PlcRequestContainer&lt;&gt;(new DefaultPlcProprietaryRequest&lt;&gt;(adsAddDeviceNotificationRequest), addDeviceFuture));</span>
+<span class="fc" id="L214">                InternalPlcProprietaryResponse&lt;AdsAddDeviceNotificationResponse&gt; addDeviceResponse = getFromFuture(addDeviceFuture, ADD_DEVICE_TIMEOUT);</span>
+<span class="fc" id="L215">                AdsAddDeviceNotificationResponse response = addDeviceResponse.getResponse();</span>
 
                 // Abort if we got anything but a successful response.
-<span class="nc bnc" id="L218" title="All 2 branches missed.">                if (response.getResult().toAdsReturnCode() != AdsReturnCode.ADS_CODE_0) {</span>
+<span class="pc bpc" id="L218" title="1 of 2 branches missed.">                if (response.getResult().toAdsReturnCode() != AdsReturnCode.ADS_CODE_0) {</span>
 <span class="nc" id="L219">                    throw new PlcRuntimeException(&quot;Error code received &quot; + response.getResult());</span>
                 }
-<span class="nc" id="L221">                PlcSubscriptionHandle adsSubscriptionHandle = new AdsSubscriptionHandle(this, response.getNotificationHandle());</span>
-<span class="nc" id="L222">                return Pair.of(plcFieldName, Pair.of(PlcResponseCode.OK, adsSubscriptionHandle));</span>
+<span class="fc" id="L221">                PlcSubscriptionHandle adsSubscriptionHandle = new AdsSubscriptionHandle(this, response.getNotificationHandle());</span>
+<span class="fc" id="L222">                return Pair.of(plcFieldName, Pair.of(PlcResponseCode.OK, adsSubscriptionHandle));</span>
             })
-<span class="nc" id="L224">            .collect(Collectors.toMap(Pair::getKey, Pair::getValue));</span>
+<span class="fc" id="L224">            .collect(Collectors.toMap(Pair::getKey, Pair::getValue));</span>
 
-<span class="nc" id="L226">        future.complete(new DefaultPlcSubscriptionResponse(internalPlcSubscriptionRequest, responseItems));</span>
-<span class="nc" id="L227">        return future;</span>
+<span class="fc" id="L226">        future.complete(new DefaultPlcSubscriptionResponse(internalPlcSubscriptionRequest, responseItems));</span>
+<span class="fc" id="L227">        return future;</span>
     }
 
     @Override
     public CompletableFuture&lt;PlcUnsubscriptionResponse&gt; unsubscribe(PlcUnsubscriptionRequest plcUnsubscriptionRequest) {
 <span class="fc" id="L232">        InternalPlcUnsubscriptionRequest internalPlcUnsubscriptionRequest = checkInternal(plcUnsubscriptionRequest, InternalPlcUnsubscriptionRequest.class);</span>
-<span class="pc bpc" id="L233" title="1 of 2 branches missed.">        for (InternalPlcSubscriptionHandle internalPlcSubscriptionHandle : internalPlcUnsubscriptionRequest.getInternalPlcSubscriptionHandles()) {</span>
-<span class="nc bnc" id="L234" title="All 2 branches missed.">            if (internalPlcSubscriptionHandle instanceof AdsSubscriptionHandle) {</span>
-<span class="nc" id="L235">                AdsSubscriptionHandle adsSubscriptionHandle = (AdsSubscriptionHandle) internalPlcSubscriptionHandle;</span>
-<span class="nc" id="L236">                AdsDeleteDeviceNotificationRequest adsDeleteDeviceNotificationRequest =</span>
-<span class="nc" id="L237">                    AdsDeleteDeviceNotificationRequest.of(</span>
+<span class="fc bfc" id="L233" title="All 2 branches covered.">        for (InternalPlcSubscriptionHandle internalPlcSubscriptionHandle : internalPlcUnsubscriptionRequest.getInternalPlcSubscriptionHandles()) {</span>
+<span class="pc bpc" id="L234" title="1 of 2 branches missed.">            if (internalPlcSubscriptionHandle instanceof AdsSubscriptionHandle) {</span>
+<span class="fc" id="L235">                AdsSubscriptionHandle adsSubscriptionHandle = (AdsSubscriptionHandle) internalPlcSubscriptionHandle;</span>
+<span class="fc" id="L236">                AdsDeleteDeviceNotificationRequest adsDeleteDeviceNotificationRequest =</span>
+<span class="fc" id="L237">                    AdsDeleteDeviceNotificationRequest.of(</span>
                         targetAmsNetId,
                         targetAmsPort,
                         sourceAmsNetId,
                         sourceAmsPort,
                         Invoke.NONE,
-<span class="nc" id="L243">                        adsSubscriptionHandle.getNotificationHandle()</span>
+<span class="fc" id="L243">                        adsSubscriptionHandle.getNotificationHandle()</span>
                     );
-<span class="nc" id="L245">                CompletableFuture&lt;InternalPlcProprietaryResponse&lt;AdsDeleteDeviceNotificationResponse&gt;&gt; deleteDeviceFuture =</span>
+<span class="fc" id="L245">                CompletableFuture&lt;InternalPlcProprietaryResponse&lt;AdsDeleteDeviceNotificationResponse&gt;&gt; deleteDeviceFuture =</span>
                     new CompletableFuture&lt;&gt;();
-<span class="nc" id="L247">                channel.writeAndFlush(new PlcRequestContainer&lt;&gt;(new DefaultPlcProprietaryRequest&lt;&gt;(adsDeleteDeviceNotificationRequest), deleteDeviceFuture));</span>
+<span class="fc" id="L247">                channel.writeAndFlush(new PlcRequestContainer&lt;&gt;(new DefaultPlcProprietaryRequest&lt;&gt;(adsDeleteDeviceNotificationRequest), deleteDeviceFuture));</span>
 
-<span class="nc" id="L249">                InternalPlcProprietaryResponse&lt;AdsDeleteDeviceNotificationResponse&gt; deleteDeviceResponse =</span>
-<span class="nc" id="L250">                    getFromFuture(deleteDeviceFuture, DEL_DEVICE_TIMEOUT);</span>
-<span class="nc" id="L251">                AdsDeleteDeviceNotificationResponse response = deleteDeviceResponse.getResponse();</span>
-<span class="nc bnc" id="L252" title="All 2 branches missed.">                if (response.getResult().toAdsReturnCode() != AdsReturnCode.ADS_CODE_0) {</span>
+<span class="fc" id="L249">                InternalPlcProprietaryResponse&lt;AdsDeleteDeviceNotificationResponse&gt; deleteDeviceResponse =</span>
+<span class="fc" id="L250">                    getFromFuture(deleteDeviceFuture, DEL_DEVICE_TIMEOUT);</span>
+<span class="fc" id="L251">                AdsDeleteDeviceNotificationResponse response = deleteDeviceResponse.getResponse();</span>
+<span class="pc bpc" id="L252" title="1 of 2 branches missed.">                if (response.getResult().toAdsReturnCode() != AdsReturnCode.ADS_CODE_0) {</span>
 <span class="nc" id="L253">                    throw new PlcRuntimeException(&quot;Non error code received &quot; + response.getResult());</span>
                 }
             }
-<span class="nc" id="L256">        }</span>
+<span class="fc" id="L256">        }</span>
 <span class="fc" id="L257">        CompletableFuture&lt;PlcUnsubscriptionResponse&gt; future = new CompletableFuture&lt;&gt;();</span>
 <span class="fc" id="L258">        future.complete(new DefaultPlcUnsubscriptionResponse(internalPlcUnsubscriptionRequest));</span>
 <span class="fc" id="L259">        return future;</span>
@@ -265,63 +265,63 @@ public class AdsTcpPlcConnection extends AdsAbstractPlcConnection implements Plc
     }
 
     public InternalPlcConsumerRegistration register(Consumer&lt;PlcSubscriptionEvent&gt; consumer, PlcSubscriptionHandle... handles) {
-<span class="nc" id="L268">        Objects.requireNonNull(consumer);</span>
-<span class="nc" id="L269">        Objects.requireNonNull(handles);</span>
-<span class="nc" id="L270">        InternalPlcSubscriptionHandle[] internalPlcSubscriptionHandles = new InternalPlcSubscriptionHandle[handles.length];</span>
-<span class="nc bnc" id="L271" title="All 2 branches missed.">        for (int i = 0; i &lt; handles.length; i++) {</span>
+<span class="fc" id="L268">        Objects.requireNonNull(consumer);</span>
+<span class="fc" id="L269">        Objects.requireNonNull(handles);</span>
+<span class="fc" id="L270">        InternalPlcSubscriptionHandle[] internalPlcSubscriptionHandles = new InternalPlcSubscriptionHandle[handles.length];</span>
+<span class="pc bpc" id="L271" title="1 of 2 branches missed.">        for (int i = 0; i &lt; handles.length; i++) {</span>
 <span class="nc" id="L272">            internalPlcSubscriptionHandles[i] = checkInternal(handles[i], InternalPlcSubscriptionHandle.class);</span>
         }
 
-<span class="nc" id="L275">        InternalPlcConsumerRegistration internalPlcConsumerRegistration = new DefaultPlcConsumerRegistration(this, consumer, internalPlcSubscriptionHandles);</span>
+<span class="fc" id="L275">        InternalPlcConsumerRegistration internalPlcConsumerRegistration = new DefaultPlcConsumerRegistration(this, consumer, internalPlcSubscriptionHandles);</span>
 
-<span class="nc" id="L277">        Consumer&lt;AdsDeviceNotificationRequest&gt; adsDeviceNotificationRequestConsumer =</span>
-<span class="nc" id="L278">            adsDeviceNotificationRequest -&gt; adsDeviceNotificationRequest.getAdsStampHeaders().forEach(adsStampHeader -&gt; {</span>
-<span class="nc" id="L279">                Calendar timeStamp = Calendar.getInstance();</span>
-<span class="nc" id="L280">                timeStamp.setTime(adsStampHeader.getTimeStamp().getAsDate());</span>
+<span class="fc" id="L277">        Consumer&lt;AdsDeviceNotificationRequest&gt; adsDeviceNotificationRequestConsumer =</span>
+<span class="fc" id="L278">            adsDeviceNotificationRequest -&gt; adsDeviceNotificationRequest.getAdsStampHeaders().forEach(adsStampHeader -&gt; {</span>
+<span class="fc" id="L279">                Calendar timeStamp = Calendar.getInstance();</span>
+<span class="fc" id="L280">                timeStamp.setTime(adsStampHeader.getTimeStamp().getAsDate());</span>
 
-<span class="nc" id="L282">                adsStampHeader.getAdsNotificationSamples()</span>
-<span class="nc" id="L283">                    .forEach(adsNotificationSample -&gt; {</span>
-<span class="nc" id="L284">                        Data data = adsNotificationSample.getData();</span>
+<span class="fc" id="L282">                adsStampHeader.getAdsNotificationSamples()</span>
+<span class="fc" id="L283">                    .forEach(adsNotificationSample -&gt; {</span>
+<span class="fc" id="L284">                        Data data = adsNotificationSample.getData();</span>
                         try {
-<span class="nc" id="L286">                            PlcSubscriptionEvent subscriptionEventItem = new DefaultPlcSubscriptionEvent(timeStamp, data.getBytes());</span>
-<span class="nc" id="L287">                            consumer.accept(subscriptionEventItem);</span>
+<span class="fc" id="L286">                            PlcSubscriptionEvent subscriptionEventItem = new DefaultPlcSubscriptionEvent(timeStamp, data.getBytes());</span>
+<span class="fc" id="L287">                            consumer.accept(subscriptionEventItem);</span>
 <span class="nc" id="L288">                        } catch (RuntimeException e) {</span>
 <span class="nc" id="L289">                            LOGGER.error(&quot;Can't decode {}&quot;, data, e);</span>
-<span class="nc" id="L290">                        }</span>
-<span class="nc" id="L291">                    });</span>
-<span class="nc" id="L292">            });</span>
+<span class="fc" id="L290">                        }</span>
+<span class="fc" id="L291">                    });</span>
+<span class="fc" id="L292">            });</span>
 
         // Store the reference for so it can be uses for later
-<span class="nc" id="L295">        consumerRegistrations.put(internalPlcConsumerRegistration, adsDeviceNotificationRequestConsumer);</span>
+<span class="fc" id="L295">        consumerRegistrations.put(internalPlcConsumerRegistration, adsDeviceNotificationRequestConsumer);</span>
         // register the actual consumer.
-<span class="nc" id="L297">        getChannel().pipeline().get(Plc4x2AdsProtocol.class).addConsumer(adsDeviceNotificationRequestConsumer);</span>
+<span class="fc" id="L297">        getChannel().pipeline().get(Plc4x2AdsProtocol.class).addConsumer(adsDeviceNotificationRequestConsumer);</span>
 
-<span class="nc" id="L299">        return internalPlcConsumerRegistration;</span>
+<span class="fc" id="L299">        return internalPlcConsumerRegistration;</span>
     }
 
     @Override
     public void unregister(PlcConsumerRegistration plcConsumerRegistration) {
-<span class="nc" id="L304">        InternalPlcConsumerRegistration internalPlcConsumerRegistration = checkInternal(plcConsumerRegistration, InternalPlcConsumerRegistration.class);</span>
-<span class="nc" id="L305">        Consumer&lt;AdsDeviceNotificationRequest&gt; adsDeviceNotificationRequestConsumer = consumerRegistrations.remove(internalPlcConsumerRegistration);</span>
-<span class="nc bnc" id="L306" title="All 2 branches missed.">        if (adsDeviceNotificationRequestConsumer == null) {</span>
-<span class="nc" id="L307">            return;</span>
+<span class="fc" id="L304">        InternalPlcConsumerRegistration internalPlcConsumerRegistration = checkInternal(plcConsumerRegistration, InternalPlcConsumerRegistration.class);</span>
+<span class="fc" id="L305">        Consumer&lt;AdsDeviceNotificationRequest&gt; adsDeviceNotificationRequestConsumer = consumerRegistrations.remove(internalPlcConsumerRegistration);</span>
+<span class="pc bpc" id="L306" title="1 of 2 branches missed.">        if (adsDeviceNotificationRequestConsumer == null) {</span>
+<span class="fc" id="L307">            return;</span>
         }
 <span class="nc" id="L309">        getChannel().pipeline().get(Plc4x2AdsProtocol.class).removeConsumer(adsDeviceNotificationRequestConsumer);</span>
 <span class="nc" id="L310">    }</span>
 
     @Override
     public boolean canSubscribe() {
-<span class="nc" id="L314">        return true;</span>
+<span class="fc" id="L314">        return true;</span>
     }
 
     @Override
     public PlcSubscriptionRequest.Builder subscriptionRequestBuilder() {
-<span class="nc" id="L319">        return new DefaultPlcSubscriptionRequest.Builder(this, new AdsPlcFieldHandler());</span>
+<span class="fc" id="L319">        return new DefaultPlcSubscriptionRequest.Builder(this, new AdsPlcFieldHandler());</span>
     }
 
     @Override
     public PlcUnsubscriptionRequest.Builder unsubscriptionRequestBuilder() {
-<span class="nc" id="L324">        return new DefaultPlcUnsubscriptionRequest.Builder(this);</span>
+<span class="fc" id="L324">        return new DefaultPlcUnsubscriptionRequest.Builder(this);</span>
     }
 
     @Override
