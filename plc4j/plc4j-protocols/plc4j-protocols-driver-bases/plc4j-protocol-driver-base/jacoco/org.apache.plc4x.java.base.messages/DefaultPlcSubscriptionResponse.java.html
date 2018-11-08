@@ -18,8 +18,8 @@
  */
 package org.apache.plc4x.java.base.messages;
 
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.plc4x.java.api.exceptions.PlcNotImplementedException;
 import org.apache.plc4x.java.api.exceptions.PlcRuntimeException;
 import org.apache.plc4x.java.api.messages.PlcSubscriptionRequest;
 import org.apache.plc4x.java.api.model.PlcField;
@@ -43,48 +43,49 @@ public class DefaultPlcSubscriptionResponse implements InternalPlcSubscriptionRe
 
     @Override
     public PlcSubscriptionHandle getSubscriptionHandle(String name) {
-<span class="nc" id="L46">        Pair&lt;PlcResponseCode, PlcSubscriptionHandle&gt; response = values.get(name);</span>
-<span class="nc bnc" id="L47" title="All 2 branches missed.">        if (response == null) {</span>
-<span class="nc" id="L48">            return null;</span>
+<span class="fc" id="L46">        Pair&lt;PlcResponseCode, PlcSubscriptionHandle&gt; response = values.get(name);</span>
+<span class="fc bfc" id="L47" title="All 2 branches covered.">        if (response == null) {</span>
+<span class="fc" id="L48">            return null;</span>
         }
-<span class="nc bnc" id="L50" title="All 2 branches missed.">        if (response.getKey() != PlcResponseCode.OK) {</span>
+<span class="pc bpc" id="L50" title="1 of 2 branches missed.">        if (response.getKey() != PlcResponseCode.OK) {</span>
 <span class="nc" id="L51">            throw new PlcRuntimeException(&quot;Item &quot; + name + &quot; failed to subscribe: &quot; + response.getKey());</span>
         }
-<span class="nc" id="L53">        return response.getValue();</span>
+<span class="fc" id="L53">        return response.getValue();</span>
     }
 
     @Override
     public Collection&lt;String&gt; getFieldNames() {
-<span class="nc" id="L58">        return values.keySet();</span>
+<span class="fc" id="L58">        return values.keySet();</span>
     }
 
     @Override
     public PlcField getField(String name) {
-<span class="nc" id="L63">        throw new NotImplementedException(&quot;field access not possible as these come async&quot;);</span>
+<span class="fc" id="L63">        throw new PlcNotImplementedException(&quot;field access not possible as these come async&quot;);</span>
     }
 
     @Override
     public PlcResponseCode getResponseCode(String name) {
-<span class="nc" id="L68">        Pair&lt;PlcResponseCode, PlcSubscriptionHandle&gt; response = values.get(name);</span>
-<span class="nc bnc" id="L69" title="All 2 branches missed.">        if (response == null) {</span>
+<span class="fc" id="L68">        Pair&lt;PlcResponseCode, PlcSubscriptionHandle&gt; response = values.get(name);</span>
+<span class="pc bpc" id="L69" title="1 of 2 branches missed.">        if (response == null) {</span>
 <span class="nc" id="L70">            return null;</span>
         }
-<span class="nc" id="L72">        return response.getKey();</span>
+<span class="fc" id="L72">        return response.getKey();</span>
     }
 
     @Override
     public PlcSubscriptionRequest getRequest() {
-<span class="nc" id="L77">        return request;</span>
+<span class="fc" id="L77">        return request;</span>
     }
 
     @Override
     public Collection&lt;PlcSubscriptionHandle&gt; getSubscriptionHandles() {
-<span class="nc" id="L82">        return values.values().stream().map(Pair::getValue).collect(Collectors.toList());</span>
+<span class="fc" id="L82">        return values.values().stream().map(Pair::getValue).collect(Collectors.toList());</span>
     }
 
     @Override
     public Map&lt;String, Pair&lt;PlcResponseCode, PlcSubscriptionHandle&gt;&gt; getValues() {
 <span class="fc" id="L87">        return values;</span>
     }
+
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

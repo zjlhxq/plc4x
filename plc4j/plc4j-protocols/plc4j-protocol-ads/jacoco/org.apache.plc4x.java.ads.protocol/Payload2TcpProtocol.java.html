@@ -19,6 +19,7 @@
 package org.apache.plc4x.java.ads.protocol;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
 import org.apache.plc4x.java.ads.api.tcp.AmsTCPPacket;
@@ -30,32 +31,40 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-<span class="fc" id="L33">public class Payload2TcpProtocol extends MessageToMessageCodec&lt;ByteBuf, ByteBuf&gt; {</span>
+<span class="fc" id="L34">public class Payload2TcpProtocol extends MessageToMessageCodec&lt;ByteBuf, ByteBuf&gt; {</span>
 
-<span class="fc" id="L35">    private static final Logger LOGGER = LoggerFactory.getLogger(Payload2TcpProtocol.class);</span>
+<span class="fc" id="L36">    private static final Logger LOGGER = LoggerFactory.getLogger(Payload2TcpProtocol.class);</span>
 
     @Override
     protected void encode(ChannelHandlerContext channelHandlerContext, ByteBuf amsPacket, List&lt;Object&gt; out) {
-<span class="fc" id="L39">        LOGGER.trace(&quot;(&lt;--OUT): {}, {}, {}&quot;, channelHandlerContext, amsPacket, out);</span>
-<span class="fc" id="L40">        out.add(AmsTCPPacket.of(UserData.of(amsPacket)).getByteBuf());</span>
-<span class="fc" id="L41">    }</span>
+<span class="fc" id="L40">        LOGGER.trace(&quot;(&lt;--OUT): {}, {}, {}&quot;, channelHandlerContext, amsPacket, out);</span>
+<span class="fc" id="L41">        out.add(AmsTCPPacket.of(UserData.of(amsPacket)).getByteBuf());</span>
+<span class="fc" id="L42">    }</span>
 
     @SuppressWarnings(&quot;unchecked&quot;)
     @Override
     protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf, List&lt;Object&gt; out) {
-<span class="fc" id="L46">        LOGGER.trace(&quot;(--&gt;IN): {}, {}, {}&quot;, channelHandlerContext, byteBuf, out);</span>
-        // Reserved
-<span class="fc" id="L48">        byteBuf.skipBytes(AmsTcpHeader.Reserved.NUM_BYTES);</span>
-<span class="fc" id="L49">        TcpLength packetLength = TcpLength.of(byteBuf);</span>
-<span class="fc" id="L50">        AmsTcpHeader amsTcpHeader = AmsTcpHeader.of(packetLength);</span>
-<span class="fc" id="L51">        LOGGER.debug(&quot;AMS TCP Header {}&quot;, amsTcpHeader);</span>
-
-<span class="fc" id="L53">        int readableBytes = byteBuf.readableBytes();</span>
-<span class="pc bpc" id="L54" title="1 of 2 branches missed.">        if (readableBytes != packetLength.getAsLong()) {</span>
-<span class="nc" id="L55">            throw new IllegalStateException(&quot;To many bytes to read: &quot; + readableBytes + &quot; bytes. Expected &quot; + packetLength.getAsLong() + &quot; bytes.&quot;);</span>
+<span class="pc bpc" id="L47" title="1 of 2 branches missed.">        if (byteBuf == Unpooled.EMPTY_BUFFER) {</span>
+            // Cleanup...
+<span class="nc" id="L49">            return;</span>
         }
-<span class="fc" id="L57">        out.add(byteBuf.readBytes(readableBytes));</span>
-<span class="fc" id="L58">    }</span>
+<span class="fc" id="L51">        LOGGER.trace(&quot;(--&gt;IN): {}, {}, {}&quot;, channelHandlerContext, byteBuf, out);</span>
+<span class="pc bpc" id="L52" title="1 of 2 branches missed.">        if (byteBuf.readableBytes() &lt; AmsTcpHeader.Reserved.NUM_BYTES + TcpLength.NUM_BYTES) {</span>
+            // wait till we can read the length header
+<span class="nc" id="L54">            return;</span>
+        }
+<span class="pc bpc" id="L56" title="1 of 2 branches missed.">        if (byteBuf.readableBytes() &lt; byteBuf.getUnsignedIntLE(AmsTcpHeader.Reserved.NUM_BYTES)) {</span>
+            // wait till we have a complete ADS packet
+<span class="nc" id="L58">            return;</span>
+        }
+        // Reserved
+<span class="fc" id="L61">        byteBuf.skipBytes(AmsTcpHeader.Reserved.NUM_BYTES);</span>
+<span class="fc" id="L62">        TcpLength packetLength = TcpLength.of(byteBuf);</span>
+<span class="fc" id="L63">        AmsTcpHeader amsTcpHeader = AmsTcpHeader.of(packetLength);</span>
+<span class="fc" id="L64">        LOGGER.debug(&quot;AMS TCP Header {}&quot;, amsTcpHeader);</span>
+
+<span class="fc" id="L66">        out.add(byteBuf.readBytes((int) packetLength.getAsLong()));</span>
+<span class="fc" id="L67">    }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

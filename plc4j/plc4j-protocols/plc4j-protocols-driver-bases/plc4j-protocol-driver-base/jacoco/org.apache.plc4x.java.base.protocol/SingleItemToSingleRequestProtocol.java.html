@@ -112,164 +112,167 @@ public class SingleItemToSingleRequestProtocol extends ChannelDuplexHandler {
 <span class="fc" id="L112">        this.timer = timer;</span>
 <span class="fc" id="L113">        this.defaultReceiveTimeout = defaultReceiveTimeout;</span>
 <span class="fc" id="L114">        this.splitConfig = splitConfig;</span>
-<span class="pc bpc" id="L115" title="1 of 2 branches missed.">        if (betterImplementationPossible) {</span>
-<span class="nc" id="L116">            String callStack = Arrays.stream(Thread.currentThread().getStackTrace())</span>
-<span class="nc" id="L117">                .map(StackTraceElement::toString)</span>
-<span class="nc" id="L118">                .collect(Collectors.joining(&quot;\n&quot;));</span>
-<span class="nc" id="L119">            LOGGER.warn(&quot;Unoptimized Usage of {} detected at:\n{}&quot;, this.getClass(), callStack);</span>
-<span class="nc" id="L120">            LOGGER.info(&quot;Consider implementing item splitting native to the protocol.&quot;);</span>
+<span class="pc bpc" id="L115" title="1 of 2 branches missed.">        if (this.splitConfig == null) {</span>
+<span class="nc" id="L116">            this.splitConfig = new SplitConfig();</span>
         }
-<span class="fc" id="L122">    }</span>
+<span class="pc bpc" id="L118" title="1 of 2 branches missed.">        if (betterImplementationPossible) {</span>
+<span class="nc" id="L119">            String callStack = Arrays.stream(Thread.currentThread().getStackTrace())</span>
+<span class="nc" id="L120">                .map(StackTraceElement::toString)</span>
+<span class="nc" id="L121">                .collect(Collectors.joining(&quot;\n&quot;));</span>
+<span class="nc" id="L122">            LOGGER.warn(&quot;Unoptimized Usage of {} detected at:\n{}&quot;, this.getClass(), callStack);</span>
+<span class="nc" id="L123">            LOGGER.info(&quot;Consider implementing item splitting native to the protocol.&quot;);</span>
+        }
+<span class="fc" id="L125">    }</span>
 
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-<span class="fc" id="L126">        this.queue = new PendingWriteQueue(ctx);</span>
-<span class="fc" id="L127">        this.scheduledTimeouts = new ConcurrentHashMap&lt;&gt;();</span>
-<span class="fc" id="L128">        this.sentButUnacknowledgedSubContainer = new ConcurrentHashMap&lt;&gt;();</span>
-<span class="fc" id="L129">        this.correlationToParentContainer = new ConcurrentHashMap&lt;&gt;();</span>
-<span class="fc" id="L130">        this.containerCorrelationIdMap = new ConcurrentHashMap&lt;&gt;();</span>
-<span class="fc" id="L131">        this.responsesToBeDelivered = new ConcurrentHashMap&lt;&gt;();</span>
-<span class="fc" id="L132">        this.correlationIdGenerator = new AtomicInteger();</span>
-<span class="fc" id="L133">        this.deliveredItems = new AtomicLong();</span>
-<span class="fc" id="L134">        this.erroredItems = new AtomicLong();</span>
-<span class="fc" id="L135">        this.deliveredContainers = new AtomicLong();</span>
-<span class="fc" id="L136">        this.erroredContainers = new AtomicLong();</span>
-<span class="fc" id="L137">        super.channelRegistered(ctx);</span>
-<span class="fc" id="L138">    }</span>
+<span class="fc" id="L129">        this.queue = new PendingWriteQueue(ctx);</span>
+<span class="fc" id="L130">        this.scheduledTimeouts = new ConcurrentHashMap&lt;&gt;();</span>
+<span class="fc" id="L131">        this.sentButUnacknowledgedSubContainer = new ConcurrentHashMap&lt;&gt;();</span>
+<span class="fc" id="L132">        this.correlationToParentContainer = new ConcurrentHashMap&lt;&gt;();</span>
+<span class="fc" id="L133">        this.containerCorrelationIdMap = new ConcurrentHashMap&lt;&gt;();</span>
+<span class="fc" id="L134">        this.responsesToBeDelivered = new ConcurrentHashMap&lt;&gt;();</span>
+<span class="fc" id="L135">        this.correlationIdGenerator = new AtomicInteger();</span>
+<span class="fc" id="L136">        this.deliveredItems = new AtomicLong();</span>
+<span class="fc" id="L137">        this.erroredItems = new AtomicLong();</span>
+<span class="fc" id="L138">        this.deliveredContainers = new AtomicLong();</span>
+<span class="fc" id="L139">        this.erroredContainers = new AtomicLong();</span>
+<span class="fc" id="L140">        super.channelRegistered(ctx);</span>
+<span class="fc" id="L141">    }</span>
 
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-<span class="fc" id="L142">        this.queue.removeAndWriteAll();</span>
-<span class="fc" id="L143">        this.scheduledTimeouts.clear();</span>
-<span class="fc" id="L144">        this.sentButUnacknowledgedSubContainer.clear();</span>
-<span class="fc" id="L145">        this.correlationToParentContainer.clear();</span>
-<span class="fc" id="L146">        this.containerCorrelationIdMap.clear();</span>
-<span class="fc" id="L147">        this.responsesToBeDelivered.clear();</span>
-<span class="fc" id="L148">        this.correlationIdGenerator.set(0);</span>
-<span class="fc" id="L149">        this.deliveredItems.set(0);</span>
-<span class="fc" id="L150">        this.erroredItems.set(0);</span>
-<span class="fc" id="L151">        this.deliveredContainers.set(0);</span>
-<span class="fc" id="L152">        this.erroredContainers.set(0);</span>
-<span class="fc" id="L153">        super.channelUnregistered(ctx);</span>
-<span class="fc" id="L154">    }</span>
+<span class="fc" id="L145">        this.queue.removeAndWriteAll();</span>
+<span class="fc" id="L146">        this.scheduledTimeouts.clear();</span>
+<span class="fc" id="L147">        this.sentButUnacknowledgedSubContainer.clear();</span>
+<span class="fc" id="L148">        this.correlationToParentContainer.clear();</span>
+<span class="fc" id="L149">        this.containerCorrelationIdMap.clear();</span>
+<span class="fc" id="L150">        this.responsesToBeDelivered.clear();</span>
+<span class="fc" id="L151">        this.correlationIdGenerator.set(0);</span>
+<span class="fc" id="L152">        this.deliveredItems.set(0);</span>
+<span class="fc" id="L153">        this.erroredItems.set(0);</span>
+<span class="fc" id="L154">        this.deliveredContainers.set(0);</span>
+<span class="fc" id="L155">        this.erroredContainers.set(0);</span>
+<span class="fc" id="L156">        super.channelUnregistered(ctx);</span>
+<span class="fc" id="L157">    }</span>
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         // Send everything so we get a proper failure for those pending writes
-<span class="fc" id="L159">        this.queue.removeAndWriteAll();</span>
-<span class="fc" id="L160">        this.timer.stop();</span>
-<span class="fc" id="L161">        this.scheduledTimeouts.clear();</span>
-<span class="fc" id="L162">        this.sentButUnacknowledgedSubContainer.clear();</span>
-<span class="fc" id="L163">        this.correlationToParentContainer.clear();</span>
-<span class="fc" id="L164">        this.containerCorrelationIdMap.clear();</span>
-<span class="fc" id="L165">        this.responsesToBeDelivered.clear();</span>
-<span class="fc" id="L166">        this.correlationIdGenerator.set(0);</span>
-<span class="fc" id="L167">        this.deliveredItems.set(0);</span>
-<span class="fc" id="L168">        this.erroredItems.set(0);</span>
-<span class="fc" id="L169">        this.deliveredContainers.set(0);</span>
-<span class="fc" id="L170">        this.erroredContainers.set(0);</span>
-<span class="fc" id="L171">        super.channelInactive(ctx);</span>
-<span class="fc" id="L172">    }</span>
+<span class="fc" id="L162">        this.queue.removeAndWriteAll();</span>
+<span class="fc" id="L163">        this.timer.stop();</span>
+<span class="fc" id="L164">        this.scheduledTimeouts.clear();</span>
+<span class="fc" id="L165">        this.sentButUnacknowledgedSubContainer.clear();</span>
+<span class="fc" id="L166">        this.correlationToParentContainer.clear();</span>
+<span class="fc" id="L167">        this.containerCorrelationIdMap.clear();</span>
+<span class="fc" id="L168">        this.responsesToBeDelivered.clear();</span>
+<span class="fc" id="L169">        this.correlationIdGenerator.set(0);</span>
+<span class="fc" id="L170">        this.deliveredItems.set(0);</span>
+<span class="fc" id="L171">        this.erroredItems.set(0);</span>
+<span class="fc" id="L172">        this.deliveredContainers.set(0);</span>
+<span class="fc" id="L173">        this.erroredContainers.set(0);</span>
+<span class="fc" id="L174">        super.channelInactive(ctx);</span>
+<span class="fc" id="L175">    }</span>
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Decoding
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     protected void tryFinish(Integer currentTdpu, InternalPlcResponse msg, CompletableFuture&lt;InternalPlcResponse&gt; originalResponseFuture) {
-<span class="fc" id="L179">        deliveredItems.incrementAndGet();</span>
-<span class="fc" id="L180">        PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; subPlcRequestContainer = sentButUnacknowledgedSubContainer.remove(currentTdpu);</span>
-<span class="fc" id="L181">        LOGGER.info(&quot;{} got acknowledged&quot;, subPlcRequestContainer);</span>
-<span class="fc" id="L182">        PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; originalPlcRequestContainer = correlationToParentContainer.remove(currentTdpu);</span>
-<span class="fc bfc" id="L183" title="All 2 branches covered.">        if (originalPlcRequestContainer == null) {</span>
-<span class="fc" id="L184">            LOGGER.warn(&quot;Unrelated package received {}&quot;, msg);</span>
-<span class="fc" id="L185">            return;</span>
+<span class="fc" id="L182">        deliveredItems.incrementAndGet();</span>
+<span class="fc" id="L183">        PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; subPlcRequestContainer = sentButUnacknowledgedSubContainer.remove(currentTdpu);</span>
+<span class="fc" id="L184">        LOGGER.info(&quot;{} got acknowledged&quot;, subPlcRequestContainer);</span>
+<span class="fc" id="L185">        PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; originalPlcRequestContainer = correlationToParentContainer.remove(currentTdpu);</span>
+<span class="fc bfc" id="L186" title="All 2 branches covered.">        if (originalPlcRequestContainer == null) {</span>
+<span class="fc" id="L187">            LOGGER.warn(&quot;Unrelated package received {}&quot;, msg);</span>
+<span class="fc" id="L188">            return;</span>
         }
-<span class="fc" id="L187">        Queue&lt;InternalPlcResponse&gt; correlatedResponseItems = responsesToBeDelivered.computeIfAbsent(originalPlcRequestContainer, ignore -&gt; new ConcurrentLinkedQueue&lt;&gt;());</span>
-<span class="fc" id="L188">        correlatedResponseItems.add(msg);</span>
-<span class="fc" id="L189">        Set&lt;Integer&gt; integers = containerCorrelationIdMap.get(originalPlcRequestContainer);</span>
-<span class="fc" id="L190">        integers.remove(currentTdpu);</span>
-<span class="fc bfc" id="L191" title="All 2 branches covered.">        if (integers.isEmpty()) {</span>
-<span class="fc" id="L192">            deliveredContainers.incrementAndGet();</span>
-<span class="fc" id="L193">            Timeout timeout = scheduledTimeouts.remove(originalPlcRequestContainer);</span>
-<span class="pc bpc" id="L194" title="1 of 2 branches missed.">            if (timeout != null) {</span>
-<span class="fc" id="L195">                timeout.cancel();</span>
+<span class="fc" id="L190">        Queue&lt;InternalPlcResponse&gt; correlatedResponseItems = responsesToBeDelivered.computeIfAbsent(originalPlcRequestContainer, ignore -&gt; new ConcurrentLinkedQueue&lt;&gt;());</span>
+<span class="fc" id="L191">        correlatedResponseItems.add(msg);</span>
+<span class="fc" id="L192">        Set&lt;Integer&gt; integers = containerCorrelationIdMap.get(originalPlcRequestContainer);</span>
+<span class="fc" id="L193">        integers.remove(currentTdpu);</span>
+<span class="fc bfc" id="L194" title="All 2 branches covered.">        if (integers.isEmpty()) {</span>
+<span class="fc" id="L195">            deliveredContainers.incrementAndGet();</span>
+<span class="fc" id="L196">            Timeout timeout = scheduledTimeouts.remove(originalPlcRequestContainer);</span>
+<span class="pc bpc" id="L197" title="1 of 2 branches missed.">            if (timeout != null) {</span>
+<span class="fc" id="L198">                timeout.cancel();</span>
             }
 
             InternalPlcResponse plcResponse;
-<span class="fc bfc" id="L199" title="All 2 branches covered.">            if (originalPlcRequestContainer.getRequest() instanceof InternalPlcReadRequest) {</span>
-<span class="fc" id="L200">                InternalPlcReadRequest internalPlcReadRequest = (InternalPlcReadRequest) originalPlcRequestContainer.getRequest();</span>
-<span class="fc" id="L201">                HashMap&lt;String, Pair&lt;PlcResponseCode, BaseDefaultFieldItem&gt;&gt; fields = new HashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L202" title="All 2 branches covered.">            if (originalPlcRequestContainer.getRequest() instanceof InternalPlcReadRequest) {</span>
+<span class="fc" id="L203">                InternalPlcReadRequest internalPlcReadRequest = (InternalPlcReadRequest) originalPlcRequestContainer.getRequest();</span>
+<span class="fc" id="L204">                HashMap&lt;String, Pair&lt;PlcResponseCode, BaseDefaultFieldItem&gt;&gt; fields = new HashMap&lt;&gt;();</span>
 
-<span class="fc" id="L203">                correlatedResponseItems.stream()</span>
-<span class="fc" id="L204">                    .map(InternalPlcReadResponse.class::cast)</span>
-<span class="fc" id="L205">                    .map(InternalPlcReadResponse::getValues)</span>
-<span class="fc" id="L206">                    .forEach(stringPairMap -&gt; stringPairMap.forEach(fields::put));</span>
+<span class="fc" id="L206">                correlatedResponseItems.stream()</span>
+<span class="fc" id="L207">                    .map(InternalPlcReadResponse.class::cast)</span>
+<span class="fc" id="L208">                    .map(InternalPlcReadResponse::getValues)</span>
+<span class="fc" id="L209">                    .forEach(stringPairMap -&gt; stringPairMap.forEach(fields::put));</span>
 
-<span class="fc" id="L208">                plcResponse = new DefaultPlcReadResponse(internalPlcReadRequest, fields);</span>
-<span class="pc bpc" id="L209" title="1 of 2 branches missed.">            } else if (originalPlcRequestContainer.getRequest() instanceof InternalPlcWriteRequest) {</span>
-<span class="nc" id="L210">                InternalPlcWriteRequest internalPlcWriteRequest = (InternalPlcWriteRequest) originalPlcRequestContainer.getRequest();</span>
-<span class="nc" id="L211">                HashMap&lt;String, PlcResponseCode&gt; values = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L211">                plcResponse = new DefaultPlcReadResponse(internalPlcReadRequest, fields);</span>
+<span class="pc bpc" id="L212" title="1 of 2 branches missed.">            } else if (originalPlcRequestContainer.getRequest() instanceof InternalPlcWriteRequest) {</span>
+<span class="nc" id="L213">                InternalPlcWriteRequest internalPlcWriteRequest = (InternalPlcWriteRequest) originalPlcRequestContainer.getRequest();</span>
+<span class="nc" id="L214">                HashMap&lt;String, PlcResponseCode&gt; values = new HashMap&lt;&gt;();</span>
 
-<span class="nc" id="L213">                correlatedResponseItems.stream()</span>
-<span class="nc" id="L214">                    .map(InternalPlcWriteResponse.class::cast)</span>
-<span class="nc" id="L215">                    .map(InternalPlcWriteResponse::getValues)</span>
-<span class="nc" id="L216">                    .forEach(stringPairMap -&gt; stringPairMap.forEach(values::put));</span>
+<span class="nc" id="L216">                correlatedResponseItems.stream()</span>
+<span class="nc" id="L217">                    .map(InternalPlcWriteResponse.class::cast)</span>
+<span class="nc" id="L218">                    .map(InternalPlcWriteResponse::getValues)</span>
+<span class="nc" id="L219">                    .forEach(stringPairMap -&gt; stringPairMap.forEach(values::put));</span>
 
-<span class="nc" id="L218">                plcResponse = new DefaultPlcWriteResponse(internalPlcWriteRequest, values);</span>
-<span class="pc bfc" id="L219" title="All 2 branches covered.">            } else if (originalPlcRequestContainer.getRequest() instanceof InternalPlcSubscriptionRequest) {</span>
-<span class="fc" id="L220">                InternalPlcSubscriptionRequest internalPlcSubscriptionRequest = (InternalPlcSubscriptionRequest) originalPlcRequestContainer.getRequest();</span>
-<span class="fc" id="L221">                HashMap&lt;String, Pair&lt;PlcResponseCode, PlcSubscriptionHandle&gt;&gt; fields = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L221">                plcResponse = new DefaultPlcWriteResponse(internalPlcWriteRequest, values);</span>
+<span class="pc bfc" id="L222" title="All 2 branches covered.">            } else if (originalPlcRequestContainer.getRequest() instanceof InternalPlcSubscriptionRequest) {</span>
+<span class="fc" id="L223">                InternalPlcSubscriptionRequest internalPlcSubscriptionRequest = (InternalPlcSubscriptionRequest) originalPlcRequestContainer.getRequest();</span>
+<span class="fc" id="L224">                HashMap&lt;String, Pair&lt;PlcResponseCode, PlcSubscriptionHandle&gt;&gt; fields = new HashMap&lt;&gt;();</span>
 
-<span class="fc" id="L223">                correlatedResponseItems.stream()</span>
-<span class="fc" id="L224">                    .map(InternalPlcSubscriptionResponse.class::cast)</span>
-<span class="fc" id="L225">                    .map(InternalPlcSubscriptionResponse::getValues)</span>
-<span class="fc" id="L226">                    .forEach(stringPairMap -&gt; stringPairMap.forEach(fields::put));</span>
+<span class="fc" id="L226">                correlatedResponseItems.stream()</span>
+<span class="fc" id="L227">                    .map(InternalPlcSubscriptionResponse.class::cast)</span>
+<span class="fc" id="L228">                    .map(InternalPlcSubscriptionResponse::getValues)</span>
+<span class="fc" id="L229">                    .forEach(stringPairMap -&gt; stringPairMap.forEach(fields::put));</span>
 
-<span class="fc" id="L228">                plcResponse = new DefaultPlcSubscriptionResponse(internalPlcSubscriptionRequest, fields);</span>
-<span class="pc bpc" id="L229" title="1 of 2 branches missed.">            } else if (originalPlcRequestContainer.getRequest() instanceof InternalPlcUnsubscriptionRequest) {</span>
-<span class="fc" id="L230">                InternalPlcUnsubscriptionRequest internalPlcUnsubscriptionRequest = (InternalPlcUnsubscriptionRequest) originalPlcRequestContainer.getRequest();</span>
-<span class="fc" id="L231">                plcResponse = new DefaultPlcUnsubscriptionResponse(internalPlcUnsubscriptionRequest);</span>
-<span class="fc" id="L232">            } else {</span>
-<span class="nc" id="L233">                errored(currentTdpu, new PlcProtocolException(&quot;Unknown type detected &quot; + originalPlcRequestContainer.getRequest().getClass()), originalResponseFuture);</span>
-<span class="nc" id="L234">                return;</span>
+<span class="fc" id="L231">                plcResponse = new DefaultPlcSubscriptionResponse(internalPlcSubscriptionRequest, fields);</span>
+<span class="pc bpc" id="L232" title="1 of 2 branches missed.">            } else if (originalPlcRequestContainer.getRequest() instanceof InternalPlcUnsubscriptionRequest) {</span>
+<span class="fc" id="L233">                InternalPlcUnsubscriptionRequest internalPlcUnsubscriptionRequest = (InternalPlcUnsubscriptionRequest) originalPlcRequestContainer.getRequest();</span>
+<span class="fc" id="L234">                plcResponse = new DefaultPlcUnsubscriptionResponse(internalPlcUnsubscriptionRequest);</span>
+<span class="fc" id="L235">            } else {</span>
+<span class="nc" id="L236">                errored(currentTdpu, new PlcProtocolException(&quot;Unknown type detected &quot; + originalPlcRequestContainer.getRequest().getClass()), originalResponseFuture);</span>
+<span class="nc" id="L237">                return;</span>
             }
-<span class="fc" id="L236">            responsesToBeDelivered.remove(originalPlcRequestContainer);</span>
-<span class="fc" id="L237">            containerCorrelationIdMap.remove(originalPlcRequestContainer);</span>
-<span class="fc" id="L238">            originalResponseFuture.complete(plcResponse);</span>
+<span class="fc" id="L239">            responsesToBeDelivered.remove(originalPlcRequestContainer);</span>
+<span class="fc" id="L240">            containerCorrelationIdMap.remove(originalPlcRequestContainer);</span>
+<span class="fc" id="L241">            originalResponseFuture.complete(plcResponse);</span>
         }
-<span class="fc" id="L240">    }</span>
+<span class="fc" id="L243">    }</span>
 
     protected void errored(Integer currentTdpu, Throwable throwable, CompletableFuture&lt;InternalPlcResponse&gt; originalResponseFuture) {
-<span class="fc" id="L243">        erroredItems.incrementAndGet();</span>
-<span class="fc" id="L244">        PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; subPlcRequestContainer = sentButUnacknowledgedSubContainer.remove(currentTdpu);</span>
-<span class="fc" id="L245">        LOGGER.info(&quot;{} got errored&quot;, subPlcRequestContainer);</span>
+<span class="fc" id="L246">        erroredItems.incrementAndGet();</span>
+<span class="fc" id="L247">        PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; subPlcRequestContainer = sentButUnacknowledgedSubContainer.remove(currentTdpu);</span>
+<span class="fc" id="L248">        LOGGER.info(&quot;{} got errored&quot;, subPlcRequestContainer);</span>
 
 
-<span class="fc" id="L248">        PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; originalPlcRequestContainer = correlationToParentContainer.remove(currentTdpu);</span>
-<span class="fc bfc" id="L249" title="All 2 branches covered.">        if (originalPlcRequestContainer == null) {</span>
-<span class="fc" id="L250">            LOGGER.warn(&quot;Unrelated error received tdpu:{}&quot;, currentTdpu, throwable);</span>
+<span class="fc" id="L251">        PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; originalPlcRequestContainer = correlationToParentContainer.remove(currentTdpu);</span>
+<span class="fc bfc" id="L252" title="All 2 branches covered.">        if (originalPlcRequestContainer == null) {</span>
+<span class="fc" id="L253">            LOGGER.warn(&quot;Unrelated error received tdpu:{}&quot;, currentTdpu, throwable);</span>
         } else {
-<span class="fc" id="L252">            erroredContainers.incrementAndGet();</span>
-<span class="fc" id="L253">            Timeout timeout = scheduledTimeouts.remove(originalPlcRequestContainer);</span>
-<span class="pc bpc" id="L254" title="1 of 2 branches missed.">            if (timeout != null) {</span>
-<span class="fc" id="L255">                timeout.cancel();</span>
+<span class="fc" id="L255">            erroredContainers.incrementAndGet();</span>
+<span class="fc" id="L256">            Timeout timeout = scheduledTimeouts.remove(originalPlcRequestContainer);</span>
+<span class="pc bpc" id="L257" title="1 of 2 branches missed.">            if (timeout != null) {</span>
+<span class="fc" id="L258">                timeout.cancel();</span>
             }
-<span class="fc" id="L257">            responsesToBeDelivered.remove(originalPlcRequestContainer);</span>
+<span class="fc" id="L260">            responsesToBeDelivered.remove(originalPlcRequestContainer);</span>
 
-<span class="fc" id="L259">            Set&lt;Integer&gt; tdpus = containerCorrelationIdMap.remove(originalPlcRequestContainer);</span>
-<span class="pc bpc" id="L260" title="1 of 2 branches missed.">            if (tdpus != null) {</span>
-<span class="fc" id="L261">                tdpus.forEach(tdpu -&gt; {</span>
+<span class="fc" id="L262">            Set&lt;Integer&gt; tdpus = containerCorrelationIdMap.remove(originalPlcRequestContainer);</span>
+<span class="pc bpc" id="L263" title="1 of 2 branches missed.">            if (tdpus != null) {</span>
+<span class="fc" id="L264">                tdpus.forEach(tdpu -&gt; {</span>
                     // TODO: technically the other items didn't error so do we increment?
                     //erroredItems.incrementAndGet();
-<span class="fc" id="L264">                    sentButUnacknowledgedSubContainer.remove(tdpu);</span>
-<span class="fc" id="L265">                    correlationToParentContainer.remove(tdpu);</span>
-<span class="fc" id="L266">                });</span>
+<span class="fc" id="L267">                    sentButUnacknowledgedSubContainer.remove(tdpu);</span>
+<span class="fc" id="L268">                    correlationToParentContainer.remove(tdpu);</span>
+<span class="fc" id="L269">                });</span>
             }
 
-<span class="fc" id="L269">            LOGGER.warn(&quot;PlcRequestContainer {} and correlationId {} failed &quot;, correlationToParentContainer, currentTdpu, throwable);</span>
-<span class="fc" id="L270">            originalResponseFuture.completeExceptionally(throwable);</span>
+<span class="fc" id="L272">            LOGGER.warn(&quot;PlcRequestContainer {} and correlationId {} failed &quot;, correlationToParentContainer, currentTdpu, throwable);</span>
+<span class="fc" id="L273">            originalResponseFuture.completeExceptionally(throwable);</span>
         }
-<span class="fc" id="L272">    }</span>
+<span class="fc" id="L275">    }</span>
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Encoding
@@ -277,135 +280,135 @@ public class SingleItemToSingleRequestProtocol extends ChannelDuplexHandler {
 
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-<span class="fc bfc" id="L280" title="All 2 branches covered.">        if (msg instanceof PlcRequestContainer) {</span>
+<span class="fc bfc" id="L283" title="All 2 branches covered.">        if (msg instanceof PlcRequestContainer) {</span>
             @SuppressWarnings(&quot;unchecked&quot;)
-<span class="fc" id="L282">            PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; in = (PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt;) msg;</span>
-<span class="fc" id="L283">            Set&lt;Integer&gt; tdpus = containerCorrelationIdMap.computeIfAbsent(in, plcRequestContainer -&gt; ConcurrentHashMap.newKeySet());</span>
+<span class="fc" id="L285">            PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; in = (PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt;) msg;</span>
+<span class="fc" id="L286">            Set&lt;Integer&gt; tdpus = containerCorrelationIdMap.computeIfAbsent(in, plcRequestContainer -&gt; ConcurrentHashMap.newKeySet());</span>
 
-<span class="fc" id="L285">            Timeout timeout = timer.newTimeout(timeout_ -&gt; handleTimeout(timeout_, in, tdpus, System.nanoTime()), defaultReceiveTimeout, TimeUnit.MILLISECONDS);</span>
-<span class="fc" id="L286">            scheduledTimeouts.put(in, timeout);</span>
+<span class="fc" id="L288">            Timeout timeout = timer.newTimeout(timeout_ -&gt; handleTimeout(timeout_, in, tdpus, System.nanoTime()), defaultReceiveTimeout, TimeUnit.MILLISECONDS);</span>
+<span class="fc" id="L289">            scheduledTimeouts.put(in, timeout);</span>
 
             // Create a promise that has to be called multiple times.
-<span class="fc" id="L289">            PromiseCombiner promiseCombiner = new PromiseCombiner();</span>
-<span class="fc" id="L290">            InternalPlcRequest request = in.getRequest();</span>
-<span class="pc bpc" id="L291" title="2 of 8 branches missed.">            if (request instanceof InternalPlcFieldRequest &amp;&amp; (splitConfig.splitRead || splitConfig.splitWrite || splitConfig.splitSubscription)) {</span>
-<span class="fc" id="L292">                InternalPlcFieldRequest internalPlcFieldRequest = (InternalPlcFieldRequest) request;</span>
+<span class="fc" id="L292">            PromiseCombiner promiseCombiner = new PromiseCombiner();</span>
+<span class="fc" id="L293">            InternalPlcRequest request = in.getRequest();</span>
+<span class="pc bpc" id="L294" title="2 of 8 branches missed.">            if (request instanceof InternalPlcFieldRequest &amp;&amp; (splitConfig.splitRead || splitConfig.splitWrite || splitConfig.splitSubscription)) {</span>
+<span class="fc" id="L295">                InternalPlcFieldRequest internalPlcFieldRequest = (InternalPlcFieldRequest) request;</span>
 
-<span class="pc bpc" id="L294" title="1 of 4 branches missed.">                if (internalPlcFieldRequest instanceof InternalPlcReadRequest &amp;&amp; splitConfig.splitRead) {</span>
-<span class="fc" id="L295">                    InternalPlcReadRequest internalPlcReadRequest = (InternalPlcReadRequest) internalPlcFieldRequest;</span>
-<span class="fc" id="L296">                    internalPlcReadRequest.getNamedFields().forEach(field -&gt; {</span>
-<span class="fc" id="L297">                        ChannelPromise subPromise = new DefaultChannelPromise(promise.channel());</span>
+<span class="pc bpc" id="L297" title="1 of 4 branches missed.">                if (internalPlcFieldRequest instanceof InternalPlcReadRequest &amp;&amp; splitConfig.splitRead) {</span>
+<span class="fc" id="L298">                    InternalPlcReadRequest internalPlcReadRequest = (InternalPlcReadRequest) internalPlcFieldRequest;</span>
+<span class="fc" id="L299">                    internalPlcReadRequest.getNamedFields().forEach(field -&gt; {</span>
+<span class="fc" id="L300">                        ChannelPromise subPromise = new DefaultChannelPromise(promise.channel());</span>
 
-<span class="fc" id="L299">                        Integer tdpu = correlationIdGenerator.getAndIncrement();</span>
-<span class="fc" id="L300">                        CompletableFuture&lt;InternalPlcResponse&gt; correlatedCompletableFuture = new CompletableFuture&lt;&gt;();</span>
+<span class="fc" id="L302">                        Integer tdpu = correlationIdGenerator.getAndIncrement();</span>
+<span class="fc" id="L303">                        CompletableFuture&lt;InternalPlcResponse&gt; correlatedCompletableFuture = new CompletableFuture&lt;&gt;();</span>
                         // Important: don't chain to above as we want the above to be completed not the result of when complete
-<span class="fc" id="L302">                        correlatedCompletableFuture</span>
-<span class="fc" id="L303">                            .thenApply(InternalPlcResponse.class::cast)</span>
-<span class="fc" id="L304">                            .whenComplete((internalPlcResponse, throwable) -&gt; {</span>
-<span class="fc bfc" id="L305" title="All 2 branches covered.">                                if (throwable != null) {</span>
-<span class="fc" id="L306">                                    errored(tdpu, throwable, in.getResponseFuture());</span>
+<span class="fc" id="L305">                        correlatedCompletableFuture</span>
+<span class="fc" id="L306">                            .thenApply(InternalPlcResponse.class::cast)</span>
+<span class="fc" id="L307">                            .whenComplete((internalPlcResponse, throwable) -&gt; {</span>
+<span class="fc bfc" id="L308" title="All 2 branches covered.">                                if (throwable != null) {</span>
+<span class="fc" id="L309">                                    errored(tdpu, throwable, in.getResponseFuture());</span>
                                 } else {
-<span class="fc" id="L308">                                    tryFinish(tdpu, internalPlcResponse, in.getResponseFuture());</span>
+<span class="fc" id="L311">                                    tryFinish(tdpu, internalPlcResponse, in.getResponseFuture());</span>
                                 }
-<span class="fc" id="L310">                            });</span>
-<span class="fc" id="L311">                        PlcRequestContainer&lt;CorrelatedPlcReadRequest, InternalPlcResponse&gt; correlatedPlcRequestContainer = new PlcRequestContainer&lt;&gt;(CorrelatedPlcReadRequest.of(reader, field, tdpu), correlatedCompletableFuture);</span>
-<span class="fc" id="L312">                        correlationToParentContainer.put(tdpu, in);</span>
-<span class="fc" id="L313">                        queue.add(correlatedPlcRequestContainer, subPromise);</span>
-<span class="pc bpc" id="L314" title="1 of 2 branches missed.">                        if (!tdpus.add(tdpu)) {</span>
-<span class="nc" id="L315">                            throw new IllegalStateException(&quot;AtomicInteger should not create duplicated ids: &quot; + tdpu);</span>
+<span class="fc" id="L313">                            });</span>
+<span class="fc" id="L314">                        PlcRequestContainer&lt;CorrelatedPlcReadRequest, InternalPlcResponse&gt; correlatedPlcRequestContainer = new PlcRequestContainer&lt;&gt;(CorrelatedPlcReadRequest.of(reader, field, tdpu), correlatedCompletableFuture);</span>
+<span class="fc" id="L315">                        correlationToParentContainer.put(tdpu, in);</span>
+<span class="fc" id="L316">                        queue.add(correlatedPlcRequestContainer, subPromise);</span>
+<span class="pc bpc" id="L317" title="1 of 2 branches missed.">                        if (!tdpus.add(tdpu)) {</span>
+<span class="nc" id="L318">                            throw new IllegalStateException(&quot;AtomicInteger should not create duplicated ids: &quot; + tdpu);</span>
                         }
-<span class="fc" id="L317">                        promiseCombiner.add((Future) subPromise);</span>
-<span class="fc" id="L318">                    });</span>
-<span class="pc bpc" id="L319" title="1 of 4 branches missed.">                } else if (internalPlcFieldRequest instanceof InternalPlcWriteRequest &amp;&amp; splitConfig.splitWrite) {</span>
-<span class="fc" id="L320">                    InternalPlcWriteRequest internalPlcWriteRequest = (InternalPlcWriteRequest) internalPlcFieldRequest;</span>
-<span class="fc" id="L321">                    internalPlcWriteRequest.getNamedFieldTriples().forEach(fieldItemTriple -&gt; {</span>
-<span class="fc" id="L322">                        ChannelPromise subPromise = new DefaultChannelPromise(promise.channel());</span>
+<span class="fc" id="L320">                        promiseCombiner.add((Future) subPromise);</span>
+<span class="fc" id="L321">                    });</span>
+<span class="pc bpc" id="L322" title="1 of 4 branches missed.">                } else if (internalPlcFieldRequest instanceof InternalPlcWriteRequest &amp;&amp; splitConfig.splitWrite) {</span>
+<span class="fc" id="L323">                    InternalPlcWriteRequest internalPlcWriteRequest = (InternalPlcWriteRequest) internalPlcFieldRequest;</span>
+<span class="fc" id="L324">                    internalPlcWriteRequest.getNamedFieldTriples().forEach(fieldItemTriple -&gt; {</span>
+<span class="fc" id="L325">                        ChannelPromise subPromise = new DefaultChannelPromise(promise.channel());</span>
 
-<span class="fc" id="L324">                        Integer tdpu = correlationIdGenerator.getAndIncrement();</span>
-<span class="fc" id="L325">                        CompletableFuture&lt;InternalPlcResponse&gt; correlatedCompletableFuture = new CompletableFuture&lt;&gt;()</span>
-<span class="fc" id="L326">                            .thenApply(InternalPlcResponse.class::cast)</span>
-<span class="fc" id="L327">                            .whenComplete((internalPlcResponse, throwable) -&gt; {</span>
-<span class="nc bnc" id="L328" title="All 2 branches missed.">                                if (throwable != null) {</span>
-<span class="nc" id="L329">                                    errored(tdpu, throwable, in.getResponseFuture());</span>
+<span class="fc" id="L327">                        Integer tdpu = correlationIdGenerator.getAndIncrement();</span>
+<span class="fc" id="L328">                        CompletableFuture&lt;InternalPlcResponse&gt; correlatedCompletableFuture = new CompletableFuture&lt;&gt;()</span>
+<span class="fc" id="L329">                            .thenApply(InternalPlcResponse.class::cast)</span>
+<span class="fc" id="L330">                            .whenComplete((internalPlcResponse, throwable) -&gt; {</span>
+<span class="nc bnc" id="L331" title="All 2 branches missed.">                                if (throwable != null) {</span>
+<span class="nc" id="L332">                                    errored(tdpu, throwable, in.getResponseFuture());</span>
                                 } else {
-<span class="nc" id="L331">                                    tryFinish(tdpu, internalPlcResponse, in.getResponseFuture());</span>
+<span class="nc" id="L334">                                    tryFinish(tdpu, internalPlcResponse, in.getResponseFuture());</span>
                                 }
-<span class="nc" id="L333">                            });</span>
-<span class="fc" id="L334">                        PlcRequestContainer&lt;CorrelatedPlcWriteRequest, InternalPlcResponse&gt; correlatedPlcRequestContainer = new PlcRequestContainer&lt;&gt;(CorrelatedPlcWriteRequest.of(writer, fieldItemTriple, tdpu), correlatedCompletableFuture);</span>
-<span class="fc" id="L335">                        correlationToParentContainer.put(tdpu, in);</span>
-<span class="fc" id="L336">                        queue.add(correlatedPlcRequestContainer, subPromise);</span>
-<span class="pc bpc" id="L337" title="1 of 2 branches missed.">                        if (!tdpus.add(tdpu)) {</span>
-<span class="nc" id="L338">                            throw new IllegalStateException(&quot;AtomicInteger should not create duplicated ids: &quot; + tdpu);</span>
+<span class="nc" id="L336">                            });</span>
+<span class="fc" id="L337">                        PlcRequestContainer&lt;CorrelatedPlcWriteRequest, InternalPlcResponse&gt; correlatedPlcRequestContainer = new PlcRequestContainer&lt;&gt;(CorrelatedPlcWriteRequest.of(writer, fieldItemTriple, tdpu), correlatedCompletableFuture);</span>
+<span class="fc" id="L338">                        correlationToParentContainer.put(tdpu, in);</span>
+<span class="fc" id="L339">                        queue.add(correlatedPlcRequestContainer, subPromise);</span>
+<span class="pc bpc" id="L340" title="1 of 2 branches missed.">                        if (!tdpus.add(tdpu)) {</span>
+<span class="nc" id="L341">                            throw new IllegalStateException(&quot;AtomicInteger should not create duplicated ids: &quot; + tdpu);</span>
                         }
-<span class="fc" id="L340">                        promiseCombiner.add((Future) subPromise);</span>
-<span class="fc" id="L341">                    });</span>
-<span class="pc bpc" id="L342" title="2 of 4 branches missed.">                } else if (internalPlcFieldRequest instanceof InternalPlcSubscriptionRequest &amp;&amp; splitConfig.splitSubscription) {</span>
-<span class="fc" id="L343">                    InternalPlcSubscriptionRequest internalPlcSubscriptionRequest = (InternalPlcSubscriptionRequest) internalPlcFieldRequest;</span>
-<span class="fc" id="L344">                    internalPlcSubscriptionRequest.getNamedSubscriptionFields().forEach(field -&gt; {</span>
-<span class="fc" id="L345">                        ChannelPromise subPromise = new DefaultChannelPromise(promise.channel());</span>
+<span class="fc" id="L343">                        promiseCombiner.add((Future) subPromise);</span>
+<span class="fc" id="L344">                    });</span>
+<span class="pc bpc" id="L345" title="2 of 4 branches missed.">                } else if (internalPlcFieldRequest instanceof InternalPlcSubscriptionRequest &amp;&amp; splitConfig.splitSubscription) {</span>
+<span class="fc" id="L346">                    InternalPlcSubscriptionRequest internalPlcSubscriptionRequest = (InternalPlcSubscriptionRequest) internalPlcFieldRequest;</span>
+<span class="fc" id="L347">                    internalPlcSubscriptionRequest.getNamedSubscriptionFields().forEach(field -&gt; {</span>
+<span class="fc" id="L348">                        ChannelPromise subPromise = new DefaultChannelPromise(promise.channel());</span>
 
-<span class="fc" id="L347">                        Integer tdpu = correlationIdGenerator.getAndIncrement();</span>
-<span class="fc" id="L348">                        CompletableFuture&lt;InternalPlcResponse&gt; correlatedCompletableFuture = new CompletableFuture&lt;&gt;();</span>
+<span class="fc" id="L350">                        Integer tdpu = correlationIdGenerator.getAndIncrement();</span>
+<span class="fc" id="L351">                        CompletableFuture&lt;InternalPlcResponse&gt; correlatedCompletableFuture = new CompletableFuture&lt;&gt;();</span>
                         // Important: don't chain to above as we want the above to be completed not the result of when complete
-<span class="fc" id="L350">                        correlatedCompletableFuture</span>
-<span class="fc" id="L351">                            .thenApply(InternalPlcResponse.class::cast)</span>
-<span class="fc" id="L352">                            .whenComplete((internalPlcResponse, throwable) -&gt; {</span>
-<span class="pc bpc" id="L353" title="1 of 2 branches missed.">                                if (throwable != null) {</span>
-<span class="nc" id="L354">                                    errored(tdpu, throwable, in.getResponseFuture());</span>
+<span class="fc" id="L353">                        correlatedCompletableFuture</span>
+<span class="fc" id="L354">                            .thenApply(InternalPlcResponse.class::cast)</span>
+<span class="fc" id="L355">                            .whenComplete((internalPlcResponse, throwable) -&gt; {</span>
+<span class="pc bpc" id="L356" title="1 of 2 branches missed.">                                if (throwable != null) {</span>
+<span class="nc" id="L357">                                    errored(tdpu, throwable, in.getResponseFuture());</span>
                                 } else {
-<span class="fc" id="L356">                                    tryFinish(tdpu, internalPlcResponse, in.getResponseFuture());</span>
+<span class="fc" id="L359">                                    tryFinish(tdpu, internalPlcResponse, in.getResponseFuture());</span>
                                 }
-<span class="fc" id="L358">                            });</span>
-<span class="fc" id="L359">                        PlcRequestContainer&lt;CorrelatedPlcSubscriptionRequest, InternalPlcResponse&gt; correlatedPlcRequestContainer = new PlcRequestContainer&lt;&gt;(CorrelatedPlcSubscriptionRequest.of(subscriber, field, tdpu), correlatedCompletableFuture);</span>
-<span class="fc" id="L360">                        correlationToParentContainer.put(tdpu, in);</span>
-<span class="fc" id="L361">                        queue.add(correlatedPlcRequestContainer, subPromise);</span>
-<span class="pc bpc" id="L362" title="1 of 2 branches missed.">                        if (!tdpus.add(tdpu)) {</span>
-<span class="nc" id="L363">                            throw new IllegalStateException(&quot;AtomicInteger should not create duplicated ids: &quot; + tdpu);</span>
+<span class="fc" id="L361">                            });</span>
+<span class="fc" id="L362">                        PlcRequestContainer&lt;CorrelatedPlcSubscriptionRequest, InternalPlcResponse&gt; correlatedPlcRequestContainer = new PlcRequestContainer&lt;&gt;(CorrelatedPlcSubscriptionRequest.of(subscriber, field, tdpu), correlatedCompletableFuture);</span>
+<span class="fc" id="L363">                        correlationToParentContainer.put(tdpu, in);</span>
+<span class="fc" id="L364">                        queue.add(correlatedPlcRequestContainer, subPromise);</span>
+<span class="pc bpc" id="L365" title="1 of 2 branches missed.">                        if (!tdpus.add(tdpu)) {</span>
+<span class="nc" id="L366">                            throw new IllegalStateException(&quot;AtomicInteger should not create duplicated ids: &quot; + tdpu);</span>
                         }
-<span class="fc" id="L365">                        promiseCombiner.add((Future) subPromise);</span>
-<span class="fc" id="L366">                    });</span>
-<span class="fc" id="L367">                } else {</span>
-<span class="nc" id="L368">                    throw new PlcProtocolException(&quot;Unmapped request type &quot; + request.getClass());</span>
+<span class="fc" id="L368">                        promiseCombiner.add((Future) subPromise);</span>
+<span class="fc" id="L369">                    });</span>
+<span class="fc" id="L370">                } else {</span>
+<span class="nc" id="L371">                    throw new PlcProtocolException(&quot;Unmapped request type &quot; + request.getClass());</span>
                 }
-<span class="fc bfc" id="L370" title="All 4 branches covered.">            } else if (request instanceof InternalPlcUnsubscriptionRequest &amp;&amp; splitConfig.splitUnsubscription) {</span>
-<span class="fc" id="L371">                InternalPlcUnsubscriptionRequest internalPlcUnsubscriptionRequest = (InternalPlcUnsubscriptionRequest) request;</span>
-<span class="fc" id="L372">                internalPlcUnsubscriptionRequest.getInternalPlcSubscriptionHandles().forEach(handle -&gt; {</span>
-<span class="fc" id="L373">                    ChannelPromise subPromise = new DefaultChannelPromise(promise.channel());</span>
+<span class="fc bfc" id="L373" title="All 4 branches covered.">            } else if (request instanceof InternalPlcUnsubscriptionRequest &amp;&amp; splitConfig.splitUnsubscription) {</span>
+<span class="fc" id="L374">                InternalPlcUnsubscriptionRequest internalPlcUnsubscriptionRequest = (InternalPlcUnsubscriptionRequest) request;</span>
+<span class="fc" id="L375">                internalPlcUnsubscriptionRequest.getInternalPlcSubscriptionHandles().forEach(handle -&gt; {</span>
+<span class="fc" id="L376">                    ChannelPromise subPromise = new DefaultChannelPromise(promise.channel());</span>
 
-<span class="fc" id="L375">                    Integer tdpu = correlationIdGenerator.getAndIncrement();</span>
-<span class="fc" id="L376">                    CompletableFuture&lt;InternalPlcResponse&gt; correlatedCompletableFuture = new CompletableFuture&lt;&gt;();</span>
+<span class="fc" id="L378">                    Integer tdpu = correlationIdGenerator.getAndIncrement();</span>
+<span class="fc" id="L379">                    CompletableFuture&lt;InternalPlcResponse&gt; correlatedCompletableFuture = new CompletableFuture&lt;&gt;();</span>
                     // Important: don't chain to above as we want the above to be completed not the result of when complete
-<span class="fc" id="L378">                    correlatedCompletableFuture</span>
-<span class="fc" id="L379">                        .thenApply(InternalPlcResponse.class::cast)</span>
-<span class="fc" id="L380">                        .whenComplete((internalPlcResponse, throwable) -&gt; {</span>
-<span class="pc bpc" id="L381" title="1 of 2 branches missed.">                            if (throwable != null) {</span>
-<span class="nc" id="L382">                                errored(tdpu, throwable, in.getResponseFuture());</span>
+<span class="fc" id="L381">                    correlatedCompletableFuture</span>
+<span class="fc" id="L382">                        .thenApply(InternalPlcResponse.class::cast)</span>
+<span class="fc" id="L383">                        .whenComplete((internalPlcResponse, throwable) -&gt; {</span>
+<span class="pc bpc" id="L384" title="1 of 2 branches missed.">                            if (throwable != null) {</span>
+<span class="nc" id="L385">                                errored(tdpu, throwable, in.getResponseFuture());</span>
                             } else {
-<span class="fc" id="L384">                                tryFinish(tdpu, internalPlcResponse, in.getResponseFuture());</span>
+<span class="fc" id="L387">                                tryFinish(tdpu, internalPlcResponse, in.getResponseFuture());</span>
                             }
-<span class="fc" id="L386">                        });</span>
-<span class="fc" id="L387">                    PlcRequestContainer&lt;CorrelatedPlcUnsubscriptionRequest, InternalPlcResponse&gt; correlatedPlcRequestContainer = new PlcRequestContainer&lt;&gt;(CorrelatedPlcUnsubscriptionRequest.of(subscriber, handle, tdpu), correlatedCompletableFuture);</span>
-<span class="fc" id="L388">                    correlationToParentContainer.put(tdpu, in);</span>
-<span class="fc" id="L389">                    queue.add(correlatedPlcRequestContainer, subPromise);</span>
-<span class="pc bpc" id="L390" title="1 of 2 branches missed.">                    if (!tdpus.add(tdpu)) {</span>
-<span class="nc" id="L391">                        throw new IllegalStateException(&quot;AtomicInteger should not create duplicated ids: &quot; + tdpu);</span>
+<span class="fc" id="L389">                        });</span>
+<span class="fc" id="L390">                    PlcRequestContainer&lt;CorrelatedPlcUnsubscriptionRequest, InternalPlcResponse&gt; correlatedPlcRequestContainer = new PlcRequestContainer&lt;&gt;(CorrelatedPlcUnsubscriptionRequest.of(subscriber, handle, tdpu), correlatedCompletableFuture);</span>
+<span class="fc" id="L391">                    correlationToParentContainer.put(tdpu, in);</span>
+<span class="fc" id="L392">                    queue.add(correlatedPlcRequestContainer, subPromise);</span>
+<span class="pc bpc" id="L393" title="1 of 2 branches missed.">                    if (!tdpus.add(tdpu)) {</span>
+<span class="nc" id="L394">                        throw new IllegalStateException(&quot;AtomicInteger should not create duplicated ids: &quot; + tdpu);</span>
                     }
-<span class="fc" id="L393">                    promiseCombiner.add((Future) subPromise);</span>
-<span class="fc" id="L394">                });</span>
-<span class="fc" id="L395">            } else {</span>
-<span class="fc" id="L396">                ChannelPromise subPromise = new DefaultChannelPromise(promise.channel());</span>
-<span class="fc" id="L397">                queue.add(msg, subPromise);</span>
-<span class="fc" id="L398">                promiseCombiner.add((Future) subPromise);</span>
+<span class="fc" id="L396">                    promiseCombiner.add((Future) subPromise);</span>
+<span class="fc" id="L397">                });</span>
+<span class="fc" id="L398">            } else {</span>
+<span class="fc" id="L399">                ChannelPromise subPromise = new DefaultChannelPromise(promise.channel());</span>
+<span class="fc" id="L400">                queue.add(msg, subPromise);</span>
+<span class="fc" id="L401">                promiseCombiner.add((Future) subPromise);</span>
             }
 
-<span class="fc" id="L401">            promiseCombiner.finish(promise);</span>
+<span class="fc" id="L404">            promiseCombiner.finish(promise);</span>
 
             // Start sending the queue content.
-<span class="fc" id="L404">            trySendingMessages(ctx);</span>
-<span class="fc" id="L405">        } else {</span>
-<span class="fc" id="L406">            super.write(ctx, msg, promise);</span>
+<span class="fc" id="L407">            trySendingMessages(ctx);</span>
+<span class="fc" id="L408">        } else {</span>
+<span class="fc" id="L409">            super.write(ctx, msg, promise);</span>
         }
-<span class="fc" id="L408">    }</span>
+<span class="fc" id="L411">    }</span>
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Helpers
@@ -413,51 +416,51 @@ public class SingleItemToSingleRequestProtocol extends ChannelDuplexHandler {
 
     @SuppressWarnings(&quot;unchecked&quot;)
     protected synchronized void trySendingMessages(ChannelHandlerContext ctx) {
-<span class="fc bfc" id="L416" title="All 2 branches covered.">        while (queue.size() &gt; 0) {</span>
+<span class="fc bfc" id="L419" title="All 2 branches covered.">        while (queue.size() &gt; 0) {</span>
             // Get the RequestItem that is up next in the queue.
-<span class="fc" id="L418">            PlcRequestContainer currentItem = (PlcRequestContainer) queue.current();</span>
-<span class="fc" id="L419">            InternalPlcRequest request = currentItem.getRequest();</span>
+<span class="fc" id="L421">            PlcRequestContainer currentItem = (PlcRequestContainer) queue.current();</span>
+<span class="fc" id="L422">            InternalPlcRequest request = currentItem.getRequest();</span>
 
             // Send the TPDU.
             try {
-<span class="fc" id="L423">                ChannelFuture channelFuture = queue.removeAndWrite();</span>
-<span class="fc" id="L424">                ctx.flush();</span>
-<span class="pc bpc" id="L425" title="1 of 2 branches missed.">                if (channelFuture == null) {</span>
-<span class="nc" id="L426">                    break;</span>
+<span class="fc" id="L426">                ChannelFuture channelFuture = queue.removeAndWrite();</span>
+<span class="fc" id="L427">                ctx.flush();</span>
+<span class="pc bpc" id="L428" title="1 of 2 branches missed.">                if (channelFuture == null) {</span>
+<span class="nc" id="L429">                    break;</span>
                 }
-<span class="nc" id="L428">            } catch (Exception e) {</span>
-<span class="nc" id="L429">                LOGGER.error(&quot;Error sending more queues messages&quot;, e);</span>
-<span class="nc" id="L430">                ctx.fireExceptionCaught(e);</span>
-<span class="fc" id="L431">            }</span>
+<span class="nc" id="L431">            } catch (Exception e) {</span>
+<span class="nc" id="L432">                LOGGER.error(&quot;Error sending more queues messages&quot;, e);</span>
+<span class="nc" id="L433">                ctx.fireExceptionCaught(e);</span>
+<span class="fc" id="L434">            }</span>
 
-<span class="fc bfc" id="L433" title="All 2 branches covered.">            if (request instanceof CorrelatedPlcRequest) {</span>
-<span class="fc" id="L434">                CorrelatedPlcRequest correlatedPlcRequest = (CorrelatedPlcRequest) request;</span>
+<span class="fc bfc" id="L436" title="All 2 branches covered.">            if (request instanceof CorrelatedPlcRequest) {</span>
+<span class="fc" id="L437">                CorrelatedPlcRequest correlatedPlcRequest = (CorrelatedPlcRequest) request;</span>
 
                 // Add it to the list of sentButUnacknowledgedSubContainer.
-<span class="fc" id="L437">                sentButUnacknowledgedSubContainer.put(correlatedPlcRequest.getTdpu(), currentItem);</span>
+<span class="fc" id="L440">                sentButUnacknowledgedSubContainer.put(correlatedPlcRequest.getTdpu(), currentItem);</span>
 
-<span class="fc" id="L439">                LOGGER.debug(&quot;container with id {} sent: &quot;, correlatedPlcRequest.getTdpu(), currentItem);</span>
+<span class="fc" id="L442">                LOGGER.debug(&quot;container with id {} sent: &quot;, correlatedPlcRequest.getTdpu(), currentItem);</span>
             }
-<span class="fc" id="L441">        }</span>
-<span class="fc" id="L442">        ctx.flush();</span>
-<span class="fc" id="L443">    }</span>
+<span class="fc" id="L444">        }</span>
+<span class="fc" id="L445">        ctx.flush();</span>
+<span class="fc" id="L446">    }</span>
 
     private void handleTimeout(Timeout timeout, PlcRequestContainer&lt;InternalPlcRequest, InternalPlcResponse&gt; in, Set&lt;Integer&gt; tdpus, long scheduledAt) {
-<span class="pc bpc" id="L446" title="1 of 2 branches missed.">        if (timeout.isCancelled()) {</span>
-<span class="nc" id="L447">            LOGGER.debug(&quot;container {} with timeout {} got canceled&quot;, in, timeout);</span>
-<span class="nc" id="L448">            return;</span>
+<span class="pc bpc" id="L449" title="1 of 2 branches missed.">        if (timeout.isCancelled()) {</span>
+<span class="nc" id="L450">            LOGGER.debug(&quot;container {} with timeout {} got canceled&quot;, in, timeout);</span>
+<span class="nc" id="L451">            return;</span>
         }
-<span class="fc" id="L450">        LOGGER.warn(&quot;container {} timed out:{}&quot;, in, timeout);</span>
-<span class="fc" id="L451">        erroredContainers.incrementAndGet();</span>
-<span class="fc" id="L452">        responsesToBeDelivered.remove(in);</span>
-<span class="fc" id="L453">        containerCorrelationIdMap.remove(in);</span>
-<span class="fc" id="L454">        tdpus.forEach(tdpu -&gt; {</span>
-<span class="fc" id="L455">            erroredItems.incrementAndGet();</span>
-<span class="fc" id="L456">            sentButUnacknowledgedSubContainer.remove(tdpu);</span>
-<span class="fc" id="L457">            correlationToParentContainer.remove(tdpu);</span>
-<span class="fc" id="L458">        });</span>
-<span class="fc" id="L459">        in.getResponseFuture().completeExceptionally(new PlcTimeoutException(System.nanoTime() - scheduledAt));</span>
-<span class="fc" id="L460">    }</span>
+<span class="fc" id="L453">        LOGGER.warn(&quot;container {} timed out:{}&quot;, in, timeout);</span>
+<span class="fc" id="L454">        erroredContainers.incrementAndGet();</span>
+<span class="fc" id="L455">        responsesToBeDelivered.remove(in);</span>
+<span class="fc" id="L456">        containerCorrelationIdMap.remove(in);</span>
+<span class="fc" id="L457">        tdpus.forEach(tdpu -&gt; {</span>
+<span class="fc" id="L458">            erroredItems.incrementAndGet();</span>
+<span class="fc" id="L459">            sentButUnacknowledgedSubContainer.remove(tdpu);</span>
+<span class="fc" id="L460">            correlationToParentContainer.remove(tdpu);</span>
+<span class="fc" id="L461">        });</span>
+<span class="fc" id="L462">        in.getResponseFuture().completeExceptionally(new PlcTimeoutException(System.nanoTime() - scheduledAt));</span>
+<span class="fc" id="L463">    }</span>
 
     protected interface CorrelatedPlcRequest extends InternalPlcRequest {
 
@@ -469,19 +472,19 @@ public class SingleItemToSingleRequestProtocol extends ChannelDuplexHandler {
         protected final int tdpu;
 
         protected CorrelatedPlcReadRequest(PlcReader reader, LinkedHashMap&lt;String, PlcField&gt; fields, int tdpu) {
-<span class="fc" id="L472">            super(reader, fields);</span>
-<span class="fc" id="L473">            this.tdpu = tdpu;</span>
-<span class="fc" id="L474">        }</span>
+<span class="fc" id="L475">            super(reader, fields);</span>
+<span class="fc" id="L476">            this.tdpu = tdpu;</span>
+<span class="fc" id="L477">        }</span>
 
         protected static CorrelatedPlcReadRequest of(PlcReader reader, Pair&lt;String, PlcField&gt; stringPlcFieldPair, int tdpu) {
-<span class="fc" id="L477">            LinkedHashMap&lt;String, PlcField&gt; fields = new LinkedHashMap&lt;&gt;();</span>
-<span class="fc" id="L478">            fields.put(stringPlcFieldPair.getKey(), stringPlcFieldPair.getValue());</span>
-<span class="fc" id="L479">            return new CorrelatedPlcReadRequest(reader, fields, tdpu);</span>
+<span class="fc" id="L480">            LinkedHashMap&lt;String, PlcField&gt; fields = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L481">            fields.put(stringPlcFieldPair.getKey(), stringPlcFieldPair.getValue());</span>
+<span class="fc" id="L482">            return new CorrelatedPlcReadRequest(reader, fields, tdpu);</span>
         }
 
         @Override
         public int getTdpu() {
-<span class="fc" id="L484">            return tdpu;</span>
+<span class="fc" id="L487">            return tdpu;</span>
         }
     }
 
@@ -490,19 +493,19 @@ public class SingleItemToSingleRequestProtocol extends ChannelDuplexHandler {
         private final int tdpu;
 
         public CorrelatedPlcWriteRequest(PlcWriter writer, LinkedHashMap&lt;String, Pair&lt;PlcField, BaseDefaultFieldItem&gt;&gt; fields, int tdpu) {
-<span class="fc" id="L493">            super(writer, fields);</span>
-<span class="fc" id="L494">            this.tdpu = tdpu;</span>
-<span class="fc" id="L495">        }</span>
+<span class="fc" id="L496">            super(writer, fields);</span>
+<span class="fc" id="L497">            this.tdpu = tdpu;</span>
+<span class="fc" id="L498">        }</span>
 
         public static CorrelatedPlcWriteRequest of(PlcWriter writer, Triple&lt;String, PlcField, BaseDefaultFieldItem&gt; fieldItemTriple, int tdpu) {
-<span class="fc" id="L498">            LinkedHashMap&lt;String, Pair&lt;PlcField, BaseDefaultFieldItem&gt;&gt; fields = new LinkedHashMap&lt;&gt;();</span>
-<span class="fc" id="L499">            fields.put(fieldItemTriple.getLeft(), Pair.of(fieldItemTriple.getMiddle(), fieldItemTriple.getRight()));</span>
-<span class="fc" id="L500">            return new CorrelatedPlcWriteRequest(writer, fields, tdpu);</span>
+<span class="fc" id="L501">            LinkedHashMap&lt;String, Pair&lt;PlcField, BaseDefaultFieldItem&gt;&gt; fields = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L502">            fields.put(fieldItemTriple.getLeft(), Pair.of(fieldItemTriple.getMiddle(), fieldItemTriple.getRight()));</span>
+<span class="fc" id="L503">            return new CorrelatedPlcWriteRequest(writer, fields, tdpu);</span>
         }
 
         @Override
         public int getTdpu() {
-<span class="fc" id="L505">            return tdpu;</span>
+<span class="fc" id="L508">            return tdpu;</span>
         }
     }
 
@@ -511,19 +514,19 @@ public class SingleItemToSingleRequestProtocol extends ChannelDuplexHandler {
         protected final int tdpu;
 
         protected CorrelatedPlcSubscriptionRequest(PlcSubscriber subscriber, LinkedHashMap&lt;String, SubscriptionPlcField&gt; fields, int tdpu) {
-<span class="fc" id="L514">            super(subscriber, fields);</span>
-<span class="fc" id="L515">            this.tdpu = tdpu;</span>
-<span class="fc" id="L516">        }</span>
+<span class="fc" id="L517">            super(subscriber, fields);</span>
+<span class="fc" id="L518">            this.tdpu = tdpu;</span>
+<span class="fc" id="L519">        }</span>
 
         protected static CorrelatedPlcSubscriptionRequest of(PlcSubscriber subscriber, Pair&lt;String, SubscriptionPlcField&gt; stringPlcFieldPair, int tdpu) {
-<span class="fc" id="L519">            LinkedHashMap&lt;String, SubscriptionPlcField&gt; fields = new LinkedHashMap&lt;&gt;();</span>
-<span class="fc" id="L520">            fields.put(stringPlcFieldPair.getKey(), stringPlcFieldPair.getValue());</span>
-<span class="fc" id="L521">            return new CorrelatedPlcSubscriptionRequest(subscriber, fields, tdpu);</span>
+<span class="fc" id="L522">            LinkedHashMap&lt;String, SubscriptionPlcField&gt; fields = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L523">            fields.put(stringPlcFieldPair.getKey(), stringPlcFieldPair.getValue());</span>
+<span class="fc" id="L524">            return new CorrelatedPlcSubscriptionRequest(subscriber, fields, tdpu);</span>
         }
 
         @Override
         public int getTdpu() {
-<span class="fc" id="L526">            return tdpu;</span>
+<span class="fc" id="L529">            return tdpu;</span>
         }
     }
 
@@ -532,36 +535,36 @@ public class SingleItemToSingleRequestProtocol extends ChannelDuplexHandler {
         protected final int tdpu;
 
         protected CorrelatedPlcUnsubscriptionRequest(PlcSubscriber subscriber, LinkedList&lt;InternalPlcSubscriptionHandle&gt; subscriptionHandles, int tdpu) {
-<span class="fc" id="L535">            super(subscriber, subscriptionHandles);</span>
-<span class="fc" id="L536">            this.tdpu = tdpu;</span>
-<span class="fc" id="L537">        }</span>
+<span class="fc" id="L538">            super(subscriber, subscriptionHandles);</span>
+<span class="fc" id="L539">            this.tdpu = tdpu;</span>
+<span class="fc" id="L540">        }</span>
 
         protected static CorrelatedPlcUnsubscriptionRequest of(PlcSubscriber subscriber, InternalPlcSubscriptionHandle subscriptionHandle, int tdpu) {
-<span class="fc" id="L540">            LinkedList&lt;InternalPlcSubscriptionHandle&gt; list = new LinkedList&lt;&gt;();</span>
-<span class="fc" id="L541">            list.add(subscriptionHandle);</span>
-<span class="fc" id="L542">            return new CorrelatedPlcUnsubscriptionRequest(subscriber, list, tdpu);</span>
+<span class="fc" id="L543">            LinkedList&lt;InternalPlcSubscriptionHandle&gt; list = new LinkedList&lt;&gt;();</span>
+<span class="fc" id="L544">            list.add(subscriptionHandle);</span>
+<span class="fc" id="L545">            return new CorrelatedPlcUnsubscriptionRequest(subscriber, list, tdpu);</span>
         }
 
         @Override
         public int getTdpu() {
-<span class="fc" id="L547">            return tdpu;</span>
+<span class="fc" id="L550">            return tdpu;</span>
         }
     }
 
     // TODO: maybe export to jmx
     public Map&lt;String, Number&gt; getStatistics() {
-<span class="fc" id="L553">        HashMap&lt;String, Number&gt; statistics = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L554">        statistics.put(&quot;queue&quot;, queue.size());</span>
-<span class="fc" id="L555">        statistics.put(&quot;sentButUnacknowledgedSubContainer&quot;, sentButUnacknowledgedSubContainer.size());</span>
-<span class="fc" id="L556">        statistics.put(&quot;correlationToParentContainer&quot;, correlationToParentContainer.size());</span>
-<span class="fc" id="L557">        statistics.put(&quot;containerCorrelationIdMap&quot;, containerCorrelationIdMap.size());</span>
-<span class="fc" id="L558">        statistics.put(&quot;responsesToBeDelivered&quot;, responsesToBeDelivered.size());</span>
-<span class="fc" id="L559">        statistics.put(&quot;correlationIdGenerator&quot;, correlationIdGenerator.get());</span>
-<span class="fc" id="L560">        statistics.put(&quot;deliveredItems&quot;, deliveredItems.get());</span>
-<span class="fc" id="L561">        statistics.put(&quot;erroredItems&quot;, erroredItems.get());</span>
-<span class="fc" id="L562">        statistics.put(&quot;deliveredContainers&quot;, deliveredContainers.get());</span>
-<span class="fc" id="L563">        statistics.put(&quot;erroredContainers&quot;, erroredContainers.get());</span>
-<span class="fc" id="L564">        return statistics;</span>
+<span class="fc" id="L556">        HashMap&lt;String, Number&gt; statistics = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L557">        statistics.put(&quot;queue&quot;, queue.size());</span>
+<span class="fc" id="L558">        statistics.put(&quot;sentButUnacknowledgedSubContainer&quot;, sentButUnacknowledgedSubContainer.size());</span>
+<span class="fc" id="L559">        statistics.put(&quot;correlationToParentContainer&quot;, correlationToParentContainer.size());</span>
+<span class="fc" id="L560">        statistics.put(&quot;containerCorrelationIdMap&quot;, containerCorrelationIdMap.size());</span>
+<span class="fc" id="L561">        statistics.put(&quot;responsesToBeDelivered&quot;, responsesToBeDelivered.size());</span>
+<span class="fc" id="L562">        statistics.put(&quot;correlationIdGenerator&quot;, correlationIdGenerator.get());</span>
+<span class="fc" id="L563">        statistics.put(&quot;deliveredItems&quot;, deliveredItems.get());</span>
+<span class="fc" id="L564">        statistics.put(&quot;erroredItems&quot;, erroredItems.get());</span>
+<span class="fc" id="L565">        statistics.put(&quot;deliveredContainers&quot;, deliveredContainers.get());</span>
+<span class="fc" id="L566">        statistics.put(&quot;erroredContainers&quot;, erroredContainers.get());</span>
+<span class="fc" id="L567">        return statistics;</span>
     }
 
     public static class SplitConfig {
@@ -570,72 +573,72 @@ public class SingleItemToSingleRequestProtocol extends ChannelDuplexHandler {
         private final boolean splitSubscription;
         private final boolean splitUnsubscription;
 
-<span class="fc" id="L573">        public SplitConfig() {</span>
-<span class="fc" id="L574">            splitRead = true;</span>
-<span class="fc" id="L575">            splitWrite = true;</span>
-<span class="fc" id="L576">            splitSubscription = true;</span>
-<span class="fc" id="L577">            splitUnsubscription = true;</span>
-<span class="fc" id="L578">        }</span>
+<span class="fc" id="L576">        public SplitConfig() {</span>
+<span class="fc" id="L577">            splitRead = true;</span>
+<span class="fc" id="L578">            splitWrite = true;</span>
+<span class="fc" id="L579">            splitSubscription = true;</span>
+<span class="fc" id="L580">            splitUnsubscription = true;</span>
+<span class="fc" id="L581">        }</span>
 
-<span class="fc" id="L580">        private SplitConfig(boolean splitRead, boolean splitWrite, boolean splitSubscription, boolean splitUnsubscription) {</span>
-<span class="fc" id="L581">            this.splitRead = splitRead;</span>
-<span class="fc" id="L582">            this.splitWrite = splitWrite;</span>
-<span class="fc" id="L583">            this.splitSubscription = splitSubscription;</span>
-<span class="fc" id="L584">            this.splitUnsubscription = splitUnsubscription;</span>
-<span class="fc" id="L585">        }</span>
+<span class="fc" id="L583">        private SplitConfig(boolean splitRead, boolean splitWrite, boolean splitSubscription, boolean splitUnsubscription) {</span>
+<span class="fc" id="L584">            this.splitRead = splitRead;</span>
+<span class="fc" id="L585">            this.splitWrite = splitWrite;</span>
+<span class="fc" id="L586">            this.splitSubscription = splitSubscription;</span>
+<span class="fc" id="L587">            this.splitUnsubscription = splitUnsubscription;</span>
+<span class="fc" id="L588">        }</span>
 
         public static SplitConfigBuilder builder() {
-<span class="fc" id="L588">            return new SplitConfigBuilder();</span>
+<span class="fc" id="L591">            return new SplitConfigBuilder();</span>
         }
 
-<span class="fc" id="L591">        public static class SplitConfigBuilder {</span>
-<span class="fc" id="L592">            private boolean splitRead = true;</span>
-<span class="fc" id="L593">            private boolean splitWrite = true;</span>
-<span class="fc" id="L594">            private boolean splitSubscription = true;</span>
-<span class="fc" id="L595">            private boolean splitUnsubscription = true;</span>
+<span class="fc" id="L594">        public static class SplitConfigBuilder {</span>
+<span class="fc" id="L595">            private boolean splitRead = true;</span>
+<span class="fc" id="L596">            private boolean splitWrite = true;</span>
+<span class="fc" id="L597">            private boolean splitSubscription = true;</span>
+<span class="fc" id="L598">            private boolean splitUnsubscription = true;</span>
 
             public SplitConfigBuilder splitRead() {
-<span class="fc" id="L598">                splitRead = true;</span>
-<span class="fc" id="L599">                return this;</span>
+<span class="fc" id="L601">                splitRead = true;</span>
+<span class="fc" id="L602">                return this;</span>
             }
 
             public SplitConfigBuilder dontSplitRead() {
-<span class="fc" id="L603">                splitRead = false;</span>
-<span class="fc" id="L604">                return this;</span>
+<span class="fc" id="L606">                splitRead = false;</span>
+<span class="fc" id="L607">                return this;</span>
             }
 
             public SplitConfigBuilder splitWrite() {
-<span class="fc" id="L608">                splitWrite = true;</span>
-<span class="fc" id="L609">                return this;</span>
+<span class="fc" id="L611">                splitWrite = true;</span>
+<span class="fc" id="L612">                return this;</span>
             }
 
             public SplitConfigBuilder dontSplitWrite() {
-<span class="fc" id="L613">                splitWrite = false;</span>
-<span class="fc" id="L614">                return this;</span>
+<span class="fc" id="L616">                splitWrite = false;</span>
+<span class="fc" id="L617">                return this;</span>
             }
 
             public SplitConfigBuilder splitSubscribe() {
-<span class="fc" id="L618">                splitSubscription = true;</span>
-<span class="fc" id="L619">                return this;</span>
+<span class="fc" id="L621">                splitSubscription = true;</span>
+<span class="fc" id="L622">                return this;</span>
             }
 
             public SplitConfigBuilder dontSplitSubscribe() {
-<span class="fc" id="L623">                splitSubscription = false;</span>
-<span class="fc" id="L624">                return this;</span>
+<span class="fc" id="L626">                splitSubscription = false;</span>
+<span class="fc" id="L627">                return this;</span>
             }
 
             public SplitConfigBuilder splitUnsubscribe() {
-<span class="fc" id="L628">                splitUnsubscription = true;</span>
-<span class="fc" id="L629">                return this;</span>
+<span class="fc" id="L631">                splitUnsubscription = true;</span>
+<span class="fc" id="L632">                return this;</span>
             }
 
             public SplitConfigBuilder dontSplitUnsubscribe() {
-<span class="fc" id="L633">                splitUnsubscription = false;</span>
-<span class="fc" id="L634">                return this;</span>
+<span class="fc" id="L636">                splitUnsubscription = false;</span>
+<span class="fc" id="L637">                return this;</span>
             }
 
             public SplitConfig build() {
-<span class="fc" id="L638">                return new SplitConfig(splitRead, splitWrite, splitSubscription, splitUnsubscription);</span>
+<span class="fc" id="L641">                return new SplitConfig(splitRead, splitWrite, splitSubscription, splitUnsubscription);</span>
             }
         }
     }

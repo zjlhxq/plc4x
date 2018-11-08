@@ -41,7 +41,7 @@ public class DefaultPlcReadRequest implements InternalPlcReadRequest, InternalPl
 
     @Override
     public CompletableFuture&lt;PlcReadResponse&gt; execute() {
-<span class="nc" id="L44">        return reader.read(this);</span>
+<span class="fc" id="L44">        return reader.read(this);</span>
     }
 
     @Override
@@ -57,12 +57,12 @@ public class DefaultPlcReadRequest implements InternalPlcReadRequest, InternalPl
 
     @Override
     public PlcField getField(String name) {
-<span class="nc" id="L60">        return fields.get(name);</span>
+<span class="fc" id="L60">        return fields.get(name);</span>
     }
 
     @Override
     public LinkedList&lt;PlcField&gt; getFields() {
-<span class="nc" id="L65">        return new LinkedList&lt;&gt;(fields.values());</span>
+<span class="fc" id="L65">        return new LinkedList&lt;&gt;(fields.values());</span>
     }
 
     @Override
@@ -74,7 +74,7 @@ public class DefaultPlcReadRequest implements InternalPlcReadRequest, InternalPl
     }
 
     protected PlcReader getReader() {
-<span class="nc" id="L77">        return reader;</span>
+<span class="fc" id="L77">        return reader;</span>
     }
 
     public static class Builder implements PlcReadRequest.Builder {
@@ -83,29 +83,29 @@ public class DefaultPlcReadRequest implements InternalPlcReadRequest, InternalPl
         private final PlcFieldHandler fieldHandler;
         private final Map&lt;String, String&gt; fields;
 
-<span class="nc" id="L86">        public Builder(PlcReader reader, PlcFieldHandler fieldHandler) {</span>
-<span class="nc" id="L87">            this.reader = reader;</span>
-<span class="nc" id="L88">            this.fieldHandler = fieldHandler;</span>
-<span class="nc" id="L89">            fields = new TreeMap&lt;&gt;();</span>
-<span class="nc" id="L90">        }</span>
+<span class="fc" id="L86">        public Builder(PlcReader reader, PlcFieldHandler fieldHandler) {</span>
+<span class="fc" id="L87">            this.reader = reader;</span>
+<span class="fc" id="L88">            this.fieldHandler = fieldHandler;</span>
+<span class="fc" id="L89">            fields = new TreeMap&lt;&gt;();</span>
+<span class="fc" id="L90">        }</span>
 
         @Override
         public PlcReadRequest.Builder addItem(String name, String fieldQuery) {
-<span class="nc bnc" id="L94" title="All 2 branches missed.">            if (fields.containsKey(name)) {</span>
-<span class="nc" id="L95">                throw new PlcRuntimeException(&quot;Duplicate field definition '&quot; + name + &quot;'&quot;);</span>
+<span class="fc bfc" id="L94" title="All 2 branches covered.">            if (fields.containsKey(name)) {</span>
+<span class="fc" id="L95">                throw new PlcRuntimeException(&quot;Duplicate field definition '&quot; + name + &quot;'&quot;);</span>
             }
-<span class="nc" id="L97">            fields.put(name, fieldQuery);</span>
-<span class="nc" id="L98">            return this;</span>
+<span class="fc" id="L97">            fields.put(name, fieldQuery);</span>
+<span class="fc" id="L98">            return this;</span>
         }
 
         @Override
         public PlcReadRequest build() {
-<span class="nc" id="L103">            LinkedHashMap&lt;String, PlcField&gt; parsedFields = new LinkedHashMap&lt;&gt;();</span>
-<span class="nc" id="L104">            fields.forEach((name, fieldQuery) -&gt; {</span>
-<span class="nc" id="L105">                PlcField parsedField = fieldHandler.createField(fieldQuery);</span>
-<span class="nc" id="L106">                parsedFields.put(name, parsedField);</span>
-<span class="nc" id="L107">            });</span>
-<span class="nc" id="L108">            return new DefaultPlcReadRequest(reader, parsedFields);</span>
+<span class="fc" id="L103">            LinkedHashMap&lt;String, PlcField&gt; parsedFields = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L104">            fields.forEach((name, fieldQuery) -&gt; {</span>
+<span class="fc" id="L105">                PlcField parsedField = fieldHandler.createField(fieldQuery);</span>
+<span class="fc" id="L106">                parsedFields.put(name, parsedField);</span>
+<span class="fc" id="L107">            });</span>
+<span class="fc" id="L108">            return new DefaultPlcReadRequest(reader, parsedFields);</span>
         }
 
     }

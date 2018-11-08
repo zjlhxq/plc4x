@@ -27,8 +27,8 @@ import org.apache.plc4x.java.api.messages.PlcReadRequest;
 import org.apache.plc4x.java.api.messages.PlcReadResponse;
 import org.apache.plc4x.java.api.messages.PlcWriteRequest;
 import org.apache.plc4x.java.api.messages.PlcWriteResponse;
-import org.apache.plc4x.java.base.connection.NettyPlcConnection;
 import org.apache.plc4x.java.base.connection.ChannelFactory;
+import org.apache.plc4x.java.base.connection.NettyPlcConnection;
 import org.apache.plc4x.java.base.connection.TcpSocketChannelFactory;
 import org.apache.plc4x.java.base.events.ConnectEvent;
 import org.apache.plc4x.java.base.events.ConnectedEvent;
@@ -258,30 +258,32 @@ public class S7PlcConnection extends NettyPlcConnection implements PlcReader, Pl
 
     @Override
     public CompletableFuture&lt;PlcReadResponse&gt; read(PlcReadRequest readRequest) {
-<span class="nc" id="L261">        CompletableFuture&lt;InternalPlcReadResponse&gt; future = new CompletableFuture&lt;&gt;();</span>
-<span class="nc" id="L262">        PlcRequestContainer&lt;InternalPlcReadRequest, InternalPlcReadResponse&gt; container =</span>
-            new PlcRequestContainer&lt;&gt;((InternalPlcReadRequest) readRequest, future);
-<span class="nc" id="L264">        channel.writeAndFlush(container).addListener(f -&gt; {</span>
-<span class="nc bnc" id="L265" title="All 2 branches missed.">            if (!f.isSuccess()) {</span>
-<span class="nc" id="L266">                future.completeExceptionally(f.cause());</span>
+<span class="nc" id="L261">        InternalPlcReadRequest internalReadRequest = checkInternal(readRequest, InternalPlcReadRequest.class);</span>
+<span class="nc" id="L262">        CompletableFuture&lt;InternalPlcReadResponse&gt; future = new CompletableFuture&lt;&gt;();</span>
+<span class="nc" id="L263">        PlcRequestContainer&lt;InternalPlcReadRequest, InternalPlcReadResponse&gt; container =</span>
+            new PlcRequestContainer&lt;&gt;(internalReadRequest, future);
+<span class="nc" id="L265">        channel.writeAndFlush(container).addListener(f -&gt; {</span>
+<span class="nc bnc" id="L266" title="All 2 branches missed.">            if (!f.isSuccess()) {</span>
+<span class="nc" id="L267">                future.completeExceptionally(f.cause());</span>
             }
-<span class="nc" id="L268">        });</span>
-<span class="nc" id="L269">        return future</span>
-<span class="nc" id="L270">            .thenApply(PlcReadResponse.class::cast);</span>
+<span class="nc" id="L269">        });</span>
+<span class="nc" id="L270">        return future</span>
+<span class="nc" id="L271">            .thenApply(PlcReadResponse.class::cast);</span>
     }
 
     @Override
     public CompletableFuture&lt;PlcWriteResponse&gt; write(PlcWriteRequest writeRequest) {
-<span class="nc" id="L275">        CompletableFuture&lt;InternalPlcWriteResponse&gt; future = new CompletableFuture&lt;&gt;();</span>
-<span class="nc" id="L276">        PlcRequestContainer&lt;InternalPlcWriteRequest, InternalPlcWriteResponse&gt; container =</span>
-            new PlcRequestContainer&lt;&gt;((InternalPlcWriteRequest) writeRequest, future);
-<span class="nc" id="L278">        channel.writeAndFlush(container).addListener(f -&gt; {</span>
-<span class="nc bnc" id="L279" title="All 2 branches missed.">            if (!f.isSuccess()) {</span>
-<span class="nc" id="L280">                future.completeExceptionally(f.cause());</span>
+<span class="nc" id="L276">        InternalPlcWriteRequest internalWriteRequest = checkInternal(writeRequest, InternalPlcWriteRequest.class);</span>
+<span class="nc" id="L277">        CompletableFuture&lt;InternalPlcWriteResponse&gt; future = new CompletableFuture&lt;&gt;();</span>
+<span class="nc" id="L278">        PlcRequestContainer&lt;InternalPlcWriteRequest, InternalPlcWriteResponse&gt; container =</span>
+            new PlcRequestContainer&lt;&gt;(internalWriteRequest, future);
+<span class="nc" id="L280">        channel.writeAndFlush(container).addListener(f -&gt; {</span>
+<span class="nc bnc" id="L281" title="All 2 branches missed.">            if (!f.isSuccess()) {</span>
+<span class="nc" id="L282">                future.completeExceptionally(f.cause());</span>
             }
-<span class="nc" id="L282">        });</span>
-<span class="nc" id="L283">        return future</span>
-<span class="nc" id="L284">            .thenApply(PlcWriteResponse.class::cast);</span>
+<span class="nc" id="L284">        });</span>
+<span class="nc" id="L285">        return future</span>
+<span class="nc" id="L286">            .thenApply(PlcWriteResponse.class::cast);</span>
     }
 
 }
