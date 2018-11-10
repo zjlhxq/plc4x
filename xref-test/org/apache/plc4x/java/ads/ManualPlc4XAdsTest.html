@@ -76,28 +76,30 @@
 <a class="jxr_linenumber" name="L68" href="#L68">68</a>  
 <a class="jxr_linenumber" name="L69" href="#L69">69</a>              List&lt;PlcConsumerRegistration&gt; plcConsumerRegistrations = plcSubscriptionResponse.getSubscriptionHandles().stream()
 <a class="jxr_linenumber" name="L70" href="#L70">70</a>                  .map(plcSubscriptionHandle -&gt; plcSubscriptionHandle.register(plcSubscriptionEvent -&gt; {
-<a class="jxr_linenumber" name="L71" href="#L71">71</a>                      System.out.println(String.format(<span class="jxr_string">"%s: [%d]- StationsNummer: {%d}"</span>, plcSubscriptionEvent.getTimestamp(), plcSubscriptionEvent.getBytes().length, plcSubscriptionEvent.getBytes()[0]));
-<a class="jxr_linenumber" name="L72" href="#L72">72</a>                  }))
-<a class="jxr_linenumber" name="L73" href="#L73">73</a>                  .collect(Collectors.toList());
-<a class="jxr_linenumber" name="L74" href="#L74">74</a>  
-<a class="jxr_linenumber" name="L75" href="#L75">75</a>              <em class="jxr_comment">// Now we wait a bit</em>
-<a class="jxr_linenumber" name="L76" href="#L76">76</a>              TimeUnit.SECONDS.sleep(10);
-<a class="jxr_linenumber" name="L77" href="#L77">77</a>  
-<a class="jxr_linenumber" name="L78" href="#L78">78</a>              <em class="jxr_comment">// we unregister the listener</em>
-<a class="jxr_linenumber" name="L79" href="#L79">79</a>              plcConsumerRegistrations.forEach(PlcConsumerRegistration::unregister);
-<a class="jxr_linenumber" name="L80" href="#L80">80</a>  
-<a class="jxr_linenumber" name="L81" href="#L81">81</a>              <em class="jxr_comment">// we unsubscribe at the plc</em>
-<a class="jxr_linenumber" name="L82" href="#L82">82</a>              PlcUnsubscriptionRequest.Builder unsubscriptionRequestBuilder = plcConnection.unsubscriptionRequestBuilder();
-<a class="jxr_linenumber" name="L83" href="#L83">83</a>              PlcUnsubscriptionRequest unsubscriptionRequest = unsubscriptionRequestBuilder.addHandles(plcSubscriptionResponse.getSubscriptionHandles()).build();
-<a class="jxr_linenumber" name="L84" href="#L84">84</a>              CompletableFuture&lt;PlcUnsubscriptionResponse&gt; unsubscriptionResponse = unsubscriptionRequest.execute();
-<a class="jxr_linenumber" name="L85" href="#L85">85</a>  
-<a class="jxr_linenumber" name="L86" href="#L86">86</a>              unsubscriptionResponse
-<a class="jxr_linenumber" name="L87" href="#L87">87</a>                  .get(5, TimeUnit.SECONDS);
-<a class="jxr_linenumber" name="L88" href="#L88">88</a>              System.out.println(unsubscriptionResponse);
-<a class="jxr_linenumber" name="L89" href="#L89">89</a>          }
-<a class="jxr_linenumber" name="L90" href="#L90">90</a>          System.exit(0);
-<a class="jxr_linenumber" name="L91" href="#L91">91</a>      }
-<a class="jxr_linenumber" name="L92" href="#L92">92</a>  }
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>                      <strong class="jxr_keyword">int</strong> stationChange = plcSubscriptionEvent.getNumberOfValues(<span class="jxr_string">"stationChange"</span>);
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>                      <strong class="jxr_keyword">int</strong> stationChange2 = plcSubscriptionEvent.getNumberOfValues(<span class="jxr_string">"stationChange2"</span>);
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>                      System.out.println(String.format(<span class="jxr_string">"%s: [%d]- StationsNummer: {%d}"</span>, plcSubscriptionEvent.getTimestamp(), stationChange + stationChange2, plcSubscriptionEvent.getInteger(<span class="jxr_string">"stationChange2"</span>)));
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>                  }))
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>                  .collect(Collectors.toList());
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>  
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>              <em class="jxr_comment">// Now we wait a bit</em>
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>              TimeUnit.SECONDS.sleep(10);
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>  
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>              <em class="jxr_comment">// we unregister the listener</em>
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>              plcConsumerRegistrations.forEach(PlcConsumerRegistration::unregister);
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>  
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>              <em class="jxr_comment">// we unsubscribe at the plc</em>
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>              PlcUnsubscriptionRequest.Builder unsubscriptionRequestBuilder = plcConnection.unsubscriptionRequestBuilder();
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>              PlcUnsubscriptionRequest unsubscriptionRequest = unsubscriptionRequestBuilder.addHandles(plcSubscriptionResponse.getSubscriptionHandles()).build();
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>              CompletableFuture&lt;PlcUnsubscriptionResponse&gt; unsubscriptionResponse = unsubscriptionRequest.execute();
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>  
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>              unsubscriptionResponse
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>                  .get(5, TimeUnit.SECONDS);
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>              System.out.println(unsubscriptionResponse);
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>          }
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>          System.exit(0);
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>      }
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>  }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2017&#x2013;2018 <a href="https://www.apache.org/">The Apache Software Foundation</a>. All rights reserved.</div>

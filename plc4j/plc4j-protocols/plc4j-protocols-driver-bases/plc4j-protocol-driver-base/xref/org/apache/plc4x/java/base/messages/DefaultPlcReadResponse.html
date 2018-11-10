@@ -544,7 +544,7 @@
 <a class="jxr_linenumber" name="L536" href="#L536">536</a>     @Override
 <a class="jxr_linenumber" name="L537" href="#L537">537</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> isValidByteArray(String name, <strong class="jxr_keyword">int</strong> index) {
 <a class="jxr_linenumber" name="L538" href="#L538">538</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> fieldInternal = getFieldInternal(name);
-<a class="jxr_linenumber" name="L539" href="#L539">539</a>         <strong class="jxr_keyword">return</strong> fieldInternal.isValidDateTime(index);
+<a class="jxr_linenumber" name="L539" href="#L539">539</a>         <strong class="jxr_keyword">return</strong> fieldInternal.isValidByteArray(index);
 <a class="jxr_linenumber" name="L540" href="#L540">540</a>     }
 <a class="jxr_linenumber" name="L541" href="#L541">541</a> 
 <a class="jxr_linenumber" name="L542" href="#L542">542</a>     @Override
@@ -570,23 +570,20 @@
 <a class="jxr_linenumber" name="L562" href="#L562">562</a>         <strong class="jxr_keyword">return</strong> values;
 <a class="jxr_linenumber" name="L563" href="#L563">563</a>     }
 <a class="jxr_linenumber" name="L564" href="#L564">564</a> 
-<a class="jxr_linenumber" name="L565" href="#L565">565</a>     <strong class="jxr_keyword">private</strong> <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> getFieldInternal(String name) {
+<a class="jxr_linenumber" name="L565" href="#L565">565</a>     <strong class="jxr_keyword">protected</strong> <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> getFieldInternal(String name) {
 <a class="jxr_linenumber" name="L566" href="#L566">566</a>         Objects.requireNonNull(name, <span class="jxr_string">"Name argument required"</span>);
 <a class="jxr_linenumber" name="L567" href="#L567">567</a>         <em class="jxr_comment">// If this field doesn't exist, ignore it.</em>
 <a class="jxr_linenumber" name="L568" href="#L568">568</a>         <strong class="jxr_keyword">if</strong> (values.get(name) == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L569" href="#L569">569</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> PlcRuntimeException(<span class="jxr_string">"No field with name '"</span> + name + <span class="jxr_string">"' present in the response"</span>);
+<a class="jxr_linenumber" name="L569" href="#L569">569</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> PlcInvalidFieldException(name);
 <a class="jxr_linenumber" name="L570" href="#L570">570</a>         }
 <a class="jxr_linenumber" name="L571" href="#L571">571</a>         <strong class="jxr_keyword">if</strong> (values.get(name).getKey() != PlcResponseCode.OK) {
 <a class="jxr_linenumber" name="L572" href="#L572">572</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> PlcRuntimeException(<span class="jxr_string">"Field '"</span> + name + <span class="jxr_string">"' could not be fetched, response was "</span> + values.get(name).getKey());
 <a class="jxr_linenumber" name="L573" href="#L573">573</a>         }
-<a class="jxr_linenumber" name="L574" href="#L574">574</a>         <a href="../../../../../../org/apache/plc4x/java/base/messages/items/BaseDefaultFieldItem.html">BaseDefaultFieldItem</a> value = values.get(name).getValue();
-<a class="jxr_linenumber" name="L575" href="#L575">575</a>         <strong class="jxr_keyword">if</strong> (value == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L576" href="#L576">576</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalStateException(String.format(<span class="jxr_string">"Null field detected for field name %s"</span>, name));
-<a class="jxr_linenumber" name="L577" href="#L577">577</a>         }
-<a class="jxr_linenumber" name="L578" href="#L578">578</a>         <strong class="jxr_keyword">return</strong> value;
-<a class="jxr_linenumber" name="L579" href="#L579">579</a>     }
-<a class="jxr_linenumber" name="L580" href="#L580">580</a> 
-<a class="jxr_linenumber" name="L581" href="#L581">581</a> }
+<a class="jxr_linenumber" name="L574" href="#L574">574</a>         <em class="jxr_comment">// No need to check for "null" as this is already captured by the constructors.</em>
+<a class="jxr_linenumber" name="L575" href="#L575">575</a>         <strong class="jxr_keyword">return</strong> values.get(name).getValue();
+<a class="jxr_linenumber" name="L576" href="#L576">576</a>     }
+<a class="jxr_linenumber" name="L577" href="#L577">577</a> 
+<a class="jxr_linenumber" name="L578" href="#L578">578</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2017&#x2013;2018 <a href="https://www.apache.org/">The Apache Software Foundation</a>. All rights reserved.</div>
