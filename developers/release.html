@@ -273,15 +273,15 @@
   <div class="sect2"> 
    <h3 id="_toc_preparing_a_release1">Preparing a release</h3> 
    <div class="paragraph"> 
-    <p>In order to prepare a release-candidate, the following command will prepare the repository:</p> 
+    <p>In order to prepare a release-candidate, the first step is switching to the corresponding release-branch.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>After that, the following command will to all preparation steps for the release:</p> 
    </div> 
    <div class="literalblock"> 
     <div class="content"> 
      <pre>mvn release:prepare -DautoVersionSubmodules=true</pre> 
     </div> 
-   </div> 
-   <div class="paragraph"> 
-    <p>The parameter <code>autoVersionSubmodules</code> flag will tell the release plugin to release all modules with the same version. Otherwise we would have to define the release and development version for each module.</p> 
    </div> 
    <div class="paragraph"> 
     <p>In general the plugin will now ask you 3 questions:</p> 
@@ -294,23 +294,26 @@
     </ol> 
    </div> 
    <div class="paragraph"> 
-    <p>That the plugin does, is:</p> 
+    <p>Usually for 1 and 3 the defaults are just fine, make sure the tag name is correct as this usually is different.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>What the plugin now does, is automatically execute the following operations:</p> 
    </div> 
    <div class="olist arabic"> 
     <ol class="arabic"> 
      <li> <p>Check we aren’t referencing any <code>SNAPSHOT</code> dependencies.</p> </li> 
      <li> <p>Update all pom versions to the release version.</p> </li> 
      <li> <p>Run a build with all tests</p> </li> 
-     <li> <p>Commit the changes (labeled <code>[maven-release-plugin] prepare release {tagname}</code>)</p> </li> 
+     <li> <p>Commit the changes (commit message: <code>[maven-release-plugin] prepare release {tagname}</code>)</p> </li> 
      <li> <p>Push the commit</p> </li> 
      <li> <p>Tag the commit</p> </li> 
      <li> <p>Update all poms to the next development version.</p> </li> 
-     <li> <p>Commit the changes (labeled <code>[maven-release-plugin] prepare for next development iteration</code>)</p> </li> 
+     <li> <p>Commit the changes (commit message: <code>[maven-release-plugin] prepare for next development iteration</code>)</p> </li> 
      <li> <p>Push the commit</p> </li> 
     </ol> 
    </div> 
    <div class="paragraph"> 
-    <p>However this just prepared the repository for the release, we have to perform the release to get the release artifacts.</p> 
+    <p>However this just prepared the git repository for the release, we have to perform the release to produce and stage the release artifacts.</p> 
    </div> 
   </div> 
  </div> 
