@@ -193,6 +193,8 @@
           <ul id="toc" class="nav navbar-nav">
                                                             <li class="toplevel"><a href="#_toc_releasing_plc4x1" title="Releasing PLC4X">Releasing PLC4X</a></li>
                         <li class="toplevel"><a href="#_toc_preparing_your_system_for_being_able_to_release1" title="Preparing your system for being able to release">Preparing your system for being able to release</a></li>
+                        <li class="toplevel"><a href="#_toc_creating_a_release_branch1" title="Creating a release branch">Creating a release branch</a></li>
+                        <li class="toplevel"><a href="#_toc_release_stabilization_phase1" title="Release stabilization phase">Release stabilization phase</a></li>
                         <li class="toplevel"><a href="#_toc_preparing_a_release1" title="Preparing a release">Preparing a release</a></li>
                         <li class="divider-vertical"></li>
                                     <li class="toplevel"><a href="#_toc_what_if_something_goes_wrong1" title="What if something goes wrong?">What if something goes wrong?</a></li>
@@ -268,6 +270,88 @@
    </div> 
    <div class="paragraph"> 
     <p>There’s a detailed description <a href="https://github.com/apache/incubator-pulsar/wiki/Create-GPG-keys-to-sign-release-artifacts">here</a>.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>If you happen to have multiple keys, adding the following profile to your <code>settings.xml</code> should help:</p> 
+   </div> 
+   <div class="literalblock"> 
+    <div class="content"> 
+     <pre>&lt;profile&gt;
+  &lt;id&gt;apache-release&lt;/id&gt;
+  &lt;properties&gt;
+    &lt;gpg.keyname&gt;5C60D6B9&lt;/gpg.keyname&gt;&lt;!-- Your GPG Keyname here --&gt;
+    &lt;!-- Use an agent: Prevents being asked for the password during the build --&gt;
+    &lt;gpg.useagent&gt;true&lt;/gpg.useagent&gt;
+    &lt;gpg.passphrase&gt;topsecret-password&lt;/gpg.passphrase&gt;
+  &lt;/properties&gt;
+&lt;/profile&gt;</pre> 
+    </div> 
+   </div> 
+  </div> 
+  <div class="sect2"> 
+   <h3 id="_toc_creating_a_release_branch1">Creating a release branch</h3> 
+   <div class="paragraph"> 
+    <p>According to SemVer, we have: Major, Minor and Bugfix releases.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>For each new Major and Minor release we create a new branch at the beginning of a code-freeze phase.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>So if currently the project version in develop is <code>0.2.0-SNAPSHOT</code>, we create a branch <code>rel/0.2</code>.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>When creating the branch is exactly the moment in which the version in <code>develop</code> is incremented to the next minor version.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>This can and should be automated by the <code>maven-release-plugin</code>.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>Per default the plugin will ask for the working copy version during the build execution. This is the version the <code>develop</code> branch will be changed to.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>The parameter <code>autoVersionSubmodules</code> will tell the release plugin to release all modules with the same version. Otherwise we would have to define the working copy version for each module.</p> 
+   </div> 
+   <div class="literalblock"> 
+    <div class="content"> 
+     <pre>mvn release:branch -DbranchName=rel/{minor-version} -DautoVersionSubmodules=true</pre> 
+    </div> 
+   </div> 
+   <div class="paragraph"> 
+    <p>Per default the plugin suggests the next bugfix version as working version, however we want it to use the next minor version. So in case of preparing the release branch for <code>0.2.0-SNAPSHOT</code> the command would be the following:</p> 
+   </div> 
+   <div class="literalblock"> 
+    <div class="content"> 
+     <pre>mvn release:branch -DbranchName=rel/0.2 -DautoVersionSubmodules=true</pre> 
+    </div> 
+   </div> 
+   <div class="paragraph"> 
+    <p>The plugin will then aks for the version:</p> 
+   </div> 
+   <div class="literalblock"> 
+    <div class="content"> 
+     <pre>What is the new working copy version for "PLC4X"? (org.apache.plc4x:plc4x-parent) 0.2.1-SNAPSHOT: : 0.3.0-SNAPSHOT</pre> 
+    </div> 
+   </div> 
+   <div class="paragraph"> 
+    <p>Where the suggested default is manually overridden.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>This step now should perform quite quickly as no build and no tests are involved.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>However in the end the versions of the <code>develop</code> branch are updated and a new <code>rel/0.2</code> branch is created.</p> 
+   </div> 
+  </div> 
+  <div class="sect2"> 
+   <h3 id="_toc_release_stabilization_phase1">Release stabilization phase</h3> 
+   <div class="paragraph"> 
+    <p>Now usually comes a phase in which last tests and checks should be perfomed.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>If any problems are found they have to be fixed in the release branch.</p> 
+   </div> 
+   <div class="paragraph"> 
+    <p>Changes should either be re applied in <code>develop</code> or <code>cherry-picked</code>, however merging things back can cause a lot of problems ans we no longer have the same versions.</p> 
    </div> 
   </div> 
   <div class="sect2"> 
