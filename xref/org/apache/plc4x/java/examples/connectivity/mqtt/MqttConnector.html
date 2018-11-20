@@ -43,7 +43,7 @@
 <a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.examples.connectivity.mqtt.model.PlcFieldConfig;
 <a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> org.mqttbee.api.mqtt.MqttClient;
 <a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> org.mqttbee.api.mqtt.datatypes.MqttQos;
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> org.mqttbee.api.mqtt.mqtt3.Mqtt3Client;
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> org.mqttbee.api.mqtt.mqtt3.Mqtt3RxClient;
 <a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> org.mqttbee.api.mqtt.mqtt3.message.connect.connack.Mqtt3ConnAck;
 <a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> org.mqttbee.api.mqtt.mqtt3.message.publish.Mqtt3Publish;
 <a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">import</strong> org.mqttbee.api.mqtt.mqtt3.message.publish.Mqtt3PublishResult;
@@ -81,15 +81,15 @@
 <a class="jxr_linenumber" name="L73" href="#L73">73</a>  
 <a class="jxr_linenumber" name="L74" href="#L74">74</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> run() <strong class="jxr_keyword">throws</strong> PlcException {
 <a class="jxr_linenumber" name="L75" href="#L75">75</a>          <em class="jxr_comment">// Create a new MQTT client.</em>
-<a class="jxr_linenumber" name="L76" href="#L76">76</a>          <strong class="jxr_keyword">final</strong> Mqtt3Client client = MqttClient.builder()
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>          <strong class="jxr_keyword">final</strong> Mqtt3RxClient client = MqttClient.builder()
 <a class="jxr_linenumber" name="L77" href="#L77">77</a>              .identifier(UUID.randomUUID().toString())
 <a class="jxr_linenumber" name="L78" href="#L78">78</a>              .serverHost(config.getMqttConfig().getServerHost())
 <a class="jxr_linenumber" name="L79" href="#L79">79</a>              .serverPort(config.getMqttConfig().getServerPort())
 <a class="jxr_linenumber" name="L80" href="#L80">80</a>              .useMqttVersion3()
-<a class="jxr_linenumber" name="L81" href="#L81">81</a>              .buildReactive();
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>              .buildRx();
 <a class="jxr_linenumber" name="L82" href="#L82">82</a>  
 <a class="jxr_linenumber" name="L83" href="#L83">83</a>          <em class="jxr_comment">// Connect to the MQTT broker.</em>
-<a class="jxr_linenumber" name="L84" href="#L84">84</a>          <strong class="jxr_keyword">final</strong> Single&lt;Mqtt3ConnAck&gt; connAckSingle = client.connect().keepAlive(10, TimeUnit.SECONDS).done();
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>          <strong class="jxr_keyword">final</strong> Single&lt;Mqtt3ConnAck&gt; connAckSingle = client.connect().timeout(10, TimeUnit.SECONDS);
 <a class="jxr_linenumber" name="L85" href="#L85">85</a>  
 <a class="jxr_linenumber" name="L86" href="#L86">86</a>          <em class="jxr_comment">// Connect to the PLC.</em>
 <a class="jxr_linenumber" name="L87" href="#L87">87</a>          <strong class="jxr_keyword">try</strong> (PlcConnection plcConnection = <strong class="jxr_keyword">new</strong> PlcDriverManager().getConnection(config.getPlcConfig().getConnection())) {
