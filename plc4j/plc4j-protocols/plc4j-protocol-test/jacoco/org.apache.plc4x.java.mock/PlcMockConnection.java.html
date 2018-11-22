@@ -34,6 +34,7 @@ import org.apache.plc4x.java.base.messages.items.BaseDefaultFieldItem;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class PlcMockConnection implements PlcConnection, PlcReader {
@@ -41,88 +42,93 @@ public class PlcMockConnection implements PlcConnection, PlcReader {
     private final String name;
     private final PlcAuthentication authentication;
 
-<span class="fc" id="L44">    private boolean isConnected = false;</span>
+<span class="fc" id="L45">    private boolean isConnected = false;</span>
     private MockDevice device;
 
-<span class="fc" id="L47">    PlcMockConnection(String name, PlcAuthentication authentication) {</span>
-<span class="fc" id="L48">        this.name = name;</span>
-<span class="fc" id="L49">        this.authentication = authentication;</span>
-<span class="fc" id="L50">    }</span>
+<span class="fc" id="L48">    PlcMockConnection(String name, PlcAuthentication authentication) {</span>
+<span class="fc" id="L49">        this.name = name;</span>
+<span class="fc" id="L50">        this.authentication = authentication;</span>
+<span class="fc" id="L51">    }</span>
 
     public MockDevice getDevice() {
-<span class="nc" id="L53">        return device;</span>
+<span class="nc" id="L54">        return device;</span>
     }
 
     public void setDevice(MockDevice device) {
-<span class="fc" id="L57">        this.device = device;</span>
-<span class="fc" id="L58">    }</span>
+<span class="fc" id="L58">        this.device = device;</span>
+<span class="fc" id="L59">    }</span>
 
     @Override
     public void connect() {
         // do nothing
-<span class="nc" id="L63">    }</span>
+<span class="nc" id="L64">    }</span>
 
     @Override
     public boolean isConnected() {
         // is connected if a device is set
-<span class="nc bnc" id="L68" title="All 2 branches missed.">        return device != null;</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">        return device != null;</span>
     }
 
     @Override
     public void close() {
         // unset device
-<span class="nc" id="L74">        this.device = null;</span>
-<span class="nc" id="L75">    }</span>
+<span class="nc" id="L75">        this.device = null;</span>
+<span class="nc" id="L76">    }</span>
 
     @Override
     public PlcConnectionMetadata getMetadata() {
-<span class="nc" id="L79">        return new PlcConnectionMetadata() {</span>
+<span class="nc" id="L80">        return new PlcConnectionMetadata() {</span>
             @Override
             public boolean canRead() {
-<span class="nc" id="L82">                return true;</span>
+<span class="nc" id="L83">                return true;</span>
             }
 
             @Override
             public boolean canWrite() {
-<span class="nc" id="L87">                return false;</span>
+<span class="nc" id="L88">                return false;</span>
             }
 
             @Override
             public boolean canSubscribe() {
-<span class="nc" id="L92">                return false;</span>
+<span class="nc" id="L93">                return false;</span>
             }
         };
     }
 
     @Override
     public PlcReadRequest.Builder readRequestBuilder() {
-<span class="fc" id="L99">        return new DefaultPlcReadRequest.Builder(this, new MockFieldHandler());</span>
+<span class="fc" id="L100">        return new DefaultPlcReadRequest.Builder(this, new MockFieldHandler());</span>
     }
 
     @Override
     public CompletableFuture&lt;PlcReadResponse&gt; read(PlcReadRequest readRequest) {
-<span class="fc" id="L104">        Map&lt;String, Pair&lt;PlcResponseCode, BaseDefaultFieldItem&gt;&gt; response = readRequest.getFieldNames().stream()</span>
-<span class="fc" id="L105">            .collect(Collectors.toMap(Function.identity(), name -&gt; device.read(((MockField) readRequest.getField(name)).getFieldQuery())));</span>
-<span class="fc" id="L106">        return CompletableFuture.completedFuture(new DefaultPlcReadResponse((DefaultPlcReadRequest)readRequest, response));</span>
+<span class="fc" id="L105">        return CompletableFuture.supplyAsync(new Supplier&lt;PlcReadResponse&gt;() {</span>
+            @Override
+            public PlcReadResponse get() {
+<span class="fc" id="L108">                Map&lt;String, Pair&lt;PlcResponseCode, BaseDefaultFieldItem&gt;&gt; response = readRequest.getFieldNames().stream()</span>
+<span class="fc" id="L109">                    .collect(Collectors.toMap(Function.identity(), name -&gt; device.read(((MockField) readRequest.getField(name)).getFieldQuery())));</span>
+<span class="fc" id="L110">                return new DefaultPlcReadResponse((DefaultPlcReadRequest)readRequest, response);</span>
+            }
+        });
     }
 
     @Override
     public PlcWriteRequest.Builder writeRequestBuilder() {
-<span class="nc" id="L111">        throw new PlcUnsupportedOperationException(&quot;Write not supported by Mock Driver&quot;);</span>
+<span class="nc" id="L117">        throw new PlcUnsupportedOperationException(&quot;Write not supported by Mock Driver&quot;);</span>
     }
 
     @Override
     public PlcSubscriptionRequest.Builder subscriptionRequestBuilder() {
-<span class="nc" id="L116">        throw new PlcUnsupportedOperationException(&quot;Subscription not supported by Mock Driver&quot;);</span>
+<span class="nc" id="L122">        throw new PlcUnsupportedOperationException(&quot;Subscription not supported by Mock Driver&quot;);</span>
     }
 
     @Override
     public PlcUnsubscriptionRequest.Builder unsubscriptionRequestBuilder() {
-<span class="nc" id="L121">        throw new PlcUnsupportedOperationException(&quot;Subscription not supported by Mock Driver&quot;);</span>
+<span class="nc" id="L127">        throw new PlcUnsupportedOperationException(&quot;Subscription not supported by Mock Driver&quot;);</span>
     }
 
     public PlcAuthentication getAuthentication() {
-<span class="nc" id="L125">        return authentication;</span>
+<span class="nc" id="L131">        return authentication;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
