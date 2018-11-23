@@ -36,10 +36,10 @@
 <a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> org.apache.commons.lang3.reflect.FieldUtils;
 <a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.exceptions.PlcProtocolException;
 <a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.api.exceptions.PlcProtocolPayloadTooBigException;
-<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.isotp.netty.IsoTPProtocol;
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.isotp.netty.events.IsoTPConnectedEvent;
-<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.isotp.netty.model.IsoTPMessage;
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.isotp.netty.model.tpdus.DataTpdu;
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.isotp.protocol.IsoTPProtocol;
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.isotp.protocol.events.IsoTPConnectedEvent;
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.isotp.protocol.model.IsoTPMessage;
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.isotp.protocol.model.tpdus.DataTpdu;
 <a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.s7.netty.events.S7ConnectedEvent;
 <a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.s7.netty.model.messages.S7Message;
 <a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> org.apache.plc4x.java.s7.netty.model.messages.S7RequestMessage;
@@ -218,7 +218,7 @@
 <a class="jxr_linenumber" name="L210" href="#L210">210</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> PlcProtocolPayloadTooBigException(<span class="jxr_string">"s7"</span>, pduSize, buf.writerIndex(), message);
 <a class="jxr_linenumber" name="L211" href="#L211">211</a>         } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L212" href="#L212">212</a>             ChannelPromise subPromise = <strong class="jxr_keyword">new</strong> DefaultChannelPromise(channel);
-<a class="jxr_linenumber" name="L213" href="#L213">213</a>             queue.add(<strong class="jxr_keyword">new</strong> <a href="../../../../../../org/apache/plc4x/java/isotp/netty/model/tpdus/DataTpdu.html">DataTpdu</a>(<strong class="jxr_keyword">true</strong>, (byte) 0x01, Collections.emptyList(), buf, message), subPromise);
+<a class="jxr_linenumber" name="L213" href="#L213">213</a>             queue.add(<strong class="jxr_keyword">new</strong> DataTpdu(<strong class="jxr_keyword">true</strong>, (byte) 0x01, Collections.emptyList(), buf, message), subPromise);
 <a class="jxr_linenumber" name="L214" href="#L214">214</a>             promiseCombiner.add((Future) subPromise);
 <a class="jxr_linenumber" name="L215" href="#L215">215</a>             logger.debug(<span class="jxr_string">"S7 Message with id {} queued"</span>, message.getTpduReference());
 <a class="jxr_linenumber" name="L216" href="#L216">216</a>         }
@@ -416,7 +416,7 @@
 <a class="jxr_linenumber" name="L408" href="#L408">408</a>         <strong class="jxr_keyword">super</strong>.channelRead(ctx, msg);
 <a class="jxr_linenumber" name="L409" href="#L409">409</a>     }
 <a class="jxr_linenumber" name="L410" href="#L410">410</a> 
-<a class="jxr_linenumber" name="L411" href="#L411">411</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> decode(ChannelHandlerContext ctx, <a href="../../../../../../org/apache/plc4x/java/isotp/netty/model/IsoTPMessage.html">IsoTPMessage</a> in, List&lt;Object&gt; out) {
+<a class="jxr_linenumber" name="L411" href="#L411">411</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> decode(ChannelHandlerContext ctx, IsoTPMessage in, List&lt;Object&gt; out) {
 <a class="jxr_linenumber" name="L412" href="#L412">412</a>         <strong class="jxr_keyword">if</strong> (logger.isTraceEnabled()) {
 <a class="jxr_linenumber" name="L413" href="#L413">413</a>             logger.trace(<span class="jxr_string">"Got Data: {}"</span>, ByteBufUtil.hexDump(in.getUserData()));
 <a class="jxr_linenumber" name="L414" href="#L414">414</a>         }
@@ -467,7 +467,7 @@
 <a class="jxr_linenumber" name="L459" href="#L459">459</a>                 messageType, tpduReference, s7Parameters, s7Payloads, errorClass, errorCode);
 <a class="jxr_linenumber" name="L460" href="#L460">460</a> 
 <a class="jxr_linenumber" name="L461" href="#L461">461</a>             <em class="jxr_comment">// Remove the current response from the list of unconfirmed messages.</em>
-<a class="jxr_linenumber" name="L462" href="#L462">462</a>             <a href="../../../../../../org/apache/plc4x/java/isotp/netty/model/tpdus/DataTpdu.html">DataTpdu</a> requestTpdu = sentButUnacknowledgedTpdus.remove(tpduReference);
+<a class="jxr_linenumber" name="L462" href="#L462">462</a>             DataTpdu requestTpdu = sentButUnacknowledgedTpdus.remove(tpduReference);
 <a class="jxr_linenumber" name="L463" href="#L463">463</a> 
 <a class="jxr_linenumber" name="L464" href="#L464">464</a>             <em class="jxr_comment">// Get the corresponding request message.</em>
 <a class="jxr_linenumber" name="L465" href="#L465">465</a>             <a href="../../../../../../org/apache/plc4x/java/s7/netty/model/messages/S7RequestMessage.html">S7RequestMessage</a> requestMessage = (requestTpdu != <strong class="jxr_keyword">null</strong>) ? (S7RequestMessage) requestTpdu.getParent() : <strong class="jxr_keyword">null</strong>;
@@ -769,7 +769,7 @@
 <a class="jxr_linenumber" name="L761" href="#L761">761</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">synchronized</strong> <strong class="jxr_keyword">void</strong> trySendingMessages(ChannelHandlerContext ctx) {
 <a class="jxr_linenumber" name="L762" href="#L762">762</a>         <strong class="jxr_keyword">while</strong>(sentButUnacknowledgedTpdus.size() &lt; maxAmqCaller) {
 <a class="jxr_linenumber" name="L763" href="#L763">763</a>             <em class="jxr_comment">// Get the TPDU that is up next in the queue.</em>
-<a class="jxr_linenumber" name="L764" href="#L764">764</a>             <a href="../../../../../../org/apache/plc4x/java/isotp/netty/model/tpdus/DataTpdu.html">DataTpdu</a> curTpdu = (DataTpdu) queue.current();
+<a class="jxr_linenumber" name="L764" href="#L764">764</a>             DataTpdu curTpdu = (DataTpdu) queue.current();
 <a class="jxr_linenumber" name="L765" href="#L765">765</a> 
 <a class="jxr_linenumber" name="L766" href="#L766">766</a>             <strong class="jxr_keyword">if</strong> (curTpdu != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L767" href="#L767">767</a>                 <em class="jxr_comment">// Send the TPDU.</em>
