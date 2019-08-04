@@ -41,7 +41,8 @@ public class HelloPlc4x {
      * @param args ignored.
      */
     public static void main(String[] args) throws Exception {
-        IntStream.range(0, 1000).parallel().forEach(i -> createConnection(i));
+        System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", "20");
+        IntStream.range(0, 100000).parallel().forEach(i -> createConnection(i));
     }
 
     private static void createConnection(int i) {
