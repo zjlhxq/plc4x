@@ -17,9 +17,26 @@ class WriteBufferTest {
         // TODO: implement me
     }
 
-    @Test
-    void writeBit() {
-        // TODO: implement me
+
+    @Nested
+    class WriteBit {
+        @Test
+        void on() throws Exception {
+            WriteBuffer SUT = new WriteBuffer(1, false);
+            SUT.writeBit(false);
+            byte[] data = SUT.getData();
+            System.out.println(toHex(data));
+            // TODO: add assertion
+        }
+
+        @Test
+        void off() throws Exception {
+            WriteBuffer SUT = new WriteBuffer(1, false);
+            SUT.writeBit(true);
+            byte[] data = SUT.getData();
+            System.out.println(toHex(data));
+            // TODO: add assertion
+        }
     }
 
     @Test
