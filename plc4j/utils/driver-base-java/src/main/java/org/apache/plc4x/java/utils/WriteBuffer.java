@@ -186,6 +186,9 @@ public class WriteBuffer {
     }
 
     public void writeBigInteger(int bitLength, BigInteger value) throws ParseException {
+        if (bitLength <= 0) {
+            throw new ParseException("long must contain at least 1 bit");
+        }
         int actualBitLength = value.bitLength();
         boolean negative = value.compareTo(BigInteger.ZERO) < 0;
         int bitLengthIncludingPossibleSign = actualBitLength + (negative ? 1 : 0);
@@ -198,14 +201,14 @@ public class WriteBuffer {
             if (!littleEndian) {
                 // MSB in 0
                 for (int i = 0; i < bytes.length; i++) {
-                    int bitsToWrite = Math.max(Math.min(remainingBitLength, 8), 1);
+                    int bitsToWrite = Math.min(remainingBitLength, 8);
                     bo.writeByte(false, bitsToWrite, bytes[i]);
                     remainingBitLength -= bitsToWrite;
                 }
             } else {
                 // MSB in bytes.length
                 for (int i = bytes.length - 1; i >= 0; i--) {
-                    int bitsToWrite = Math.max(Math.min(remainingBitLength, 8), 1);
+                    int bitsToWrite = Math.min(remainingBitLength, 8);
                     bo.writeByte(false, bitsToWrite, bytes[i]);
                     remainingBitLength -= bitsToWrite;
                 }
@@ -216,6 +219,9 @@ public class WriteBuffer {
     }
 
     public void writeUnsignedBigInteger(int bitLength, BigInteger value) throws ParseException {
+        if (bitLength <= 0) {
+            throw new ParseException("long must contain at least 1 bit");
+        }
         if (value.compareTo(BigInteger.ZERO) < 0) {
             throw new ParseException("value " + value + " is below 0");
         }
@@ -229,14 +235,14 @@ public class WriteBuffer {
             if (!littleEndian) {
                 // MSB in 0
                 for (int i = 0; i < bytes.length; i++) {
-                    int bitsToWrite = Math.max(Math.min(remainingBitLength, 8), 1);
+                    int bitsToWrite = Math.min(remainingBitLength, 8);
                     bo.writeByte(false, bitsToWrite, bytes[i]);
                     remainingBitLength -= bitsToWrite;
                 }
             } else {
                 // MSB in bytes.length
                 for (int i = bytes.length - 1; i >= 0; i--) {
-                    int bitsToWrite = Math.max(Math.min(remainingBitLength, 8), 1);
+                    int bitsToWrite = Math.min(remainingBitLength, 8);
                     bo.writeByte(false, bitsToWrite, bytes[i]);
                     remainingBitLength -= bitsToWrite;
                 }
