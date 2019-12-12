@@ -59,10 +59,10 @@ public class WriteBuffer {
     }
 
     public void writeUnsignedByte(int bitLength, byte value) throws ParseException {
-        if(bitLength <= 0) {
+        if (bitLength <= 0) {
             throw new ParseException("unsigned byte must contain at least 1 bit");
         }
-        if(bitLength > 4) {
+        if (bitLength > 4) {
             throw new ParseException("unsigned byte can only contain max 4 bits");
         }
         try {
@@ -73,10 +73,10 @@ public class WriteBuffer {
     }
 
     public void writeUnsignedShort(int bitLength, short value) throws ParseException {
-        if(bitLength <= 0) {
+        if (bitLength <= 0) {
             throw new ParseException("unsigned short must contain at least 1 bit");
         }
-        if(bitLength > 8) {
+        if (bitLength > 8) {
             throw new ParseException("unsigned short can only contain max 8 bits");
         }
         try {
@@ -87,14 +87,14 @@ public class WriteBuffer {
     }
 
     public void writeUnsignedInt(int bitLength, int value) throws ParseException {
-        if(bitLength <= 0) {
+        if (bitLength <= 0) {
             throw new ParseException("unsigned int must contain at least 1 bit");
         }
-        if(bitLength > 16) {
+        if (bitLength > 16) {
             throw new ParseException("unsigned int can only contain max 16 bits");
         }
         try {
-            if(!littleEndian) {
+            if (!littleEndian) {
                 value = Integer.reverseBytes(value) >> 16;
             }
             bo.writeInt(true, bitLength, value);
@@ -104,14 +104,14 @@ public class WriteBuffer {
     }
 
     public void writeUnsignedLong(int bitLength, long value) throws ParseException {
-        if(bitLength <= 0) {
+        if (bitLength <= 0) {
             throw new ParseException("unsigned long must contain at least 1 bit");
         }
-        if(bitLength > 32) {
+        if (bitLength > 32) {
             throw new ParseException("unsigned long can only contain max 32 bits");
         }
         try {
-            if(!littleEndian) {
+            if (!littleEndian) {
                 value = Long.reverseBytes(value) >> 32;
             }
             bo.writeLong(true, bitLength, value);
@@ -120,15 +120,11 @@ public class WriteBuffer {
         }
     }
 
-    public void writeUnsignedBigInteger(int bitLength, BigInteger value) throws ParseException {
-        throw new UnsupportedOperationException("not implemented yet");
-    }
-
     public void writeByte(int bitLength, byte value) throws ParseException {
-        if(bitLength <= 0) {
+        if (bitLength <= 0) {
             throw new ParseException("byte must contain at least 1 bit");
         }
-        if(bitLength > 8) {
+        if (bitLength > 8) {
             throw new ParseException("byte can only contain max 8 bits");
         }
         try {
@@ -139,14 +135,14 @@ public class WriteBuffer {
     }
 
     public void writeShort(int bitLength, short value) throws ParseException {
-        if(bitLength <= 0) {
+        if (bitLength <= 0) {
             throw new ParseException("short must contain at least 1 bit");
         }
-        if(bitLength > 16) {
+        if (bitLength > 16) {
             throw new ParseException("short can only contain max 16 bits");
         }
         try {
-            if(!littleEndian) {
+            if (!littleEndian) {
                 value = Short.reverseBytes(value);
             }
             bo.writeShort(false, bitLength, value);
@@ -156,14 +152,14 @@ public class WriteBuffer {
     }
 
     public void writeInt(int bitLength, int value) throws ParseException {
-        if(bitLength <= 0) {
+        if (bitLength <= 0) {
             throw new ParseException("int must contain at least 1 bit");
         }
-        if(bitLength > 32) {
+        if (bitLength > 32) {
             throw new ParseException("int can only contain max 32 bits");
         }
         try {
-            if(!littleEndian) {
+            if (!littleEndian) {
                 value = Integer.reverseBytes(value);
             }
             bo.writeInt(false, bitLength, value);
@@ -173,14 +169,14 @@ public class WriteBuffer {
     }
 
     public void writeLong(int bitLength, long value) throws ParseException {
-        if(bitLength <= 0) {
+        if (bitLength <= 0) {
             throw new ParseException("long must contain at least 1 bit");
         }
-        if(bitLength > 64) {
+        if (bitLength > 64) {
             throw new ParseException("long can only contain max 64 bits");
         }
         try {
-            if(!littleEndian) {
+            if (!littleEndian) {
                 value = Long.reverseBytes(value);
             }
             bo.writeLong(false, bitLength, value);
@@ -190,8 +186,66 @@ public class WriteBuffer {
     }
 
     public void writeBigInteger(int bitLength, BigInteger value) throws ParseException {
-        throw new UnsupportedOperationException("not implemented yet");
+        int actualBitLength = value.bitLength();
+        boolean negative = value.compareTo(BigInteger.ZERO) < 0;
+        int bitLengthIncludingPossibleSign = actualBitLength + (negative ? 1 : 0);
+        if (bitLength < bitLengthIncludingPossibleSign) {
+            throw new ParseException("bit length including possible sign " + bitLengthIncludingPossibleSign + " exceeds supplied bit length " + bitLength);
+        }
+        byte[] bytes = value.toByteArray();
+        int remainingBitLength = bitLengthIncludingPossibleSign;
+        try {
+            if (!littleEndian) {
+                // MSB in 0
+                for (int i = 0; i < bytes.length; i++) {
+                    int bitsToWrite = Math.max(Math.min(remainingBitLength, 8), 1);
+                    bo.writeByte(false, bitsToWrite, bytes[i]);
+                    remainingBitLength -= bitsToWrite;
+                }
+            } else {
+                // MSB in bytes.length
+                for (int i = bytes.length - 1; i >= 0; i--) {
+                    int bitsToWrite = Math.max(Math.min(remainingBitLength, 8), 1);
+                    bo.writeByte(false, bitsToWrite, bytes[i]);
+                    remainingBitLength -= bitsToWrite;
+                }
+            }
+        } catch (IOException e) {
+            throw new ParseException("Error reading", e);
+        }
     }
+
+    public void writeUnsignedBigInteger(int bitLength, BigInteger value) throws ParseException {
+        if (value.compareTo(BigInteger.ZERO) < 0) {
+            throw new ParseException("value " + value + " is below 0");
+        }
+        int actualBitLength = value.bitLength();
+        if (bitLength < actualBitLength) {
+            throw new ParseException("bit length" + actualBitLength + " exceeds supplied bit length " + bitLength);
+        }
+        byte[] bytes = value.toByteArray();
+        int remainingBitLength = actualBitLength;
+        try {
+            if (!littleEndian) {
+                // MSB in 0
+                for (int i = 0; i < bytes.length; i++) {
+                    int bitsToWrite = Math.max(Math.min(remainingBitLength, 8), 1);
+                    bo.writeByte(false, bitsToWrite, bytes[i]);
+                    remainingBitLength -= bitsToWrite;
+                }
+            } else {
+                // MSB in bytes.length
+                for (int i = bytes.length - 1; i >= 0; i--) {
+                    int bitsToWrite = Math.max(Math.min(remainingBitLength, 8), 1);
+                    bo.writeByte(false, bitsToWrite, bytes[i]);
+                    remainingBitLength -= bitsToWrite;
+                }
+            }
+        } catch (IOException e) {
+            throw new ParseException("Error reading", e);
+        }
+    }
+
 
     public void writeFloat(int bitLength, float value) throws ParseException {
         throw new UnsupportedOperationException("not implemented yet");
