@@ -22,6 +22,8 @@ import org.apache.plc4x.java.PlcDriverManager;
 import org.apache.plc4x.java.api.PlcConnection;
 import org.apache.plc4x.java.api.messages.PlcReadRequest;
 import org.apache.plc4x.java.api.messages.PlcReadResponse;
+import org.apache.plc4x.java.api.messages.PlcWriteRequest;
+import org.apache.plc4x.java.api.messages.PlcWriteResponse;
 import org.apache.plc4x.java.api.types.PlcResponseCode;
 import org.apache.plc4x.java.api.value.PlcValue;
 import org.slf4j.Logger;
@@ -88,6 +90,16 @@ public class HelloPlc4x {
                     logger.error("An error occurred: " + throwable.getMessage(), throwable);
                 }
             });
+
+            PlcWriteRequest.Builder writeBuilder = plcConnection.writeRequestBuilder();
+            writeBuilder.addItem("value-1", "%Q0.0:BOOL", true);
+            writeBuilder.addItem("value-2", "%Q0.1:BOOL", true);
+            writeBuilder.addItem("value-3", "%Q0.2:BOOL", true);
+            writeBuilder.addItem("value-4", "%Q0.3:BOOL", true);
+            final PlcWriteRequest writeRequest = writeBuilder.build();
+
+            final PlcWriteResponse plcWriteResponse = writeRequest.execute().get();
+            System.out.println(plcWriteResponse);
 
             // Give the async request a little time...
             TimeUnit.MILLISECONDS.sleep(1000);
