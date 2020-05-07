@@ -32,6 +32,9 @@ public class EvaluationHelper {
             Boolean boolean2 = (Boolean) val2;
             return boolean1.equals(boolean2);
         }
+        if(val1 instanceof Enum && val2 instanceof Enum) {
+            return val1 == val2;
+        }
         return false;
     }
 
