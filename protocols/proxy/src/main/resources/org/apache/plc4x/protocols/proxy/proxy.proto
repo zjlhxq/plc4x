@@ -1,0 +1,156 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership. The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+syntax = "proto3";
+
+package com.apache.plc4x.proxy;
+
+enum PlcResponseCode {
+    OK = 0;
+    NOT_FOUND = 1;
+    ACCESS_DENIED = 2;
+    INVALID_ADDRESS = 3;
+    INVALID_DATATYPE = 4;
+    INVALID_DATA = 5;
+    INTERNAL_ERROR = 6;
+    REMOTE_BUSY = 7;
+    REMOTE_ERROR = 8;
+    UNSUPPORTED = 9;
+    RESPONSE_PENDING = 10;
+}
+
+message PlcValue {
+    oneof PlcValue_impl {
+        bool BOOL = 1;
+        uint32 BYTE = 2;
+        uint32 WORD = 3;
+        uint64 DWORD = 4;
+
+        uint32 USINT = 5;
+        uint32 UINT = 6;
+        uint32 UDINT = 7;
+        uint64 ULINT = 8;
+
+        uint32 SINT = 9;
+        uint32 INT = 10;
+        uint32 DINT = 11;
+        uint64 LINT = 12;
+
+        float REAL = 13;
+        double LREAL = 14;
+
+        string TIME = 15;
+        string LTIME = 16;
+        string DATE = 17;
+        string LDATE = 18;
+        string TIME_OF_DAY = 19;
+        string DATE_AND_TIME = 20;
+
+        string CHAR = 21;
+        string WCHAR = 22;
+        string STRING = 23;
+        string WSTRING = 24;
+    }
+}
+
+////////////////////////////////////////////////////////
+
+message PlcReadRequest {
+    repeated string addresses = 1;
+}
+
+message PlcReadResponse {
+    repeated PlcReadResponseItem items = 1;
+}
+
+message PlcReadResponseItem {
+    string address = 1;
+    PlcResponseCode responseCode = 2;
+    repeated PlcValue values = 3;
+}
+
+////////////////////////////////////////////////////////
+
+message PlcWriteRequest {
+    repeated PlcWriteRequestItem items = 1;
+}
+
+message PlcWriteRequestItem {
+    string address = 1;
+    repeated PlcValue values = 2;
+}
+
+message PlcWriteResponse {
+    repeated PlcWriteResponseItem items = 1;
+}
+
+message PlcWriteResponseItem {
+    string address = 1;
+    PlcResponseCode responseCode = 2;
+}
+
+////////////////////////////////////////////////////////
+
+message PlcSubscriptionRequest {
+    repeated PlsSubscriptionRequestItem items = 1;
+}
+
+message PlsSubscriptionRequestItem {
+    oneof subscription_items {
+        PlsSubscriptionRequestItemChangeOfValue changeOfValueItem = 1;
+        PlsSubscriptionRequestItemPolling pollingItem = 2;
+        PlsSubscriptionRequestItemEvent eventItem = 3;
+    }
+}
+
+message PlsSubscriptionRequestItemChangeOfValue {
+    string address = 1;
+}
+
+message PlsSubscriptionRequestItemPolling {
+    string address = 1;
+    int64 interval = 2;
+}
+
+message PlsSubscriptionRequestItemEvent {
+    string address = 1;
+}
+
+message PlcSubscriptionEvent {
+    repeated PlcSubscriptionEventItem items = 1;
+}
+
+message PlcSubscriptionEventItem {
+    string address = 1;
+    PlcResponseCode responseCode = 2;
+    repeated PlcValue values = 3;
+}
+
+////////////////////////////////////////////////////////
+
+service PlcReader {
+    rpc Read(PlcReadRequest) returns (PlcReadResponse);
+}
+
+service PlcWriter {
+    rpc Write(PlcWriteRequest) returns (PlcWriteResponse);
+}
+
+service PlcSubscriber {
+    rpc Subscribe(PlcSubscriptionRequest) returns (stream PlcSubscriptionEvent);
+}
