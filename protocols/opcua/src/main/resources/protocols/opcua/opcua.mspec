@@ -67,7 +67,7 @@
        ]
        ['OPN','true'     OpcuaOpenResponse
            [simple          string '8'         'chunk']
-           [implicit          int 32            'messageSize' 'lengthInBytes']
+           [implicit        int 32             'messageSize' 'lengthInBytes']
            [simple          int 32             'secureChannelId']
            [simple          int 32             'securityPolicyUriSize']
            [simple          string 'securityPolicyUriSize == -1 ? 0 : securityPolicyUriSize * 8'          'endpoint']

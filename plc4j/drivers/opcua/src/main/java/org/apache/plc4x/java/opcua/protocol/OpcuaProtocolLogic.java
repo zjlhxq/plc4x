@@ -30,6 +30,7 @@ import org.apache.plc4x.java.api.types.PlcResponseCode;
 import org.apache.plc4x.java.api.value.PlcValue;
 import org.apache.plc4x.java.opcua.config.OpcuaConfiguration;
 import org.apache.plc4x.java.opcua.context.CertificateKeyPair;
+import org.apache.plc4x.java.opcua.context.EncryptionHandler;
 import org.apache.plc4x.java.opcua.readwrite.*;
 import org.apache.plc4x.java.opcua.readwrite.io.*;
 import org.apache.plc4x.java.opcua.readwrite.types.*;
@@ -52,6 +53,7 @@ import org.bouncycastle.asn1.pkcs.RSAPublicKey;
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.BufferedAsymmetricBlockCipher;
 import org.bouncycastle.crypto.engines.RSAEngine;
+import org.bouncycastle.crypto.macs.HMac;
 import org.bouncycastle.crypto.modes.CBCBlockCipher;
 import org.bouncycastle.crypto.paddings.PaddedBufferedBlockCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
@@ -59,6 +61,7 @@ import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
 import org.bouncycastle.jcajce.provider.asymmetric.rsa.BCRSAPublicKey;
 import org.bouncycastle.jce.provider.X509CertificateObject;
+import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -145,6 +148,7 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
     private byte[] senderNonce = null;
     private String certificateThumbprint = null;
     private OpcuaConfiguration configuration;
+    private EncryptionHandler encryptionHandler = null;
 
     private AtomicBoolean securedConnection = new AtomicBoolean(false);
 
@@ -160,7 +164,9 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
         LOGGER.info("---------------------------------------");
         LOGGER.info(configuration.getSecurityPolicy());
         this.ckp = configuration.getCertificateKeyPair();
+
         if (configuration.getSecurityPolicy().equals("Basic256Sha256")) {
+            this.encryptionHandler = new EncryptionHandler(this.ckp, configuration.getSenderCertificate());
             try {
                 this.publicCertificate = new PascalByteString(this.ckp.getCertificate().getEncoded().length, this.ckp.getCertificate().getEncoded());
                 this.isEncrypted = true;
@@ -458,6 +464,8 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
 
                             EndpointDescription[] endpoints = response.getEndpoints();
                             for (EndpointDescription endpoint : endpoints) {
+                                LOGGER.info(endpoint.getEndpointUrl().getStringValue());
+                                LOGGER.info(endpoint.getSecurityPolicyUri().getStringValue());
                                 if (endpoint.getEndpointUrl().getStringValue().equals(this.endpoint) && endpoint.getSecurityPolicyUri().getStringValue().equals(this.securityPolicy)) {
                                     LOGGER.info("Found OPC UA endpoint {}", this.endpoint);
                                     this.configuration.setSenderCertificate(endpoint.getServerCertificate().getStringValue());
@@ -610,14 +618,14 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
                 buf.setPos(4);
                 buf.writeInt(32, encryptedLength);
                 buf.setPos(tempPos);
-                byte[] signature = sign(buf.getBytes(0, unencryptedLength + paddingSize + 1));
+                byte[] signature = encryptionHandler.sign(buf.getBytes(0, unencryptedLength + paddingSize + 1));
                 //Write the signature to the end of the buffer
                 //buf.setPos(encryptedLength - 256);
                 for (int i = 0; i < signature.length; i++) {
                     buf.writeByte(8, signature[i]);
                 }
                 buf.setPos(positionFirstBlock);
-                encryptBlock(buf, buf.getBytes(positionFirstBlock, positionFirstBlock + preEncryptedLength));
+                encryptionHandler.encryptBlock(buf, buf.getBytes(positionFirstBlock, positionFirstBlock + preEncryptedLength));
                 apu = OpcuaAPUIO.staticParse(new ReadBuffer(buf.getData(), true), false);
             }
 
@@ -642,19 +650,19 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
                             OpcuaAPUIO.staticSerialize(buf, new OpcuaAPU(opcuaOpenResponse));
                             byte[] data = buf.getBytes(headerLength, encryptedLength);
                             buf.setPos(headerLength);
-                            decryptBlock(buf, data);
+                            encryptionHandler.decryptBlock(buf, data);
                             int tempPos = buf.getPos();
                             LOGGER.info("Position at end of Decryption:- {}", tempPos);
                             LOGGER.info("Position at end of Decryption within Messgae:- {}", tempPos - headerLength);
                             buf.setPos(4);
-                            buf.writeInt(32, tempPos - 256);
+                            buf.writeInt(32, tempPos - 208 - 1);
                             //Check Signature, etc..
                             buf.setPos(0);
                             byte[] unencrypted = buf.getBytes(0, tempPos - 208);
-                            byte[] signature = buf.getBytes(tempPos - 208, tempPos + 48);
+                            byte[] signature = buf.getBytes(tempPos - 208, tempPos);
                             LOGGER.info("Signature Length:- {}" + signature.length);
                             LOGGER.info("Signature;- {}", signature);
-                            if (!checkSignature(unencrypted, signature)) {
+                            if (!encryptionHandler.checkSignature(unencrypted, signature)) {
                                 LOGGER.info("Signature verification failed: - {}", unencrypted);
                             }
                             readBuffer = new ReadBuffer(unencrypted, true);
@@ -1606,7 +1614,7 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
                 encodeableBuffer.position(0);
                 encodeableBuffer.get(encodeablePassword);
 
-                byte[] encryptedPassword = encryptPassword(encodeablePassword);
+                byte[] encryptedPassword = encryptionHandler.encryptPassword(encodeablePassword);
                 UserNameIdentityToken userNameIdentityToken =  new UserNameIdentityToken(
                     new PascalString("username".length(), "username"),
                     new PascalString(this.username.length(), this.username),
@@ -1629,96 +1637,12 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
         return null;
     }
 
-
-    public byte[] encryptPassword(byte[] data) {
-        try {
-            Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-1AndMGF1Padding");
-            cipher.init(Cipher.ENCRYPT_MODE, getCertificateX509().getPublicKey());
-            return cipher.doFinal(data);
-        } catch (Exception e) {
-            LOGGER.error("Unable to encrypt Data");
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    public void encryptBlock(WriteBuffer buf, byte[] data) {
-        try {
-            Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-1AndMGF1Padding");
-            cipher.init(Cipher.ENCRYPT_MODE, getCertificateX509().getPublicKey());
-            for (int i = 0; i < data.length; i += 190) {
-                LOGGER.info("Iterate:- {}, Data Length:- {}", i, data.length);
-                byte[] encrypted = cipher.doFinal(data, i, 190);
-                for (int j = 0; j < 256; j++) {
-                    buf.writeByte(8, encrypted[j]);
-                }
-            }
-        } catch (Exception e) {
-            LOGGER.error("Unable to encrypt Data");
-            e.printStackTrace();
-        }
-    }
-
-    public void decryptBlock(WriteBuffer buf, byte[] data) {
-        try {
-            Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-1AndMGF1Padding");
-            cipher.init(Cipher.DECRYPT_MODE, this.ckp.getKeyPair().getPrivate());
-            for (int i = 0; i < data.length; i += 256) {
-                LOGGER.info("Decrypt Iterate:- {}, Data Length:- {}", i, data.length);
-                byte[] decrypted = cipher.doFinal(data, i, 256);
-                for (int j = 0; j < 190; j++) {
-                    buf.writeByte(8, decrypted[j]);
-                }
-            }
-        } catch (Exception e) {
-            LOGGER.error("Unable to decrypt Data");
-            e.printStackTrace();
-        }
-    }
-
-    public X509Certificate getCertificateX509() {
-        try {
-            CertificateFactory factory =  CertificateFactory.getInstance("X.509");
-            LOGGER.info("Public Key Length {}", this.senderCertificate.length);
-            return (X509Certificate) factory.generateCertificate(new ByteArrayInputStream(this.senderCertificate));
-        } catch (Exception e) {
-            LOGGER.error("Unable to get certificate from String {}", this.senderCertificate);
-            return null;
-        }
-    }
-
     private GuidValue toGuidValue(String identifier) {
         LOGGER.error("Querying Guid nodes is not supported");
         byte[] data4 = new byte[] {0,0};
         byte[] data5 = new byte[] {0,0,0,0,0,0};
         return new GuidValue(0L,0,0,data4, data5);
 
-    }
-
-    public byte[] sign(byte[] data) {
-        try {
-            Signature signature = Signature.getInstance("SHA256withRSA", "BC");
-            signature.initSign(this.ckp.getKeyPair().getPrivate());
-            signature.update(data);
-            return signature.sign();
-        } catch (Exception e) {
-            e.printStackTrace();
-            LOGGER.error("Unable to sign Data");
-            return null;
-        }
-    }
-
-    public boolean checkSignature(byte[] data, byte[] senderSignature) {
-        try {
-            Signature signature = Signature.getInstance("HmacSha256", "BC");
-            signature.initVerify(getCertificateX509().getPublicKey());
-            signature.update(data);
-            return signature.verify(senderSignature);
-        } catch (Exception e) {
-            e.printStackTrace();
-            LOGGER.error("Unable to sign Data");
-            return false;
-        }
     }
 
 }
