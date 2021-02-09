@@ -407,8 +407,9 @@
 ]
 
 [type 'PascalString'
-    [simple int 32 'stringLength']
-    [optional string 'stringLength == -1 ? 0 : stringLength * 8' 'UTF-8' 'stringValue' 'stringLength >= 0']
+    [implicit int 32 'stringLength' 'stringValue.lengthInBytes == 0 ? -1 : stringValue.lengthInBytes']
+    [virtual int 32 'virtualStringLength' 'stringLength']
+    [optional string 'lengthInBits == -1 ? 0 : lengthInBits' 'UTF-8' 'stringValue' 'lengthInBits >= 0']
 ]
 
 [type 'PascalByteString'

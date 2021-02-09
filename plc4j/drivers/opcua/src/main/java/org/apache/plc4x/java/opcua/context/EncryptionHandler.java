@@ -19,6 +19,7 @@ under the License.
 
 package org.apache.plc4x.java.opcua.context;
 
+import org.apache.plc4x.java.api.exceptions.PlcRuntimeException;
 import org.apache.plc4x.java.opcua.protocol.OpcuaProtocolLogic;
 import org.apache.plc4x.java.opcua.readwrite.MessagePDU;
 import org.apache.plc4x.java.opcua.readwrite.OpcuaAPU;
@@ -27,20 +28,26 @@ import org.apache.plc4x.java.opcua.readwrite.io.OpcuaAPUIO;
 import org.apache.plc4x.java.spi.generation.ParseException;
 import org.apache.plc4x.java.spi.generation.ReadBuffer;
 import org.apache.plc4x.java.spi.generation.WriteBuffer;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.crypto.Cipher;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.ByteArrayInputStream;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.Signature;
+import java.security.*;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
 public class EncryptionHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OpcuaProtocolLogic.class);
+
+    static {
+        // Required for SecurityPolicy.Aes256_Sha256_RsaPss
+        Security.addProvider(new BouncyCastleProvider());
+    }
 
     private X509Certificate serverCertificate;
     private X509Certificate clientCertificate;
@@ -54,47 +61,72 @@ public class EncryptionHandler {
         this.serverCertificate = getCertificateX509(senderCertificate);
     }
 
-    public ReadBuffer decodeOpcuaOpenResponse(OpcuaOpenResponse message) throws ParseException {
-        int encryptedLength = message.getLengthInBytes();
-        LOGGER.info("Encrypted Length {}", encryptedLength);
-        int encryptedMessageLength = message.getMessage().length + 8;
-        LOGGER.info("Encrypted Message Length {}", encryptedMessageLength);
+    public ReadBuffer encodeMessage(MessagePDU pdu, byte[] message) {
+        int PREENCRYPTED_BLOCK_LENGTH = 190;
+        int unencryptedLength = pdu.getLengthInBytes();
+        int openRequestLength = message.length;
+        int positionFirstBlock = unencryptedLength - openRequestLength - 8;
+        int paddingSize = PREENCRYPTED_BLOCK_LENGTH - ((openRequestLength + 256 + 1 + 8) % PREENCRYPTED_BLOCK_LENGTH);
+        int preEncryptedLength = openRequestLength + 256 + 1 + 8 + paddingSize;
+        if (preEncryptedLength % PREENCRYPTED_BLOCK_LENGTH != 0) {
+            throw new PlcRuntimeException("Pre encrypted block length " + preEncryptedLength + " isn't a multiple of the block size");
+        }
+        int numberOfBlocks = preEncryptedLength / PREENCRYPTED_BLOCK_LENGTH;
+        int encryptedLength = numberOfBlocks * 256 + positionFirstBlock;
+        WriteBuffer buf = new WriteBuffer(encryptedLength, true);
+        try {
+            OpcuaAPUIO.staticSerialize(buf, new OpcuaAPU(pdu));
+            byte paddingByte = (byte) paddingSize;
+            buf.writeByte(8, paddingByte);
+            for (int i = 0; i < paddingSize; i++) {
+                buf.writeByte(8, paddingByte);
+            }
+            //Writing Message Length
+            int tempPos = buf.getPos();
+            buf.setPos(4);
+            buf.writeInt(32, encryptedLength);
+            buf.setPos(tempPos);
+            byte[] signature = sign(buf.getBytes(0, unencryptedLength + paddingSize + 1));
+            //Write the signature to the end of the buffer
+            for (int i = 0; i < signature.length; i++) {
+                buf.writeByte(8, signature[i]);
+            }
+            buf.setPos(positionFirstBlock);
+            encryptBlock(buf, buf.getBytes(positionFirstBlock, positionFirstBlock + preEncryptedLength));
+            return new ReadBuffer(buf.getData(), true);
+        } catch (ParseException e) {
+            throw new PlcRuntimeException("Unable to parse apu prior to encrypting");
+        }
+    }
+
+    public ReadBuffer decodeMessage(MessagePDU pdu, byte[] message) throws ParseException {
+        int encryptedLength = pdu.getLengthInBytes();
+        int encryptedMessageLength = message.length + 8;
         int headerLength = encryptedLength - encryptedMessageLength;
-        LOGGER.info("Header Length {}", headerLength);
         int numberOfBlocks = encryptedMessageLength / 256;
-        LOGGER.info("Number of Blocks Length {}", numberOfBlocks);
         WriteBuffer buf = new WriteBuffer(headerLength + numberOfBlocks * 256,true);
-        OpcuaAPUIO.staticSerialize(buf, new OpcuaAPU(message));
+        OpcuaAPUIO.staticSerialize(buf, new OpcuaAPU(pdu));
         byte[] data = buf.getBytes(headerLength, encryptedLength);
         buf.setPos(headerLength);
         decryptBlock(buf, data);
         int tempPos = buf.getPos();
-        LOGGER.info("Position at end of Decryption:- {}", tempPos);
-        LOGGER.info("Position at end of Decryption within Messgae:- {}", tempPos - headerLength);
-        buf.setPos(4);
-        buf.writeInt(32, tempPos - 208 - 1);
-        //Check Signature, etc..
         buf.setPos(0);
-        byte[] unencrypted = buf.getBytes(0, tempPos - 208);
-        byte[] signature = buf.getBytes(tempPos - 208, tempPos);
-        LOGGER.info("Signature Length:- {}" + signature.length);
-        LOGGER.info("Signature;- {}", signature);
-        if (!checkSignature(unencrypted, signature)) {
-            LOGGER.info("Signature verification failed: - {}", unencrypted);
+        if (!checkSignature(buf.getBytes(0, tempPos))) {
+            LOGGER.info("Signature verification failed: - {}", buf.getBytes(0, tempPos - 256));
         }
-        ReadBuffer readBuffer = new ReadBuffer(unencrypted, true);
-        OpcuaOpenResponse opcuaOpenResponse = (OpcuaOpenResponse) OpcuaAPUIO.staticParse(readBuffer, true).getMessage();
-        return new ReadBuffer(opcuaOpenResponse.getMessage(), true);
+        buf.setPos(4);
+        buf.writeInt(32, tempPos - 256);
+        return new ReadBuffer(buf.getBytes(0, tempPos - 256), true);
     }
 
     public void decryptBlock(WriteBuffer buf, byte[] data) {
         try {
             Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-1AndMGF1Padding");
             cipher.init(Cipher.DECRYPT_MODE, this.clientPrivateKey);
+
             for (int i = 0; i < data.length; i += 256) {
-                LOGGER.info("Decrypt Iterate:- {}, Data Length:- {}", i, data.length);
                 byte[] decrypted = cipher.doFinal(data, i, 256);
-                for (int j = 0; j < 190; j++) {
+                for (int j = 0; j < 214; j++) {
                     buf.writeByte(8, decrypted[j]);
                 }
             }
@@ -104,18 +136,20 @@ public class EncryptionHandler {
         }
     }
 
-    public boolean checkSignature(byte[] data, byte[] senderSignature) {
+    public boolean checkSignature(byte[] data) {
         try {
             LOGGER.info("Server public key size {}", this.serverCertificate.getPublicKey().getEncoded().length);
             LOGGER.info("Server public key format {}", this.serverCertificate.getPublicKey().getFormat());
             LOGGER.info("Server public key {}", this.serverCertificate.getPublicKey().toString());
-            LOGGER.info("Server public key Algo{}", this.serverCertificate.getPublicKey().getAlgorithm());
+            LOGGER.info("Server public key Algo -{}", this.serverCertificate.getPublicKey().getAlgorithm());
+            LOGGER.info("Server public key Algo Name -{}",this.serverCertificate.getSigAlgName());
+            LOGGER.info("Providers:- {}", Security.getProviders());
 
-            //Signature signature = Signature.getInstance("HMAC-SHA-256", "BC");
+
             Signature signature = Signature.getInstance("SHA256withRSA", "BC");
-            signature.initVerify(this.serverCertificate.getPublicKey());
+            signature.initVerify(serverCertificate.getPublicKey());
             signature.update(data);
-            return signature.verify(senderSignature);
+            return signature.verify(data, 0, data.length - 256);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -151,6 +185,21 @@ public class EncryptionHandler {
             LOGGER.error("Unable to encrypt Data");
             e.printStackTrace();
         }
+    }
+
+    public void encryptHmacBlock(WriteBuffer buf, byte[] data) {
+        try {
+            Mac cipher = Mac.getInstance("HmacSHA256");
+            SecretKeySpec keySpec = new SecretKeySpec(getSecretKey(), "HmacSHA256");
+            cipher.init(keySpec);
+        } catch (Exception e) {
+            LOGGER.error("Unable to encrypt Data");
+            e.printStackTrace();
+        }
+    }
+
+    public byte[] getSecretKey() {
+        return null;
     }
 
 

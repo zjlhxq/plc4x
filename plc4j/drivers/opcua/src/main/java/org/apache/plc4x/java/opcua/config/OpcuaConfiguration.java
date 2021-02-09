@@ -85,7 +85,7 @@ public class OpcuaConfiguration implements Configuration, TcpTransportConfigurat
     @ConfigurationParameter("certDirectory")
     private String certDirectory;
 
-    @ConfigurationParameter("keyStorePassword")
+        @ConfigurationParameter("keyStorePassword")
     private String keyStorePassword;
 
     private CertificateKeyPair ckp;

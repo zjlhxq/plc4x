@@ -49,42 +49,21 @@ import org.apache.plc4x.java.spi.messages.utils.ResponseItem;
 import org.apache.plc4x.java.spi.transaction.RequestTransactionManager;
 import org.apache.plc4x.java.spi.values.IEC61131ValueHandler;
 import org.apache.plc4x.java.spi.values.PlcList;
-import org.bouncycastle.asn1.pkcs.RSAPublicKey;
-import org.bouncycastle.crypto.BlockCipher;
-import org.bouncycastle.crypto.BufferedAsymmetricBlockCipher;
-import org.bouncycastle.crypto.engines.RSAEngine;
-import org.bouncycastle.crypto.macs.HMac;
-import org.bouncycastle.crypto.modes.CBCBlockCipher;
-import org.bouncycastle.crypto.paddings.PaddedBufferedBlockCipher;
-import org.bouncycastle.crypto.params.KeyParameter;
-import org.bouncycastle.cert.X509CertificateHolder;
-import org.bouncycastle.crypto.params.RSAKeyParameters;
-import org.bouncycastle.jcajce.provider.asymmetric.rsa.BCRSAPublicKey;
-import org.bouncycastle.jce.provider.X509CertificateObject;
-import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.crypto.Cipher;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.Signature;
 import java.security.cert.CertificateEncodingException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -102,33 +81,33 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
     private static final int DEFAULT_SEND_BUFFER_SIZE = 65535;
     private static final int VERSION = 0;
     private static final String PASSWORD_ENCRYPTION_ALGORITHM = "http://www.w3.org/2001/04/xmlenc#rsa-oaep";
+    private static final PascalString NULL_STRING = new PascalString(null);
+    private static final PascalByteString NULL_BYTE_STRING = new PascalByteString( new byte[0]);
+    private static ExpandedNodeId NULL_EXPANDED_NODEID = new ExpandedNodeIdTwoByte(false,
+        false,
+        null,
+        null,
+        new TwoByteNodeId((short) 0));
+    private static final ExtensionObject NULL_EXTENSION_OBJECT = new ExtensionObject(NULL_EXPANDED_NODEID,
+        (short) 0,
+        null,               //Body Length
+        null);               // Body
+    private static final long EPOCH_OFFSET = 116444736000000000L;         //Offset between OPC UA epoch time and linux epoch time.
+    private static final String APPLICATION_URI = new PascalString("urn:apache:plc4x:client");
+    private static final String PRODUCT_URI = new PascalString("urn:apache:plc4x:client");
+    private static final PascalString APPLICATION_TEXT = new PascalString("OPCUA client for the Apache PLC4X:PLC4J project");
+    private static final String FINAL_CHUNK = "F";
+    private static final String CONTINUATION_CHUNK = "C";
+    private static final String ABORT_CHUNK = "F";
 
     private NodeId authenticationToken = new NodeIdTwoByte(NodeIdType.nodeIdTypeTwoByte, new TwoByteNodeId((short) 0));
-    private static final PascalString NULL_STRING = new PascalString(-1,null);
-    private static final PascalByteString NULL_BYTE_STRING = new PascalByteString(-1, new byte[0]);
-    private static ExpandedNodeId NULL_EXPANDED_NODEID = new ExpandedNodeIdTwoByte(false,
-                                                                                    false,
-                                                                                    null,
-                                                                                    null,
-                                                                                    new TwoByteNodeId((short) 0));
-    private static final ExtensionObject NULL_EXTENSION_OBJECT = new ExtensionObject(NULL_EXPANDED_NODEID,
-                                                                                        (short) 0,
-                                                                                null,               //Body Length
-                                                                                    null);               // Body
-    private static final long epochOffset = 116444736000000000L;         //Offset between OPC UA epoch time and linux epoch time.
 
-    private static final String CHUNK = "F";
-
-    private static final String applicationUri = "urn:apache:plc4x:client";
-    private static final String productUri = "urn:apache:plc4x:client";
-    private static final String applicationText = "OPCUA client for the Apache PLC4X:PLC4J project";
-
-    private final String sessionName = "UaSession:" + applicationText + ":" + RandomStringUtils.random(20, true, true);
+    private final PascalString sessionName = new PascalString("UaSession:" + APPLICATION_TEXT + ":" + RandomStringUtils.random(20, true, true));
     private final byte[] clientNonce = RandomUtils.nextBytes(40);
-    private RequestTransactionManager tm;
+    private RequestTransactionManager tm = new RequestTransactionManager(1);
 
-    private PascalString policyId = null;
-    private String endpoint;
+    private PascalString policyId;
+    private PascalString endpoint;
     private boolean discovery;
     private String username;
     private String password;
@@ -146,7 +125,7 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
     private AtomicInteger channelId = new AtomicInteger(1);
     private byte[] senderCertificate = null;
     private byte[] senderNonce = null;
-    private String certificateThumbprint = null;
+    private PascalByteString certificateThumbprint = null;
     private OpcuaConfiguration configuration;
     private EncryptionHandler encryptionHandler = null;
 
@@ -155,35 +134,31 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
     @Override
     public void setConfiguration(OpcuaConfiguration configuration) {
         this.configuration = configuration;
-        this.endpoint = configuration.getEndpoint();
+        this.endpoint = new PascalString(configuration.getEndpoint());
         this.discovery = configuration.isDiscovery();
         this.username = configuration.getUsername();
         this.password = configuration.getPassword();
         this.certFile = configuration.getCertDirectory();
         this.securityPolicy = "http://opcfoundation.org/UA/SecurityPolicy#" + configuration.getSecurityPolicy();
-        LOGGER.info("---------------------------------------");
-        LOGGER.info(configuration.getSecurityPolicy());
         this.ckp = configuration.getCertificateKeyPair();
 
         if (configuration.getSecurityPolicy().equals("Basic256Sha256")) {
-            this.encryptionHandler = new EncryptionHandler(this.ckp, configuration.getSenderCertificate());
+            //Sender Certificate gets populated during the discover phase when encryption is enabled.
+            this.senderCertificate = configuration.getSenderCertificate();
+            this.encryptionHandler = new EncryptionHandler(this.ckp, this.senderCertificate);
             try {
                 this.publicCertificate = new PascalByteString(this.ckp.getCertificate().getEncoded().length, this.ckp.getCertificate().getEncoded());
                 this.isEncrypted = true;
             } catch (CertificateEncodingException e) {
-                LOGGER.error("Failed to encode the certificate");
+                throw new PlcRuntimeException("Failed to encode the certificate");
             }
-            //this.thumbprint = new PascalByteString(this.ckp.getThumbPrint().length, this.ckp.getThumbPrint());
             this.thumbprint = configuration.getThumbprint();
-            this.senderCertificate = configuration.getSenderCertificate();
         } else {
             this.publicCertificate = NULL_BYTE_STRING;
             this.thumbprint = NULL_BYTE_STRING;
             this.isEncrypted = false;
         }
         this.keyStoreFile = configuration.getKeyStoreFile();
-
-        this.tm = new RequestTransactionManager(1);
     }
 
     @Override
@@ -193,9 +168,9 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
 
     @Override
     public void onDisconnect(ConversationContext<OpcuaAPU> context) {
-        int transactionId = getTransactionIdentifier(securedConnection.get());
+        int transactionId = getTransactionIdentifier();
 
-        int requestHandle = getRequestHandle(securedConnection.get());
+        int requestHandle = getRequestHandle();
 
         ExpandedNodeId expandedNodeId = new ExpandedNodeIdFourByte(false,           //Namespace Uri Specified
             false,            //Server Index Specified
@@ -220,7 +195,7 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
             WriteBuffer buffer = new WriteBuffer(closeSessionRequest.getLengthInBytes(), true);
             OpcuaMessageIO.staticSerialize(buffer, closeSessionRequest);
 
-            OpcuaMessageRequest messageRequest = new OpcuaMessageRequest(CHUNK,
+            OpcuaMessageRequest messageRequest = new OpcuaMessageRequest(FINAL_CHUNK,
                 channelId.get(),
                 tokenId.get(),
                 transactionId,
@@ -242,7 +217,7 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
 
     private void onDisconnectCloseSecureChannel(ConversationContext<OpcuaAPU> context) {
 
-        int transactionId = getTransactionIdentifier(securedConnection.get());
+        int transactionId = getTransactionIdentifier();
 
         ExpandedNodeId expandedNodeId = new ExpandedNodeIdFourByte(false,           //Namespace Uri Specified
             false,            //Server Index Specified
@@ -262,7 +237,7 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
             (byte) 0,
             requestHeader);
 
-        OpcuaCloseRequest closeRequest = new OpcuaCloseRequest(CHUNK,
+        OpcuaCloseRequest closeRequest = new OpcuaCloseRequest(FINAL_CHUNK,
             channelId.get(),
             tokenId.get(),
             transactionId,
@@ -284,10 +259,6 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
         super.setDriverContext(driverContext);
 
         // Initialize Transaction Manager.
-        // Until the number of concurrent requests is successfully negotiated we set it to a
-        // maximum of only one request being able to be sent at a time. During the login process
-        // No concurrent requests can be sent anyway. It will be updated when receiving the
-        // S7ParameterSetupCommunication response.
         this.tm = new RequestTransactionManager(1);
     }
 
@@ -296,13 +267,12 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
         // Only the TCP transport supports login.
         LOGGER.info("Opcua Driver running in ACTIVE mode.");
 
-        OpcuaHelloRequest hello = new OpcuaHelloRequest(CHUNK,
+        OpcuaHelloRequest hello = new OpcuaHelloRequest(FINAL_CHUNK,
             VERSION,
             DEFAULT_RECEIVE_BUFFER_SIZE,
             DEFAULT_SEND_BUFFER_SIZE,
             DEFAULT_MAX_MESSAGE_SIZE,
             DEFAULT_MAX_CHUNK_COUNT,
-            this.endpoint.length(),
             this.endpoint);
 
         context.sendRequest(new OpcuaAPU(hello))
@@ -320,13 +290,12 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
         // Only the TCP transport supports login.
         LOGGER.info("Opcua Driver running in ACTIVE mode, discovering endpoints");
 
-        OpcuaHelloRequest hello = new OpcuaHelloRequest(CHUNK,
+        OpcuaHelloRequest hello = new OpcuaHelloRequest(FINAL_CHUNK,
             VERSION,
             DEFAULT_RECEIVE_BUFFER_SIZE,
             DEFAULT_SEND_BUFFER_SIZE,
             DEFAULT_MAX_MESSAGE_SIZE,
             DEFAULT_MAX_CHUNK_COUNT,
-            this.endpoint.length(),
             this.endpoint);
 
         context.sendRequest(new OpcuaAPU(hello))
@@ -340,7 +309,7 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
     }
 
     public void onDiscoverOpenSecureChannel(ConversationContext<OpcuaAPU> context, OpcuaAcknowledgeResponse opcuaAcknowledgeResponse) {
-        int transactionId = getTransactionIdentifier(securedConnection.get());
+        int transactionId = getTransactionIdentifier();
 
         ExpandedNodeId expandedNodeId = new ExpandedNodeIdFourByte(false,           //Namespace Uri Specified
             false,            //Server Index Specified
@@ -369,9 +338,9 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
             WriteBuffer buffer = new WriteBuffer(openSecureChannelRequest.getLengthInBytes(), true);
             OpcuaMessageIO.staticSerialize(buffer, openSecureChannelRequest);
 
-            OpcuaOpenRequest openRequest = new OpcuaOpenRequest(CHUNK,
+            OpcuaOpenRequest openRequest = new OpcuaOpenRequest(FINAL_CHUNK,
                 0,
-                new PascalString("http://opcfoundation.org/UA/SecurityPolicy#None".length(), "http://opcfoundation.org/UA/SecurityPolicy#None"),
+                new PascalString("http://opcfoundation.org/UA/SecurityPolicy#None"),
                 NULL_BYTE_STRING,
                 NULL_BYTE_STRING,
                 transactionId,
@@ -410,7 +379,7 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
         tokenId.set((int) openSecureChannelResponse.getSecurityToken().getTokenId());
         channelId.set((int) openSecureChannelResponse.getSecurityToken().getChannelId());
 
-        int transactionId = getTransactionIdentifier(securedConnection.get());
+        int transactionId = getTransactionIdentifier();
 
         Integer nextSequenceNumber = opcuaOpenResponse.getSequenceNumber() + 1;
         Integer nextRequestId = opcuaOpenResponse.getRequestId() + 1;
@@ -431,7 +400,7 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
         GetEndpointsRequest endpointsRequest = new GetEndpointsRequest((byte) 1,
             (byte) 0,
             requestHeader,
-            new PascalString(this.endpoint.length(), this.endpoint),
+            this.endpoint,
             0,
             null,
             0,
@@ -441,7 +410,7 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
             WriteBuffer buffer = new WriteBuffer(endpointsRequest.getLengthInBytes(), true);
             OpcuaMessageIO.staticSerialize(buffer, endpointsRequest);
 
-            OpcuaMessageRequest messageRequest = new OpcuaMessageRequest(CHUNK,
+            OpcuaMessageRequest messageRequest = new OpcuaMessageRequest(FINAL_CHUNK,
                 channelId.get(),
                 tokenId.get(),
                 nextSequenceNumber,
@@ -466,8 +435,8 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
                             for (EndpointDescription endpoint : endpoints) {
                                 LOGGER.info(endpoint.getEndpointUrl().getStringValue());
                                 LOGGER.info(endpoint.getSecurityPolicyUri().getStringValue());
-                                if (endpoint.getEndpointUrl().getStringValue().equals(this.endpoint) && endpoint.getSecurityPolicyUri().getStringValue().equals(this.securityPolicy)) {
-                                    LOGGER.info("Found OPC UA endpoint {}", this.endpoint);
+                                if (endpoint.getEndpointUrl().getStringValue().equals(this.endpoint.getStringValue()) && endpoint.getSecurityPolicyUri().getStringValue().equals(this.securityPolicy)) {
+                                    LOGGER.info("Found OPC UA endpoint {}", this.endpoint.getStringValue());
                                     this.configuration.setSenderCertificate(endpoint.getServerCertificate().getStringValue());
                                 }
                             }
@@ -492,7 +461,7 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
 
     private void onDiscoverCloseSecureChannel(ConversationContext<OpcuaAPU> context, GetEndpointsResponse message) {
 
-        int transactionId = getTransactionIdentifier(securedConnection.get());
+        int transactionId = getTransactionIdentifier();
 
         ExpandedNodeId expandedNodeId = new ExpandedNodeIdFourByte(false,           //Namespace Uri Specified
             false,            //Server Index Specified
@@ -512,7 +481,7 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
             (byte) 0,
             requestHeader);
 
-        OpcuaCloseRequest closeRequest = new OpcuaCloseRequest(CHUNK,
+        OpcuaCloseRequest closeRequest = new OpcuaCloseRequest(FINAL_CHUNK,
             channelId.get(),
             tokenId.get(),
             transactionId,
@@ -532,7 +501,7 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
 
     public void onConnectOpenSecureChannel(ConversationContext<OpcuaAPU> context, OpcuaAcknowledgeResponse opcuaAcknowledgeResponse) {
 
-        int transactionId = getTransactionIdentifier(securedConnection.get());
+        int transactionId = getTransactionIdentifier();
 
         ExpandedNodeId expandedNodeId = new ExpandedNodeIdFourByte(false,           //Namespace Uri Specified
                                                                     false,            //Server Index Specified
@@ -573,9 +542,9 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
             WriteBuffer buffer = new WriteBuffer(openSecureChannelRequest.getLengthInBytes(), true);
             OpcuaMessageIO.staticSerialize(buffer, openSecureChannelRequest);
 
-            OpcuaOpenRequest openRequest = new OpcuaOpenRequest(CHUNK,
+            OpcuaOpenRequest openRequest = new OpcuaOpenRequest(FINAL_CHUNK,
                 0,
-                new PascalString(this.securityPolicy.length(), this.securityPolicy),
+                new PascalString(this.securityPolicy),
                 this.publicCertificate,
                 this.thumbprint,
                 transactionId,
@@ -585,48 +554,7 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
             OpcuaAPU apu = new OpcuaAPU(openRequest);
 
             if (this.isEncrypted) {
-                LOGGER.info("Encrypting data, Calculating number of blocks");
-                int PREENCRYPTED_BLOCK_LENGTH = 190;
-                int unencryptedLength = apu.getLengthInBytes();
-                LOGGER.info("Unencrypted Length {}", unencryptedLength);
-                int openRequestLength = buffer.getData().length;
-                LOGGER.info("Open Request Length {}", openRequestLength);
-                //The transaction Ids also get encrypted
-                int positionFirstBlock = unencryptedLength - openRequestLength - 8;
-                LOGGER.info("Position of First Block {}", positionFirstBlock);
-                int paddingSize = PREENCRYPTED_BLOCK_LENGTH - ((openRequestLength + 256 + 1 + 8) % PREENCRYPTED_BLOCK_LENGTH);
-                LOGGER.info("Padding Length {}", paddingSize);
-                int preEncryptedLength = openRequestLength + 256 + 1 + 8 + paddingSize;
-                LOGGER.info("Pre-Encrypted Length {}", preEncryptedLength);
-                if (preEncryptedLength % PREENCRYPTED_BLOCK_LENGTH != 0) {
-                    throw new PlcRuntimeException("Pre encrypted block length " + preEncryptedLength + " isn't a multiple of the block size");
-                }
-                int numberOfBlocks = preEncryptedLength / PREENCRYPTED_BLOCK_LENGTH;
-                LOGGER.info("Number of blocks {}", numberOfBlocks);
-                int encryptedLength = numberOfBlocks * 256 + positionFirstBlock;
-                LOGGER.info("Encrypted Length {}", encryptedLength);
-                WriteBuffer buf = new WriteBuffer(encryptedLength, true);
-                OpcuaAPUIO.staticSerialize(buf, apu);
-                byte paddingByte = (byte) paddingSize;
-                LOGGER.info("Writing Padding at position {}", buf.getPos());
-                buf.writeByte(8, paddingByte);
-                for (int i = 0; i < paddingSize; i++) {
-                    buf.writeByte(8, paddingByte);
-                }
-                //Writing Message Length
-                int tempPos = buf.getPos();
-                buf.setPos(4);
-                buf.writeInt(32, encryptedLength);
-                buf.setPos(tempPos);
-                byte[] signature = encryptionHandler.sign(buf.getBytes(0, unencryptedLength + paddingSize + 1));
-                //Write the signature to the end of the buffer
-                //buf.setPos(encryptedLength - 256);
-                for (int i = 0; i < signature.length; i++) {
-                    buf.writeByte(8, signature[i]);
-                }
-                buf.setPos(positionFirstBlock);
-                encryptionHandler.encryptBlock(buf, buf.getBytes(positionFirstBlock, positionFirstBlock + preEncryptedLength));
-                apu = OpcuaAPUIO.staticParse(new ReadBuffer(buf.getData(), true), false);
+                apu = OpcuaAPUIO.staticParse(encryptionHandler.encodeMessage(openRequest, buffer.getData()), false);
             }
 
             context.sendRequest(apu)
@@ -635,43 +563,12 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
                 .unwrap(p -> (OpcuaOpenResponse) p.getMessage())
                 .handle(opcuaOpenResponse -> {
                     try {
-                        //Decrypt If needed
-                        ReadBuffer readBuffer = null;
-                        if (isEncrypted) {
-                            int encryptedLength = opcuaOpenResponse.getLengthInBytes();
-                            LOGGER.info("Encrypted Length {}", encryptedLength);
-                            int encryptedMessageLength = opcuaOpenResponse.getMessage().length + 8;
-                            LOGGER.info("Encrypted Message Length {}", encryptedMessageLength);
-                            int headerLength = encryptedLength - encryptedMessageLength;
-                            LOGGER.info("Header Length {}", headerLength);
-                            int numberOfBlocks = encryptedMessageLength / 256;
-                            LOGGER.info("Number of Blocks Length {}", numberOfBlocks);
-                            WriteBuffer buf = new WriteBuffer(headerLength + numberOfBlocks * 256,true);
-                            OpcuaAPUIO.staticSerialize(buf, new OpcuaAPU(opcuaOpenResponse));
-                            byte[] data = buf.getBytes(headerLength, encryptedLength);
-                            buf.setPos(headerLength);
-                            encryptionHandler.decryptBlock(buf, data);
-                            int tempPos = buf.getPos();
-                            LOGGER.info("Position at end of Decryption:- {}", tempPos);
-                            LOGGER.info("Position at end of Decryption within Messgae:- {}", tempPos - headerLength);
-                            buf.setPos(4);
-                            buf.writeInt(32, tempPos - 208 - 1);
-                            //Check Signature, etc..
-                            buf.setPos(0);
-                            byte[] unencrypted = buf.getBytes(0, tempPos - 208);
-                            byte[] signature = buf.getBytes(tempPos - 208, tempPos);
-                            LOGGER.info("Signature Length:- {}" + signature.length);
-                            LOGGER.info("Signature;- {}", signature);
-                            if (!encryptionHandler.checkSignature(unencrypted, signature)) {
-                                LOGGER.info("Signature verification failed: - {}", unencrypted);
-                            }
-                            readBuffer = new ReadBuffer(unencrypted, true);
-                            opcuaOpenResponse = (OpcuaOpenResponse) OpcuaAPUIO.staticParse(readBuffer, true).getMessage();
-                            readBuffer = new ReadBuffer(opcuaOpenResponse.getMessage(), true);
-                        } else {
-                            readBuffer = new ReadBuffer(opcuaOpenResponse.getMessage(), true);
+                        if (this.isEncrypted) {
+                            opcuaOpenResponse = (OpcuaOpenResponse) OpcuaAPUIO.staticParse(encryptionHandler.decodeMessage(opcuaOpenResponse, opcuaOpenResponse.getMessage()), true).getMessage();
                         }
+                        ReadBuffer readBuffer = new ReadBuffer(opcuaOpenResponse.getMessage(), true);
                         OpcuaMessage message = OpcuaMessageIO.staticParse(readBuffer);
+
                         if (message instanceof ServiceFault) {
                             ServiceFault fault = (ServiceFault) message;
                             LOGGER.error("Failed to connect to opc ua server for the following reason:- {}, {}", fault.getResponseHeader().getServiceResult().getStatusCode(), OpcuaStatusCodes.enumForValue(fault.getResponseHeader().getServiceResult().getStatusCode()));
@@ -700,7 +597,7 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
         channelId.set((int) openSecureChannelResponse.getSecurityToken().getChannelId());
 
 
-        int transactionId = getTransactionIdentifier(securedConnection.get());
+        int transactionId = getTransactionIdentifier();
 
         Integer nextSequenceNumber = opcuaOpenResponse.getSequenceNumber() + 1;
         Integer nextRequestId = opcuaOpenResponse.getRequestId() + 1;
@@ -721,16 +618,16 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
         LocalizedText applicationName = new LocalizedText((short) 0,
             true,
             true,
-            new PascalString("en".length(), "en"),
-            new PascalString(applicationText.length(), applicationText));
+            new PascalString("en"),
+            APPLICATION_TEXT);
 
         PascalString gatewayServerUri = NULL_STRING;
         PascalString discoveryProfileUri = NULL_STRING;
         int noOfDiscoveryUrls = -1;
         PascalString[] discoveryUrls = new PascalString[0];
 
-        ApplicationDescription clientDescription = new ApplicationDescription(new PascalString(applicationUri.length(), applicationUri),
-            new PascalString(productUri.length(), productUri),
+        ApplicationDescription clientDescription = new ApplicationDescription(APPLICATION_URI,
+            PRODUCT_URI,
             applicationName,
             ApplicationType.applicationTypeClient,
             gatewayServerUri,
@@ -743,9 +640,9 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
             requestHeader,
             clientDescription,
             NULL_STRING,
-            new PascalString(endpoint.length(), endpoint),
-            new PascalString(sessionName.length(), sessionName),
-            new PascalByteString(clientNonce.length, clientNonce),
+            this.endpoint,
+            sessionName,
+            new PascalByteString(clientNonce),
             NULL_BYTE_STRING,
             120000L,
             0L);
@@ -754,14 +651,22 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
             WriteBuffer buffer = new WriteBuffer(createSessionRequest.getLengthInBytes(), true);
             OpcuaMessageIO.staticSerialize(buffer, createSessionRequest);
 
-            OpcuaMessageRequest messageRequest = new OpcuaMessageRequest(CHUNK,
+            OpcuaMessageRequest messageRequest = new OpcuaMessageRequest(FINAL_CHUNK,
                 channelId.get(),
                 tokenId.get(),
                 nextSequenceNumber,
                 nextRequestId,
                 buffer.getData());
 
-            context.sendRequest(new OpcuaAPU(messageRequest))
+            OpcuaAPU apu = null;
+
+            if (this.isEncrypted) {
+                apu = OpcuaAPUIO.staticParse(encryptionHandler.encodeMessage(messageRequest, buffer.getData()), false);
+            } else {
+                apu = new OpcuaAPU(messageRequest);
+            }
+
+            context.sendRequest(apu)
                 .expectResponse(OpcuaAPU.class, REQUEST_TIMEOUT)
                 .check(p -> p.getMessage() instanceof OpcuaMessageResponse)
                 .unwrap(p -> (OpcuaMessageResponse) p.getMessage())
@@ -796,8 +701,8 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
         senderNonce = createSessionResponse.getServerNonce().getStringValue();
 
         for (EndpointDescription endpointDescription: createSessionResponse.getServerEndpoints()) {
-            LOGGER.info("{} - {}", endpointDescription.getEndpointUrl().getStringValue(), this.endpoint);
-            if (endpointDescription.getEndpointUrl().getStringValue().equals(this.endpoint)) {
+            LOGGER.info("{} - {}", endpointDescription.getEndpointUrl().getStringValue(), this.endpoint.getStringValue());
+            if (endpointDescription.getEndpointUrl().getStringValue().equals(this.endpoint.getStringValue())) {
                 for (UserTokenPolicy identityToken : endpointDescription.getUserIdentityTokens()) {
                     if (identityToken.getTokenType() == UserTokenType.userTokenTypeAnonymous) {
                         if (this.username == null) {
@@ -817,7 +722,7 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
         tokenId.set((int) opcuaMessageResponse.getSecureTokenId());
         channelId.set((int) opcuaMessageResponse.getSecureChannelId());
 
-        int transactionId = getTransactionIdentifier(securedConnection.get());
+        int transactionId = getTransactionIdentifier();
 
         Integer nextSequenceNumber = opcuaMessageResponse.getSequenceNumber() + 1;
         Integer nextRequestId = opcuaMessageResponse.getRequestId() + 1;
@@ -827,7 +732,7 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
             throw new PlcConnectionException("Sequence number isn't as expected, we might have missed a packet. - " +  transactionId + " != " + nextSequenceNumber);
         }
 
-        int requestHandle = getRequestHandle(securedConnection.get());
+        int requestHandle = getRequestHandle();
 
         RequestHeader requestHeader = new RequestHeader(authenticationToken,
             getCurrentDateTime(),
@@ -866,7 +771,7 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
             WriteBuffer buffer = new WriteBuffer(activateSessionRequest.getLengthInBytes(), true);
             OpcuaMessageIO.staticSerialize(buffer, activateSessionRequest);
 
-            OpcuaMessageRequest activateMessageRequest = new OpcuaMessageRequest(CHUNK,
+            OpcuaMessageRequest activateMessageRequest = new OpcuaMessageRequest(FINAL_CHUNK,
                 channelId.get(),
                 tokenId.get(),
                 nextSequenceNumber,
@@ -912,7 +817,7 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
         DefaultPlcReadRequest request = (DefaultPlcReadRequest) readRequest;
 
 
-        int requestHandle = getRequestHandle(securedConnection.get());
+        int requestHandle = getRequestHandle();
 
         RequestHeader requestHeader = new RequestHeader(authenticationToken,
             getCurrentDateTime(),
@@ -936,7 +841,7 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
             } else if (field.getIdentifierType() == OpcuaIdentifierType.GUID_IDENTIFIER) {
                 nodeId = new NodeIdGuid(NodeIdType.nodeIdTypeGuid, new GuidNodeId(field.getNamespace(), toGuidValue(field.getIdentifier())));
             } else if (field.getIdentifierType() == OpcuaIdentifierType.STRING_IDENTIFIER) {
-                nodeId = new NodeIdString(NodeIdType.nodeIdTypeString, new StringNodeId(field.getNamespace(), new PascalString(field.getIdentifier().length(), field.getIdentifier())));
+                nodeId = new NodeIdString(NodeIdType.nodeIdTypeString, new StringNodeId(field.getNamespace(), new PascalString(field.getIdentifier())));
             }
             readValueArray[i] = new ReadValueId(nodeId,
                 0xD,
@@ -952,13 +857,13 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
             readValueArray.length,
             readValueArray);
 
-        int transactionId = getTransactionIdentifier(securedConnection.get());
+        int transactionId = getTransactionIdentifier();
 
         try {
             WriteBuffer buffer = new WriteBuffer(opcuaReadRequest.getLengthInBytes(), true);
             OpcuaMessageIO.staticSerialize(buffer, opcuaReadRequest);
 
-            OpcuaMessageRequest readMessageRequest = new OpcuaMessageRequest(CHUNK,
+            OpcuaMessageRequest readMessageRequest = new OpcuaMessageRequest(FINAL_CHUNK,
                 channelId.get(),
                 tokenId.get(),
                 transactionId,
@@ -1387,7 +1292,7 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
                 PascalString[] tmpString = new PascalString[length];
                 for (int i = 0; i < length; i++) {
                     String s = valueObject.getIndex(i).getString();
-                    tmpString[i] = new PascalString(s.length(), s);
+                    tmpString[i] = new PascalString(s);
                 }
                 return new VariantString(length == 1 ? false : true,
                     false,
@@ -1419,7 +1324,7 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
         CompletableFuture<PlcWriteResponse> future = new CompletableFuture<>();
         DefaultPlcWriteRequest request = (DefaultPlcWriteRequest) writeRequest;
 
-        int requestHandle = getRequestHandle(securedConnection.get());
+        int requestHandle = getRequestHandle();
 
         RequestHeader requestHeader = new RequestHeader(authenticationToken,
             getCurrentDateTime(),
@@ -1443,7 +1348,7 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
             } else if (field.getIdentifierType() == OpcuaIdentifierType.GUID_IDENTIFIER) {
                 nodeId = new NodeIdGuid(NodeIdType.nodeIdTypeGuid, new GuidNodeId(field.getNamespace(), toGuidValue(field.getIdentifier())));
             } else if (field.getIdentifierType() == OpcuaIdentifierType.STRING_IDENTIFIER) {
-                nodeId = new NodeIdString(NodeIdType.nodeIdTypeString, new StringNodeId(field.getNamespace(), new PascalString(field.getIdentifier().length(), field.getIdentifier())));
+                nodeId = new NodeIdString(NodeIdType.nodeIdTypeString, new StringNodeId(field.getNamespace(), new PascalString(field.getIdentifier())));
             }
             writeValueArray[i] = new WriteValue(nodeId,
                 0xD,
@@ -1470,13 +1375,13 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
             writeValueArray.length,
             writeValueArray);
 
-        int transactionId = getTransactionIdentifier(securedConnection.get());
+        int transactionId = getTransactionIdentifier();
 
         try {
             WriteBuffer buffer = new WriteBuffer(opcuaWriteRequest.getLengthInBytes(), true);
             OpcuaMessageIO.staticSerialize(buffer, opcuaWriteRequest);
 
-            OpcuaMessageRequest writeMessageRequest = new OpcuaMessageRequest(CHUNK,
+            OpcuaMessageRequest writeMessageRequest = new OpcuaMessageRequest(FINAL_CHUNK,
                 channelId.get(),
                 tokenId.get(),
                 transactionId,
@@ -1536,45 +1441,37 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
     }
 
     /**
-     * Returns the next transaction identifier, for a secured connection we should return a random number.
-     * @param random - Select if we return a random number or the next value
-     * @return
+     * Returns the next transaction identifier.
+     *
+     * @return the next sequential transaction identifier
      */
-    private int getTransactionIdentifier(boolean random) {
-        if (random) {
-            return ThreadLocalRandom.current().nextInt();
-        } else {
-            int transactionId = transactionIdentifierGenerator.getAndIncrement();
-            if(transactionIdentifierGenerator.get() == DEFAULT_MAX_REQUEST_ID) {
-                transactionIdentifierGenerator.set(1);
-            }
-            return transactionId;
+    private int getTransactionIdentifier() {
+        int transactionId = transactionIdentifierGenerator.getAndIncrement();
+        if(transactionIdentifierGenerator.get() == DEFAULT_MAX_REQUEST_ID) {
+            transactionIdentifierGenerator.set(1);
         }
+        return transactionId;
     }
 
     /**
-     * Returns the next request handle, for a secured connection we should return a random number.
-     * @param random - Select if we return a random number or the next value
-     * @return
+     * Returns the next request handle
+     *
+     * @return the next sequential request handle
      */
-    private int getRequestHandle(boolean random) {
-        if (random) {
-            return ThreadLocalRandom.current().nextInt();
-        } else {
-            int transactionId = requestHandleGenerator.getAndIncrement();
-            if(requestHandleGenerator.get() == DEFAULT_MAX_REQUEST_ID) {
-                requestHandleGenerator.set(1);
-            }
-            return transactionId;
+    private int getRequestHandle() {
+        int transactionId = requestHandleGenerator.getAndIncrement();
+        if(requestHandleGenerator.get() == DEFAULT_MAX_REQUEST_ID) {
+            requestHandleGenerator.set(1);
         }
+        return transactionId;
     }
 
     private long getCurrentDateTime() {
-        return (System.currentTimeMillis() * 10000) + epochOffset;
+        return (System.currentTimeMillis() * 10000) + EPOCH_OFFSET;
     }
 
     private long getDateTime(long dateTime) {
-        return (dateTime - epochOffset) / 10000;
+        return (dateTime - EPOCH_OFFSET) / 10000;
     }
 
     /**
@@ -1616,10 +1513,10 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
 
                 byte[] encryptedPassword = encryptionHandler.encryptPassword(encodeablePassword);
                 UserNameIdentityToken userNameIdentityToken =  new UserNameIdentityToken(
-                    new PascalString("username".length(), "username"),
-                    new PascalString(this.username.length(), this.username),
+                    new PascalString("username"),
+                    new PascalString(this.username),
                     new PascalByteString(encryptedPassword.length, encryptedPassword),
-                    new PascalString(PASSWORD_ENCRYPTION_ALGORITHM.length(), PASSWORD_ENCRYPTION_ALGORITHM)
+                    new PascalString(PASSWORD_ENCRYPTION_ALGORITHM)
                 );
                 WriteBuffer bufferUserName = new WriteBuffer(userNameIdentityToken.getLengthInBytes(), true);
                 try{
