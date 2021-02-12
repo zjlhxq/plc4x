@@ -19,17 +19,12 @@
 
 package org.apache.plc4x.java.opcua.optimizer;
 
-import org.apache.plc4x.java.api.exceptions.PlcRuntimeException;
 import org.apache.plc4x.java.api.messages.PlcReadRequest;
 import org.apache.plc4x.java.api.messages.PlcRequest;
-import org.apache.plc4x.java.api.messages.PlcWriteRequest;
 import org.apache.plc4x.java.api.model.PlcField;
-import org.apache.plc4x.java.api.value.PlcValue;
-import org.apache.plc4x.java.opcua.protocol.OpcuaField;
+import org.apache.plc4x.java.opcua.field.OpcuaField;
 import org.apache.plc4x.java.spi.context.DriverContext;
 import org.apache.plc4x.java.spi.messages.DefaultPlcReadRequest;
-import org.apache.plc4x.java.spi.messages.DefaultPlcWriteRequest;
-import org.apache.plc4x.java.spi.messages.utils.FieldValueItem;
 import org.apache.plc4x.java.spi.optimizer.BaseOptimizer;
 
 import java.util.LinkedHashMap;

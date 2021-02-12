@@ -22,15 +22,16 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.plc4x.java.api.exceptions.PlcConnectionException;
 import org.apache.plc4x.java.api.exceptions.PlcRuntimeException;
-import org.apache.plc4x.java.api.messages.PlcReadRequest;
-import org.apache.plc4x.java.api.messages.PlcReadResponse;
-import org.apache.plc4x.java.api.messages.PlcWriteRequest;
-import org.apache.plc4x.java.api.messages.PlcWriteResponse;
+import org.apache.plc4x.java.api.messages.*;
+import org.apache.plc4x.java.api.model.PlcConsumerRegistration;
+import org.apache.plc4x.java.api.model.PlcSubscriptionField;
+import org.apache.plc4x.java.api.model.PlcSubscriptionHandle;
 import org.apache.plc4x.java.api.types.PlcResponseCode;
 import org.apache.plc4x.java.api.value.PlcValue;
 import org.apache.plc4x.java.opcua.config.OpcuaConfiguration;
 import org.apache.plc4x.java.opcua.context.CertificateKeyPair;
 import org.apache.plc4x.java.opcua.context.EncryptionHandler;
+import org.apache.plc4x.java.opcua.field.OpcuaField;
 import org.apache.plc4x.java.opcua.readwrite.*;
 import org.apache.plc4x.java.opcua.readwrite.io.*;
 import org.apache.plc4x.java.opcua.readwrite.types.*;
@@ -41,11 +42,10 @@ import org.apache.plc4x.java.spi.context.DriverContext;
 import org.apache.plc4x.java.spi.generation.ParseException;
 import org.apache.plc4x.java.spi.generation.ReadBuffer;
 import org.apache.plc4x.java.spi.generation.WriteBuffer;
-import org.apache.plc4x.java.spi.messages.DefaultPlcReadRequest;
-import org.apache.plc4x.java.spi.messages.DefaultPlcReadResponse;
-import org.apache.plc4x.java.spi.messages.DefaultPlcWriteRequest;
-import org.apache.plc4x.java.spi.messages.DefaultPlcWriteResponse;
+import org.apache.plc4x.java.spi.messages.*;
 import org.apache.plc4x.java.spi.messages.utils.ResponseItem;
+import org.apache.plc4x.java.spi.model.DefaultPlcConsumerRegistration;
+import org.apache.plc4x.java.spi.model.DefaultPlcSubscriptionField;
 import org.apache.plc4x.java.spi.transaction.RequestTransactionManager;
 import org.apache.plc4x.java.spi.values.IEC61131ValueHandler;
 import org.apache.plc4x.java.spi.values.PlcList;
@@ -64,10 +64,15 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 
-public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements HasConfiguration<OpcuaConfiguration> {
+public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements HasConfiguration<OpcuaConfiguration>, PlcSubscriber {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OpcuaProtocolLogic.class);
     public static final Duration REQUEST_TIMEOUT = Duration.ofMillis(1000000);
@@ -81,8 +86,9 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
     private static final int DEFAULT_SEND_BUFFER_SIZE = 65535;
     private static final int VERSION = 0;
     private static final String PASSWORD_ENCRYPTION_ALGORITHM = "http://www.w3.org/2001/04/xmlenc#rsa-oaep";
-    private static final PascalString NULL_STRING = new PascalString(null);
-    private static final PascalByteString NULL_BYTE_STRING = new PascalByteString( new byte[0]);
+    private static final PascalString SECURITY_POLICY_NONE = new PascalString("http://opcfoundation.org/UA/SecurityPolicy#None".length(), "http://opcfoundation.org/UA/SecurityPolicy#None");
+    private static final PascalString NULL_STRING = new PascalString(-1, null);
+    private static final PascalByteString NULL_BYTE_STRING = new PascalByteString( -1, new byte[0]);
     private static ExpandedNodeId NULL_EXPANDED_NODEID = new ExpandedNodeIdTwoByte(false,
         false,
         null,
@@ -93,16 +99,16 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
         null,               //Body Length
         null);               // Body
     private static final long EPOCH_OFFSET = 116444736000000000L;         //Offset between OPC UA epoch time and linux epoch time.
-    private static final String APPLICATION_URI = new PascalString("urn:apache:plc4x:client");
-    private static final String PRODUCT_URI = new PascalString("urn:apache:plc4x:client");
-    private static final PascalString APPLICATION_TEXT = new PascalString("OPCUA client for the Apache PLC4X:PLC4J project");
+    private static final PascalString APPLICATION_URI = new PascalString("urn:apache:plc4x:client".length(), "urn:apache:plc4x:client");
+    private static final PascalString PRODUCT_URI = new PascalString("urn:apache:plc4x:client".length(), "urn:apache:plc4x:client");
+    private static final PascalString APPLICATION_TEXT = new PascalString("OPCUA client for the Apache PLC4X:PLC4J project".length(), "OPCUA client for the Apache PLC4X:PLC4J project");
     private static final String FINAL_CHUNK = "F";
     private static final String CONTINUATION_CHUNK = "C";
     private static final String ABORT_CHUNK = "F";
 
     private NodeId authenticationToken = new NodeIdTwoByte(NodeIdType.nodeIdTypeTwoByte, new TwoByteNodeId((short) 0));
 
-    private final PascalString sessionName = new PascalString("UaSession:" + APPLICATION_TEXT + ":" + RandomStringUtils.random(20, true, true));
+    private final String sessionName = "UaSession:" + APPLICATION_TEXT + ":" + RandomStringUtils.random(20, true, true);
     private final byte[] clientNonce = RandomUtils.nextBytes(40);
     private RequestTransactionManager tm = new RequestTransactionManager(1);
 
@@ -129,12 +135,17 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
     private OpcuaConfiguration configuration;
     private EncryptionHandler encryptionHandler = null;
 
+    private Map<Long, OpcuaSubscriptionHandle> subscriptions = new HashMap<>();
+
+
+    private final AtomicLong clientHandles = new AtomicLong(1L);
+
     private AtomicBoolean securedConnection = new AtomicBoolean(false);
 
     @Override
     public void setConfiguration(OpcuaConfiguration configuration) {
         this.configuration = configuration;
-        this.endpoint = new PascalString(configuration.getEndpoint());
+        this.endpoint = new PascalString(configuration.getEndpoint().length(), configuration.getEndpoint());
         this.discovery = configuration.isDiscovery();
         this.username = configuration.getUsername();
         this.password = configuration.getPassword();
@@ -340,7 +351,7 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
 
             OpcuaOpenRequest openRequest = new OpcuaOpenRequest(FINAL_CHUNK,
                 0,
-                new PascalString("http://opcfoundation.org/UA/SecurityPolicy#None"),
+                SECURITY_POLICY_NONE,
                 NULL_BYTE_STRING,
                 NULL_BYTE_STRING,
                 transactionId,
@@ -544,7 +555,7 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
 
             OpcuaOpenRequest openRequest = new OpcuaOpenRequest(FINAL_CHUNK,
                 0,
-                new PascalString(this.securityPolicy),
+                new PascalString(this.securityPolicy.length(), this.securityPolicy),
                 this.publicCertificate,
                 this.thumbprint,
                 transactionId,
@@ -603,7 +614,6 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
         Integer nextRequestId = opcuaOpenResponse.getRequestId() + 1;
 
         if (!(transactionId == nextSequenceNumber)) {
-            LOGGER.error("Sequence number isn't as expected, we might have missed a packet. - " +  transactionId + " != " + nextSequenceNumber);
             throw new PlcConnectionException("Sequence number isn't as expected, we might have missed a packet. - " +  transactionId + " != " + nextSequenceNumber);
         }
 
@@ -618,7 +628,7 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
         LocalizedText applicationName = new LocalizedText((short) 0,
             true,
             true,
-            new PascalString("en"),
+            new PascalString("en".length(), "en"),
             APPLICATION_TEXT);
 
         PascalString gatewayServerUri = NULL_STRING;
@@ -641,8 +651,8 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
             clientDescription,
             NULL_STRING,
             this.endpoint,
-            sessionName,
-            new PascalByteString(clientNonce),
+            new PascalString(sessionName.length(), sessionName),
+            new PascalByteString(clientNonce.length, clientNonce),
             NULL_BYTE_STRING,
             120000L,
             0L);
@@ -696,11 +706,10 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
 
     private void onConnectActivateSessionRequest(ConversationContext<OpcuaAPU> context, OpcuaMessageResponse opcuaMessageResponse, CreateSessionResponse sessionResponse) throws PlcConnectionException {
 
-        CreateSessionResponse createSessionResponse = sessionResponse;
-        senderCertificate = createSessionResponse.getServerCertificate().getStringValue();
-        senderNonce = createSessionResponse.getServerNonce().getStringValue();
+        senderCertificate = sessionResponse.getServerCertificate().getStringValue();
+        senderNonce = sessionResponse.getServerNonce().getStringValue();
 
-        for (EndpointDescription endpointDescription: createSessionResponse.getServerEndpoints()) {
+        for (EndpointDescription endpointDescription: sessionResponse.getServerEndpoints()) {
             LOGGER.info("{} - {}", endpointDescription.getEndpointUrl().getStringValue(), this.endpoint.getStringValue());
             if (endpointDescription.getEndpointUrl().getStringValue().equals(this.endpoint.getStringValue())) {
                 for (UserTokenPolicy identityToken : endpointDescription.getUserIdentityTokens()) {
@@ -716,9 +725,8 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
                 }
             }
         }
-        LOGGER.info(policyId.getStringValue());
 
-        authenticationToken = createSessionResponse.getAuthenticationToken();
+        authenticationToken = sessionResponse.getAuthenticationToken();
         tokenId.set((int) opcuaMessageResponse.getSecureTokenId());
         channelId.set((int) opcuaMessageResponse.getSecureChannelId());
 
@@ -728,7 +736,6 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
         Integer nextRequestId = opcuaMessageResponse.getRequestId() + 1;
 
         if (!(transactionId == nextSequenceNumber)) {
-            LOGGER.error("Sequence number isn't as expected, we might have missed a packet. - {} != {}" , transactionId, nextSequenceNumber);
             throw new PlcConnectionException("Sequence number isn't as expected, we might have missed a packet. - " +  transactionId + " != " + nextSequenceNumber);
         }
 
@@ -833,16 +840,8 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
             String fieldName = iterator.next();
             OpcuaField field = (OpcuaField) request.getField(fieldName);
 
-            NodeId nodeId = null;
-            if (field.getIdentifierType() == OpcuaIdentifierType.BINARY_IDENTIFIER) {
-                nodeId = new NodeIdTwoByte(NodeIdType.nodeIdTypeTwoByte, new TwoByteNodeId(Short.valueOf(field.getIdentifier())));
-            } else if (field.getIdentifierType() == OpcuaIdentifierType.NUMBER_IDENTIFIER) {
-                nodeId = new NodeIdNumeric(NodeIdType.nodeIdTypeNumeric, new NumericNodeId(field.getNamespace(),Long.valueOf(field.getIdentifier())));
-            } else if (field.getIdentifierType() == OpcuaIdentifierType.GUID_IDENTIFIER) {
-                nodeId = new NodeIdGuid(NodeIdType.nodeIdTypeGuid, new GuidNodeId(field.getNamespace(), toGuidValue(field.getIdentifier())));
-            } else if (field.getIdentifierType() == OpcuaIdentifierType.STRING_IDENTIFIER) {
-                nodeId = new NodeIdString(NodeIdType.nodeIdTypeString, new StringNodeId(field.getNamespace(), new PascalString(field.getIdentifier())));
-            }
+            NodeId nodeId = generateNodeId(field);
+
             readValueArray[i] = new ReadValueId(nodeId,
                 0xD,
                 NULL_STRING,
@@ -897,6 +896,22 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
         }
 
         return future;
+    }
+
+    private NodeId generateNodeId(OpcuaField field) {
+        NodeId nodeId = null;
+        System.out.println(field.getIdentifierType());
+        System.out.println(field.getIdentifier());
+        if (field.getIdentifierType() == OpcuaIdentifierType.BINARY_IDENTIFIER) {
+            nodeId = new NodeIdTwoByte(NodeIdType.nodeIdTypeTwoByte, new TwoByteNodeId(Short.parseShort(field.getIdentifier())));
+        } else if (field.getIdentifierType() == OpcuaIdentifierType.NUMBER_IDENTIFIER) {
+            nodeId = new NodeIdNumeric(NodeIdType.nodeIdTypeNumeric, new NumericNodeId(field.getNamespace(),Long.valueOf(field.getIdentifier())));
+        } else if (field.getIdentifierType() == OpcuaIdentifierType.GUID_IDENTIFIER) {
+            nodeId = new NodeIdGuid(NodeIdType.nodeIdTypeGuid, new GuidNodeId(field.getNamespace(), toGuidValue(field.getIdentifier())));
+        } else if (field.getIdentifierType() == OpcuaIdentifierType.STRING_IDENTIFIER) {
+            nodeId = new NodeIdString(NodeIdType.nodeIdTypeString, new StringNodeId(field.getNamespace(), new PascalString(field.getIdentifier().length(), field.getIdentifier())));
+        }
+        return nodeId;
     }
 
     private Map<String, ResponseItem<PlcValue>> readResponse(LinkedHashSet<String> fieldNames, ReadResponse readResponse) {
@@ -1292,7 +1307,7 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
                 PascalString[] tmpString = new PascalString[length];
                 for (int i = 0; i < length; i++) {
                     String s = valueObject.getIndex(i).getString();
-                    tmpString[i] = new PascalString(s);
+                    tmpString[i] = new PascalString(s.length(), s);
                 }
                 return new VariantString(length == 1 ? false : true,
                     false,
@@ -1348,7 +1363,7 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
             } else if (field.getIdentifierType() == OpcuaIdentifierType.GUID_IDENTIFIER) {
                 nodeId = new NodeIdGuid(NodeIdType.nodeIdTypeGuid, new GuidNodeId(field.getNamespace(), toGuidValue(field.getIdentifier())));
             } else if (field.getIdentifierType() == OpcuaIdentifierType.STRING_IDENTIFIER) {
-                nodeId = new NodeIdString(NodeIdType.nodeIdTypeString, new StringNodeId(field.getNamespace(), new PascalString(field.getIdentifier())));
+                nodeId = new NodeIdString(NodeIdType.nodeIdTypeString, new StringNodeId(field.getNamespace(), new PascalString(field.getIdentifier().length(), field.getIdentifier())));
             }
             writeValueArray[i] = new WriteValue(nodeId,
                 0xD,
@@ -1440,12 +1455,293 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
         return new DefaultPlcWriteResponse(request, responseMap);
     }
 
+
+    @Override
+    public CompletableFuture<PlcSubscriptionResponse> subscribe(PlcSubscriptionRequest subscriptionRequest) {
+        CompletableFuture<PlcSubscriptionResponse> future = CompletableFuture.supplyAsync(() -> {
+            Map<String, ResponseItem<PlcSubscriptionHandle>> values = new HashMap<>();
+
+            boolean isFirst = true;
+            long subscriptionId = -1L;
+            List<MonitoredItemCreateRequest> requestList = new LinkedList<>();
+
+            for (String fieldName : subscriptionRequest.getFieldNames()) {
+                final DefaultPlcSubscriptionField fieldDefaultPlcSubscription = (DefaultPlcSubscriptionField) subscriptionRequest.getField(fieldName);
+
+
+                long cycleTime = fieldDefaultPlcSubscription.getDuration().orElse(Duration.ofSeconds(1)).toMillis();
+                PlcSubscriptionHandle subHandle = null;
+                PlcResponseCode responseCode = PlcResponseCode.ACCESS_DENIED;
+
+                try {
+                    if (isFirst) {
+                        CompletableFuture<CreateSubscriptionResponse> subscription = onSubscribeCreateSubscription(cycleTime);
+                        CreateSubscriptionResponse response = subscription.get(REQUEST_TIMEOUT_LONG, TimeUnit.MILLISECONDS);
+                        //Store this somewhere safe
+                        subscriptionId = response.getSubscriptionId();
+                        subscriptions.put(subscriptionId, new OpcuaSubscriptionHandle(this, subscriptionId, (OpcuaField) fieldDefaultPlcSubscription.getPlcField()));
+
+                        isFirst = false;
+                    }
+
+                    if (!(fieldDefaultPlcSubscription.getPlcField() instanceof OpcuaField)) {
+                        values.put(fieldName, new ResponseItem<>(PlcResponseCode.INVALID_ADDRESS, null));
+                    } else {
+                        values.put(fieldName, new ResponseItem<>(PlcResponseCode.OK,
+                            new OpcuaSubscriptionHandle(this, subscriptionId, (OpcuaField) fieldDefaultPlcSubscription.getPlcField())));
+                    }
+
+                    System.out.println(((OpcuaField) fieldDefaultPlcSubscription.getPlcField()).toString());
+
+                    NodeId idNode = generateNodeId((OpcuaField) fieldDefaultPlcSubscription.getPlcField());
+
+                    ReadValueId readValueId = new ReadValueId(
+                        (NodeIdString) idNode,
+                        0xD,
+                        NULL_STRING,
+                        new QualifiedName(0, NULL_STRING));
+
+                    MonitoringMode monitoringMode;
+                    switch (fieldDefaultPlcSubscription.getPlcSubscriptionType()) {
+                        case CYCLIC:
+                            monitoringMode = MonitoringMode.monitoringModeSampling;
+                            break;
+                        case CHANGE_OF_STATE:
+                            monitoringMode = MonitoringMode.monitoringModeReporting;
+                            break;
+                        case EVENT:
+                            monitoringMode = MonitoringMode.monitoringModeReporting;
+                            break;
+                        default:
+                            monitoringMode = MonitoringMode.monitoringModeReporting;
+                    }
+
+                    long clientHandle = clientHandles.getAndIncrement();
+
+                    MonitoringParameters parameters = new MonitoringParameters(
+                        clientHandle,
+                        (double) cycleTime,     // sampling interval
+                        NULL_EXTENSION_OBJECT,       // filter, null means use default
+                        1L,   // queue size
+                        true        // discard oldest
+                    );
+
+                    MonitoredItemCreateRequest request = new MonitoredItemCreateRequest(
+                        readValueId, monitoringMode, parameters);
+
+                    requestList.add(request);
+
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    LOGGER.warn("Unable to subscribe Elements because of: {}", e.getMessage());
+                } catch (ExecutionException e) {
+                    LOGGER.warn("Unable to subscribe Elements because of: {}", e.getMessage());
+                } catch (TimeoutException e) {
+                    LOGGER.warn("Unable to subscribe Elements because of: {}", e.getMessage());
+                }
+            }
+            CreateMonitoredItemsResponse monitoredItemsResponse = null;
+            try {
+                CompletableFuture<CreateMonitoredItemsResponse> monitoredItemsResponseFuture = onSubscribeCreateMonitoredItemsRequest(requestList, subscriptionId);
+                monitoredItemsResponse = monitoredItemsResponseFuture.get();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                LOGGER.warn("Unable to subscribe Elements because of: {}", e.getMessage());
+            } catch (ExecutionException e) {
+                LOGGER.warn("Unable to subscribe Elements because of: {}", e.getMessage());
+            }
+            /*
+            BiConsumer<UaMonitoredItem, Integer> onItemCreated =
+                (item, id) -> item.setValueConsumer(subscriptionHandle::onSubscriptionValue);
+
+            List<UaMonitoredItem> items = subscription.createMonitoredItems(
+                TimestampsToReturn.timestampsToReturnBoth,
+                requestList,
+                onItemCreated
+            ).get();
+
+            subHandle = subscriptionHandle;
+            responseCode = PlcResponseCode.OK;
+            responseItems.put(fieldName, new ResponseItem(responseCode, subHandle));
+            */
+            return new DefaultPlcSubscriptionResponse(subscriptionRequest, values);
+        });
+
+        return future;
+    }
+
+    private CompletableFuture<CreateSubscriptionResponse> onSubscribeCreateSubscription(long cycleTime) {
+        CompletableFuture<CreateSubscriptionResponse> future = new CompletableFuture<>();
+
+        int requestHandle = getRequestHandle();
+
+        RequestHeader requestHeader = new RequestHeader(authenticationToken,
+            getCurrentDateTime(),
+            requestHandle,
+            0L,
+            NULL_STRING,
+            REQUEST_TIMEOUT_LONG,
+            NULL_EXTENSION_OBJECT);
+
+        CreateSubscriptionRequest createSubscriptionRequest = new CreateSubscriptionRequest((byte) 1,
+            (byte) 0,
+            requestHeader,
+            cycleTime,
+            12000,
+            50,
+            65536,
+            true,
+            (short) 0
+        );
+
+        try {
+            WriteBuffer buffer = new WriteBuffer(createSubscriptionRequest.getLengthInBytes(), true);
+            OpcuaMessageIO.staticSerialize(buffer, createSubscriptionRequest);
+
+            int transactionId = getTransactionIdentifier();
+
+            OpcuaMessageRequest createMessageRequest = new OpcuaMessageRequest(FINAL_CHUNK,
+                channelId.get(),
+                tokenId.get(),
+                transactionId,
+                transactionId,
+                buffer.getData());
+
+            RequestTransactionManager.RequestTransaction transaction = tm.startRequest();
+            transaction.submit(() -> context.sendRequest(new OpcuaAPU(createMessageRequest))
+                .expectResponse(OpcuaAPU.class, REQUEST_TIMEOUT)
+                .onTimeout(future::completeExceptionally)
+                .onError((p, e) -> future.completeExceptionally(e))
+                .check(p -> p.getMessage() instanceof OpcuaMessageResponse)
+                .unwrap(p -> (OpcuaMessageResponse) p.getMessage())
+                .handle(opcuaResponse -> {
+                    CreateSubscriptionResponse responseMessage = null;
+                    try {
+                        responseMessage = (CreateSubscriptionResponse) OpcuaMessageIO.staticParse(new ReadBuffer(opcuaResponse.getMessage(), true));
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+
+                    // Pass the response back to the application.
+                    future.complete(responseMessage);
+
+                    // Finish the request-transaction.
+                    transaction.endRequest();
+                }));
+        } catch (ParseException e) {
+            LOGGER.info("Unable to serialize subscription request");
+        }
+        return future;
+    }
+
+    private CompletableFuture<CreateMonitoredItemsResponse> onSubscribeCreateMonitoredItemsRequest(List<MonitoredItemCreateRequest> requestList, long subscriptionId)  {
+        CompletableFuture<CreateMonitoredItemsResponse> future = new CompletableFuture<>();
+
+        int requestHandle = getRequestHandle();
+
+        RequestHeader requestHeader = new RequestHeader(authenticationToken,
+            getCurrentDateTime(),
+            requestHandle,
+            0L,
+            NULL_STRING,
+            REQUEST_TIMEOUT_LONG,
+            NULL_EXTENSION_OBJECT);
+
+        System.out.println(requestList.size());
+        System.out.println(requestList);
+
+        CreateMonitoredItemsRequest createMonitoredItemsRequest = new CreateMonitoredItemsRequest((byte) 1,
+            (byte) 0,
+            requestHeader,
+            subscriptionId,
+            TimestampsToReturn.timestampsToReturnBoth,
+            requestList.size(),
+            requestList.toArray(new MonitoredItemCreateRequest[requestList.size()])
+        );
+
+        try {
+            WriteBuffer buffer = new WriteBuffer(createMonitoredItemsRequest.getLengthInBytes(), true);
+            OpcuaMessageIO.staticSerialize(buffer, createMonitoredItemsRequest);
+
+            int transactionId = getTransactionIdentifier();
+
+            OpcuaMessageRequest createMessageRequest = new OpcuaMessageRequest(FINAL_CHUNK,
+                channelId.get(),
+                tokenId.get(),
+                transactionId,
+                transactionId,
+                buffer.getData());
+
+            RequestTransactionManager.RequestTransaction transaction = tm.startRequest();
+            transaction.submit(() -> context.sendRequest(new OpcuaAPU(createMessageRequest))
+                .expectResponse(OpcuaAPU.class, REQUEST_TIMEOUT)
+                .onTimeout(future::completeExceptionally)
+                .onError((p, e) -> future.completeExceptionally(e))
+                .check(p -> p.getMessage() instanceof OpcuaMessageResponse)
+                .unwrap(p -> (OpcuaMessageResponse) p.getMessage())
+                .handle(opcuaResponse -> {
+                    CreateMonitoredItemsResponse responseMessage = null;
+                    try {
+                        responseMessage = (CreateMonitoredItemsResponse) OpcuaMessageIO.staticParse(new ReadBuffer(opcuaResponse.getMessage(), true));
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+
+                    // Pass the response back to the application.
+                    future.complete(responseMessage);
+
+                    // Finish the request-transaction.
+                    transaction.endRequest();
+                }));
+        } catch (ParseException e) {
+            LOGGER.info("Unable to serialize subscription request");
+        }
+        return future;
+    }
+
+    @Override
+    public CompletableFuture<PlcUnsubscriptionResponse> unsubscribe(PlcUnsubscriptionRequest unsubscriptionRequest) {
+        unsubscriptionRequest.getSubscriptionHandles().forEach(o -> {
+            OpcuaSubscriptionHandle opcSubHandle = (OpcuaSubscriptionHandle) o;
+            /*
+            try {
+                client.getSubscriptionManager().deleteSubscription(opcSubHandle.getClientHandle()).get();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                LOGGER.warn("Unable to unsubscribe Elements because of: {}", e.getMessage());
+            } catch (ExecutionException e) {
+                LOGGER.warn("Unable to unsubscribe Elements because of: {}", e.getMessage());
+            }*/
+        });
+
+        return null;
+    }
+
+    @Override
+    public PlcConsumerRegistration register(Consumer<PlcSubscriptionEvent> consumer, Collection<PlcSubscriptionHandle> handles) {
+        List<PlcConsumerRegistration> registrations = new LinkedList<>();
+        // Register the current consumer for each of the given subscription handles
+        for (PlcSubscriptionHandle subscriptionHandle : handles) {
+            final PlcConsumerRegistration consumerRegistration = subscriptionHandle.register(consumer);
+            registrations.add(consumerRegistration);
+        }
+
+        return new DefaultPlcConsumerRegistration((PlcSubscriber) this, consumer, handles.toArray(new PlcSubscriptionHandle[0]));
+    }
+
+    @Override
+    public void unregister(PlcConsumerRegistration registration) {
+        registration.unregister();
+    }
+
+
+
     /**
      * Returns the next transaction identifier.
      *
      * @return the next sequential transaction identifier
      */
-    private int getTransactionIdentifier() {
+    public int getTransactionIdentifier() {
         int transactionId = transactionIdentifierGenerator.getAndIncrement();
         if(transactionIdentifierGenerator.get() == DEFAULT_MAX_REQUEST_ID) {
             transactionIdentifierGenerator.set(1);
@@ -1458,7 +1754,7 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
      *
      * @return the next sequential request handle
      */
-    private int getRequestHandle() {
+    public int getRequestHandle() {
         int transactionId = requestHandleGenerator.getAndIncrement();
         if(requestHandleGenerator.get() == DEFAULT_MAX_REQUEST_ID) {
             requestHandleGenerator.set(1);
@@ -1513,10 +1809,10 @@ public class OpcuaProtocolLogic extends Plc4xProtocolBase<OpcuaAPU> implements H
 
                 byte[] encryptedPassword = encryptionHandler.encryptPassword(encodeablePassword);
                 UserNameIdentityToken userNameIdentityToken =  new UserNameIdentityToken(
-                    new PascalString("username"),
-                    new PascalString(this.username),
+                    new PascalString("username".length(), "username"),
+                    new PascalString(this.username.length(), this.username),
                     new PascalByteString(encryptedPassword.length, encryptedPassword),
-                    new PascalString(PASSWORD_ENCRYPTION_ALGORITHM)
+                    new PascalString(PASSWORD_ENCRYPTION_ALGORITHM.length(), PASSWORD_ENCRYPTION_ALGORITHM)
                 );
                 WriteBuffer bufferUserName = new WriteBuffer(userNameIdentityToken.getLengthInBytes(), true);
                 try{

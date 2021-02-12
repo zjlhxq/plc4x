@@ -73,7 +73,7 @@
            [simple          PascalByteString   'receiverCertificateThumbprint']
            [simple          int 32             'sequenceNumber']
            [simple          int 32             'requestId']
-           [array           int 8              'message' count 'messageSize - (securityPolicyUri.stringLength == -1 ? 0 : securityPolicyUri.stringLength) - (senderCertificate.stringLength == -1 ? 0 : senderCertificate.stringLength) - (receiverCertificateThumbprint.stringLength == -1 ? 0 : receiverCertificateThumbprint.stringLength) - 32)']
+           [array           int 8              'message' count 'messageSize - (securityPolicyUri.stringLength == -1 ? 0 : securityPolicyUri.stringLength) - (senderCertificate.stringLength == -1 ? 0 : senderCertificate.stringLength) - (receiverCertificateThumbprint.stringLength == -1 ? 0 : receiverCertificateThumbprint.stringLength) - 32']
        ]
        ['CLO','false'     OpcuaCloseRequest
            [simple          string '8'         'chunk']

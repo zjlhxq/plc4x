@@ -16,10 +16,9 @@
  specific language governing permissions and limitations
  under the License.
 */
-package org.apache.plc4x.java.opcua.protocol;
+package org.apache.plc4x.java.opcua.field;
 
 import org.apache.plc4x.java.api.exceptions.PlcInvalidFieldException;
-import org.apache.plc4x.java.api.model.PlcField;
 import org.apache.plc4x.java.spi.connection.PlcFieldHandler;
 
 /**
@@ -27,7 +26,7 @@ import org.apache.plc4x.java.spi.connection.PlcFieldHandler;
 public class OpcuaPlcFieldHandler implements PlcFieldHandler {
 
     @Override
-    public PlcField createField(String fieldQuery) {
+    public OpcuaField createField(String fieldQuery) {
         if (OpcuaField.matches(fieldQuery)) {
             return OpcuaField.of(fieldQuery);
         }

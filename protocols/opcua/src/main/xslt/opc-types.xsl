@@ -54,10 +54,19 @@
         <xsl:apply-templates select="$file/node:UANodeSet/node:UADataType[@BrowseName='OpenSecureChannelResponse']"/>
         <xsl:apply-templates select="$file/node:UANodeSet/node:UADataType[@BrowseName='CreateSessionRequest']"/>
         <xsl:apply-templates select="$file/node:UANodeSet/node:UADataType[@BrowseName='CreateSessionResponse']"/>
-        <xsl:apply-templates select="$file/node:UANodeSet/node:UADataType[@BrowseName='CreateSubscriptionRequest']"/>
+    ['787' CreateSubscriptionRequest
+        [simple RequestHeader 'requestHeader']
+        [simple float 11.52 'requestedPublishingInterval']
+        [simple uint 32 'requestedLifetimeCount']
+        [simple uint 32 'requestedMaxKeepAliveCount']
+        [simple uint 32 'maxNotificationsPerPublish']
+        [reserved uint 7 '0x00']
+        [simple bit 'publishingEnabled']
+        [simple uint 8 'priority']
+    ]
         <xsl:apply-templates select="$file/node:UANodeSet/node:UADataType[@BrowseName='CreateSubscriptionResponse']"/>
         <xsl:apply-templates select="$file/node:UANodeSet/node:UADataType[@BrowseName='CreateMonitoredItemsRequest']"/>
-        <xsl:apply-templates select="$file/node:UANodeSet/node:UADataType[@BrowseName='CreateMonitoredItemsRequest']"/>
+        <xsl:apply-templates select="$file/node:UANodeSet/node:UADataType[@BrowseName='CreateMonitoredItemsResponse']"/>
         <xsl:apply-templates select="$file/node:UANodeSet/node:UADataType[@BrowseName='DeleteSubscriptionsRequest']"/>
         <xsl:apply-templates select="$file/node:UANodeSet/node:UADataType[@BrowseName='ActivateSessionRequest']"/>
         <xsl:apply-templates select="$file/node:UANodeSet/node:UADataType[@BrowseName='ActivateSessionResponse']"/>
@@ -65,6 +74,8 @@
         <xsl:apply-templates select="$file/node:UANodeSet/node:UADataType[@BrowseName='ReadResponse']"/>
         <xsl:apply-templates select="$file/node:UANodeSet/node:UADataType[@BrowseName='WriteRequest']"/>
         <xsl:apply-templates select="$file/node:UANodeSet/node:UADataType[@BrowseName='WriteResponse']"/>
+        <xsl:apply-templates select="$file/node:UANodeSet/node:UADataType[@BrowseName='PublishRequest']"/>
+        <xsl:apply-templates select="$file/node:UANodeSet/node:UADataType[@BrowseName='PublishResponse']"/>
         <xsl:apply-templates select="$file/node:UANodeSet/node:UADataType[@BrowseName='BrowseRequest']"/>
         <xsl:apply-templates select="$file/node:UANodeSet/node:UADataType[@BrowseName='BrowseResponse']"/>
         <xsl:apply-templates select="$file/node:UANodeSet/node:UADataType[@BrowseName='GetEndpointsRequest']"/>
@@ -102,6 +113,18 @@
     <xsl:apply-templates select="/opc:TypeDictionary/opc:StructuredType[@Name='MonitoredItemCreateRequest']"/>
 ]
 
+[type 'MonitoredItemCreateResult'
+<xsl:apply-templates select="/opc:TypeDictionary/opc:StructuredType[@Name='MonitoredItemCreateResult']"/>
+]
+
+[type 'NotificationMessage'
+<xsl:apply-templates select="/opc:TypeDictionary/opc:StructuredType[@Name='NotificationMessage']"/>
+]
+
+[type 'SubscriptionAcknowledgement'
+<xsl:apply-templates select="/opc:TypeDictionary/opc:StructuredType[@Name='SubscriptionAcknowledgement']"/>
+]
+
 [type 'BrowseResult'
     <xsl:apply-templates select="/opc:TypeDictionary/opc:StructuredType[@Name='BrowseResult']"/>
 ]
@@ -123,7 +146,13 @@
 ]
 
 [type 'MonitoringParameters'
-    <xsl:apply-templates select="/opc:TypeDictionary/opc:StructuredType[@Name='MonitoringParameters']"/>
+    [simple uint 32 'clientHandle']
+    [simple float 11.52 'samplingInterval']
+    [simple ExtensionObject 'filter']
+    [simple uint 32 'queueSize']
+    [reserved uint 7 '0x00']
+    [simple bit 'discardOldest']
+
 ]
 
 [enum int 32 'BrowseDirection'
@@ -407,9 +436,8 @@
 ]
 
 [type 'PascalString'
-    [implicit int 32 'stringLength' 'stringValue.lengthInBytes == 0 ? -1 : stringValue.lengthInBytes']
-    [virtual int 32 'virtualStringLength' 'stringLength']
-    [optional string 'lengthInBits == -1 ? 0 : lengthInBits' 'UTF-8' 'stringValue' 'lengthInBits >= 0']
+    [simple int 32 'stringLength']
+    [optional string 'stringLength == -1 ? 0 : stringLength * 8' 'UTF-8' 'stringValue' 'stringLength >= 0']
 ]
 
 [type 'PascalByteString'

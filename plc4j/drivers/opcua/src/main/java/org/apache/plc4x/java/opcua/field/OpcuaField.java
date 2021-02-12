@@ -16,7 +16,7 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
 */
-package org.apache.plc4x.java.opcua.protocol;
+package org.apache.plc4x.java.opcua.field;
 
 import org.apache.plc4x.java.api.exceptions.PlcInvalidFieldException;
 import org.apache.plc4x.java.api.exceptions.PlcUnsupportedDataTypeException;
@@ -89,6 +89,8 @@ public class OpcuaField implements PlcField {
         return ADDRESS_PATTERN.matcher(address).matches();
     }
 
+
+
     public int getNamespace() {
         return namespace;
     }
@@ -135,4 +137,5 @@ public class OpcuaField implements PlcField {
             "identifier=" + identifier +
             '}';
     }
+
 }
