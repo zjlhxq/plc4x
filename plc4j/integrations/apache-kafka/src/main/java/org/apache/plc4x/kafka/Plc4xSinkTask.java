@@ -30,6 +30,7 @@ import org.apache.plc4x.java.PlcDriverManager;
 import org.apache.plc4x.java.api.exceptions.PlcConnectionException;
 import org.apache.plc4x.java.api.PlcConnection;
 import org.apache.plc4x.java.api.messages.PlcWriteRequest;
+import org.apache.plc4x.java.api.value.PlcValue;
 import org.apache.plc4x.java.utils.connectionpool.PooledPlcDriverManager;
 import org.apache.plc4x.kafka.config.Constants;
 import org.apache.plc4x.kafka.util.VersionUtil;
@@ -37,6 +38,7 @@ import org.apache.plc4x.kafka.util.VersionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Array;
 import java.util.*;
 
 /**
@@ -73,29 +75,29 @@ public class Plc4xSinkTask extends SinkTask {
 
     private static final ConfigDef CONFIG_DEF = new ConfigDef()
         .define(CONNECTION_NAME_CONFIG,
-                ConfigDef.Type.STRING,
-                ConfigDef.Importance.HIGH,
-                CONNECTION_NAME_STRING_DOC)
+            ConfigDef.Type.STRING,
+            ConfigDef.Importance.HIGH,
+            CONNECTION_NAME_STRING_DOC)
         .define(PLC4X_CONNECTION_STRING_CONFIG,
-                ConfigDef.Type.STRING,
-                ConfigDef.Importance.HIGH,
-                PLC4X_CONNECTION_STRING_DOC)
+            ConfigDef.Type.STRING,
+            ConfigDef.Importance.HIGH,
+            PLC4X_CONNECTION_STRING_DOC)
         .define(PLC4X_TOPIC_CONFIG,
-                ConfigDef.Type.STRING,
-                ConfigDef.Importance.HIGH,
-                PLC4X_TOPIC_DOC)
+            ConfigDef.Type.STRING,
+            ConfigDef.Importance.HIGH,
+            PLC4X_TOPIC_DOC)
         .define(PLC4X_RETRIES_CONFIG,
-                ConfigDef.Type.INT,
-                ConfigDef.Importance.HIGH,
-                PLC4X_RETRIES_DOC)
+            ConfigDef.Type.INT,
+            ConfigDef.Importance.HIGH,
+            PLC4X_RETRIES_DOC)
         .define(PLC4X_TIMEOUT_CONFIG,
-                ConfigDef.Type.INT,
-                ConfigDef.Importance.HIGH,
-                PLC4X_TIMEOUT_DOC)
+            ConfigDef.Type.INT,
+            ConfigDef.Importance.HIGH,
+            PLC4X_TIMEOUT_DOC)
         .define(QUERIES_CONFIG,
-                ConfigDef.Type.STRING,
-                ConfigDef.Importance.HIGH,
-                QUERIES_DOC);
+            ConfigDef.Type.STRING,
+            ConfigDef.Importance.HIGH,
+            QUERIES_DOC);
 
     /*
      * Configuration of the output.
@@ -133,9 +135,9 @@ public class Plc4xSinkTask extends SinkTask {
         fields = new HashMap<>();
 
         String[] fieldsConfigSegments = queries.split("\\|");
-        for(int i = 0; i < fieldsConfigSegments.length; i++) {
+        for (int i = 0; i < fieldsConfigSegments.length; i++) {
             String[] fieldSegments = fieldsConfigSegments[i].split("#");
-            if(fieldSegments.length != 2) {
+            if (fieldSegments.length != 2) {
                 log.warn(String.format("Error in field configuration. " +
                         "The field segment expects a format {field-alias}#{field-address}, but got '%s'",
                     fieldsConfigSegments[i]));
@@ -183,7 +185,7 @@ public class Plc4xSinkTask extends SinkTask {
         PlcWriteRequest writeRequest;
         final PlcWriteRequest.Builder builder = connection.writeRequestBuilder();
         int validCount = 0;
-        for (SinkRecord r: records) {
+        for (SinkRecord r : records) {
             Struct record = (Struct) r.value();
             String topic = r.topic();
 
@@ -215,13 +217,17 @@ public class Plc4xSinkTask extends SinkTask {
                             if (value instanceof String) {
                                 String sValue = (String) value;
                                 if ((sValue.charAt(0) == '[') && (sValue.charAt(sValue.length() - 1) == ']')) {
-                                    String[] values = sValue.substring(1,sValue.length() - 1).split(",");
+                                    String[] values = sValue.substring(1, sValue.length() - 1).split(",");
                                     builder.addItem(address, address, values);
                                 } else {
                                     builder.addItem(address, address, value);
                                 }
                             } else {
-                                builder.addItem(address, address, value);
+                                if (value instanceof ArrayList) {
+                                    builder.addItem(address, address, ((ArrayList) value).toArray());
+                                } else {
+                                    builder.addItem(address, address, value);
+                                }
                             }
 
                             validCount += 1;
