@@ -216,7 +216,7 @@ public class Plc4xSinkTask extends SinkTask {
                             //If an array value is passed instead of a single value then convert to a String array
                             if (value instanceof String) {
                                 String sValue = (String) value;
-                                if ((sValue.charAt(0) == '[') && (sValue.charAt(sValue.length() - 1) == ']')) {
+                                if (sValue.length() > 0 && (sValue.charAt(0) == '[') && (sValue.charAt(sValue.length() - 1) == ']')) {
                                     String[] values = sValue.substring(1, sValue.length() - 1).split(",");
                                     builder.addItem(address, address, values);
                                 } else {

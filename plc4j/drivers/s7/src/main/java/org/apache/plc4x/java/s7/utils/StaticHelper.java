@@ -124,9 +124,9 @@ public class StaticHelper {
     }
 
     public static String parseS7Char(ReadBuffer io, String encoding) {
-        if("UTF-8".equalsIgnoreCase(encoding)) {
+        if ("UTF-8".equalsIgnoreCase(encoding)) {
             return io.readString(8, encoding);
-        } else if("UTF-16".equalsIgnoreCase(encoding)) {
+        } else if ("UTF-16".equalsIgnoreCase(encoding)) {
             return io.readString(16, encoding);
         } else {
             throw new PlcRuntimeException("Unsupported encoding");
@@ -142,14 +142,14 @@ public class StaticHelper {
                 short totalStringLength = io.readUnsignedShort(8);
 
                 final byte[] byteArray = new byte[totalStringLength];
-                for(int i = 0; (i < stringLength) && io.hasMore(8); i++) {
+                for (int i = 0; (i < stringLength) && io.hasMore(8); i++) {
                     final byte curByte = io.readByte(8);
                     if (i < totalStringLength) {
                         byteArray[i] = curByte;
                     } else {
                         // Gobble up the remaining data, which is not added to the string.
                         i++;
-                        for(; (i < stringLength) && io.hasMore(8); i++) {
+                        for (; (i < stringLength) && io.hasMore(8); i++) {
                             io.readByte(8);
                         }
                         break;
@@ -163,15 +163,15 @@ public class StaticHelper {
                 int totalStringLength = io.readUnsignedInt(16);
 
                 final byte[] byteArray = new byte[totalStringLength * 2];
-                for(int i = 0; (i < stringLength) && io.hasMore(16); i++) {
+                for (int i = 0; (i < stringLength) && io.hasMore(16); i++) {
                     final short curShort = io.readShort(16);
                     if (i < totalStringLength) {
-                        byteArray[i*2] = (byte) (curShort >>> 8);
-                        byteArray[(i*2) + 1] = (byte) (curShort & 0xFF);
+                        byteArray[i * 2] = (byte) (curShort >>> 8);
+                        byteArray[(i * 2) + 1] = (byte) (curShort & 0xFF);
                     } else {
                         // Gobble up the remaining data, which is not added to the string.
                         i++;
-                        for(; (i < stringLength) && io.hasMore(16); i++) {
+                        for (; (i < stringLength) && io.hasMore(16); i++) {
                             io.readShort(16);
                         }
                         break;
@@ -192,8 +192,25 @@ public class StaticHelper {
     }
 
     public static void serializeS7String(WriteBuffer io, PlcValue value, int stringLength, Object encoding) {
-        // TODO: Need to implement the serialization or we can't write strings
-        throw new NotImplementedException("Serializing STRING not implemented");
+        try {
+            if ("UTF-8".equalsIgnoreCase(encoding.toString())) {
+                byte[] bytes = value.getString().getBytes(StandardCharsets.UTF_8);
+                byte[] buffer = new byte[2 + stringLength];
+                System.arraycopy(bytes, 0, buffer, 2, bytes.length);
+                buffer[0] = (byte) stringLength;
+                buffer[1] = (byte) bytes.length;
+                for (byte aByte : buffer) {
+                    io.writeByte(8, aByte);
+                }
+            }
+            else{
+                // TODO: Need to implement the serialization or we can't write strings
+                throw new NotImplementedException("Serializing STRING not implemented");
+            }
+        } catch (ParseException e) {
+            throw new PlcRuntimeException("Error serialize S7String", e);
+        }
+
     }
 
 }

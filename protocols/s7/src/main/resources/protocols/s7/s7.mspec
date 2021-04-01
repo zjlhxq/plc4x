@@ -340,7 +340,7 @@
             [manual string '-1' 'UTF-16' 'value' 'STATIC_CALL("org.apache.plc4x.java.s7.utils.StaticHelper.parseS7Char", io, _type.encoding)' 'STATIC_CALL("org.apache.plc4x.java.s7.utils.StaticHelper.serializeS7Char", io, _value, _type.encoding)' '2']
         ]
         ['IEC61131_STRING' STRING
-            [manual string '-1' 'UTF-8' 'value'  'STATIC_CALL("org.apache.plc4x.java.s7.utils.StaticHelper.parseS7String", io, stringLength, _type.encoding)' 'STATIC_CALL("org.apache.plc4x.java.s7.utils.StaticHelper.serializeS7String", io, _value, stringLength, _type.encoding)' '_value.string.length + 2']
+            [manual string '-1' 'UTF-8' 'value'  'STATIC_CALL("org.apache.plc4x.java.s7.utils.StaticHelper.parseS7String", io, stringLength, _type.encoding)' 'STATIC_CALL("org.apache.plc4x.java.s7.utils.StaticHelper.serializeS7String", io, _value, stringLength, _type.encoding)' '(stringLength + 2) * 8']
         ]
         ['IEC61131_WSTRING' STRING
             [manual string '-1' 'UTF-16' 'value' 'STATIC_CALL("org.apache.plc4x.java.s7.utils.StaticHelper.parseS7String", io, stringLength, _type.encoding)' 'STATIC_CALL("org.apache.plc4x.java.s7.utils.StaticHelper.serializeS7String", io, _value, stringLength, _type.encoding)' '(_value.string.length * 2) + 2']
@@ -443,7 +443,7 @@
     // Characters and Strings
     ['0x10' CHAR             ['0x03'       , 'B'               , '1'                 , 'null'                  , 'BYTE_WORD_DWORD'  , 'IEC61131_CHAR'         , 'true'                , 'true'                , 'true'                 , 'true'                 , 'true'              ]]
     ['0x11' WCHAR            ['0x13'       , 'X'               , '2'                 , 'null'                  , 'null'             , 'IEC61131_WCHAR'        , 'false'               , 'false'               , 'true'                 , 'true'                 , 'true'              ]]
-    ['0x12' STRING           ['0x03'       , 'X'               , '1'                 , 'null'                  , 'BYTE_WORD_DWORD'  , 'IEC61131_STRING'       , 'true'                , 'true'                , 'true'                 , 'true'                 , 'true'              ]]
+    ['0x12' STRING           ['0x03'       , 'X'               , '1'                 , 'null'                  , 'OCTET_STRING'     , 'IEC61131_STRING'       , 'true'                , 'true'                , 'true'                 , 'true'                 , 'true'              ]]
     ['0x13' WSTRING          ['0x00'       , 'X'               , '2'                 , 'null'                  , 'null'             , 'IEC61131_WSTRING'      , 'false'               , 'false'               , 'true'                 , 'true'                 , 'true'              ]]
 
     // Dates and time values (Please note that we seem to have to rewrite queries for these types to reading bytes or we'll get "Data type not supported" errors)
