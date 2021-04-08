@@ -55,29 +55,7 @@ public class Plc4xSinkConnector extends SinkConnector {
 
     @Override
     public List<Map<String, String>> taskConfigs(int maxTasks) {
-        List<Map<String, String>> configs = new LinkedList<>();
-
-        for (Sink sink : sinkConfig.getSinks()) {
-
-            StringBuilder query = new StringBuilder();
-
-            for (Field field : sink.getFields()) {
-                String fieldName = field.getName();
-                String fieldAddress = field.getAddress();
-                query.append("|").append(fieldName).append("#").append(fieldAddress);
-            }
-
-            // Create a new task configuration.
-            Map<String, String> taskConfig = new HashMap<>();
-            taskConfig.put(Constants.CONNECTION_NAME_CONFIG, sink.getName());
-            taskConfig.put(Constants.CONNECTION_STRING_CONFIG, sink.getConnectionString());
-            taskConfig.put(Constants.TOPIC_CONFIG, sink.getTopic());
-            taskConfig.put(Constants.RETRIES_CONFIG, sink.getRetries().toString());
-            taskConfig.put(Constants.TIMEOUT_CONFIG, sink.getTimeout().toString());
-            taskConfig.put(Constants.QUERIES_CONFIG, query.toString().substring(1));
-            configs.add(taskConfig);
-        }
-        return configs;
+        return Collections.nCopies(maxTasks, configProps);
     }
 
     @Override
@@ -115,7 +93,7 @@ public class Plc4xSinkConnector extends SinkConnector {
     }
 
     @Override
-    public String toString(){
+    public String toString() {
         return sinkConfig.toString();
     }
 

@@ -33,6 +33,8 @@ import org.apache.plc4x.java.api.messages.PlcWriteRequest;
 import org.apache.plc4x.java.api.value.PlcValue;
 import org.apache.plc4x.java.utils.connectionpool.PooledPlcDriverManager;
 import org.apache.plc4x.kafka.config.Constants;
+import org.apache.plc4x.kafka.config.Sink;
+import org.apache.plc4x.kafka.config.SinkConfig;
 import org.apache.plc4x.kafka.util.VersionUtil;
 
 import org.slf4j.Logger;
@@ -117,36 +119,39 @@ public class Plc4xSinkTask extends SinkTask {
     private String plc4xTopic;
     private Integer plc4xRetries;
     private Integer plc4xTimeout;
-    private Integer remainingRetries;
-    private AbstractConfig config;
+    private Map<String, Integer> remainingRetries;
+    private Map<String, AbstractConfig> config;
     private Map<String, String> fields;
+
 
     @Override
     public void start(Map<String, String> props) {
-        config = new AbstractConfig(CONFIG_DEF, props);
-        String connectionName = config.getString(CONNECTION_NAME_CONFIG);
-        plc4xConnectionString = config.getString(PLC4X_CONNECTION_STRING_CONFIG);
-        plc4xTopic = config.getString(PLC4X_TOPIC_CONFIG);
-        plc4xRetries = config.getInt(PLC4X_RETRIES_CONFIG);
-        remainingRetries = plc4xRetries;
-        plc4xTimeout = config.getInt(PLC4X_TIMEOUT_CONFIG);
-
-        String queries = config.getString(QUERIES_CONFIG);
         fields = new HashMap<>();
+        config = new HashMap<>();
+        remainingRetries = new HashMap<>();
+        SinkConfig sinkConfig = new SinkConfig(props);
+        for (Sink sink : sinkConfig.getSinks()) {
+            StringBuilder query = new StringBuilder();
 
-        String[] fieldsConfigSegments = queries.split("\\|");
-        for (int i = 0; i < fieldsConfigSegments.length; i++) {
-            String[] fieldSegments = fieldsConfigSegments[i].split("#");
-            if (fieldSegments.length != 2) {
-                log.warn(String.format("Error in field configuration. " +
-                        "The field segment expects a format {field-alias}#{field-address}, but got '%s'",
-                    fieldsConfigSegments[i]));
-                continue;
+            for (org.apache.plc4x.kafka.config.Field field : sink.getFields()) {
+                String fieldName = field.getName();
+                String fieldAddress = field.getAddress();
+                query.append("|").append(fieldName).append("#").append(fieldAddress);
+
+                fields.put(sink.getTopic() + "." + fieldName, fieldAddress);
             }
-            String fieldAlias = fieldSegments[0];
-            String fieldAddress = fieldSegments[1];
 
-            fields.put(fieldAlias, fieldAddress);
+            // Create a new task configuration.
+            Map<String, String> taskConfig = new HashMap<>();
+            taskConfig.put(Constants.CONNECTION_NAME_CONFIG, sink.getName());
+            taskConfig.put(Constants.CONNECTION_STRING_CONFIG, sink.getConnectionString());
+            taskConfig.put(Constants.TOPIC_CONFIG, sink.getTopic());
+            taskConfig.put(Constants.RETRIES_CONFIG, sink.getRetries().toString());
+            taskConfig.put(Constants.TIMEOUT_CONFIG, sink.getTimeout().toString());
+            taskConfig.put(Constants.QUERIES_CONFIG, query.toString().substring(1));
+
+            config.put(sink.getTopic(), new AbstractConfig(CONFIG_DEF, taskConfig));
+            remainingRetries.put(sink.getTopic(), sink.getRetries());
         }
 
         log.info("Creating Pooled PLC4x driver manager");
@@ -166,28 +171,35 @@ public class Plc4xSinkTask extends SinkTask {
             return;
         }
 
-        PlcConnection connection = null;
-        try {
-            connection = driverManager.getConnection(plc4xConnectionString);
-        } catch (PlcConnectionException e) {
-            log.warn("Failed to Open Connection {}", plc4xConnectionString);
-            remainingRetries--;
-            if (remainingRetries > 0) {
-                if (context != null) {
-                    context.timeout(plc4xTimeout);
-                }
-                throw new RetriableException("Failed to Write to " + plc4xConnectionString + " retrying records that haven't expired");
-            }
-            log.warn("Failed to write after {} retries", plc4xRetries);
-            return;
-        }
-
-        PlcWriteRequest writeRequest;
-        final PlcWriteRequest.Builder builder = connection.writeRequestBuilder();
-        int validCount = 0;
         for (SinkRecord r : records) {
-            Struct record = (Struct) r.value();
             String topic = r.topic();
+            AbstractConfig taskConfig = config.get(topic);
+            plc4xConnectionString = taskConfig.getString(PLC4X_CONNECTION_STRING_CONFIG);
+            plc4xTopic = taskConfig.getString(PLC4X_TOPIC_CONFIG);
+            plc4xRetries = taskConfig.getInt(PLC4X_RETRIES_CONFIG);
+            plc4xTimeout = taskConfig.getInt(PLC4X_TIMEOUT_CONFIG);
+
+            PlcConnection connection = null;
+            try {
+                connection = driverManager.getConnection(plc4xConnectionString);
+            } catch (PlcConnectionException e) {
+                log.warn("Failed to Open Connection {}", plc4xConnectionString);
+                remainingRetries.put(topic, remainingRetries.get(topic) - 1);
+                if (remainingRetries.get(topic) > 0) {
+                    if (context != null) {
+                        context.timeout(plc4xTimeout);
+                    }
+                    throw new RetriableException("Failed to Write to " + plc4xConnectionString + " retrying records that haven't expired");
+                }
+                log.warn("Failed to write after {} retries", plc4xRetries);
+                return;
+            }
+
+            PlcWriteRequest writeRequest;
+            final PlcWriteRequest.Builder builder = connection.writeRequestBuilder();
+            int validCount = 0;
+
+            Struct record = (Struct) r.value();
 
             Struct plcFields = record.getStruct(Constants.FIELDS_CONFIG);
             Schema plcFieldsSchema = plcFields.schema();
@@ -195,6 +207,7 @@ public class Plc4xSinkTask extends SinkTask {
             for (Field plcField : plcFieldsSchema.fields()) {
                 String field = plcField.name();
                 Object value = plcFields.get(field);
+                field = topic + "." + field;
                 if (value != null) {
                     Long timestamp = record.getInt64("timestamp");
                     Long expiresOffset = record.getInt64("expires");
@@ -239,37 +252,37 @@ public class Plc4xSinkTask extends SinkTask {
                 }
 
             }
-        }
 
-        if (validCount > 0) {
-            try {
-                writeRequest = builder.build();
-                writeRequest.execute().get();
-                log.debug("Wrote records to {}", plc4xConnectionString);
-            } catch (Exception e) {
-                remainingRetries--;
-                if (remainingRetries > 0) {
-                    if (context != null) {
-                        context.timeout(plc4xTimeout);
+            if (validCount > 0) {
+                try {
+                    writeRequest = builder.build();
+                    writeRequest.execute().get();
+                    log.debug("Wrote records to {}", plc4xConnectionString);
+                } catch (Exception e) {
+                    remainingRetries.put(topic, remainingRetries.get(topic) - 1);
+                    if (remainingRetries.get(topic) > 0) {
+                        if (context != null) {
+                            context.timeout(plc4xTimeout);
+                        }
+                        try {
+                            connection.close();
+                        } catch (Exception f) {
+                            log.warn("Failed to Close {} on RetriableException", plc4xConnectionString);
+                        }
+                        throw new RetriableException("Failed to Write to " + plc4xConnectionString + " retrying records that haven't expired");
                     }
-                    try {
-                        connection.close();
-                    } catch (Exception f) {
-                        log.warn("Failed to Close {} on RetriableException", plc4xConnectionString);
-                    }
-                    throw new RetriableException("Failed to Write to " + plc4xConnectionString + " retrying records that haven't expired");
+                    log.warn("Failed to write after {} retries", plc4xRetries);
                 }
-                log.warn("Failed to write after {} retries", plc4xRetries);
             }
-        }
 
-        try {
-            connection.close();
-        } catch (Exception e) {
-            log.warn("Failed to Close {}", plc4xConnectionString);
-        }
+            try {
+                connection.close();
+            } catch (Exception e) {
+                log.warn("Failed to Close {}", plc4xConnectionString);
+            }
 
-        remainingRetries = plc4xRetries;
+            remainingRetries.put(topic, plc4xRetries);
+        }
         return;
     }
 }
