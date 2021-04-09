@@ -86,12 +86,6 @@ public class Plc4xSourceTask extends SourceTask {
 
 
 
-    private static final Schema KEY_SCHEMA =
-        new SchemaBuilder(Schema.Type.STRUCT)
-            .field(Constants.SOURCE_NAME_FIELD, Schema.STRING_SCHEMA)
-            .field(Constants.JOB_NAME_FIELD, Schema.STRING_SCHEMA)
-            .build();
-
     // Internal buffer into which all incoming scraper responses are written to.
     private ArrayBlockingQueue<SourceRecord> buffer;
     private Integer pollReturnInterval;
@@ -111,6 +105,8 @@ public class Plc4xSourceTask extends SourceTask {
         Integer bufferSize = config.getInt(Constants.BUFFER_SIZE_CONFIG);
 
         Map<String, String> topics = new HashMap<>();
+        Map<String, String> schemaNames = new HashMap<>();
+        Map<String, ArrayList<String>> fields = new HashMap<>();
         // Create a buffer with a capacity of BUFFER_SIZE_CONFIG elements which schedules access in a fair way.
         buffer = new ArrayBlockingQueue<>(bufferSize, true);
 
@@ -120,19 +116,21 @@ public class Plc4xSourceTask extends SourceTask {
         List<String> jobConfigs = config.getList(Constants.QUERIES_CONFIG);
         for (String jobConfig : jobConfigs) {
             String[] jobConfigSegments = jobConfig.split("\\|");
-            if (jobConfigSegments.length < 4) {
+            if (jobConfigSegments.length < 5) {
                 log.warn(String.format("Error in job configuration '%s'. " +
-                    "The configuration expects at least 4 segments: " +
-                    "{job-name}|{topic}|{rate}(|{field-alias}#{field-address})+", jobConfig));
+                    "The configuration expects at least 5 segments: " +
+                    "{job-name}|{topic}|{schema-name}|{rate}(|{field-alias}#{field-address})+", jobConfig));
                 continue;
             }
 
+            ArrayList<String> fieldList = new ArrayList<>();
             String jobName = jobConfigSegments[0];
             String topic = jobConfigSegments[1];
-            Integer rate = Integer.valueOf(jobConfigSegments[2]);
+            String schemaName = jobConfigSegments[2];
+            Integer rate = Integer.valueOf(jobConfigSegments[3]);
             JobConfigurationTriggeredImplBuilder jobBuilder = builder.job(
                 jobName, String.format("(SCHEDULED,%s)", rate)).source(connectionName);
-            for (int i = 3; i < jobConfigSegments.length; i++) {
+            for (int i = 4; i < jobConfigSegments.length; i++) {
                 String[] fieldSegments = jobConfigSegments[i].split("#");
                 if (fieldSegments.length != 2) {
                     log.warn(String.format("Error in job configuration '%s'. " +
@@ -144,7 +142,10 @@ public class Plc4xSourceTask extends SourceTask {
                 String fieldAddress = fieldSegments[1];
                 jobBuilder.field(fieldAlias, fieldAddress);
                 topics.put(jobName, topic);
+                schemaNames.put(jobName, schemaName);
+                fieldList.add(fieldAlias);
             }
+            fields.put(jobName, fieldList);
             jobBuilder.build();
         }
 
@@ -163,21 +164,15 @@ public class Plc4xSourceTask extends SourceTask {
                 Map<String, Long> sourceOffset = Collections.singletonMap("offset", timestamp);
 
                 String topic = topics.get(jobName);
-
-                // Prepare the key structure.
-                Struct key = new Struct(KEY_SCHEMA)
-                    .put(Constants.SOURCE_NAME_FIELD, sourceName)
-                    .put(Constants.JOB_NAME_FIELD, jobName);
+                String schemaName = schemaNames.get(jobName);
 
                 // Build the Schema for the result struct.
                 SchemaBuilder fieldSchemaBuilder = SchemaBuilder.struct()
-                    .name("org.apache.plc4x.kafka.schema.Field");
+                    .name(schemaName);
 
-
-                for (Map.Entry<String, Object> result : results.entrySet()) {
-                    // Get field-name and -value from the results.
-                    String fieldName = result.getKey();
-                    Object fieldValue = result.getValue();
+                ArrayList<String> fieldNameList = fields.get(jobName);
+                for (String fieldName : fieldNameList) {
+                    Object fieldValue = results.get(fieldName);
 
                     // Get the schema for the given value type.
                     Schema valueSchema = getSchema(fieldValue);
@@ -186,14 +181,6 @@ public class Plc4xSourceTask extends SourceTask {
                     fieldSchemaBuilder.field(fieldName, valueSchema);
                 }
                 Schema fieldSchema = fieldSchemaBuilder.build();
-
-                Schema recordSchema = SchemaBuilder.struct()
-                    .name("org.apache.plc4x.kafka.schema.JobResult")
-                    .doc("PLC Job result. This contains all of the received PLCValues as well as a recieved timestamp")
-                    .field(Constants.FIELDS_CONFIG, fieldSchema)
-                    .field(Constants.TIMESTAMP_CONFIG, Schema.INT64_SCHEMA)
-                    .field(Constants.EXPIRES_CONFIG, Schema.OPTIONAL_INT64_SCHEMA)
-                    .build();
 
                 // Build the struct itself.
                 Struct fieldStruct = new Struct(fieldSchema);
@@ -210,16 +197,12 @@ public class Plc4xSourceTask extends SourceTask {
                     fieldStruct.put(fieldName, fieldValue);
                 }
 
-                Struct recordStruct = new Struct(recordSchema)
-                    .put(Constants.FIELDS_CONFIG, fieldStruct)
-                    .put(Constants.TIMESTAMP_CONFIG, timestamp);
-
                 // Prepare the source-record element.
                 SourceRecord record = new SourceRecord(
                     sourcePartition, sourceOffset,
                     topic,
-                    KEY_SCHEMA, key,
-                    recordSchema, recordStruct
+                    SchemaBuilder.string(), fieldSchema.name(),
+                    fieldSchema, fieldStruct
                 );
 
                 // Add the new source-record to the buffer.

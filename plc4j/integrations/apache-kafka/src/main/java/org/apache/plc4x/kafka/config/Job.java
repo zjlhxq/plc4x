@@ -32,8 +32,12 @@ public class Job extends AbstractConfig{
     private static final Logger log = LoggerFactory.getLogger(Job.class);
 
     private final String name;
+    private final String schemaName;
     private final int interval;
     private final List<Field> fields;
+
+    private static final String SCHEMA_NAME_CONFIG = "schemaName";
+    private static final String SCHEMA_NAME_DOC = "Schema name sent to Kafka";
 
     private static final String INTERVAL_CONFIG = "interval";
     private static final String INTERVAL_DOC = "Polling Interval";
@@ -45,6 +49,7 @@ public class Job extends AbstractConfig{
         super(configDef(), originals);
 
         this.name = name;
+        this.schemaName = getString(SCHEMA_NAME_CONFIG);
         this.interval = getInt(INTERVAL_CONFIG);
 
         fields = new ArrayList<>(getList(FIELDS_CONFIG).size());
@@ -63,6 +68,10 @@ public class Job extends AbstractConfig{
         return name;
     }
 
+    public String getSchemaName() {
+        return schemaName;
+    }
+
     public int getInterval() {
         return interval;
     }
@@ -73,6 +82,10 @@ public class Job extends AbstractConfig{
 
     protected static ConfigDef configDef() {
         return new ConfigDef()
+            .define(SCHEMA_NAME_CONFIG,
+                ConfigDef.Type.STRING,
+                ConfigDef.Importance.LOW,
+                SCHEMA_NAME_DOC)
             .define(INTERVAL_CONFIG,
                     ConfigDef.Type.INT,
                     ConfigDef.Importance.LOW,
@@ -86,6 +99,7 @@ public class Job extends AbstractConfig{
     @Override
     public String toString() {
         StringBuilder query = new StringBuilder();
+        query.append("\t\t" + name + "." + SCHEMA_NAME_CONFIG + "=" + schemaName + ",\n");
         query.append("\t\t" + name + "." + INTERVAL_CONFIG + "=" + interval + ",\n");
         for (Field field : fields) {
             query.append(field.toString());

@@ -79,6 +79,7 @@ public class Plc4xSourceConnector extends SourceConnector {
                     log.warn(String.format("Couldn't find referenced job '%s'", jobReference.getName()));
                 } else {
                     query.append(",").append(jobReference.getName()).append("|").append(jobReference.getTopic());
+                    query.append("|").append(job.getSchemaName());
                     query.append("|").append(job.getInterval());
                     for (Field field : job.getFields()) {
                         String fieldName = field.getName();
