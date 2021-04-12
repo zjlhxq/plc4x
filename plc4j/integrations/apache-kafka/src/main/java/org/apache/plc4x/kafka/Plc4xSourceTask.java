@@ -106,7 +106,7 @@ public class Plc4xSourceTask extends SourceTask {
 
         Map<String, String> topics = new HashMap<>();
         Map<String, String> schemaNames = new HashMap<>();
-        Map<String, ArrayList<String>> fields = new HashMap<>();
+        Map<String, List<String>> fields = new HashMap<>();
         // Create a buffer with a capacity of BUFFER_SIZE_CONFIG elements which schedules access in a fair way.
         buffer = new ArrayBlockingQueue<>(bufferSize, true);
 
@@ -123,7 +123,7 @@ public class Plc4xSourceTask extends SourceTask {
                 continue;
             }
 
-            ArrayList<String> fieldList = new ArrayList<>();
+            List<String> fieldList = new ArrayList<>();
             String jobName = jobConfigSegments[0];
             String topic = jobConfigSegments[1];
             String schemaName = jobConfigSegments[2];
@@ -170,7 +170,7 @@ public class Plc4xSourceTask extends SourceTask {
                 SchemaBuilder fieldSchemaBuilder = SchemaBuilder.struct()
                     .name(schemaName);
 
-                ArrayList<String> fieldNameList = fields.get(jobName);
+                List<String> fieldNameList = fields.get(jobName);
                 for (String fieldName : fieldNameList) {
                     Object fieldValue = results.get(fieldName);
 
