@@ -519,10 +519,10 @@ public class S7ProtocolLogic extends Plc4xProtocolBase<TPKTPacket> {
             int stringLength = (field instanceof S7StringField) ? ((S7StringField) field).getStringLength() : 254;
             if (plcValue instanceof PlcList) {
                 ByteArrayOutputStream os = new ByteArrayOutputStream();
-                ((ArrayList) plcValue.getObject()).forEach(i -> {
+                ((ArrayList) plcValue.getObject()).forEach(o -> {
                         WriteBuffer writeBuffer = null;
                         try {
-                            writeBuffer = DataItemIO.staticSerialize(IEC61131ValueHandler.of(field, i),
+                            writeBuffer = DataItemIO.staticSerialize((PlcValue) o,
                                 field.getDataType().getDataProtocolId(),
                                 stringLength);
                         } catch (ParseException e) {

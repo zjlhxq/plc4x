@@ -187,8 +187,16 @@ public class StaticHelper {
     }
 
     public static void serializeS7Char(WriteBuffer io, PlcValue value, Object encoding) {
-        // TODO: Need to implement the serialization or we can't write strings
-        throw new NotImplementedException("Serializing STRING not implemented");
+        try {
+            if ("UTF-8".equalsIgnoreCase(encoding.toString())) {
+                io.writeByte(8, value.getByte());
+            } else {
+                // TODO: Need to implement the serialization or we can't write strings
+                throw new NotImplementedException("Serializing CHAR not implemented");
+            }
+        } catch (ParseException e) {
+            throw new PlcRuntimeException("Error serialize S7Char", e);
+        }
     }
 
     public static void serializeS7String(WriteBuffer io, PlcValue value, int stringLength, Object encoding) {
@@ -202,8 +210,7 @@ public class StaticHelper {
                 for (byte aByte : buffer) {
                     io.writeByte(8, aByte);
                 }
-            }
-            else{
+            } else {
                 // TODO: Need to implement the serialization or we can't write strings
                 throw new NotImplementedException("Serializing STRING not implemented");
             }
