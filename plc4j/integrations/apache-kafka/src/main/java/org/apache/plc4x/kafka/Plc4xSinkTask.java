@@ -42,6 +42,8 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Array;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Source Connector Task polling the data source at a given rate.
@@ -199,30 +201,19 @@ public class Plc4xSinkTask extends SinkTask {
             final PlcWriteRequest.Builder builder = connection.writeRequestBuilder();
             int validCount = 0;
 
-            Struct record = (Struct) r.value();
-
-            Struct plcFields = record.getStruct(Constants.FIELDS_CONFIG);
-            Schema plcFieldsSchema = plcFields.schema();
+            Struct plcFields = (Struct) r.value();
+            Schema plcFieldsSchema = r.valueSchema();
 
             for (Field plcField : plcFieldsSchema.fields()) {
                 String field = plcField.name();
                 Object value = plcFields.get(field);
                 field = topic + "." + field;
                 if (value != null) {
-                    Long timestamp = record.getInt64("timestamp");
-                    Long expiresOffset = record.getInt64("expires");
-                    Long expires = 0L;
-                    if (expiresOffset != null) {
-                        expires = expiresOffset + timestamp;
-                    }
-
                     //Discard records we are not or no longer interested in.
                     if (!topic.equals(plc4xTopic) || plc4xTopic.equals("")) {
                         log.debug("Ignoring write request received on wrong topic");
                     } else if (!fields.containsKey(field)) {
                         log.warn("Unable to find address for field " + field);
-                    } else if ((System.currentTimeMillis() > expires) & !(expires == 0)) {
-                        log.warn("Write request has expired {} - {}, discarding {}", expires, System.currentTimeMillis(), field);
                     } else {
                         String address = fields.get(field);
                         try {
@@ -232,6 +223,20 @@ public class Plc4xSinkTask extends SinkTask {
                                 if (sValue.length() > 0 && (sValue.charAt(0) == '[') && (sValue.charAt(sValue.length() - 1) == ']')) {
                                     String[] values = sValue.substring(1, sValue.length() - 1).split(",");
                                     builder.addItem(address, address, values);
+                                } else if (address.contains("CHAR")) {
+                                    //Convert string to string[], each element contain one character
+                                    Pattern p = Pattern.compile("(\\[[^\\]]*\\])");
+                                    Matcher m = p.matcher(address);
+                                    Integer arrayLength = m.find() ?
+                                        Integer.parseInt(m.group().substring(1, m.group().length() - 1)) : 1;
+                                    String[] str = new String[arrayLength];
+                                    for (int i = 0; i < arrayLength; i++) {
+                                        if (i < sValue.length())
+                                            str[i] = String.valueOf(sValue.charAt(i));
+                                        else
+                                            str[i] = " ";
+                                    }
+                                    builder.addItem(address, address, str);
                                 } else {
                                     builder.addItem(address, address, value);
                                 }
