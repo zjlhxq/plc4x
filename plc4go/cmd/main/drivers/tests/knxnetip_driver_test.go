@@ -16,6 +16,7 @@
 // specific language governing permissions and limitations
 // under the License.
 //
+
 package tests
 
 import (
@@ -26,6 +27,6 @@ import (
 )
 
 func TestKNXNetIPDriver(t *testing.T) {
-	t.Skip("Still a work in progress")
+	t.Skip("No test yet")
 	testutils.RunDriverTestsuite(t, knxnetip.NewDriver(), "assets/testing/protocols/knxnetip/DriverTestsuite.xml")
 }

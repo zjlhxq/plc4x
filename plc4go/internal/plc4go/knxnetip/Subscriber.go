@@ -16,6 +16,7 @@
 // specific language governing permissions and limitations
 // under the License.
 //
+
 package knxnetip
 
 import (
@@ -79,7 +80,7 @@ func (m *Subscriber) Unsubscribe(unsubscriptionRequest apiModel.PlcUnsubscriptio
 func (m *Subscriber) handleValueChange(destinationAddress []int8, payload []int8, changed bool) {
 	// Decode the group-address according to the settings in the driver
 	// Group addresses can be 1, 2 or 3 levels (3 being the default)
-	garb := utils.NewReadBuffer(utils.Int8ArrayToUint8Array(destinationAddress))
+	garb := utils.NewReadBufferByteBased(utils.Int8ArrayToUint8Array(destinationAddress))
 	groupAddress, err := driverModel.KnxGroupAddressParse(garb, m.connection.getGroupAddressNumLevels())
 	if err != nil {
 		return
@@ -109,7 +110,7 @@ func (m *Subscriber) handleValueChange(destinationAddress []int8, payload []int8
 				if groupAddressField.matches(groupAddress) {
 					// If this is a CHANGE_OF_STATE field, filter out the events where the value actually hasn't changed.
 					if subscriptionType == internalModel.SubscriptionChangeOfState && changed {
-						rb := utils.NewReadBuffer(utils.Int8ArrayToByteArray(payload))
+						rb := utils.NewReadBufferByteBased(utils.Int8ArrayToByteArray(payload))
 						if groupAddressField.GetFieldType() == nil {
 							responseCodes[fieldName] = apiModel.PlcResponseCode_INVALID_DATATYPE
 							plcValues[fieldName] = nil
@@ -117,7 +118,7 @@ func (m *Subscriber) handleValueChange(destinationAddress []int8, payload []int8
 						}
 						// If the size of the field is greater than 6, we have to skip the first byte
 						if groupAddressField.GetFieldType().LengthInBits() > 6 {
-							_, _ = rb.ReadUint8(8)
+							_, _ = rb.ReadUint8("groupAddress", 8)
 						}
 						elementType := *groupAddressField.GetFieldType()
 						numElements := groupAddressField.GetQuantity()

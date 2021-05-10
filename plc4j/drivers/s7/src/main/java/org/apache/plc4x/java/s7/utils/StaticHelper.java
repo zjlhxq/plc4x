@@ -30,8 +30,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
 
 public class StaticHelper {
 
@@ -105,13 +103,13 @@ public class StaticHelper {
             int month = io.readUnsignedInt(8);
             int day = io.readUnsignedInt(8);
             // Skip day-of-week
-            io.readByte(8);
-            int hour = io.readByte(8);
-            int minute = io.readByte(8);
-            int second = io.readByte(8);
+            io.readByte();
+            int hour = io.readByte();
+            int minute = io.readByte();
+            int second = io.readByte();
             int nanosecond = io.readUnsignedInt(24);
             // Skip day-of-week
-            io.readByte(8);
+            io.readByte();
 
             return LocalDateTime.of(year, month, day, hour, minute, second, nanosecond);
         } catch (Exception e) {
@@ -143,14 +141,14 @@ public class StaticHelper {
 
                 final byte[] byteArray = new byte[totalStringLength];
                 for (int i = 0; (i < stringLength) && io.hasMore(8); i++) {
-                    final byte curByte = io.readByte(8);
+                    final byte curByte = io.readByte();
                     if (i < totalStringLength) {
                         byteArray[i] = curByte;
                     } else {
                         // Gobble up the remaining data, which is not added to the string.
                         i++;
                         for (; (i < stringLength) && io.hasMore(8); i++) {
-                            io.readByte(8);
+                            io.readByte();
                         }
                         break;
                     }
@@ -189,7 +187,7 @@ public class StaticHelper {
     public static void serializeS7Char(WriteBuffer io, PlcValue value, Object encoding) {
         try {
             if ("UTF-8".equalsIgnoreCase(encoding.toString())) {
-                io.writeByte(8, value.getByte());
+                io.writeByte(value.getByte());
             } else {
                 // TODO: Need to implement the serialization or we can't write strings
                 throw new NotImplementedException("Serializing CHAR not implemented");
@@ -208,7 +206,7 @@ public class StaticHelper {
                 buffer[0] = (byte) stringLength;
                 buffer[1] = (byte) bytes.length;
                 for (byte aByte : buffer) {
-                    io.writeByte(8, aByte);
+                    io.writeByte(aByte);
                 }
             } else {
                 // TODO: Need to implement the serialization or we can't write strings

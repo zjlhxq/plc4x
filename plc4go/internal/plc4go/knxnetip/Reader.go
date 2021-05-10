@@ -16,6 +16,7 @@
 // specific language governing permissions and limitations
 // under the License.
 //
+
 package knxnetip
 
 import (
@@ -201,13 +202,13 @@ func (m Reader) readGroupAddress(field GroupAddressField) (apiModel.PlcResponseC
 				values[stringAddress] = internalValues.NewPlcByteArray(utils.Int8ArrayToByteArray(int8s))
 			} else {
 				// Decode the data according to the fields type
-				rb := utils.NewReadBuffer(utils.Int8ArrayToUint8Array(int8s))
+				rb := utils.NewReadBufferByteBased(utils.Int8ArrayToUint8Array(int8s))
 				if field.GetFieldType() == nil {
 					return apiModel.PlcResponseCode_INVALID_DATATYPE, nil
 				}
 				// If the size of the field is greater than 6, we have to skip the first byte
 				if field.GetFieldType().LengthInBits() > 6 {
-					_, _ = rb.ReadUint8(8)
+					_, _ = rb.ReadUint8("fieldType", 8)
 				}
 				plcValue, err := driverModel.KnxDatapointParse(rb, *field.GetFieldType())
 				// If any of the values doesn't decode correctly, we can't return any

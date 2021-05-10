@@ -16,6 +16,7 @@
 // specific language governing permissions and limitations
 // under the License.
 //
+
 package values
 
 type PlcSimpleValueAdapter struct {
@@ -36,6 +37,14 @@ type PlcSimpleNumericValueAdapter struct {
 
 func (m PlcSimpleNumericValueAdapter) IsBool() bool {
 	return true
+}
+
+func (m PlcSimpleNumericValueAdapter) IsByte() bool {
+	return m.IsUint8()
+}
+
+func (m PlcSimpleNumericValueAdapter) GetByte() byte {
+	return m.GetUint8()
 }
 
 func (m PlcSimpleNumericValueAdapter) IsUint8() bool {

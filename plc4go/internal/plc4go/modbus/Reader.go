@@ -16,6 +16,7 @@
 // specific language governing permissions and limitations
 // under the License.
 //
+
 package modbus
 
 import (
@@ -174,7 +175,7 @@ func (m *Reader) ToPlc4xReadResponse(responseAdu readWriteModel.ModbusTcpADU, re
 		data = utils.Int8ArrayToUint8Array(pdu.Value)
 		// Pure Boolean ...
 	case *readWriteModel.ModbusPDUReadCoilsResponse:
-		pdu := readWriteModel.CastModbusPDUReadCoilsResponse(&responseAdu.Pdu)
+		pdu := readWriteModel.CastModbusPDUReadCoilsResponse(responseAdu.Pdu)
 		data = utils.Int8ArrayToUint8Array(pdu.Value)
 		// Pure Boolean ...
 	case *readWriteModel.ModbusPDUReadInputRegistersResponse:
@@ -200,7 +201,7 @@ func (m *Reader) ToPlc4xReadResponse(responseAdu readWriteModel.ModbusTcpADU, re
 
 	// Decode the data according to the information from the request
 	log.Trace().Msg("decode data")
-	rb := utils.NewReadBuffer(data)
+	rb := utils.NewReadBufferByteBased(data)
 	value, err := readWriteModel.DataItemParse(rb, field.Datatype, field.Quantity)
 	if err != nil {
 		return nil, errors.Wrap(err, "Error parsing data item")

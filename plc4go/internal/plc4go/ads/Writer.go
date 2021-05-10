@@ -16,6 +16,7 @@
 // specific language governing permissions and limitations
 // under the License.
 //
+
 package ads
 
 import (
@@ -38,20 +39,22 @@ type Writer struct {
 	sourceAmsNetId        readWriteModel.AmsNetId
 	sourceAmsPort         uint16
 	messageCodec          spi.MessageCodec
+	reader                *Reader
 }
 
-func NewWriter(messageCodec spi.MessageCodec, targetAmsNetId readWriteModel.AmsNetId, targetAmsPort uint16, sourceAmsNetId readWriteModel.AmsNetId, sourceAmsPort uint16) Writer {
-	return Writer{
+func NewWriter(messageCodec spi.MessageCodec, targetAmsNetId readWriteModel.AmsNetId, targetAmsPort uint16, sourceAmsNetId readWriteModel.AmsNetId, sourceAmsPort uint16, reader *Reader) *Writer {
+	return &Writer{
 		transactionIdentifier: 0,
 		targetAmsNetId:        targetAmsNetId,
 		targetAmsPort:         targetAmsPort,
 		sourceAmsNetId:        sourceAmsNetId,
 		sourceAmsPort:         sourceAmsPort,
 		messageCodec:          messageCodec,
+		reader:                reader,
 	}
 }
 
-func (m Writer) Write(writeRequest model.PlcWriteRequest) <-chan model.PlcWriteRequestResult {
+func (m *Writer) Write(writeRequest model.PlcWriteRequest) <-chan model.PlcWriteRequestResult {
 	result := make(chan model.PlcWriteRequestResult)
 	go func() {
 		// If we are requesting only one field, use a
@@ -67,6 +70,28 @@ func (m Writer) Write(writeRequest model.PlcWriteRequest) <-chan model.PlcWriteR
 
 		// Get the ads field instance from the request
 		field := writeRequest.GetField(fieldName)
+		if needsResolving(field) {
+			adsField, err := castToSymbolicPlcFieldFromPlcField(field)
+			if err != nil {
+				result <- model.PlcWriteRequestResult{
+					Request:  writeRequest,
+					Response: nil,
+					Err:      errors.Wrap(err, "invalid field item type"),
+				}
+				log.Debug().Msgf("Invalid field item type %T", field)
+				return
+			}
+			field, err = m.reader.resolveField(adsField)
+			if err != nil {
+				result <- model.PlcWriteRequestResult{
+					Request:  writeRequest,
+					Response: nil,
+					Err:      errors.Wrap(err, "invalid field item type"),
+				}
+				log.Debug().Msgf("Invalid field item type %T", field)
+				return
+			}
+		}
 		adsField, err := castToDirectAdsFieldFromPlcField(field)
 		if err != nil {
 			result <- model.PlcWriteRequestResult{
@@ -79,7 +104,7 @@ func (m Writer) Write(writeRequest model.PlcWriteRequest) <-chan model.PlcWriteR
 
 		// Get the value from the request and serialize it to a byte array
 		value := writeRequest.GetValue(fieldName)
-		io := utils.NewLittleEndianWriteBuffer()
+		io := utils.NewLittleEndianWriteBufferByteBased()
 		if err := readWriteModel.DataItemSerialize(io, value, adsField.Datatype.DataFormatName(), adsField.StringLength); err != nil {
 			result <- model.PlcWriteRequestResult{
 				Request:  writeRequest,
@@ -119,6 +144,7 @@ func (m Writer) Write(writeRequest model.PlcWriteRequest) <-chan model.PlcWriteR
 		}
 
 		// Calculate a new unit identifier
+		// TODO: this is not threadsafe as the whole operation is not atomic
 		transactionIdentifier := atomic.AddUint32(&m.transactionIdentifier, 1)
 		if transactionIdentifier > math.MaxUint8 {
 			transactionIdentifier = 0
@@ -170,7 +196,7 @@ func (m Writer) Write(writeRequest model.PlcWriteRequest) <-chan model.PlcWriteR
 	return result
 }
 
-func (m Writer) ToPlc4xWriteResponse(requestTcpPaket readWriteModel.AmsTCPPacket, responseTcpPaket readWriteModel.AmsTCPPacket, writeRequest model.PlcWriteRequest) (model.PlcWriteResponse, error) {
+func (m *Writer) ToPlc4xWriteResponse(requestTcpPaket readWriteModel.AmsTCPPacket, responseTcpPaket readWriteModel.AmsTCPPacket, writeRequest model.PlcWriteRequest) (model.PlcWriteResponse, error) {
 	responseCodes := map[string]model.PlcResponseCode{}
 	fieldName := writeRequest.GetFieldNames()[0]
 

@@ -16,6 +16,7 @@
 // specific language governing permissions and limitations
 // under the License.
 //
+
 package tests
 
 import (
@@ -26,11 +27,5 @@ import (
 )
 
 func TestAdsDriver(t *testing.T) {
-	//t.Skip("Still a work in progress")
-	testutils.RunDriverTestsuite(t, ads.NewDriver(), "assets/testing/protocols/ads/DriverTestsuite.xml",
-		// TODO: tests assumes proper multi requests which is currently not implemented yet
-		"Multi-element direct read request",
-		// TODO: test fails with "testcase read-request result channel already occupied". Probably a bug in the test runner
-		"Single element symbolic read request (Address previously resolved)",
-	)
+	testutils.RunDriverTestsuite(t, ads.NewDriver(), "assets/testing/protocols/ads/DriverTestsuite.xml")
 }

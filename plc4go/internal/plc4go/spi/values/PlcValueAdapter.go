@@ -16,6 +16,7 @@
 // specific language governing permissions and limitations
 // under the License.
 //
+
 package values
 
 import (
@@ -25,7 +26,6 @@ import (
 
 // Dummy structure
 type PlcValueAdapter struct {
-	api.PlcValue
 }
 
 // Simple Types
@@ -57,6 +57,14 @@ func (m PlcValueAdapter) GetBoolAt(index uint32) bool {
 }
 func (m PlcValueAdapter) GetBoolArray() []bool {
 	return nil
+}
+
+func (m PlcValueAdapter) IsByte() bool {
+	return m.IsUint8()
+}
+
+func (m PlcValueAdapter) GetByte() byte {
+	return m.GetUint8()
 }
 
 // Integer
@@ -158,13 +166,10 @@ func (m PlcValueAdapter) GetLength() uint32 {
 	return 1
 }
 func (m PlcValueAdapter) GetIndex(i uint32) api.PlcValue {
-	if i == 0 {
-		return m
-	}
 	return nil
 }
 func (m PlcValueAdapter) GetList() []api.PlcValue {
-	return []api.PlcValue{m}
+	return []api.PlcValue{}
 }
 
 // Struct Methods
@@ -182,4 +187,16 @@ func (m PlcValueAdapter) GetValue(key string) api.PlcValue {
 }
 func (m PlcValueAdapter) GetStruct() map[string]api.PlcValue {
 	return nil
+}
+func (m PlcValueAdapter) IsDate() bool {
+	return false
+}
+func (m PlcValueAdapter) GetDate() time.Time {
+	return time.Time{}
+}
+func (m PlcValueAdapter) IsDateTime() bool {
+	return false
+}
+func (m PlcValueAdapter) GetDateTime() time.Time {
+	return time.Time{}
 }

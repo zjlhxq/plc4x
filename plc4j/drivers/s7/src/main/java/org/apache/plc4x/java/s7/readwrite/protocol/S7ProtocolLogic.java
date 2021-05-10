@@ -30,6 +30,7 @@ import org.apache.plc4x.java.api.messages.PlcWriteResponse;
 import org.apache.plc4x.java.api.model.PlcField;
 import org.apache.plc4x.java.api.types.PlcResponseCode;
 import org.apache.plc4x.java.spi.values.PlcList;
+import org.apache.plc4x.java.spi.generation.*;
 import org.apache.plc4x.java.spi.values.PlcNull;
 import org.apache.plc4x.java.api.value.PlcValue;
 import org.apache.plc4x.java.spi.values.IEC61131ValueHandler;
@@ -42,9 +43,6 @@ import org.apache.plc4x.java.s7.readwrite.field.S7Field;
 import org.apache.plc4x.java.spi.ConversationContext;
 import org.apache.plc4x.java.spi.Plc4xProtocolBase;
 import org.apache.plc4x.java.spi.context.DriverContext;
-import org.apache.plc4x.java.spi.generation.ParseException;
-import org.apache.plc4x.java.spi.generation.ReadBuffer;
-import org.apache.plc4x.java.spi.generation.WriteBuffer;
 import org.apache.plc4x.java.spi.messages.DefaultPlcReadRequest;
 import org.apache.plc4x.java.spi.messages.DefaultPlcReadResponse;
 import org.apache.plc4x.java.spi.messages.DefaultPlcWriteRequest;
@@ -520,7 +518,7 @@ public class S7ProtocolLogic extends Plc4xProtocolBase<TPKTPacket> {
             if (plcValue instanceof PlcList) {
                 ByteArrayOutputStream os = new ByteArrayOutputStream();
                 ((ArrayList) plcValue.getObject()).forEach(o -> {
-                        WriteBuffer writeBuffer = null;
+                    WriteBufferByteBased writeBuffer = null;
                         try {
                             writeBuffer = DataItemIO.staticSerialize((PlcValue) o,
                                 field.getDataType().getDataProtocolId(),
@@ -539,7 +537,7 @@ public class S7ProtocolLogic extends Plc4xProtocolBase<TPKTPacket> {
                 );
                 return new S7VarPayloadDataItem(DataTransportErrorCode.OK, transportSize, os.toByteArray());
             } else {
-                WriteBuffer writeBuffer = DataItemIO.staticSerialize(plcValue, field.getDataType().getDataProtocolId(),
+                WriteBufferByteBased writeBuffer = DataItemIO.staticSerialize(plcValue, field.getDataType().getDataProtocolId(),
                     stringLength);
                 if (writeBuffer != null) {
                     byte[] data = writeBuffer.getData();
@@ -553,7 +551,7 @@ public class S7ProtocolLogic extends Plc4xProtocolBase<TPKTPacket> {
     }
 
     private PlcValue parsePlcValue(S7Field field, ByteBuf data) {
-        ReadBuffer readBuffer = new ReadBuffer(data.array());
+        ReadBuffer readBuffer = new ReadBufferByteBased(data.array());
         try {
             int stringLength = (field instanceof S7StringField) ? ((S7StringField) field).getStringLength() : 254;
             if (field.getNumberOfElements() == 1) {
