@@ -34,6 +34,7 @@ public class Sink extends AbstractConfig{
     private final String name;
     private final String connectionString;
     private final String topic;
+    private final String schemaName;
     private final Integer retries;
     private final Integer timeout;
     private final List<Field> fields;
@@ -43,6 +44,7 @@ public class Sink extends AbstractConfig{
         this.name = name;
         this.connectionString = getString(Constants.CONNECTION_STRING_CONFIG);
         this.topic = getString(Constants.TOPIC_CONFIG);
+        this.schemaName = getString(Constants.SCHEMA_NAME_CONFIG);
         this.retries = getInt(Constants.RETRIES_CONFIG);
         this.timeout = getInt(Constants.TIMEOUT_CONFIG);
 
@@ -80,6 +82,10 @@ public class Sink extends AbstractConfig{
         return topic;
     }
 
+    public String getSchemaName() {
+        return schemaName;
+    }
+
     public Integer getRetries() {
         return retries;
     }
@@ -102,6 +108,11 @@ public class Sink extends AbstractConfig{
                     ConfigDef.Type.STRING,
                     ConfigDef.Importance.LOW,
                     Constants.TOPIC_DOC)
+            .define(Constants.SCHEMA_NAME_CONFIG,
+                    ConfigDef.Type.STRING,
+                    Constants.SCHEMA_NAME_DEFAULT,
+                    ConfigDef.Importance.LOW,
+                    Constants.SCHEMA_NAME_DOC)
             .define(Constants.RETRIES_CONFIG,
                     ConfigDef.Type.INT,
                     Constants.RETRIES_DEFAULT,
@@ -124,6 +135,7 @@ public class Sink extends AbstractConfig{
         StringBuilder query = new StringBuilder();
         query.append(Constants.CONNECTION_STRING_CONFIG + "=" + connectionString + ",\n");
         query.append(Constants.TOPIC_CONFIG + "=" + topic + ",\n");
+        query.append(Constants.SCHEMA_NAME_CONFIG + "=" + schemaName + ",\n");
         query.append(Constants.RETRIES_CONFIG + "=" + retries + ",\n");
         query.append(Constants.TIMEOUT_CONFIG + "=" + timeout + ",\n");
         for (Field field : fields) {

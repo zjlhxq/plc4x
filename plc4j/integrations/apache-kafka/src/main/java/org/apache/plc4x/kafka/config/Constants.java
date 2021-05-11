@@ -35,6 +35,10 @@ public class Constants {
     public static final String TOPIC_DOC = "Kafka topic to be used";
     public static final String TOPIC_DEFAULT = null;
 
+    public static final String SCHEMA_NAME_CONFIG = "schemaName";
+    public static final String SCHEMA_NAME_DOC = "Schema name to be used";
+    public static final String SCHEMA_NAME_DEFAULT = null;
+
     public static final String INTERVAL_CONFIG = "interval";
 
     public static final String FIELDS_CONFIG = "fields";

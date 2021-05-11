@@ -67,6 +67,9 @@ public class Plc4xSinkTask extends SinkTask {
     static final String PLC4X_TOPIC_CONFIG = "topic";
     private static final String PLC4X_TOPIC_DOC = "Task Topic";
 
+    static final String PLC4X_SCHEMA_NAME_CONFIG = "schemaName";
+    private static final String PLC4X_SCHEMA_NAME_DOC = "Task schema name";
+
     private static final String PLC4X_RETRIES_CONFIG = "retries";
     private static final String PLC4X_RETRIES_DOC = "Number of times to retry after failed write";
 
@@ -90,6 +93,10 @@ public class Plc4xSinkTask extends SinkTask {
             ConfigDef.Type.STRING,
             ConfigDef.Importance.HIGH,
             PLC4X_TOPIC_DOC)
+        .define(PLC4X_SCHEMA_NAME_CONFIG,
+            ConfigDef.Type.STRING,
+            ConfigDef.Importance.HIGH,
+            PLC4X_SCHEMA_NAME_DOC)
         .define(PLC4X_RETRIES_CONFIG,
             ConfigDef.Type.INT,
             ConfigDef.Importance.HIGH,
@@ -133,6 +140,7 @@ public class Plc4xSinkTask extends SinkTask {
         remainingRetries = new HashMap<>();
         SinkConfig sinkConfig = new SinkConfig(props);
         for (Sink sink : sinkConfig.getSinks()) {
+            String topicSchema = sink.getTopic() + "|" + sink.getSchemaName();
             StringBuilder query = new StringBuilder();
 
             for (org.apache.plc4x.kafka.config.Field field : sink.getFields()) {
@@ -140,7 +148,7 @@ public class Plc4xSinkTask extends SinkTask {
                 String fieldAddress = field.getAddress();
                 query.append("|").append(fieldName).append("#").append(fieldAddress);
 
-                fields.put(sink.getTopic() + "." + fieldName, fieldAddress);
+                fields.put(topicSchema + "|" + "." + fieldName, fieldAddress);
             }
 
             // Create a new task configuration.
@@ -148,12 +156,13 @@ public class Plc4xSinkTask extends SinkTask {
             taskConfig.put(Constants.CONNECTION_NAME_CONFIG, sink.getName());
             taskConfig.put(Constants.CONNECTION_STRING_CONFIG, sink.getConnectionString());
             taskConfig.put(Constants.TOPIC_CONFIG, sink.getTopic());
+            taskConfig.put(Constants.SCHEMA_NAME_CONFIG,sink.getSchemaName());
             taskConfig.put(Constants.RETRIES_CONFIG, sink.getRetries().toString());
             taskConfig.put(Constants.TIMEOUT_CONFIG, sink.getTimeout().toString());
             taskConfig.put(Constants.QUERIES_CONFIG, query.toString().substring(1));
 
-            config.put(sink.getTopic(), new AbstractConfig(CONFIG_DEF, taskConfig));
-            remainingRetries.put(sink.getTopic(), sink.getRetries());
+            config.put(topicSchema, new AbstractConfig(CONFIG_DEF, taskConfig));
+            remainingRetries.put(topicSchema, sink.getRetries());
         }
 
         log.info("Creating Pooled PLC4x driver manager");
@@ -174,8 +183,8 @@ public class Plc4xSinkTask extends SinkTask {
         }
 
         for (SinkRecord r : records) {
-            String topic = r.topic();
-            AbstractConfig taskConfig = config.get(topic);
+            String topicSchema = r.topic()+ "|" + r.valueSchema().name();
+            AbstractConfig taskConfig = config.get(topicSchema);
             plc4xConnectionString = taskConfig.getString(PLC4X_CONNECTION_STRING_CONFIG);
             plc4xTopic = taskConfig.getString(PLC4X_TOPIC_CONFIG);
             plc4xRetries = taskConfig.getInt(PLC4X_RETRIES_CONFIG);
@@ -186,8 +195,8 @@ public class Plc4xSinkTask extends SinkTask {
                 connection = driverManager.getConnection(plc4xConnectionString);
             } catch (PlcConnectionException e) {
                 log.warn("Failed to Open Connection {}", plc4xConnectionString);
-                remainingRetries.put(topic, remainingRetries.get(topic) - 1);
-                if (remainingRetries.get(topic) > 0) {
+                remainingRetries.put(topicSchema, remainingRetries.get(topicSchema) - 1);
+                if (remainingRetries.get(topicSchema) > 0) {
                     if (context != null) {
                         context.timeout(plc4xTimeout);
                     }
@@ -207,12 +216,9 @@ public class Plc4xSinkTask extends SinkTask {
             for (Field plcField : plcFieldsSchema.fields()) {
                 String field = plcField.name();
                 Object value = plcFields.get(field);
-                field = topic + "." + field;
+                field = topicSchema + "." + field;
                 if (value != null) {
-                    //Discard records we are not or no longer interested in.
-                    if (!topic.equals(plc4xTopic) || plc4xTopic.equals("")) {
-                        log.debug("Ignoring write request received on wrong topic");
-                    } else if (!fields.containsKey(field)) {
+                    if (!fields.containsKey(field)) {
                         log.warn("Unable to find address for field " + field);
                     } else {
                         String address = fields.get(field);
@@ -264,8 +270,8 @@ public class Plc4xSinkTask extends SinkTask {
                     writeRequest.execute().get();
                     log.debug("Wrote records to {}", plc4xConnectionString);
                 } catch (Exception e) {
-                    remainingRetries.put(topic, remainingRetries.get(topic) - 1);
-                    if (remainingRetries.get(topic) > 0) {
+                    remainingRetries.put(topicSchema, remainingRetries.get(topicSchema) - 1);
+                    if (remainingRetries.get(topicSchema) > 0) {
                         if (context != null) {
                             context.timeout(plc4xTimeout);
                         }
@@ -286,7 +292,7 @@ public class Plc4xSinkTask extends SinkTask {
                 log.warn("Failed to Close {}", plc4xConnectionString);
             }
 
-            remainingRetries.put(topic, plc4xRetries);
+            remainingRetries.put(topicSchema, plc4xRetries);
         }
         return;
     }
