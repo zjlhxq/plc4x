@@ -18,11 +18,28 @@ under the License.
 */
 package org.apache.plc4x.kafka;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.kafka.common.config.AbstractConfig;
 import org.apache.kafka.common.config.ConfigDef;
-import org.apache.kafka.connect.data.*;
 import org.apache.kafka.connect.data.Date;
+import org.apache.kafka.connect.data.Schema;
+import org.apache.kafka.connect.data.SchemaBuilder;
+import org.apache.kafka.connect.data.Struct;
+import org.apache.kafka.connect.data.Time;
+import org.apache.kafka.connect.data.Timestamp;
 import org.apache.kafka.connect.errors.ConnectException;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.kafka.connect.source.SourceTask;
@@ -41,20 +58,11 @@ import org.apache.plc4x.kafka.util.VersionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
 /**
- * Source Connector Task polling the data source at a given rate.
- * A timer thread is scheduled which sets the fetch flag to true every rate milliseconds.
- * When poll() is invoked, the calling thread waits until the fetch flag is set for WAIT_LIMIT_MILLIS.
- * If the flag does not become true, the method returns null, otherwise a fetch is performed.
+ * Source Connector Task polling the data source at a given rate. A timer thread is scheduled which
+ * sets the fetch flag to true every rate milliseconds. When poll() is invoked, the calling thread
+ * waits until the fetch flag is set for WAIT_LIMIT_MILLIS. If the flag does not become true, the
+ * method returns null, otherwise a fetch is performed.
  */
 public class Plc4xSourceTask extends SourceTask {
 
@@ -85,7 +93,6 @@ public class Plc4xSourceTask extends SourceTask {
             Constants.QUERIES_DOC);
 
 
-
     // Internal buffer into which all incoming scraper responses are written to.
     private ArrayBlockingQueue<SourceRecord> buffer;
     private Integer pollReturnInterval;
@@ -107,6 +114,7 @@ public class Plc4xSourceTask extends SourceTask {
         Map<String, String> topics = new HashMap<>();
         Map<String, String> schemaNames = new HashMap<>();
         Map<String, List<String>> fields = new HashMap<>();
+        Map<String, Integer> indexes = new HashMap<>();
         // Create a buffer with a capacity of BUFFER_SIZE_CONFIG elements which schedules access in a fair way.
         buffer = new ArrayBlockingQueue<>(bufferSize, true);
 
@@ -118,8 +126,9 @@ public class Plc4xSourceTask extends SourceTask {
             String[] jobConfigSegments = jobConfig.split("\\|");
             if (jobConfigSegments.length < 5) {
                 log.warn(String.format("Error in job configuration '%s'. " +
-                    "The configuration expects at least 5 segments: " +
-                    "{job-name}|{topic}|{schema-name}|{rate}(|{field-alias}#{field-address})+", jobConfig));
+                        "The configuration expects at least 5 segments: " +
+                        "{job-name}|{topic}|{schema-name}|{rate}(|{field-alias}#{field-address})+",
+                    jobConfig));
                 continue;
             }
 
@@ -140,10 +149,14 @@ public class Plc4xSourceTask extends SourceTask {
                 }
                 String fieldAlias = fieldSegments[0];
                 String fieldAddress = fieldSegments[1];
-                jobBuilder.field(fieldAlias, fieldAddress);
                 topics.put(jobName, topic);
                 schemaNames.put(jobName, schemaName);
                 fieldList.add(fieldAlias);
+                if (fieldAlias.equals("index")) {
+                    indexes.put(jobName, Integer.parseInt(fieldAddress));
+                } else {
+                    jobBuilder.field(fieldAlias, fieldAddress);
+                }
             }
             fields.put(jobName, fieldList);
             jobBuilder.build();
@@ -172,7 +185,8 @@ public class Plc4xSourceTask extends SourceTask {
 
                 List<String> fieldNameList = fields.get(jobName);
                 for (String fieldName : fieldNameList) {
-                    Object fieldValue = results.get(fieldName);
+                    Object fieldValue =
+                        fieldName.equals("index") ? indexes.get(jobName) : results.get(fieldName);
 
                     // Get the schema for the given value type.
                     Schema valueSchema = getSchema(fieldValue);
@@ -195,6 +209,10 @@ public class Plc4xSourceTask extends SourceTask {
                             .collect((Collectors.toList()));
                     }
                     fieldStruct.put(fieldName, fieldValue);
+                }
+
+                if(fieldSchema.fields().stream().anyMatch(x->x.name().equals("index"))){
+                    fieldStruct.put("index", indexes.get(jobName));
                 }
 
                 // Prepare the source-record element.
@@ -233,7 +251,9 @@ public class Plc4xSourceTask extends SourceTask {
         } else {
             try {
                 List<SourceRecord> result = new ArrayList<>(1);
-                SourceRecord temp = buffer.poll(pollReturnInterval + RandomUtils.nextInt(0, (int) Math.round(pollReturnInterval * 0.05)), TimeUnit.MILLISECONDS);
+                SourceRecord temp = buffer.poll(pollReturnInterval + RandomUtils
+                        .nextInt(0, (int) Math.round(pollReturnInterval * 0.05)),
+                    TimeUnit.MILLISECONDS);
                 if (temp == null) {
                     return null;
                 }
@@ -255,8 +275,9 @@ public class Plc4xSourceTask extends SourceTask {
             }
             // In PLC4X list elements all contain the same type.
             Object firstElement = list.get(0);
-            if (firstElement instanceof PlcValue)
+            if (firstElement instanceof PlcValue) {
                 firstElement = ((PlcValue) firstElement).getObject();
+            }
             Schema elementSchema = getSchema(firstElement);
             return SchemaBuilder.array(elementSchema).build();
         }
@@ -300,7 +321,8 @@ public class Plc4xSourceTask extends SourceTask {
             return Schema.OPTIONAL_STRING_SCHEMA;
         }
         // TODO: add support for collective and complex types
-        throw new ConnectException(String.format("Unsupported data type %s", value.getClass().getName()));
+        throw new ConnectException(
+            String.format("Unsupported data type %s", value.getClass().getName()));
     }
 
 }
