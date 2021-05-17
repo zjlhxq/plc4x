@@ -60,11 +60,11 @@ public class Plc4xSourceConnector extends SourceConnector {
         // But we could easily say that one scraper instance maps to a task and one scraper task can
         // process multiple PLC connections. But I guess this would be an optimization as we have to
         // balance the load manually.
-        if(sourceConfig.getJobs().size() > maxTasks) {
-            // not enough tasks
-            log.warn("NOT ENOUGH TASKS!");
-            return Collections.emptyList();
-        }
+//        if(sourceConfig.getJobs().size() > maxTasks) {
+//            // not enough tasks
+//            log.warn("NOT ENOUGH TASKS!");
+//            return Collections.emptyList();
+//        }
 
         // For each configured source we'll start a dedicated scraper instance collecting
         // all the scraper jobs enabled for this source.
