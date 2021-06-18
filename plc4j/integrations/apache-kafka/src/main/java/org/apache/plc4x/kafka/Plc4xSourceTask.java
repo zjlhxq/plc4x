@@ -114,7 +114,7 @@ public class Plc4xSourceTask extends SourceTask {
         Map<String, String> topics = new HashMap<>();
         Map<String, String> schemaNames = new HashMap<>();
         Map<String, List<String>> fields = new HashMap<>();
-        Map<String, Integer> indexes = new HashMap<>();
+        Map<String, Map<String, Integer>> constantValues = new HashMap<>();
         // Create a buffer with a capacity of BUFFER_SIZE_CONFIG elements which schedules access in a fair way.
         buffer = new ArrayBlockingQueue<>(bufferSize, true);
 
@@ -133,6 +133,7 @@ public class Plc4xSourceTask extends SourceTask {
             }
 
             List<String> fieldList = new ArrayList<>();
+            Map<String, Integer> constantValueMaps = new HashMap<>();
             String jobName = jobConfigSegments[0];
             String topic = jobConfigSegments[1];
             String schemaName = jobConfigSegments[2];
@@ -152,13 +153,14 @@ public class Plc4xSourceTask extends SourceTask {
                 topics.put(jobName, topic);
                 schemaNames.put(jobName, schemaName);
                 fieldList.add(fieldAlias);
-                if (fieldAlias.equals("index")) {
-                    indexes.put(jobName, Integer.parseInt(fieldAddress));
+                if (fieldAddress.matches("[0-9]+")) {
+                    constantValueMaps.put(fieldAlias, Integer.parseInt(fieldAddress));
                 } else {
                     jobBuilder.field(fieldAlias, fieldAddress);
                 }
             }
             fields.put(jobName, fieldList);
+            constantValues.put(jobName, constantValueMaps);
             jobBuilder.build();
         }
 
@@ -184,9 +186,11 @@ public class Plc4xSourceTask extends SourceTask {
                     .name(schemaName);
 
                 List<String> fieldNameList = fields.get(jobName);
+                Map<String, Integer> constantValueMap = constantValues.get(jobName);
                 for (String fieldName : fieldNameList) {
                     Object fieldValue =
-                        fieldName.equals("index") ? indexes.get(jobName) : results.get(fieldName);
+                        constantValueMap.containsKey(fieldName) ? constantValueMap.get(fieldName)
+                            : results.get(fieldName);
 
                     // Get the schema for the given value type.
                     Schema valueSchema = getSchema(fieldValue);
@@ -211,9 +215,8 @@ public class Plc4xSourceTask extends SourceTask {
                     fieldStruct.put(fieldName, fieldValue);
                 }
 
-                if(fieldSchema.fields().stream().anyMatch(x->x.name().equals("index"))){
-                    fieldStruct.put("index", indexes.get(jobName));
-                }
+                //Put constant value to field struct struct
+                constantValueMap.forEach((key, value) -> fieldStruct.put(key, value));
 
                 // Prepare the source-record element.
                 SourceRecord record = new SourceRecord(
